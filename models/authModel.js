@@ -1,0 +1,1 @@
+//SQL queries para sa authentication.

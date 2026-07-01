@@ -1,0 +1,1 @@
+//Ito ang iisang MySQL connection ng buong system.

@@ -1,0 +1,1 @@
+//logic para sa lahat ng Admin modules.

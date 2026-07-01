@@ -1,0 +1,1 @@
+//logic para sa login, register, logout, at authentication.

@@ -2,7 +2,7 @@ const express = require('express');
 const app = express();
 
 app.get('/', (req, res) => {
-    res.send('PAWSsion Server Running');
+    res.send('PAWPON Server Running');
 });
 
 app.listen(3000, () => {
