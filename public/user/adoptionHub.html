@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Adoption Hub</title>
+
+    <!-- Tailwind via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+
+    <!-- Google Font: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet" />
+
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f3f4f6;
+        }
+
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        .image-scale {
+            transition: transform 0.5s ease;
+        }
+        .group:hover .image-scale {
+            transform: scale(1.05);
+        }
+
+        /* Hide/show views */
+        #list-view {
+            display: block;
+        }
+        #details-view {
+            display: none;
+        }
+        .hidden-view {
+            display: none !important;
+        }
+    </style>
+</head>
+
+<body class="bg-white">
+
+    <!-- ===== SIDEBAR ===== -->
+    <div id="sidebar"></div>
+
+    <!-- ===== MAIN CONTENT ===== -->
+<main class="flex-1 ml-64 min-h-screen bg-gray-50 flex flex-col">
+        <!-- ===== HEADER ===== -->
+        <div id="header" class="sticky top-0 z-20 bg-white"></div>
+
+        <!-- ===== ADOPTION HUB ===== -->
+        <div class="p-6">
+            <div class="max-w-7xl mx-auto">
+
+                <!-- HEADER -->
+                <div class="mb-8">
+                    <h1 class="text-3xl font-bold text-gray-800">Adoption Hub</h1>
+                    <p class="text-gray-500 mt-2">Find your perfect furry companion 🐾</p>
+                </div>
+
+                <!-- SEARCH & FILTER -->
+                <div id="search-bar" class="bg-white rounded-2xl shadow-sm p-4 mb-8 flex flex-col md:flex-row gap-4">
+                    <input
+                        type="text"
+                        id="search-input"
+                        placeholder="Search pet name or breed..."
+                        class="flex-1 border border-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-400"
+                    />
+                    <select
+                        id="type-filter"
+                        class="border border-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-400"
+                    >
+                        <option value="All">All Types</option>
+                        <option value="Dog">Dog</option>
+                        <option value="Cat">Cat</option>
+                    </select>
+                </div>
+
+                <!-- LIST VIEW (Grid) -->
+                <div id="list-view">
+                    <div id="pet-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <!-- Cards rendered by JS -->
+                    </div>
+                </div>
+
+                <!-- DETAILS VIEW -->
+                <div id="details-view">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+
+                        <!-- Left: Image -->
+                        <div class="bg-white rounded-3xl shadow-sm overflow-hidden">
+                            <div class="relative">
+                                <img id="detail-image" src="" alt="" class="w-full h-[500px] object-cover" />
+                                <span id="detail-status-badge" class="absolute top-5 right-5 bg-green-400 text-white text-sm font-semibold px-4 py-2 rounded-full shadow-lg"></span>
+                            </div>
+                        </div>
+
+                        <!-- Right: Details -->
+                        <div class="bg-white rounded-3xl shadow-sm p-8">
+
+                            <!-- Back button -->
+                            <button id="back-btn" class="flex items-center gap-2 text-blue-600 font-medium hover:text-blue-700 mb-6">
+                                <i class="fas fa-arrow-left"></i> Back to Pets
+                            </button>
+
+                            <!-- Title -->
+                            <div class="mb-6">
+                                <h1 id="detail-name" class="text-3xl font-bold text-gray-800 uppercase"></h1>
+                                <p id="detail-breed" class="text-gray-500 mt-2 text-lg"></p>
+                            </div>
+
+                            <!-- Details -->
+                            <div class="space-y-5">
+                                <div class="flex gap-4">
+                                    <i class="fas fa-paw text-blue-600 mt-1"></i>
+                                    <div>
+                                        <p class="font-semibold text-gray-800">Type of Animal</p>
+                                        <p id="detail-type" class="text-gray-500"></p>
+                                    </div>
+                                </div>
+                                <div class="flex gap-4">
+                                    <i class="fas fa-birthday-cake text-blue-600 mt-1"></i>
+                                    <div>
+                                        <p class="font-semibold text-gray-800">Age</p>
+                                        <p id="detail-age" class="text-gray-500"></p>
+                                    </div>
+                                </div>
+                                <div class="flex gap-4">
+                                    <i id="detail-gender-icon" class="fas fa-mars text-blue-600 mt-1"></i>
+                                    <div>
+                                        <p class="font-semibold text-gray-800">Gender</p>
+                                        <p id="detail-gender" class="text-gray-500"></p>
+                                    </div>
+                                </div>
+                                <div class="flex gap-4">
+                                    <i class="fas fa-heart text-blue-600 mt-1"></i>
+                                    <div>
+                                        <p class="font-semibold text-gray-800">Color & Marking</p>
+                                        <p id="detail-color" class="text-gray-500"></p>
+                                    </div>
+                                </div>
+                                <div class="flex gap-4">
+                                    <i class="fas fa-shield-alt text-blue-600 mt-1"></i>
+                                    <div>
+                                        <p class="font-semibold text-gray-800">Behavior</p>
+                                        <p id="detail-behavior" class="text-gray-500 leading-relaxed"></p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Organization -->
+                            <div class="bg-gray-50 rounded-2xl p-5 mt-8 border border-gray-100">
+                                <p class="text-sm text-gray-400 mb-2">Organization</p>
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <h3 class="font-bold text-gray-800">PAWSsion Benevolence Circle</h3>
+                                        <p class="text-gray-500 text-sm">Since 2022</p>
+                                    </div>
+                                    <span class="bg-green-100 text-green-700 text-xs font-semibold px-3 py-1 rounded-full">Verified</span>
+                                </div>
+                            </div>
+
+                            <!-- Start Adoption Button -->
+                            <button id="adopt-btn" class="w-full bg-blue-600 hover:bg-blue-700 transition text-white font-semibold py-4 rounded-2xl mt-8 shadow-lg">
+                                Start Adoption Process
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </main>
+
+    <!-- ===== LOAD SIDEBAR & HEADER ===== -->
+    <script>
+        async function loadComponent(id, file) {
+            try {
+                const response = await fetch(file);
+                if (!response.ok) {
+                    throw new Error(`Cannot load ${file}`);
+                }
+                document.getElementById(id).innerHTML = await response.text();
+            } catch (error) {
+                console.error(error);
+            }
+        }
+
+        loadComponent("sidebar", "/user/userSidebar.html");
+        loadComponent("header", "/user/userHeader.html");
+    </script>
+
+    <!-- ===== ADOPTION HUB SCRIPT ===== -->
+    <script>
+        // ===== PET DATA =====
+        const petsData = [
+            {
+                name: "Adobo",
+                type: "Dog",
+                breed: "Aspin",
+                gender: "Male",
+                age: "Approximately 4–5 yrs old",
+                color: "Brown and white on extremities & tail",
+                behavior: "Very friendly, active, allows human interaction and petting",
+                status: "Available",
+                img: "https://placedog.net/400/500?id=1"
+            },
+            {
+                name: "Sadboi",
+                type: "Dog",
+                breed: "Beagle",
+                gender: "Male",
+                age: "2 yrs old",
+                color: "Black and white",
+                behavior: "Sweet and calm",
+                status: "Available",
+                img: "https://placedog.net/400/500?id=2"
+            },
+            {
+                name: "Lebron",
+                type: "Dog",
+                breed: "Golden Retriever",
+                gender: "Male",
+                age: "3 yrs old",
+                color: "Brown",
+                behavior: "Playful and energetic",
+                status: "Available",
+                img: "https://placedog.net/400/500?id=3"
+            },
+            {
+                name: "Bloop",
+                type: "Cat",
+                breed: "British Shorthair",
+                gender: "Female",
+                age: "1 yr old",
+                color: "White and orange",
+                behavior: "Very clingy and cute",
+                status: "Available",
+                img: "https://placekitten.com/400/500"
+            },
+            {
+                name: "Mandy",
+                type: "Dog",
+                breed: "Corgi",
+                gender: "Female",
+                age: "2 yrs old",
+                color: "Brown",
+                behavior: "Loves cuddles",
+                status: "Available",
+                img: "https://placedog.net/400/500?id=4"
+            },
+            {
+                name: "Albie",
+                type: "Cat",
+                breed: "Ragdoll",
+                gender: "Male",
+                age: "1 yr old",
+                color: "Cream",
+                behavior: "Quiet and sweet",
+                status: "Available",
+                img: "https://placekitten.com/401/500"
+            }
+        ];
+
+        // ===== STATE =====
+        let currentSearch = "";
+        let currentType = "All";
+        let selectedPet = null;
+
+        // ===== DOM REFS =====
+        const grid = document.getElementById('pet-grid');
+        const listView = document.getElementById('list-view');
+        const detailsView = document.getElementById('details-view');
+        const searchInput = document.getElementById('search-input');
+        const typeFilter = document.getElementById('type-filter');
+        const backBtn = document.getElementById('back-btn');
+        const adoptBtn = document.getElementById('adopt-btn');
+
+        const detailImage = document.getElementById('detail-image');
+        const detailStatusBadge = document.getElementById('detail-status-badge');
+        const detailName = document.getElementById('detail-name');
+        const detailBreed = document.getElementById('detail-breed');
+        const detailType = document.getElementById('detail-type');
+        const detailAge = document.getElementById('detail-age');
+        const detailGender = document.getElementById('detail-gender');
+        const detailGenderIcon = document.getElementById('detail-gender-icon');
+        const detailColor = document.getElementById('detail-color');
+        const detailBehavior = document.getElementById('detail-behavior');
+
+        // ===== RENDER =====
+        function renderGrid() {
+            const filtered = petsData.filter(pet => {
+                const searchMatch = pet.name.toLowerCase().includes(currentSearch.toLowerCase()) ||
+                                   pet.breed.toLowerCase().includes(currentSearch.toLowerCase());
+                const typeMatch = currentType === "All" || pet.type === currentType;
+                return searchMatch && typeMatch;
+            });
+
+            if (filtered.length === 0) {
+                grid.innerHTML = `<div class="col-span-full text-center text-gray-500 py-12">No pets found matching your criteria.</div>`;
+                return;
+            }
+
+            let html = '';
+            filtered.forEach(pet => {
+                const genderIcon = pet.gender === "Male" ? "fa-mars text-blue-600" : "fa-venus text-pink-500";
+                html += `
+                    <div class="pet-card bg-white rounded-2xl overflow-hidden shadow-sm card-hover cursor-pointer group" data-name="${pet.name}">
+                        <div class="relative overflow-hidden h-64">
+                            <img src="${pet.img}" alt="${pet.name}" class="w-full h-full object-cover image-scale" />
+                            <span class="absolute top-3 right-3 bg-green-400 text-white text-xs font-semibold px-3 py-1 rounded-full shadow">${pet.status}</span>
+                        </div>
+                        <div class="p-4">
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <h2 class="text-xl font-bold text-gray-800">${pet.name}</h2>
+                                    <p class="text-gray-500 text-sm mt-1">${pet.breed}</p>
+                                </div>
+                                <div>
+                                    <i class="fas ${genderIcon} text-lg"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            grid.innerHTML = html;
+
+            document.querySelectorAll('.pet-card').forEach(card => {
+                card.addEventListener('click', function() {
+                    const name = this.dataset.name;
+                    const pet = petsData.find(p => p.name === name);
+                    if (pet) showDetails(pet);
+                });
+            });
+        }
+
+        function showDetails(pet) {
+            selectedPet = pet;
+            listView.classList.add('hidden-view');
+            detailsView.style.display = 'block';
+
+            detailImage.src = pet.img;
+            detailImage.alt = pet.name;
+            detailStatusBadge.textContent = pet.status;
+            detailName.textContent = pet.name;
+            detailBreed.textContent = pet.breed;
+            detailType.textContent = pet.type;
+            detailAge.textContent = pet.age;
+            detailGender.textContent = pet.gender;
+            detailColor.textContent = pet.color;
+            detailBehavior.textContent = pet.behavior;
+
+            if (pet.gender === "Male") {
+                detailGenderIcon.className = "fas fa-mars text-blue-600 mt-1";
+            } else {
+                detailGenderIcon.className = "fas fa-venus text-pink-500 mt-1";
+            }
+        }
+
+        function goBack() {
+            detailsView.style.display = 'none';
+            listView.classList.remove('hidden-view');
+            selectedPet = null;
+        }
+
+        // ===== EVENT LISTENERS =====
+        searchInput.addEventListener('input', function() {
+            currentSearch = this.value;
+            renderGrid();
+        });
+
+        typeFilter.addEventListener('change', function() {
+            currentType = this.value;
+            renderGrid();
+        });
+
+        backBtn.addEventListener('click', goBack);
+
+        adoptBtn.addEventListener('click', function() {
+            if (selectedPet) {
+                alert(`Starting adoption process for ${selectedPet.name}!`);
+                // Redirect to adoption form: window.location.href = "/adoption-form";
+            }
+        });
+
+        // ===== INIT =====
+        renderGrid();
+    </script>
+
+</body>
+</html>

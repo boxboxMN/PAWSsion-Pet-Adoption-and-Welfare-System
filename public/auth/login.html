@@ -1,5 +1,677 @@
-Authentication pages (Login, Register, Forgot Password).etc
+<!DOCTYPE html>
+<html>
 
-Bakit hiwalay ang auth? sa index.html
+<head>
+<title>Pawpon Login</title>
 
-Dahil parehong gagamit nito ang User, Organization, at Admin.
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:'Segoe UI',sans-serif;
+}
+
+body{
+height:100vh;
+display:flex;
+background:#f6f8ff;
+overflow:hidden;
+}
+
+/* LEFT */
+
+.left{
+width:46%;
+display:flex;
+justify-content:center;
+align-items:center;
+flex-direction:column;
+}
+
+.left img{
+width:180px;
+margin-bottom:10px;
+}
+
+.left h1{
+font-size:70px;
+color:#1656ff;
+font-weight:800;
+}
+
+.left p{
+font-size:18px;
+font-weight:600;
+}
+
+/* RIGHT */
+
+.right{
+
+width:54%;
+
+background:white;
+
+border-top-left-radius:250px;
+
+margin-left:30px;
+
+display:flex;
+
+justify-content:center;
+
+align-items:center;
+
+box-shadow:-5px 0 30px rgba(90, 125, 252, 0.05);
+
+}
+
+/* LOGIN */
+
+.login-box{
+
+width:520px;
+
+}
+
+/* ===================
+HEADER
+=================== */
+
+.header-section{
+
+margin-top:60px; /* adjust */
+margin-left:90px;
+
+}
+
+.header-section h2{
+
+font-size:42px;
+
+font-weight:800;
+
+text-align:center;
+
+margin-bottom:17px;
+
+
+
+}
+
+/* WELCOME HEADER */
+
+.welcome-title{
+
+display:flex;
+
+justify-content:center;
+
+align-items:flex-start;
+
+position:relative;
+
+}
+.welcome-line{
+
+width:30px;
+
+position:absolute;
+
+right:40px;
+
+top:-26px;
+
+transform:rotate(-30deg);
+
+}
+
+.welcome-line2{
+
+width:30px;
+
+position:absolute;
+
+right:20px;
+
+top:-15px;
+
+transform:rotate(2deg);
+
+}
+
+.welcome-line3{
+
+width:30px;
+
+position:absolute;
+
+right:13px;
+
+top:3px;
+
+transform:rotate(27deg);
+
+}
+
+.subtitle{
+
+text-align:center;
+
+font-size:16px;
+
+color:#666;
+
+}
+
+.line{
+
+height:4px;
+
+background:#e5e5e5;
+
+border-radius:10px;
+
+margin-top:35px;
+
+}
+
+/* ===================
+FORM
+=================== */
+
+.form-section{
+
+margin-top:40px;
+
+width:90%;
+
+/* move right */
+margin-left:90px;
+
+}
+
+
+label{
+
+display:block;
+
+font-size:14px;
+
+font-weight:600;
+
+margin-bottom:8px;
+
+}
+
+.input{
+
+margin-bottom:22px;
+
+}
+
+.input input{
+
+width:90%;
+
+padding:10px 16px;
+
+border:1px solid #ddd;
+
+border-radius:10px;
+
+font-size:14px;
+
+}
+
+button{
+
+width:90%;
+
+height:40px;
+
+background:#1656ff;
+
+color:white;
+
+border:none;
+
+border-radius:10px;
+
+font-size:18px;
+
+font-weight:700;
+
+cursor:pointer;
+
+}
+
+/* ===================
+REGISTER
+=================== */
+
+.register-section{
+
+margin-top:20px; /* adjust */
+
+text-align:center;
+
+font-size:14px;
+
+color:#555;
+
+}
+
+.register-section{
+
+width:90%;
+
+margin-left:90px; /* same sa form */
+
+margin-top:20px;
+
+text-align:center;
+
+font-size:14px;
+
+color:#555;
+
+}
+
+/* CLOSE BUTTON */
+
+.close-btn{
+
+position:absolute;
+
+top:20px;
+
+left:20px;
+
+cursor:pointer;
+
+z-index:100;
+
+}
+
+.close-btn img{
+
+width:18px;
+
+height:18px;
+
+opacity:.5;
+
+}
+
+.close-btn img:hover{
+
+opacity:1;
+
+}
+
+/* ===================
+FOOTER
+=================== */
+
+.footer{
+
+width:90%;
+margin-top:80px;
+
+margin-left:90px;
+
+text-align:center;
+
+font-size:12px;
+
+color:#666;
+
+line-height:12px;
+
+}
+
+
+
+
+/* MODAL */
+
+.modal{
+
+display:none;
+
+position:fixed;
+
+top:0;
+
+left:0;
+
+width:100%;
+
+height:100%;
+
+background:rgba(0,0,0,.55);
+
+justify-content:center;
+
+align-items:center;
+
+z-index:999;
+
+}
+
+.modal-box{
+
+width:500px;
+background:white;
+padding:40px;
+border-radius:22px;
+text-align:center;
+}
+
+.modal-logo{
+
+width:60px;
+margin-bottom:15px;
+
+}
+
+.modal-box h2{
+
+font-size:22px;
+margin-bottom:10px;
+
+}
+
+.modal-sub{
+
+color:#666;
+margin-bottom:25px;
+
+}
+
+.option{
+
+display:flex;
+
+align-items:center;
+
+gap:14px;
+
+border:1px solid #d9d9d9;
+
+border-radius:10px;
+
+padding:18px;
+
+margin-bottom:18px;
+
+cursor:pointer;
+
+text-align:left;
+
+}
+
+.option-content{
+
+display:flex;
+
+flex-direction:column;
+
+justify-content:center;
+
+}
+
+.option:hover{
+
+border-color:#1656ff;
+
+}
+
+.option h3{
+
+font-size:17px;
+
+margin-bottom:6px;
+
+}
+
+.option p{
+
+font-size:12px;
+
+color:#666;
+
+}
+
+.option-link{
+  text-decoration:none;
+  color:inherit;
+  display:block;
+}
+
+
+.login-link{
+
+margin-top:25px;
+
+font-size:13px;
+
+}
+
+.login-link a{
+
+color:#1656ff;
+
+text-decoration:none;
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="close-btn">
+
+<a href="../index.html">
+
+<img src="../assets/images/x-solid.png">
+
+</a>
+
+</div>  
+
+<div class="left">
+
+<img src="../assets/images/Pawpon_logo.png">
+
+<h1>Pawpon</h1>
+
+<p>Connecting hearts, Saving lives</p>
+
+</div>
+
+
+<div class="right">
+
+<div class="login-box">
+
+<!-- HEADER -->
+
+<div class="header-section">
+
+<div class="welcome-title">
+
+<h2>
+Welcome Back
+</h2>
+
+<img
+src="../assets/images/Rectangle.png"
+class="welcome-line">
+
+<img
+src="../assets/images/Rectangle.png"
+class="welcome-line2">
+
+<img
+src="../assets/images/Rectangle.png"
+class="welcome-line3">
+
+</div>
+
+<p class="subtitle">
+Sign in to your account to continue your journey
+</p>
+
+<div class="line"></div>
+
+</div>
+
+
+<!-- FORM -->
+
+<div class="form-section">
+
+<div class="input">
+
+<label>Email</label>
+
+<input
+type="email"
+placeholder="Enter your Email">
+
+</div>
+
+<div class="input">
+
+<label>Password</label>
+
+<input
+type="password"
+placeholder="Enter your Password">
+
+</div>
+
+<button>
+
+Login
+
+</button>
+
+</div>
+
+
+<!-- REGISTER -->
+
+<div class="register-section">
+
+Not Registered yet?
+
+<a href="#" onclick="openModal()">
+
+Create an Account
+
+</a>
+
+</div>
+
+
+<!-- FOOTER -->
+
+<div class="footer">
+
+© 2026 Pawpon
+
+<br><br>
+
+Privacy Policy |
+Terms of Service
+
+</div>
+
+</div>
+
+</div>
+
+
+<!-- CREATE ACCOUNT MODAL -->
+
+<div class="modal" id="registerModal">
+
+<div class="modal-box">
+
+<img
+src="../assets/images/Pawpon_logo.png"
+class="modal-logo">
+
+<h2>Create an Account</h2>
+
+<p class="modal-sub">
+
+Select the option that best describes you
+
+</p>
+<a href="create_account.html" class="option-link">
+  <div class="option">
+
+    <img src="../assets/images/Group.png" class="option-icon">
+
+    <div>
+      <h3>I want to adopt or donate</h3>
+      <p>For individuals looking to adopt a pet, make donations, or support local shelters.</p>
+    </div>
+
+  </div>
+</a>
+
+
+<a href="organization_signup.html" class="option-link">
+  <div class="option">
+
+    <img src="../assets/images/org.png" class="option-icon">
+
+    <div>
+      <h3>I represent an animal organization</h3>
+      <p>For registered shelters, rescue groups, and pounds managing animals.</p>
+    </div>
+
+  </div>
+</a>
+
+</div>
+
+
+<script>
+
+function openModal(){
+
+document
+.getElementById("registerModal")
+.style.display="flex";
+
+}
+
+window.onclick=function(e){
+
+let modal=document.getElementById("registerModal");
+
+if(e.target===modal){
+
+modal.style.display="none";
+
+}
+
+}
+
+</script>
+
+
+
+</body>
+
+</html>

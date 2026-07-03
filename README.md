@@ -13,3 +13,8 @@ main.py → Entry point ng FastAPI.
 matchmaking.py → Matchmaking algorithm.
 recommendation.py → Recommendation logic.
 requirements.txt → Listahan ng Python packages na kailangan para gumana ang FastAPI.
+
+tailwind install 
+1. npm install -D tailwindcss@3
+npx tailwindcss init
+2.npx tailwindcss -i ./public/assets/css/input.css -o ./public/assets/css/tailwind.css --watch

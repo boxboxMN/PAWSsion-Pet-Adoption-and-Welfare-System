@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Organization Signup - Pawpon</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        body {
+            height: 100vh;
+            display: flex;
+            justify-content: space-between;
+            background: #f6f8ff;
+            overflow: hidden;
+        }
+
+        /* CLOSE BUTTON */
+        .close {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            z-index: 100;
+        }
+
+        .close a {
+            text-decoration: none;
+            font-size: 26px;
+            font-weight: 700;
+            color: #b5b5b5;
+        }
+
+        .close a:hover {
+            color: #1656ff;
+        }
+
+        /* LEFT SIDE (MATCH SA ORIGINAL MO) */
+        .left {
+            width: 50%;
+            background: white;
+            border-top-right-radius: 220px;
+            padding: 80px 0 80px 80px;
+            box-shadow: 5px 0 30px rgba(90,125,252,.08);
+            z-index: 2;
+        }
+
+        .container {
+            width: 450px;
+            margin-left: 40px;
+        }
+
+        /* TITLE */
+        h1 {
+            font-size: 40px;
+            font-weight: 800;
+            margin-bottom: 5px;
+            text-align: center;
+        }
+
+        .subtitle {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .line {
+            height: 4px;
+            background: #ececec;
+            border-radius: 20px;
+            margin-bottom: 30px;
+        }
+
+        /* INFO BOX */
+        .info-box {
+            background: #ffe7d3;
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 12px;
+            margin-bottom: 25px;
+            
+        }
+
+        .step {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        /* INPUTS */
+        .field {
+            margin-bottom: 18px;
+        }
+
+        label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .required {
+            color: red;
+        }
+
+        input {
+            width: 100%;
+            height: 40px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            outline: none;
+            font-size: 14px;
+        }
+
+        input:focus {
+            border-color: #1656ff;
+        }
+
+        .input-box {
+    position: relative;
+}
+
+.input-box input {
+    width: 100%;
+    height: 40px;
+    padding: 10px 10px 10px 40px; 
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    outline: none;
+    font-size: 14px;
+}
+
+.input-box input:focus {
+    border-color: #1656ff;
+}
+
+.icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 18px;
+    opacity: 0.6;
+}
+
+        /* BUTTON */
+        .next-btn {
+            margin-top: 25px;
+            text-align: right;
+        }
+
+        button {
+            padding: 10px 22px;
+            background: #1656ff;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #004cff;
+        }
+
+        /* RIGHT SIDE */
+        .right {
+            width: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .right img {
+            width: 150px;
+            margin-bottom: 10px;
+        }
+
+        .right h2 {
+            font-size: 60px;
+            color: #1656ff;
+            font-weight: 800;
+        }
+
+        .right h3 {
+            margin-top: 10px;
+            font-size: 20px;
+        }
+
+        .right p {
+            width: 75%;
+            margin-top: 15px;
+            line-height: 1.6;
+            color: #555;
+        }
+
+    </style>
+</head>
+
+<body>
+
+<!-- CLOSE -->
+<div class="close">
+    <a href="../index.html">×</a>
+</div>
+
+<!-- LEFT -->
+<div class="left">
+    <div class="container">
+
+        <h1>Account Credentials</h1>
+        <p class="subtitle">
+            Set up the primary login details for your organization.
+        </p>
+
+        <div class="line"></div>
+
+        <div class="info-box">
+            <b>Organization Verification:</b> To ensure safety, all organization accounts
+            will undergo review before activation.
+        </div>
+
+        <div class="step">Step 1: Account Info</div>
+
+        <div class="field">
+    <label>Email Address <span class="required">*</span></label>
+    <div class="input-box">
+        <img src="../assets/images/email.png" class="icon">
+        <input type="email" placeholder="Enter your Email">
+    </div>
+</div>
+
+<div class="field">
+    <label>Password <span class="required">*</span></label>
+    <div class="input-box">
+        <img src="../assets/images/lock.png" class="icon">
+        <input type="password" placeholder="Create a Password">
+    </div>
+</div>
+
+<div class="field">
+    <label>Confirm Password <span class="required">*</span></label>
+    <div class="input-box">
+        <img src="../assets/images/lock.png" class="icon">
+        <input type="password" placeholder="Confirm Password">
+    </div>
+</div>
+
+      <div class="next-btn">
+    <a href="organization_prof.html">
+        <button>Next →</button>
+    </a>
+</div>
+
+    </div>
+</div>
+
+<!-- RIGHT -->
+<div class="right">
+    <img src="../assets/images/Pawpon_logo.png">
+    <h2>Pawpon</h2>
+    <h3>Connecting hearts, Saving lives</h3>
+    <p>
+    Join our community to support rescued cats and dogs. <br>
+    Create an organization account to manage rescued animals, <br>
+    track adoption requests, and coordinate donations  <br>
+    to give them a loving home.
+</p>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cash Donation</title>
+
+    <!-- Tailwind via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+
+    <!-- Google Font: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet" />
+
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f3f4f6;
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+        }
+        .org-card {
+            transition: all 0.2s;
+        }
+        .org-card:hover {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+
+<body class="bg-white">
+
+    <!-- ===== SIDEBAR ===== -->
+    <div id="sidebar"></div>
+
+    <!-- ===== MAIN CONTENT ===== -->
+
+ <main class="flex-1 ml-64 min-h-screen bg-gray-50 flex flex-col">
+        <!-- ===== HEADER ===== -->
+        <div id="header" class="sticky top-0 z-20 bg-white"></div>
+
+        <!-- ===== CASH DONATION PAGE ===== -->
+        <div class="p-6">
+
+            <!-- HEADER SECTION -->
+            <div class="text-center mb-8">
+                <h1 class="text-4xl font-bold text-blue-700">
+                    Your Donation Makes a Difference
+                </h1>
+                <p class="text-gray-600 mt-2">
+                    Help us continue our mission to care for and rehome animals in need
+                </p>
+
+                <!-- Buttons -->
+                <div class="flex justify-center gap-4 mt-6">
+                    <a href="/cash-donation" class="border border-blue-700 text-blue-700 hover:bg-blue-700 hover:text-white px-8 py-3 rounded-lg font-medium transition inline-block">
+                        Cash Donation
+                    </a>
+                    <a href="/inkind-donation" class="border border-blue-700 text-blue-700 hover:bg-blue-700 hover:text-white px-8 py-3 rounded-lg font-medium transition inline-block">
+                        In-Kind Donation
+                    </a>
+                </div>
+            </div>
+
+            <!-- MAIN CONTENT: 3 columns (left 2, right 1) -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+                <!-- LEFT SIDE (2 cols) -->
+                <div class="lg:col-span-2 bg-white rounded-2xl shadow p-6">
+
+                    <!-- STEP 1: Select Organization -->
+                    <h2 class="text-xl font-bold mb-4">Step 1: Select Organization</h2>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                        <!-- Card 1 (selected) -->
+                        <div class="border-2 border-blue-600 rounded-xl p-4 relative org-card">
+                            <div class="absolute top-0 right-0 bg-blue-600 text-white text-xs px-2 py-1 rounded-bl-lg">
+                                ✓
+                            </div>
+                            <div class="flex justify-center mb-4">
+                                <img src="https://cdn-icons-png.flaticon.com/512/616/616408.png" alt="org" class="w-16 h-16" />
+                            </div>
+                            <h3 class="font-bold text-center text-sm">PAWssion Benevolence Circle</h3>
+                            <p class="text-gray-500 text-xs text-center mt-2">Nabua, Camarines Sur</p>
+                            <p class="text-blue-600 text-xs text-center mt-4 cursor-pointer">View Organization Profile →</p>
+                        </div>
+
+                        <!-- Card 2 -->
+                        <div class="border rounded-xl p-4 org-card">
+                            <div class="flex justify-center mb-4">
+                                <img src="https://cdn-icons-png.flaticon.com/512/616/616430.png" alt="org" class="w-16 h-16" />
+                            </div>
+                            <h3 class="font-bold text-center text-sm">PUP Sintang Pusa</h3>
+                            <p class="text-gray-500 text-xs text-center mt-2">Anonas Street, Sta Mesa Manila</p>
+                        </div>
+
+                        <!-- Card 3 -->
+                        <div class="border rounded-xl p-4 org-card">
+                            <div class="flex justify-center mb-4">
+                                <img src="https://cdn-icons-png.flaticon.com/512/616/616430.png" alt="org" class="w-16 h-16" />
+                            </div>
+                            <h3 class="font-bold text-center text-sm">PUP Sintang Pusa</h3>
+                            <p class="text-gray-500 text-xs text-center mt-2">Youth Organization</p>
+                        </div>
+                    </div>
+
+                    <!-- STEP 2: Donation Details -->
+                    <h2 class="text-xl font-bold mb-4">Step 2: Donations Details</h2>
+
+                    <!-- General Information -->
+                    <h3 class="font-semibold mb-3">General Information</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                        <input type="text" placeholder="Name" class="border rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500" />
+                        <input type="email" placeholder="Email Address" class="border rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500" />
+                    </div>
+
+                    <!-- Payment-Specific Details -->
+                    <h3 class="font-semibold mb-3">Payment-Specific Details</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <input type="text" placeholder="GCASH account name" class="border rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500" />
+                        <input type="text" placeholder="Reference Number" class="border rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500" />
+                    </div>
+
+                    <!-- Donation Amount -->
+                    <div class="mb-6">
+                        <input type="number" placeholder="Enter custom amount" class="w-full md:w-[300px] border rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500" />
+                    </div>
+
+                    <!-- Checkbox -->
+                    <div class="flex items-start gap-2 mb-6">
+                        <input type="checkbox" class="mt-1" />
+                        <p class="text-sm text-gray-600">
+                            By submitting this form, I agree to the processing of my personal
+                            information in accordance with Privacy Policy
+                        </p>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button class="w-full bg-blue-700 hover:bg-blue-800 text-white py-3 rounded-lg font-semibold transition">
+                        Complete Donation
+                    </button>
+
+                    <p class="text-xs text-gray-400 mt-4">
+                        Note: Payment details, purposes and requirements are dynamically
+                        configured by the organization
+                    </p>
+                </div>
+
+                <!-- RIGHT SIDE (1 col) -->
+                <div class="bg-white rounded-2xl shadow p-6 h-fit">
+
+                    <h2 class="text-xl font-bold text-center text-blue-700 mb-2">
+                        Scan to QR code to Donate
+                    </h2>
+                    <p class="text-sm text-gray-500 text-center mb-5">
+                        Used your app to scan this QR code
+                    </p>
+
+                    <!-- QR Code -->
+                    <div class="flex justify-center mb-6">
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=GCASHDONATION" alt="QR Code" class="rounded-lg border" />
+                    </div>
+
+                    <!-- GCash Details -->
+                    <div class="space-y-4 text-sm">
+                        <div>
+                            <p class="text-gray-500">GCASH Account Name:</p>
+                            <p class="font-semibold">PAWSsion Benevolence Circle</p>
+                        </div>
+                        <div>
+                            <p class="text-gray-500">GCASH Number</p>
+                            <p class="font-semibold">0992 737 4747</p>
+                        </div>
+                    </div>
+
+                    <!-- Upload Receipt -->
+                    <div class="mt-6">
+                        <label class="border-2 border-dashed border-blue-400 rounded-xl p-5 flex flex-col items-center justify-center cursor-pointer hover:bg-blue-50 transition">
+                            <span class="text-blue-700 font-semibold">Upload Receipt</span>
+                            <span class="text-xs text-gray-500 mt-1">Accepted file type: jpg, png, pdf</span>
+                            <input type="file" class="hidden" />
+                        </label>
+                    </div>
+
+                    <!-- Important Notes -->
+                    <div class="mt-5 border rounded-xl p-4 bg-blue-50">
+                        <h3 class="font-semibold text-blue-700 mb-2">Important Notes</h3>
+                        <ul class="text-sm text-gray-600 list-disc pl-5">
+                            <li>All donations will be verified by the organization.</li>
+                        </ul>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- ===== LOAD SIDEBAR & HEADER ===== -->
+    <script>
+        async function loadComponent(id, file) {
+            try {
+                const response = await fetch(file);
+                if (!response.ok) {
+                    throw new Error(`Cannot load ${file}`);
+                }
+                document.getElementById(id).innerHTML = await response.text();
+            } catch (error) {
+                console.error(error);
+            }
+        }
+
+        loadComponent("sidebar", "/user/userSidebar.html");
+        loadComponent("header", "/user/userHeader.html");
+    </script>
+
+</body>
+</html>

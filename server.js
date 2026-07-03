@@ -1,10 +1,20 @@
 const express = require('express');
 const app = express();
+const path = require('path');
 
-app.get('/', (req, res) => {
-    res.send('PAWPON Server Running');
-});
+// Serve static files from the public directory
+app.use(express.static(path.join(__dirname, 'public')));
 
-app.listen(3000, () => {
-    console.log('Server running on http://localhost:3000');
+// ROUTES
+const userRoutes = require("./routes/userRoutes");
+const adminRoutes = require("./routes/adminRoutes");
+const orgRoutes = require("./routes/orgRoutes");
+
+app.use("/", userRoutes);
+app.use("/admin", adminRoutes);
+app.use("/org", orgRoutes);
+
+const PORT = 3000;
+app.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`);
 });
