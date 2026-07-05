@@ -33,9 +33,31 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    errorBox.classList.add('hidden');
-    emailInput.value = sanitizedEmail;
-    passwordInput.value = sanitizedPassword;
-    form.submit();
+    errorBox.classList.add("hidden");
+    fetch("/login", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            email: sanitizedEmail,
+            password: sanitizedPassword
+        })
+    })
+    .then(async (response) => {
+        if (response.redirected) {
+            window.location.href = response.url;
+            return;
+        }
+
+        const message = await response.text();
+
+        errorBox.textContent = message;
+        errorBox.classList.remove("hidden");
+    })
+    .catch(() => {
+        errorBox.textContent = "Unable to connect to the server.";
+        errorBox.classList.remove("hidden");
+    });
   });
 });

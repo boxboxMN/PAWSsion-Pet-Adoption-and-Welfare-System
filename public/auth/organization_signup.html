@@ -1,8 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta charset="UTF-8">
     <title>Organization Signup - Pawpon</title>
+
     <link rel="stylesheet" href="/assets/css/organization_signup.css">
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 </head>
 
 <body>
@@ -11,68 +15,219 @@
     <a href="../index.html">×</a>
 </div>
 
+<!-- LEFT -->
 <div class="left">
     <div class="container">
 
         <h1>Account Credentials</h1>
+
         <p class="subtitle">
             Set up the primary login details for your organization.
         </p>
 
         <div class="line"></div>
 
+
         <div class="info-box">
-            <b>Organization Verification:</b> To ensure safety, all organization accounts
+            <b>Organization Verification:</b>
+            To ensure safety, all organization accounts
             will undergo review before activation.
         </div>
 
-        <div class="step">Step 1: Account Info</div>
+        <div class="step">
+            Step 1: Account Info
+        </div>
 
-        <div class="field">
-    <label>Email Address <span class="required">*</span></label>
-    <div class="input-box">
-        <img src="../assets/images/email.png" class="icon">
-        <input type="email" placeholder="Enter your Email">
-    </div>
-</div>
+        <!-- FORM START -->
+        <form id="organizationSignupForm">
 
-<div class="field">
-    <label>Password <span class="required">*</span></label>
-    <div class="input-box">
-        <img src="../assets/images/lock.png" class="icon">
-        <input type="password" placeholder="Create a Password">
-    </div>
-</div>
+            <div class="field">
+                <label>Email Address <span class="required">*</span></label>
 
-<div class="field">
-    <label>Confirm Password <span class="required">*</span></label>
-    <div class="input-box">
-        <img src="../assets/images/lock.png" class="icon">
-        <input type="password" placeholder="Confirm Password">
-    </div>
-</div>
+                <div class="input-box">
+                    <i class="fa-regular fa-envelope icon" style="color:#1656ff;"></i>
 
-      <div class="next-btn">
-    <a href="organization_prof.html">
-        <button>Next →</button>
-    </a>
-</div>
+                    <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        placeholder="Enter your Email"
+                        required>
+                </div>
+            </div>
+
+            <div class="field">
+                <label>Password <span class="required">*</span></label>
+
+                <div class="input-box">
+
+                    <i class="fa-solid fa-lock icon" style="color:#1656ff;"></i>
+
+                    <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        placeholder="Create a Password"
+                        required>
+
+                    <button
+                        type="button"
+                        class="toggle-password">
+
+                        <i class="fa-solid fa-eye" style="color:#1656ff;"></i>
+
+                    </button>
+
+                </div>
+            </div>
+
+            <div class="field">
+                <label>Confirm Password <span class="required">*</span></label>
+
+                <div class="input-box">
+
+                    <i class="fa-solid fa-lock icon" style="color:#1656ff;"></i>
+
+                    <input
+                        type="password"
+                        id="confirmPassword"
+                        name="confirmPassword"
+                        placeholder="Confirm Password"
+                        required>
+
+                    <button
+                        type="button"
+                        class="toggle-password">
+
+                        <i class="fa-solid fa-eye" style="color:#1656ff;"></i>
+
+                    </button>
+
+                </div>
+            </div>
+
+              <div class="next-btn">
+                <a href="organization_prof.html">
+                    <button>Next →</button>
+                </a>
+            </div>
+
+        </form>
+        <!-- FORM END -->
 
     </div>
 </div>
 
 <!-- RIGHT -->
+
 <div class="right">
+
     <img src="../assets/images/Pawpon_logo.png">
+
     <h2>Pawpon</h2>
+
     <h3>Connecting hearts, Saving lives</h3>
+
     <p>
-    Join our community to support rescued cats and dogs. <br>
-    Create an organization account to manage rescued animals, <br>
-    track adoption requests, and coordinate donations  <br>
-    to give them a loving home.
-</p>
+        Join our community to support rescued cats and dogs.<br>
+        Create an organization account to manage rescued animals,<br>
+        track adoption requests, and coordinate donations<br>
+        to give them a loving home.
+    </p>
+
 </div>
+
+<script>
+
+/* PASSWORD TOGGLE */
+
+document.querySelectorAll(".toggle-password").forEach(button => {
+
+    button.addEventListener("click", () => {
+
+        const input = button.parentElement.querySelector("input");
+        const icon = button.querySelector("i");
+
+        if (input.type === "password") {
+
+            input.type = "text";
+
+            icon.classList.remove("fa-eye");
+
+            icon.classList.add("fa-eye-slash");
+
+        } else {
+
+            input.type = "password";
+
+            icon.classList.remove("fa-eye-slash");
+
+            icon.classList.add("fa-eye");
+
+        }
+
+    });
+
+});
+
+
+/* SUBMIT FORM */
+
+document.getElementById("organizationSignupForm").addEventListener("submit", async function(e){
+
+    e.preventDefault();
+
+    const email = document.getElementById("email").value.trim();
+
+    const password = document.getElementById("password").value;
+
+    const confirmPassword = document.getElementById("confirmPassword").value;
+
+    if(password !== confirmPassword){
+
+        alert("Passwords do not match.");
+
+        return;
+
+    }
+
+    const response = await fetch("/register-organization-step1",{
+
+        method:"POST",
+
+        headers:{
+            "Content-Type":"application/json"
+        },
+
+        body:JSON.stringify({
+
+            email,
+
+            password,
+
+            confirmPassword
+
+        })
+
+    });
+
+    const result = await response.text();
+
+    if(response.ok){
+
+        window.location.href="organization_verify.html";
+
+    }
+
+    else{
+
+        alert(result);
+
+    }
+
+});
+
+</script>
 
 </body>
 </html>
