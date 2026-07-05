@@ -108,31 +108,56 @@
     }
 
     .input-box {
-    position: relative;
-}
+        position: relative;
+    }
 
-.input-box input {
-    width: 100%;
-    height: 40px;
-    padding: 10px 10px 10px 40px; /* space for icon */
-    border: 1px solid #ddd;
-    border-radius: 10px;
-    outline: none;
-    font-size: 14px;
-}
+    .input-box input {
+        width: 100%;
+        height: 40px;
+        padding: 10px 36px 10px 42px;
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        outline: none;
+        font-size: 14px;
+    }
 
-.input-box input:focus {
-    border-color: #1656ff;
-}
+    .input-box input:focus {
+        border-color: #1656ff;
+    }
 
-.icon {
-    position: absolute;
-    left: 12px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 18px;
-    opacity: 0.6;
-}
+    .icon {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 18px;
+        height: 18px;
+        color: #1656ff;
+        font-size: 14px;
+        pointer-events: none;
+    }
+
+    .toggle-password {
+        position: absolute;
+        right: 8px;
+        top: 50%;
+        transform: translateY(-50%);
+        border: none;
+        background: transparent;
+        cursor: pointer;
+        color: #1656ff;
+        padding: 0 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 18px;
+        width: 18px;
+        font-size: 12px;
+    }
+
+    .toggle-password:focus {
+        outline: none;
+    }
 
     /* TERMS */
     .checkbox {
@@ -155,7 +180,7 @@
     }
 
     /* BUTTON */
-    button {
+    .submit-btn {
         width: 100%;
         height: 45px;
         background: #1656ff;
@@ -167,7 +192,7 @@
         cursor: pointer;
     }
 
-    button:hover {
+    .submit-btn:hover {
         background: #004cff;
     }
 

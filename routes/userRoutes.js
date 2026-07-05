@@ -1,5 +1,3 @@
- // Routes para sa User modules (profile, dashboard, notifications, history, atbp.).
-
 const express = require("express");
 const path = require("path");
 

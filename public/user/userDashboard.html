@@ -43,7 +43,7 @@
                     <!-- Welcome Card -->
                     <div class="bg-gradient-to-r from-blue-500 to-blue-400 rounded-2xl shadow-md p-6 text-white">
                         <h2 class="text-4xl font-bold">
-                            Welcome back, Jhyzzeel
+                            Welcome back, <span id="welcomeUserName">Loading...</span>
                         </h2>
                         <p class="mt-2 text-blue-100">
                             Ready to help a pet today?
@@ -166,6 +166,24 @@
             }
         }
 
+        async function loadUserName() {
+            try {
+                const response = await fetch('/api/current-user');
+                const data = await response.json();
+                const userNameElement = document.getElementById('welcomeUserName');
+
+                if (userNameElement) {
+                    userNameElement.textContent = data.name || 'User';
+                }
+            } catch (error) {
+                console.error(error);
+                const userNameElement = document.getElementById('welcomeUserName');
+                if (userNameElement) {
+                    userNameElement.textContent = 'User';
+                }
+            }
+        }
+
         loadComponent("sidebar", "/user/userSidebar.html").then(() => {
             const currentPath = window.location.pathname;
             const links = document.querySelectorAll("#sidebar a[href]");
@@ -180,6 +198,7 @@
             });
         });
         loadComponent("header", "/user/userHeader.html");
+        loadUserName();
     </script>
 
 </body>

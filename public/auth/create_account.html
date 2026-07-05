@@ -1,81 +1,89 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Create Account - Pawpon</title>
     <link rel="stylesheet" href="/assets/css/create_account.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 </head>
 
 <body>
 <!-- CLOSE -->
 <div class="close">
-    <a href="index.html">×</a>
+    <a href="/">×</a>
 </div>
 
 <!-- LEFT -->
 <div class="left">
     <div class="form-box">
+        <form id="createAccountForm" action="/register" method="POST">
+            <h1>Create an Account</h1>
+            <p class="subtitle">Sign up as an Adopter or Donor to get started.</p>
+            <div class="line"></div>
 
-        <h1>Create an Account</h1>
-        <p class="subtitle">Sign up as an Adopter or Donor to get started.</p>
-        <div class="line"></div>
+            <!-- NAME -->
+            <div class="row">
+                <div class="field">
+                    <label>First Name <span class="required">*</span></label>
+                    <input id="firstName" name="firstName" type="text" placeholder="Enter First Name" required>
+                </div>
 
-        <!-- NAME -->
-        <div class="row">
-            <div class="field">
-                <label>First Name <span class="required">*</span></label>
-                <input type="text" placeholder="Enter First Name">
+                <div class="field">
+                    <label>Last Name <span class="required">*</span></label>
+                    <input id="lastName" name="lastName" type="text" placeholder="Enter Last Name" required>
+                </div>
             </div>
 
-            <div class="field">
-                <label>Last Name <span class="required">*</span></label>
-                <input type="text" placeholder="Enter Last Name">
+           <!-- EMAIL -->
+            <div class="full">
+                <label>Email Address <span class="required">*</span></label>
+                <div class="input-box">
+                    <i class="fa-regular fa-envelope icon"></i>
+                    <input id="email" name="email" type="email" placeholder="Enter Email" required>
+                </div>
             </div>
-        </div>
 
-       <!-- EMAIL -->
-<div class="full">
-    <label>Email Address <span class="required">*</span></label>
-    <div class="input-box">
-        <img src="../assets/images/email.png" class="icon" alt="Email icon">
-        <input type="email" placeholder="Enter Email">
-    </div>
-</div>
-
-<!-- PASSWORD -->
-<div class="full">
-    <label>Password <span class="required">*</span></label>
-    <div class="input-box">
-        <img src="../assets/images/lock.png" class="icon">
-        <input type="password" placeholder="Create Password">
-    </div>
-</div>
-
-<!-- CONFIRM PASSWORD -->
-<div class="full">
-    <label>Confirm Password <span class="required">*</span></label>
-    <div class="input-box">
-        <img src="../assets/images/lock.png" class="icon">
-        <input type="password" placeholder="Confirm Password">
-    </div>
-</div>
-
-        <!-- TERMS -->
-        <div class="checkbox">
-            <input type="checkbox">
-            <div>
-                I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>
+            <!-- PASSWORD -->
+            <div class="full">
+                <label>Password <span class="required">*</span></label>
+                <div class="input-box">
+                    <i class="fa-solid fa-lock icon"></i>
+                    <input id="password" name="password" type="password" placeholder="Enter Password" required>
+                    <button type="button" class="toggle-password" id="togglePassword" aria-label="Show password">
+                        <i class="fa-solid fa-eye"></i>
+                    </button>
+                </div>
             </div>
-        </div>
 
-        <!-- BUTTON -->
-        <button>Sign Up</button>
+            <!-- CONFIRM PASSWORD -->
+            <div class="full">
+                <label>Confirm Password <span class="required">*</span></label>
+                <div class="input-box">
+                    <i class="fa-solid fa-lock icon"></i>
+                    <input id="confirmPassword" name="confirmPassword" type="password" placeholder="Confirm Password" required>
+                    <button type="button" class="toggle-password" id="toggleConfirmPassword" aria-label="Show password">
+                        <i class="fa-solid fa-eye"></i>
+                    </button>
+                </div>
+            </div>
 
-        <!-- SIGN IN -->
-        <div class="signin">
-            Already have an account? <a href="login.html">Sign in</a>
-        </div>
+            <!-- TERMS -->
+            <div class="checkbox">
+                <input type="checkbox" required>
+                <div>
+                    I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>
+                </div>
+            </div>
 
+            <!-- BUTTON -->
+            <button type="submit" class="submit-btn">Sign Up</button>
+
+            <!-- SIGN IN -->
+            <div class="signin">
+                Already have an account? <a href="login.html">Sign in</a>
+            </div>
+        </form>
     </div>
 </div>
 
@@ -91,5 +99,27 @@
     </p>
 </div>
 
+<script>
+    const togglePassword = document.getElementById('togglePassword');
+    const passwordInput = document.getElementById('password');
+    const toggleConfirmPassword = document.getElementById('toggleConfirmPassword');
+    const confirmPasswordInput = document.getElementById('confirmPassword');
+
+    const setupToggle = (button, input) => {
+        if (!button || !input) return;
+        button.addEventListener('click', () => {
+            const isHidden = input.type === 'password';
+            input.type = isHidden ? 'text' : 'password';
+            const icon = button.querySelector('i');
+            if (icon) {
+                icon.className = isHidden ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye';
+            }
+            button.setAttribute('aria-label', isHidden ? 'Hide password' : 'Show password');
+        });
+    };
+
+    setupToggle(togglePassword, passwordInput);
+    setupToggle(toggleConfirmPassword, confirmPasswordInput);
+</script>
 </body>
 </html>
