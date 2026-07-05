@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pawpon | Setting</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+          colors: {
+            brand: '#0038FF',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Arbitrary styles to keep the custom iOS slide toggle behaving perfectly via state peer modifiers */
+    .ios-toggle:checked + .slider-knob { background-color: #0038FF; }
+    .ios-toggle:checked + .slider-knob::before { transform: translateX(18px); }
+  </style>
+</head>
+<body class="bg-[#f8fafc] text-[#1e293b] flex h-screen overflow-hidden font-sans m-0 p-0 box-border">
+
+<div class="flex w-full h-full">
+  <!-- Sidebar Navigation Panel Block Components Frame -->
+  <aside class="w-[260px] bg-white border-r border-[#e2e8f0] flex flex-col justify-between py-6 shrink-0">
+    <div>
+      <div class="flex items-center justify-between px-6 mb-8">
+        <div class="flex items-center gap-3">
+          <div class="text-brand text-[28px]"><i class="fa-solid fa-paw"></i></div>
+          <div>
+            <h2 class="text-20px text-2xl font-extrabold text-brand leading-none">Pawpon</h2>
+            <p class="text-[11px] text-[#64748b] mt-1 font-medium">Admin Portal</p>
+          </div>
+        </div>
+        <div class="text-[#94a3b8] cursor-pointer text-sm">
+          <i class="fa-solid fa-angles-left"></i>
+        </div>
+      </div>
+      <nav>
+        <ul class="list-none px-3">
+          <li class="mb-1 relative">
+            <a href="dashboard.html" class="flex items-center justify-between py-3 px-4 text-[#334155] no-underline text-sm font-medium rounded-md transition-all duration-200 hover:bg-slate-50">
+              <div class="flex items-center gap-3"><i class="w-5 text-base fa-solid fa-table-columns"></i><span>Dashboard</span></div>
+            </a>
+          </li>
+          <!-- Toggleable class 'open' maps directly to tailwind utility injection or explicit class logic -->
+          <li class="mb-1 relative group dropdown">
+            <a href="#" id="orgDropdownToggle" class="flex items-center justify-between py-3 px-4 text-[#334155] no-underline text-sm font-medium rounded-md transition-all duration-200 hover:bg-slate-50">
+              <div class="flex items-center gap-3"><i class="w-5 text-base fa-solid fa-users-gear"></i><span>Organization</span></div>
+              <i class="fa-solid fa-angle-down text-[12px] text-[#64748b] transition-transform duration-200 group-[.open]:rotate-180"></i>
+            </a>
+            <ul class="dropdown-menu hidden group-[.open]:block list-none pl-8 mt-1">
+              <li><a href="organization.html" class="block py-2 px-4 text-[#64748b] text-[13px] font-medium no-underline rounded-md hover:bg-slate-50">Organization Masterlist</a></li>
+              <li><a href="partner-request.html" class="block py-2 px-4 text-[#64748b] text-[13px] font-medium no-underline rounded-md hover:bg-slate-50">Partner Request</a></li>
+            </ul>
+          </li>
+          <li class="mb-1 relative">
+            <a href="user-management.html" class="flex items-center justify-between py-3 px-4 text-[#334155] no-underline text-sm font-medium rounded-md transition-all duration-200 hover:bg-slate-50">
+              <div class="flex items-center gap-3"><i class="w-5 text-base fa-regular fa-user"></i><span>User Management</span></div>
+            </a>
+          </li>
+          <li class="mb-1 relative">
+            <a href="feedback.html" class="flex items-center justify-between py-3 px-4 text-[#334155] no-underline text-sm font-medium rounded-md transition-all duration-200 hover:bg-slate-50">
+              <div class="flex items-center gap-3"><i class="w-5 text-base fa-regular fa-comment-dots"></i><span>Feedback</span></div>
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </div>
+    <div class="px-6">
+      <a href="#" class="flex items-center gap-3 text-brand no-underline text-sm font-medium"><i class="fa-solid fa-arrow-right-from-bracket"></i>Logout</a>
+    </div>
+  </aside>
+
+  <!-- Main View Frame Workspace Area Component -->
+  <main class="flex-1 flex flex-col overflow-hidden bg-white m-4 border border-[#e2e8f0] rounded-org rounded-lg">
+    <header class="flex items-center justify-between py-5 px-6 border-b border-[#e2e8f0]">
+      <h1 class="text-[22px] font-bold text-brand">Setting</h1>
+      <div class="flex items-center gap-5">
+        <a href="setting.html" style="color: inherit; text-decoration: none;">
+          <i class="fa-solid fa-gear text-[20px] text-[#0038FF] cursor-pointer"></i>
+        </a>
+        <div class="relative inline-flex items-center group/notification" id="notificationWrapper">
+          <i class="fa-regular fa-bell text-xl text-brand cursor-pointer" id="notificationBellBtn"></i>
+          
+          <div class="hidden group-[.active]/notification:block absolute top-full right-[-50px] mt-3 w-[320px] bg-white border border-[#e2e8f0] rounded-lg shadow-[0_4px_12px_rgba(0,0,0,0.05)] z-[1000]" id="notificationDropdown">
+            <div class="py-3.5 px-5 text-[13px] font-bold text-brand border-b border-[#f1f5f9]">All Notification</div>
+            <div class="py-4 px-5 border-b border-[#f1f5f9] text-left">
+              <h4 class="text-[13px] font-bold text-black mb-1">New Organization Registered</h4>
+              <p class="text-[11px] text-[#64748b] leading-[1.4] font-normal">“Bantay Animal Welfare” has submitted partner request</p>
+            </div>
+            <div class="py-4 px-5 text-center">
+              <a href="#" class="text-[13px] font-bold text-brand no-underline block w-full">View All Notification</a>
+            </div>
+          </div>
+        </div>
+        <div class="flex items-center">
+          <div class="w-9 h-9 bg-[#71717a] rounded-full flex items-center justify-center text-[#facc15] text-lg border border-[#e2e8f0]"><i class="fa-solid fa-user-gear"></i></div>
+        </div>
+      </div>
+    </header>
+
+    <div class="flex-1 p-8 overflow-y-auto flex flex-col gap-6 bg-white">
+      <!-- Security Parameter Section Headers View Block -->
+      <div class="mb-2">
+        <h2 class="text-6 text-base font-bold text-brand mb-1">Security Setting</h2>
+        <p class="text-[12px] text-[#64748b] font-medium">Manage System, security policies, authentication and access protection</p>
+      </div>
+
+      <!-- Setting Management Interactive Cards Grid Stream Elements -->
+      <div class="flex flex-col gap-5 max-w-[480px]">
+        
+        <!-- Module Parameter Box 1: Password Policy Configuration Widget -->
+        <div class="bg-white border border-[#e2e8f0] rounded-lg p-5">
+          <h3 class="text-sm font-bold text-black mb-0.5">Password Policy</h3>
+          <div class="text-[11px] text-[#94a3b8] font-medium mb-4">Set rules password</div>
+          
+          <div class="flex items-center justify-between py-2">
+            <label class="text-[13px] font-medium text-black">Minimum Length</label>
+            <div class="flex items-center border border-[#cbd5e1] rounded-[6px] py-1.5 px-3 w-[140px] bg-white">
+              <input type="text" value="8" class="w-full border-none outline-none text-[13px] font-semibold text-black text-right pr-1">
+              <span class="text-[13px] text-[#64748b] font-medium whitespace-nowrap">character</span>
+            </div>
+          </div>
+          
+          <div class="flex items-center justify-between py-2">
+            <label class="text-[13px] font-medium text-black">Require Uppcase Letter</label>
+            <label class="relative inline-block w-10 h-[22px]">
+              <input type="checkbox" checked class="ios-toggle opacity-0 w-0 h-0">
+              <span class="slider-knob absolute cursor-pointer top-0 left-0 right-0 bottom-0 bg-[#cbd5e1] transition-all duration-200 rounded-[22px] before:absolute before:content-[''] before:h-4 before:w-4 before:left-0.5 before:bottom-0.5 before:bg-white before:transition-all before:duration-200 before:rounded-full"></span>
+            </label>
+          </div>
+          
+          <div class="flex items-center justify-between py-2">
+            <label class="text-[13px] font-medium text-black">Require lowercase Letter</label>
+            <label class="relative inline-block w-10 h-[22px]">
+              <input type="checkbox" checked class="ios-toggle opacity-0 w-0 h-0">
+              <span class="slider-knob absolute cursor-pointer top-0 left-0 right-0 bottom-0 bg-[#cbd5e1] transition-all duration-200 rounded-[22px] before:absolute before:content-[''] before:h-4 before:w-4 before:left-0.5 before:bottom-0.5 before:bg-white before:transition-all before:duration-200 before:rounded-full"></span>
+            </label>
+          </div>
+          
+          <div class="flex items-center justify-between py-2">
+            <label class="text-[13px] font-medium text-black">Require numbers</label>
+            <label class="relative inline-block w-10 h-[22px]">
+              <input type="checkbox" checked class="ios-toggle opacity-0 w-0 h-0">
+              <span class="slider-knob absolute cursor-pointer top-0 left-0 right-0 bottom-0 bg-[#cbd5e1] transition-all duration-200 rounded-[22px] before:absolute before:content-[''] before:h-4 before:w-4 before:left-0.5 before:bottom-0.5 before:bg-white before:transition-all before:duration-200 before:rounded-full"></span>
+            </label>
+          </div>
+          
+          <div class="flex items-center justify-between py-2">
+            <label class="text-[13px] font-medium text-black">Require special character</label>
+            <label class="relative inline-block w-10 h-[22px]">
+              <input type="checkbox" checked class="ios-toggle opacity-0 w-0 h-0">
+              <span class="slider-knob absolute cursor-pointer top-0 left-0 right-0 bottom-0 bg-[#cbd5e1] transition-all duration-200 rounded-[22px] before:absolute before:content-[''] before:h-4 before:w-4 before:left-0.5 before:bottom-0.5 before:bg-white before:transition-all before:duration-200 before:rounded-full"></span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Module Parameter Box 2: Login Attempt Limit Configuration Widget -->
+        <div class="bg-white border border-[#e2e8f0] rounded-lg p-5">
+          <h3 class="text-sm font-bold text-black mb-0.5">Login Attempt Limit</h3>
+          <div class="text-[11px] text-[#94a3b8] font-medium mb-4">Control faild login attemps restriction</div>
+          
+          <div class="flex items-center justify-between py-2">
+            <label class="text-[13px] font-medium text-black">Minimum Failed Attempt</label>
+            <div class="flex items-center border border-[#cbd5e1] rounded-[6px] py-1.5 px-3 w-[140px] bg-white">
+              <input type="text" value="8" class="w-full border-none outline-none text-[13px] font-semibold text-black text-right pr-1">
+              <span class="text-[13px] text-[#64748b] font-medium whitespace-nowrap">character</span>
+            </div>
+          </div>
+          
+          <div class="flex items-center justify-between py-2">
+            <label class="text-[13px] font-medium text-black">Lock Account Duration</label>
+            <select class="border border-[#cbd5e1] rounded-[6px] py-1.5 px-3 text-[13px] font-semibold text-black w-[140px] outline-none bg-white cursor-pointer">
+              <option value="5" selected>5 minutes</option>
+              <option value="15">15 minutes</option>
+              <option value="30">30 minutes</option>
+              <option value="60">1 hour</option>
+            </select>
+          </div>
+          
+          <div class="flex items-center justify-between py-2">
+            <label class="text-[13px] font-medium text-black">Notify User after lockout</label>
+            <label class="relative inline-block w-10 h-[22px]">
+              <input type="checkbox" checked class="ios-toggle opacity-0 w-0 h-0">
+              <span class="slider-knob absolute cursor-pointer top-0 left-0 right-0 bottom-0 bg-[#cbd5e1] transition-all duration-200 rounded-[22px] before:absolute before:content-[''] before:h-4 before:w-4 before:left-0.5 before:bottom-0.5 before:bg-white before:transition-all before:duration-200 before:rounded-full"></span>
+            </label>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+  // Sidebar Sub-dropdown Accordion Expand Toggle Script Logic
+  document.getElementById('orgDropdownToggle').addEventListener('click', function(e) {
+    e.preventDefault();
+    this.parentElement.classList.toggle('open');
+  });
+
+  document.querySelectorAll('.setting-trigger').forEach(icon => {
+    icon.addEventListener('click', () => {
+      window.location.href = 'setting.html';
+    });
+  });
+
+  // Notification Dropdown Toggle Feature Logic
+  const bellBtn = document.getElementById('notificationBellBtn');
+  const dropdown = document.getElementById('notificationDropdown');
+  const wrapper = document.getElementById('notificationWrapper');
+
+  bellBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    wrapper.classList.toggle('active');
+  });
+
+  // Click outside to close layout drop menu frame
+  document.addEventListener('click', (e) => {
+    if (!wrapper.contains(e.target)) {
+      wrapper.classList.remove('active');
+    }
+  });
+</script>
+</body>
+</html>
