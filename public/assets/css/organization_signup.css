@@ -1,128 +1,148 @@
 * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', sans-serif;
-        }
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Segoe UI", sans-serif;
+}
 
-        body {
-            height: 100vh;
-            display: flex;
-            justify-content: space-between;
-            background: #f6f8ff;
-            overflow: hidden;
-        }
+body {
+    height: 100vh;
+    display: flex;
+    justify-content: space-between;
+    background: #f6f8ff;
+    overflow: hidden;
+}
 
-        /* CLOSE BUTTON */
-        .close {
-            position: absolute;
-            top: 15px;
-            right: 20px;
-            z-index: 100;
-        }
+/* =========================
+   CLOSE BUTTON
+========================= */
 
-        .close a {
-            text-decoration: none;
-            font-size: 26px;
-            font-weight: 700;
-            color: #b5b5b5;
-        }
+.close {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    z-index: 100;
+}
 
-        .close a:hover {
-            color: #1656ff;
-        }
+.close a {
+    text-decoration: none;
+    font-size: 26px;
+    font-weight: 700;
+    color: #b5b5b5;
+}
 
-        /* LEFT SIDE (MATCH SA ORIGINAL MO) */
-        .left {
-            width: 50%;
-            background: white;
-            border-top-right-radius: 220px;
-            padding: 80px 0 80px 80px;
-            box-shadow: 5px 0 30px rgba(90,125,252,.08);
-            z-index: 2;
-        }
+.close a:hover {
+    color: #1656ff;
+}
 
-        .container {
-            width: 450px;
-            margin-left: 40px;
-        }
+/* =========================
+   LEFT SIDE
+========================= */
 
-        /* TITLE */
-        h1 {
-            font-size: 40px;
-            font-weight: 800;
-            margin-bottom: 5px;
-            text-align: center;
-        }
+.left {
+    width: 50%;
+    background: white;
+    border-top-right-radius: 220px;
+    padding: 80px 0 80px 80px;
+    box-shadow: 5px 0 30px rgba(90, 125, 252, .08);
+    z-index: 2;
+}
 
-        .subtitle {
-            font-size: 14px;
-            color: #666;
-            margin-bottom: 20px;
-            text-align: center;
-        }
+.container {
+    margin-top: -40px;
+    width: 500px;
+    margin-left: 40px;
+    /* border:2px solid #1656ff; */
+}
 
-        .line {
-            height: 4px;
-            background: #ececec;
-            border-radius: 20px;
-            margin-bottom: 30px;
-        }
+/* =========================
+   TITLE
+========================= */
 
-        /* INFO BOX */
-        .info-box {
-            background: #ffe7d3;
-            padding: 12px;
-            border-radius: 10px;
-            font-size: 12px;
-            margin-bottom: 25px;
-            
-        }
+h1 {
+    font-size: 40px;
+    font-weight: 800;
+    margin-bottom: 5px;
+    text-align: center;
+}
 
-        .step {
-            font-size: 16px;
-            font-weight: 600;
-            margin-bottom: 15px;
-        }
+.subtitle {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 20px;
+    text-align: center;
+}
 
-        /* INPUTS */
-        .field {
-            margin-bottom: 18px;
-        }
+.line {
+    height: 4px;
+    background: #ececec;
+    border-radius: 20px;
+    margin-bottom: 30px;
+}
 
-        label {
-            display: block;
-            font-size: 13px;
-            font-weight: 600;
-            margin-bottom: 8px;
-        }
+/* =========================
+   INFO BOX
+========================= */
 
-        .required {
-            color: red;
-        }
+.info-box {
+    background: #ffe7d3;
+    padding: 12px;
+    border-radius: 10px;
+    font-size: 12px;
+    margin-bottom: 25px;
+}
 
-        input {
-            width: 100%;
-            height: 40px;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 10px;
-            outline: none;
-            font-size: 14px;
-        }
+.step {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 15px;
+}
 
-        input:focus {
-            border-color: #1656ff;
-        }
+/* =========================
+   FORM FIELDS
+========================= */
 
-        .input-box {
+.field {
+    margin-bottom: 18px;
+}
+
+label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.required {
+    color: red;
+}
+
+input {
+    width: 100%;
+    height: 40px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    outline: none;
+    font-size: 14px;
+}
+
+input:focus {
+    border-color: #1656ff;
+}
+
+/* =========================
+   INPUT WITH ICON
+========================= */
+
+.input-box {
     position: relative;
 }
 
 .input-box input {
     width: 100%;
     height: 40px;
-    padding: 10px 10px 10px 40px; 
+    padding: 10px 10px 10px 40px;
     border: 1px solid #ddd;
     border-radius: 10px;
     outline: none;
@@ -132,89 +152,182 @@
 .input-box input:focus {
     border-color: #1656ff;
 }
-.toggle-password {
-  position: absolute;
-  right: 6px;
-  top: 50%;
-  transform: translateY(-50%);
-  border: none;
-  background: transparent;
-  cursor: pointer;
-  font-size: 12px;
-  color: #666;
-  padding: 0 4px;
-  line-height: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 18px;
-  width: 18px;
-}
-.input-with-icon {
-  position: relative;
-  width: 90%;
-}
+
 .icon {
-  position: absolute;
-  left: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 18px;
-  height: 18px;
-  pointer-events: none;
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 18px;
+    height: 18px;
+    pointer-events: none;
 }
 
-        /* BUTTON */
-        .next-btn {
-            margin-top: 25px;
-            text-align: right;
-        }
+.input-with-icon {
+    position: relative;
+    width: 90%;
+}
 
-        button {
-            padding: 10px 22px;
-            background: #1656ff;
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-        }
+/* =========================
+   PASSWORD TOGGLE
+========================= */
 
-        /* button:hover {
-            background: #004cff;
-        } */
+.toggle-password {
+    position: absolute;
+    right: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-size: 12px;
+    color: #666;
+    padding: 0 4px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 18px;
+    width: 18px;
+}
 
-        /* RIGHT SIDE */
-        .right {
-            width: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            padding: 40px;
-            text-align: center;
-        }
+/* =========================
+   BUTTONS
+========================= */
 
-        .right img {
-            width: 150px;
-            margin-bottom: 10px;
-        }
+.next-btn {
+    margin-top: 25px;
+    text-align: right;
+}
 
-        .right h2 {
-            font-size: 60px;
-            color: #1656ff;
-            font-weight: 800;
-        }
+button {
+    padding: 10px 22px;
+    background: #1656ff;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
 
-        .right h3 {
-            margin-top: 10px;
-            font-size: 20px;
-        }
+/*
+button:hover {
+    background: #004cff;
+}
+*/
 
-        .right p {
-            width: 75%;
-            margin-top: 15px;
-            line-height: 1.6;
-            color: #555;
-        }
+/* =========================
+   RIGHT SIDE
+========================= */
+
+.right {
+    width: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    padding: 40px;
+    text-align: center;
+}
+
+.right img {
+    width: 150px;
+    margin-bottom: 10px;
+}
+
+.right h2 {
+    font-size: 60px;
+    color: #1656ff;
+    font-weight: 800;
+}
+
+.right h3 {
+    margin-top: 10px;
+    font-size: 20px;
+}
+
+.right p {
+    width: 75%;
+    margin-top: 15px;
+    line-height: 1.6;
+    color: #555;
+}
+/* =========================
+   STEP 2 GRID
+========================= */
+
+.step2-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px 18px;
+}
+
+.step2-grid .field {
+    margin-bottom: 0;
+}
+
+.full-width {
+    grid-column: 1 / -1;
+}
+
+/* Make select & textarea match inputs */
+
+select,
+textarea {
+    width: 100%;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    padding: 10px;
+    font-size: 14px;
+    outline: none;
+}
+
+select {
+    height: 40px;
+}
+
+textarea {
+    height: 75px;
+    resize: vertical;
+}
+
+select:focus,
+textarea:focus {
+    border-color: #1656ff;
+}
+/* Address, City and Province in one row */
+
+.address-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 12px;
+    align-items: end;
+}
+
+.address-row .field {
+    margin-bottom: 0;
+}
+
+.address-field input,
+.city-field input,
+.province-field input {
+    height: 40px;
+}/* Address, City and Province in one row */
+
+.address-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 12px;
+    align-items: end;
+}
+
+.address-row .field {
+    margin-bottom: 0;
+}
+
+.address-field input,
+.city-field input,
+.province-field input {
+    height: 40px;
+}

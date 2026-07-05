@@ -18,3 +18,4 @@ tailwind install
 1. npm install -D tailwindcss@3
 npx tailwindcss init
 2.npx tailwindcss -i ./public/assets/css/input.css -o ./public/assets/css/tailwind.css --watch
+3.npm install multer for uploading files

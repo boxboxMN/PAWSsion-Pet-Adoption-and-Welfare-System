@@ -21,7 +21,8 @@ const adminRoutes = require("./routes/adminRoutes");
 const orgRoutes = require("./routes/orgRoutes");
 const authRoutes = require("./routes/auth");
 
-app.use(authRoutes);
+
+app.use("/auth", authRoutes);
 app.use(userRoutes);
 app.use("/admin", adminRoutes);
 app.use("/org", orgRoutes);

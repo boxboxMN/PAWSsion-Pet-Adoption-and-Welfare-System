@@ -124,364 +124,182 @@ exports.logout = (req, res) => {
   });
 };
 
-// // ======================================================
-// // CREATE uploads folder if it doesn't exist
-// // ======================================================
+exports.registerOrganization = async (req, res) => {
 
-// const uploadDirectory = path.join(
-//     __dirname,
-//     "../public/uploads/organization_documents"
-// );
+    try {
 
-// if (!fs.existsSync(uploadDirectory)) {
-//     fs.mkdirSync(uploadDirectory, { recursive: true });
-// }
+        const {
+            email,
+            password,
+            confirmPassword,
+            organizationName,
+            organizationType,
+            contactPerson,
+            contactNumber,
+            address,
+            city,
+            province,
+            description
+        } = req.body;
+
+        if (
+            !email ||
+            !password ||
+            !confirmPassword ||
+            !organizationName ||
+            !organizationType ||
+            !contactPerson ||
+            !contactNumber ||
+            !address ||
+            !city ||
+            !province
+        ) {
 
-// // ======================================================
-// // MULTER CONFIG
-// // ======================================================
+            return res.status(400).send("Please complete all required fields.");
 
-// const storage = multer.diskStorage({
+        }
 
-//     destination(req, file, cb) {
-//         cb(null, uploadDirectory);
-//     },
+        if (password !== confirmPassword) {
 
-//     filename(req, file, cb) {
+            return res.status(400).send("Passwords do not match.");
 
-//         const unique =
-//             Date.now() + "-" + Math.round(Math.random() * 1e9);
+        }
 
-//         cb(
-//             null,
-//             unique + path.extname(file.originalname)
-//         );
+        const [existing] = await pool.query(
+
+            "SELECT account_id FROM accounts WHERE email=?",
 
-//     }
+            [email]
 
-// });
+        );
 
-// function fileFilter(req, file, cb) {
+        if (existing.length > 0) {
 
-//     const allowed = [
-//         ".pdf",
-//         ".jpg",
-//         ".jpeg",
-//         ".png"
-//     ];
+            return res.status(400).send("Email already exists.");
 
-//     const ext = path.extname(file.originalname).toLowerCase();
+        }
 
-//     if (allowed.includes(ext)) {
-//         cb(null, true);
-//     } else {
-//         cb(new Error("Only PDF, JPG and PNG files are allowed."));
-//     }
+        const passwordHash = await bcrypt.hash(password,10);
 
-// }
+        const connection = await pool.getConnection();
 
-// exports.upload = multer({
+        try{
 
-//     storage,
-//     fileFilter
+            await connection.beginTransaction();
 
-// }).single("document");
+            // ===========================
+            // accounts table
+            // ===========================
 
+            const [accountResult] = await connection.query(
 
-// // ======================================================
-// // STEP 1
-// // ======================================================
+                `INSERT INTO accounts
+                (email,password_hash,role,status,email_verified)
+                VALUES (?,?,?,?,?)`,
 
-// exports.step1 = async (req, res) => {
+                [
+                    email,
+                    passwordHash,
+                    "organization",
+                    "pending",
+                    0
+                ]
 
-//     try {
+            );
 
-//         const email = (req.body.email || "")
-//             .trim()
-//             .toLowerCase();
+            const accountId = accountResult.insertId;
 
-//         const password = req.body.password || "";
+// ===========================
+// organizations table
+// ===========================
 
-//         const confirmPassword =
-//             req.body.confirmPassword || "";
+const [organizationResult] = await connection.query(
 
-//         if (
-//             !email ||
-//             !password ||
-//             !confirmPassword
-//         ) {
+    `INSERT INTO organizations
+    (
+        account_id,
+        organization_name,
+        organization_type,
+        contact_person,
+        contact_number,
+        address,
+        city,
+        province,
+        description,
+        verification_status
+    )
+    VALUES (?,?,?,?,?,?,?,?,?,?)`,
 
-//             return res
-//                 .status(400)
-//                 .send("All fields are required.");
+    [
+        accountId,
+        organizationName,
+        organizationType,
+        contactPerson,
+        contactNumber,
+        address,
+        city,
+        province,
+        description,
+        "Pending"
+    ]
 
-//         }
+);
+const organizationId = organizationResult.insertId;
 
-//         if (!validator.isEmail(email)) {
+// ===========================
+// organization_documents table
+// ===========================
 
-//             return res
-//                 .status(400)
-//                 .send("Invalid email address.");
+if (req.file) {
 
-//         }
+    await connection.query(
 
-//         if (password.length < 6) {
+        `INSERT INTO organization_documents
+        (
+            organization_id,
+            document_name,
+            file_path
+        )
+        VALUES (?, ?, ?)`,
 
-//             return res
-//                 .status(400)
-//                 .send("Password must be at least 6 characters.");
+        [
+            organizationId,
+            req.file.originalname,
+            req.file.filename
+        ]
 
-//         }
+    );
 
-//         if (password !== confirmPassword) {
+}    
 
-//             return res
-//                 .status(400)
-//                 .send("Passwords do not match.");
+            await connection.commit();
 
-//         }
+            res.send("Organization registered successfully.");
 
-//         const [existing] = await pool.query(
+        }
 
-//             "SELECT account_id FROM accounts WHERE email=? LIMIT 1",
+        catch(err){
 
-//             [email]
+            await connection.rollback();
 
-//         );
+            throw err;
 
-//         if (existing.length > 0) {
+        }
 
-//             return res
-//                 .status(409)
-//                 .send("Email already exists.");
+        finally{
 
-//         }
+            connection.release();
 
-//         req.session.organizationSignup = {
+        }
 
-//             email,
+    }
 
-//             password
+    catch(err){
 
-//         };
+        console.error(err);
 
-//         return res.send("OK");
+        res.status(500).send("Registration failed.");
 
-//     }
+    }
 
-//     catch (err) {
-
-//         console.error(err);
-
-//         return res
-//             .status(500)
-//             .send("Server error.");
-
-//     }
-
-// };
-
-
-// // ======================================================
-// // FINAL REGISTRATION
-// // ======================================================
-
-// exports.completeRegistration = async (req, res) => {
-
-//     try {
-
-//         if (!req.session.organizationSignup) {
-
-//             return res
-//                 .status(400)
-//                 .send("Step 1 has not been completed.");
-
-//         }
-
-//         const {
-
-//             email,
-
-//             password
-
-//         } = req.session.organizationSignup;
-
-//         const {
-
-//             organizationName,
-
-//             organizationType,
-
-//             contactPerson,
-
-//             contactNumber,
-
-//             address,
-
-//             city,
-
-//             province,
-
-//             description
-
-//         } = req.body;
-
-//         if (!req.file) {
-
-//             return res
-//                 .status(400)
-//                 .send("Please upload a document.");
-
-//         }
-
-//         const passwordHash =
-//             await bcrypt.hash(password, 10);
-
-//         const connection =
-//             await pool.getConnection();
-
-//         try {
-
-//             await connection.beginTransaction();
-
-//             // ======================
-//             // ACCOUNTS
-//             // ======================
-
-//             const [accountResult] =
-//                 await connection.execute(
-
-//                     `INSERT INTO accounts
-//                     (
-//                         email,
-//                         password_hash,
-//                         role,
-//                         status,
-//                         email_verified
-//                     )
-//                     VALUES
-//                     (?, ?, ?, ?, ?)`,
-//                     [
-
-//                         email,
-
-//                         passwordHash,
-
-//                         "organization",
-
-//                         "pending",
-
-//                         0
-
-//                     ]
-
-//                 );
-
-//             // ======================
-//             // ORGANIZATIONS
-//             // ======================
-
-//             const [organizationResult] =
-//                 await connection.execute(
-
-//                     `INSERT INTO organizations
-//                     (
-//                         account_id,
-//                         organization_name,
-//                         organization_type,
-//                         contact_person,
-//                         contact_number,
-//                         address,
-//                         city,
-//                         province,
-//                         description
-//                     )
-//                     VALUES
-//                     (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-//                     [
-
-//                         accountResult.insertId,
-
-//                         organizationName,
-
-//                         organizationType,
-
-//                         contactPerson,
-
-//                         contactNumber,
-
-//                         address,
-
-//                         city,
-
-//                         province,
-
-//                         description
-
-//                     ]
-
-//                 );
-
-//             // ======================
-//             // DOCUMENT
-//             // ======================
-
-//             await connection.execute(
-
-//                 `INSERT INTO organization_documents
-//                 (
-//                     organization_id,
-//                     document_name,
-//                     file_path
-//                 )
-//                 VALUES
-//                 (?, ?, ?)`,
-
-//                 [
-
-//                     organizationResult.insertId,
-
-//                     req.file.originalname,
-
-//                     "/uploads/organization_documents/" +
-//                     req.file.filename
-
-//                 ]
-
-//             );
-
-//             await connection.commit();
-
-//             delete req.session.organizationSignup;
-
-//             return res.send("SUCCESS");
-
-//         }
-
-//         catch (err) {
-
-//             await connection.rollback();
-
-//             throw err;
-
-//         }
-
-//         finally {
-
-//             connection.release();
-
-//         }
-
-//     }
-
-//     catch (err) {
-
-//         console.error(err);
-
-//         return res
-//             .status(500)
-//             .send("Unable to register organization.");
-
-//     }
-
-// };
+};

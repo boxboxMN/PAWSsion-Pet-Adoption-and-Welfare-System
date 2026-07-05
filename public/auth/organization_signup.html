@@ -18,103 +18,252 @@
 <!-- LEFT -->
 <div class="left">
     <div class="container">
+<h1>Organization Registration</h1>
 
-        <h1>Account Credentials</h1>
+<p class="subtitle">
+    Complete the registration form to apply as a verified rescue organization.
+</p>
 
-        <p class="subtitle">
-            Set up the primary login details for your organization.
-        </p>
+<div class="line"></div>
 
-        <div class="line"></div>
+<div class="info-box">
+    <b>Organization Verification:</b>
+    All organization accounts are reviewed before activation.
+</div>
 
+<div class="step" id="stepTitle">
+    Step 1: Account Credentials
+</div>
 
-        <div class="info-box">
-            <b>Organization Verification:</b>
-            To ensure safety, all organization accounts
-            will undergo review before activation.
+<form id="organizationSignupForm" enctype="multipart/form-data">
+
+    <!-- ========================= -->
+    <!-- STEP 1 -->
+    <!-- ========================= -->
+
+    <div class="form-step active" id="step1">
+
+        <div class="field">
+            <label>Email Address <span class="required">*</span></label>
+
+            <div class="input-box">
+                <i class="fa-regular fa-envelope icon"></i>
+
+                <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    placeholder="Enter your email"
+                    required>
+            </div>
         </div>
 
-        <div class="step">
-            Step 1: Account Info
+        <div class="field">
+
+            <label>Password <span class="required">*</span></label>
+
+            <div class="input-box">
+
+                <i class="fa-solid fa-lock icon"></i>
+
+                <input
+                    type="password"
+                    id="password"
+                    name="password"
+                    placeholder="Create Password"
+                    required>
+
+                <button
+                    type="button"
+                    class="toggle-password">
+
+                    <i class="fa-solid fa-eye"></i>
+
+                </button>
+
+            </div>
+
         </div>
 
-        <!-- FORM START -->
-        <form id="organizationSignupForm">
+        <div class="field">
 
-            <div class="field">
-                <label>Email Address <span class="required">*</span></label>
+            <label>Confirm Password <span class="required">*</span></label>
 
-                <div class="input-box">
-                    <i class="fa-regular fa-envelope icon" style="color:#1656ff;"></i>
+            <div class="input-box">
 
+                <i class="fa-solid fa-lock icon"></i>
+
+                <input
+                    type="password"
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    placeholder="Confirm Password"
+                    required>
+
+                <button
+                    type="button"
+                    class="toggle-password">
+
+                    <i class="fa-solid fa-eye"></i>
+
+                </button>
+
+            </div>
+
+        </div>
+
+        <div class="next-btn">
+
+            <button
+                type="button"
+                id="next1">
+
+                Next →
+
+            </button>
+
+        </div>
+
+    </div>
+
+    <!-- ========================= -->
+    <!-- STEP 2 -->
+    <!-- ========================= -->
+
+    <div class="form-step" id="step2">
+
+    <div class="step2-grid">
+
+        <div class="field">
+            <label>Organization Name *</label>
+            <input type="text" id="organizationName" name="organizationName" required>
+        </div>
+
+        <div class="field">
+            <label>Organization Type *</label>
+            <select id="organizationType" name="organizationType" required>
+                <option value="">Select</option>
+                <option>Animal Shelter</option>
+                <option>Rescue Organization</option>
+                <option>NGO</option>
+                <option>Foundation</option>
+                <option>Others</option>
+            </select>
+        </div>
+
+        <div class="field">
+            <label>Contact Person *</label>
+            <input type="text" id="contactPerson" name="contactPerson" required>
+        </div>
+
+        <div class="field">
+            <label>Contact Number *</label>
+            <input type="text" id="contactNumber" name="contactNumber" required>
+        </div>
+
+        <div class="field full-width">
+            <div class="address-row">
+
+                <div class="field address-field">
+                    <label>Address *</label>
                     <input
-                        type="email"
-                        id="email"
-                        name="email"
-                        placeholder="Enter your Email"
+                        type="text"
+                        id="address"
+                        name="address"
                         required>
                 </div>
-            </div>
 
-            <div class="field">
-                <label>Password <span class="required">*</span></label>
-
-                <div class="input-box">
-
-                    <i class="fa-solid fa-lock icon" style="color:#1656ff;"></i>
-
+                <div class="field city-field">
+                    <label>City *</label>
                     <input
-                        type="password"
-                        id="password"
-                        name="password"
-                        placeholder="Create a Password"
+                        type="text"
+                        id="city"
+                        name="city"
                         required>
-
-                    <button
-                        type="button"
-                        class="toggle-password">
-
-                        <i class="fa-solid fa-eye" style="color:#1656ff;"></i>
-
-                    </button>
-
                 </div>
-            </div>
 
-            <div class="field">
-                <label>Confirm Password <span class="required">*</span></label>
-
-                <div class="input-box">
-
-                    <i class="fa-solid fa-lock icon" style="color:#1656ff;"></i>
-
+                <div class="field province-field">
+                    <label>Province *</label>
                     <input
-                        type="password"
-                        id="confirmPassword"
-                        name="confirmPassword"
-                        placeholder="Confirm Password"
+                        type="text"
+                        id="province"
+                        name="province"
                         required>
-
-                    <button
-                        type="button"
-                        class="toggle-password">
-
-                        <i class="fa-solid fa-eye" style="color:#1656ff;"></i>
-
-                    </button>
-
                 </div>
+
             </div>
+        </div>
 
-              <div class="next-btn">
-                <a href="organization_prof.html">
-                    <button>Next →</button>
-                </a>
-            </div>
+        <div class="field full-width">
+            <label>Description</label>
+            <textarea id="description" name="description"></textarea>
+        </div>
 
-        </form>
-        <!-- FORM END -->
+    </div>
 
+    <div class="actions">
+        <button type="button" id="back1">← Back</button>
+        <button type="button" id="next2">Next →</button>
+    </div>
+
+</div>
+
+    <!-- ========================= -->
+    <!-- STEP 3 -->
+    <!-- ========================= -->
+
+    <div class="form-step" id="step3">
+
+        <div class="field">
+
+            <label>Verification Document *</label>
+
+            <input
+                type="file"
+                id="document"
+                name="document"
+                accept=".pdf,.jpg,.jpeg,.png"
+                required>
+
+        </div>
+
+        <div class="field">
+
+            <label>
+
+                <input
+                    type="checkbox"
+                    id="agree"
+                    required>
+
+                I certify that all information is correct.
+
+            </label>
+
+        </div>
+
+        <div class="actions">
+
+            <button
+                type="button"
+                id="back2">
+
+                ← Back
+
+            </button>
+
+            <button
+                type="submit">
+
+                Submit for Verification →
+
+            </button>
+
+        </div>
+
+    </div>
+
+</form>
     </div>
 </div>
 
@@ -139,7 +288,9 @@
 
 <script>
 
-/* PASSWORD TOGGLE */
+// ================================
+// PASSWORD TOGGLE
+// ================================
 
 document.querySelectorAll(".toggle-password").forEach(button => {
 
@@ -151,18 +302,12 @@ document.querySelectorAll(".toggle-password").forEach(button => {
         if (input.type === "password") {
 
             input.type = "text";
-
-            icon.classList.remove("fa-eye");
-
-            icon.classList.add("fa-eye-slash");
+            icon.classList.replace("fa-eye", "fa-eye-slash");
 
         } else {
 
             input.type = "password";
-
-            icon.classList.remove("fa-eye-slash");
-
-            icon.classList.add("fa-eye");
+            icon.classList.replace("fa-eye-slash", "fa-eye");
 
         }
 
@@ -171,57 +316,244 @@ document.querySelectorAll(".toggle-password").forEach(button => {
 });
 
 
-/* SUBMIT FORM */
+// ================================
+// STEP NAVIGATION
+// ================================
 
-document.getElementById("organizationSignupForm").addEventListener("submit", async function(e){
+const step1 = document.getElementById("step1");
+const step2 = document.getElementById("step2");
+const step3 = document.getElementById("step3");
+const stepTitle = document.getElementById("stepTitle");
 
-    e.preventDefault();
+function showStep(step){
 
-    const email = document.getElementById("email").value.trim();
+    step1.style.display="none";
+    step2.style.display="none";
+    step3.style.display="none";
 
-    const password = document.getElementById("password").value;
+    step.style.display="block";
 
-    const confirmPassword = document.getElementById("confirmPassword").value;
+    if(step===step1)
+        stepTitle.innerHTML="Step 1: Account Credentials";
 
-    if(password !== confirmPassword){
+    if(step===step2)
+        stepTitle.innerHTML="Step 2: Organization Information";
 
+    if(step===step3)
+        stepTitle.innerHTML="Step 3: Verification";
+
+}
+
+showStep(step1);
+
+
+// ================================
+// NEXT STEP 1
+// ================================
+
+document.getElementById("next1").addEventListener("click",()=>{
+
+    const email=document.getElementById("email").value.trim();
+    const password=document.getElementById("password").value;
+    const confirm=document.getElementById("confirmPassword").value;
+
+    if(email===""){
+        alert("Email is required.");
+        return;
+    }
+
+    if(password.length<6){
+        alert("Password must be at least 6 characters.");
+        return;
+    }
+
+    if(password!==confirm){
         alert("Passwords do not match.");
+        return;
+    }
 
+    showStep(step2);
+
+});
+
+
+// ================================
+// BACK STEP 2
+// ================================
+
+document.getElementById("back1").addEventListener("click",()=>{
+
+    showStep(step1);
+
+});
+
+
+// ================================
+// NEXT STEP 2
+// ================================
+
+document.getElementById("next2").addEventListener("click",()=>{
+
+    if(document.getElementById("organizationName").value===""){
+
+        alert("Organization name is required.");
         return;
 
     }
 
-    const response = await fetch("/register-organization-step1",{
+    if(document.getElementById("organizationType").value===""){
 
-        method:"POST",
-
-        headers:{
-            "Content-Type":"application/json"
-        },
-
-        body:JSON.stringify({
-
-            email,
-
-            password,
-
-            confirmPassword
-
-        })
-
-    });
-
-    const result = await response.text();
-
-    if(response.ok){
-
-        window.location.href="organization_verify.html";
+        alert("Please select organization type.");
+        return;
 
     }
 
-    else{
+    if(document.getElementById("contactPerson").value===""){
 
-        alert(result);
+        alert("Contact person is required.");
+        return;
+
+    }
+
+    if(document.getElementById("contactNumber").value===""){
+
+        alert("Contact number is required.");
+        return;
+
+    }
+
+    if(document.getElementById("address").value===""){
+
+        alert("Address is required.");
+        return;
+
+    }
+
+    if(document.getElementById("city").value===""){
+
+        alert("City is required.");
+        return;
+
+    }
+
+    if(document.getElementById("province").value===""){
+
+        alert("Province is required.");
+        return;
+
+    }
+
+    showStep(step3);
+
+});
+
+
+// ================================
+// BACK STEP 3
+// ================================
+
+document.getElementById("back2").addEventListener("click",()=>{
+
+    showStep(step2);
+
+});
+
+
+// ================================
+// FINAL SUBMIT
+// ================================
+
+document.getElementById("organizationSignupForm").addEventListener("submit",async function(e){
+
+    e.preventDefault();
+
+    if(document.getElementById("document").files.length===0){
+
+        alert("Please upload a verification document.");
+        return;
+
+    }
+
+    if(!document.getElementById("agree").checked){
+
+        alert("Please certify the information.");
+        return;
+
+    }
+
+    const formData=new FormData();
+
+    formData.append("email",
+        document.getElementById("email").value);
+
+    formData.append("password",
+        document.getElementById("password").value);
+
+    formData.append("confirmPassword",
+        document.getElementById("confirmPassword").value);
+
+    formData.append("organizationName",
+        document.getElementById("organizationName").value);
+
+    formData.append("organizationType",
+        document.getElementById("organizationType").value);
+
+    formData.append("contactPerson",
+        document.getElementById("contactPerson").value);
+
+    formData.append("contactNumber",
+        document.getElementById("contactNumber").value);
+
+    formData.append("address",
+        document.getElementById("address").value);
+
+    formData.append("city",
+        document.getElementById("city").value);
+
+    formData.append("province",
+        document.getElementById("province").value);
+
+    formData.append("description",
+        document.getElementById("description").value);
+
+    formData.append(
+        "document",
+        document.getElementById("document").files[0]
+    );
+
+    try{
+
+        const response=await fetch("/auth/register-organization",{
+
+            method:"POST",
+
+            body:formData
+
+        });
+
+        const result=await response.text();
+
+        if(response.ok){
+
+            alert("Application submitted successfully!");
+
+            window.location.href="/auth/login.html";
+
+        }
+
+        else{
+
+            alert(result);
+
+        }
+
+    }
+
+    catch(err){
+
+        console.error(err);
+
+        alert("Unable to submit application.");
 
     }
 
