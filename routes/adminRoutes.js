@@ -1,4 +1,3 @@
-// Routes para sa Admin modules (manage users, organizations, reports, atbp.).
 
 const express = require("express");
 const path = require("path");

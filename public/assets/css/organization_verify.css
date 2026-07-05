@@ -1,0 +1,237 @@
+* {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        body {
+            height: 100vh;
+            display: flex;
+            justify-content: space-between;
+            background: #f6f8ff;
+            overflow: hidden;
+        }
+
+        /* CLOSE */
+        .close {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+        }
+
+        .close a {
+            font-size: 26px;
+            text-decoration: none;
+            color: #b5b5b5;
+        }
+
+        /* LEFT */
+        .left {
+            width: 50%;
+            background: white;
+            border-top-right-radius: 220px;
+            padding: 40px 0 40px 80px;
+            box-shadow: 5px 0 30px rgba(90,125,252,.08);
+            display: flex;
+            align-items: center;
+        }
+
+        .container {
+            width: 420px;
+            margin-left: 30px;
+        }
+
+        h1 {
+            font-size: 40px;
+            font-weight: 800;
+            margin-bottom: 5px;
+            text-align: center;
+        }
+
+        .subtitle {
+            text-align: center;
+            font-size: 13px;
+            color: #666;
+            margin: 5px 0 15px;
+        }
+
+        .line {
+            height: 4px;
+            background: #ececec;
+            border-radius: 20px;
+            margin: 20px auto;
+            width: 80%;
+        }
+
+        .step {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        /* UPLOAD BOX */
+        .upload-box {
+            border: 2px dashed #ddd;
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .upload-box img {
+            width: 40px;
+            margin-bottom: 10px;
+            opacity: 0.6;
+        }
+
+        .upload-box p {
+            font-size: 13px;
+            color: #555;
+        }
+
+        .upload-box small {
+            display: block;
+            margin: 5px 0 10px;
+            color: #999;
+        }
+
+        .upload-box button {
+            padding: 8px 14px;
+            border: 1px solid #ccc;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .add-doc {
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 10px;
+            text-align: center;
+            font-size: 13px;
+            cursor: pointer;
+            margin-bottom: 15px;
+        }
+
+        .add-doc:hover {
+            background: #f5f7ff;
+        }
+
+        .checkbox {
+            display: flex;
+            gap: 8px;
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .actions {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .back {
+            text-decoration: none;
+            color: #444;
+            font-size: 13px;
+        }
+
+        .submit {
+            padding: 8px 18px;
+            background: #1656ff;
+            color: white;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+        }
+
+        .submit:hover {
+            background: #004cff;
+        }
+
+        /* RIGHT */
+        .right {
+            width: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .right img {
+            width: 140px;
+        }
+
+        .right h2 {
+            font-size: 55px;
+            color: #1656ff;
+            font-weight: 800;
+        }
+
+        .right h3 {
+            margin-top: 8px;
+            font-size: 18px;
+        }
+
+        .right p {
+            width: 75%;
+            margin-top: 12px;
+            color: #555;
+            font-size: 14px;
+        }
+
+        /* MODAL */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 999;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background: #fff;
+            width: 400px;
+            max-width: 90%;
+            margin: 10% auto;
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            animation: fadeIn 0.3s ease;
+        }
+
+        .check-icon {
+            font-size: 50px;
+            color: #28a745;
+            margin-bottom: 10px;
+        }
+
+        .modal-content h2 {
+            margin-bottom: 10px;
+        }
+
+        .modal-content p {
+            font-size: 14px;
+            color: #555;
+        }
+
+        .login-link {
+            display: inline-block;
+            margin-top: 15px;
+            color: #007bff;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px);}
+            to { opacity: 1; transform: translateY(0);}
+        }
