@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pawpon | Organization Masterlist</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  /* Mandatory state-driven animations and JavaScript operational overrides */
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  
+  .dropdown .dropdown-menu { display: none; }
+  .dropdown.open .dropdown-menu { display: block; }
+  .dropdown.open .fa-angle-down { transform: rotate(180deg); }
+  
+  .notification-container .notification-dropdown { display: none; }
+  .notification-container.active .notification-dropdown { display: block; }
+
+  /* Modal state handling template matches your JS hook requirements */
+  .details-modal { display: none; }
+  @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
+  .modal-wrapper { animation: slideIn 0.25s ease-out; }
+</style>
+</head>
+<body class="bg-[#f8fafc] text-[#1e293b] flex h-screen overflow-hidden font-['Inter',sans-serif]">
+
+<div class="wrapper flex w-full h-full">
+  <!-- Sidebar Navigation Panel Block -->
+  <aside class="sidebar w-[260px] bg-white border-r border-[#e2e8f0] flex flex-col justify-between py-6 shrink-0">
+    <div>
+      <div class="logo flex items-center justify-between px-6 mb-8">
+        <div class="logo-inner flex items-center gap-3">
+          <div class="logo-icon text-[#0038FF] text-[28px]"><i class="fa-solid fa-paw"></i></div>
+          <div class="logo-text">
+            <h2 class="text-[20px] font-extrabold text-[#0038FF] leading-none">Pawpon</h2>
+            <p class="text-[11px] text-[#64748b] mt-1 font-medium">Admin Portal</p>
+          </div>
+        </div>
+        <div class="collapse-btn text-[#94a3b8] cursor-pointer text-[14px]">
+          <i class="fa-solid fa-angles-left"></i>
+        </div>
+      </div>
+      <nav>
+        <ul class="list-none px-3">
+          <li class="mb-1 relative">
+            <a href="dashboard.html" class="flex items-center justify-between px-4 py-3 text-[#334155] no-underline text-[14px] font-medium rounded-md transition-all duration-200 hover:bg-[#f1f5f9]">
+              <div class="left flex items-center gap-3"><i class="fa-solid fa-table-columns w-5 text-[16px]"></i><span>Dashboard</span></div>
+            </a>
+          </li>
+          <li class="dropdown open mb-1 relative">
+            <a href="#" id="orgDropdownToggle" class="flex items-center justify-between px-4 py-3 text-[#334155] no-underline text-[14px] font-medium rounded-md transition-all duration-200 hover:bg-[#f1f5f9]">
+              <div class="left flex items-center gap-3"><i class="fa-solid fa-users-gear w-5 text-[16px]"></i><span>Organization</span></div>
+              <i class="fa-solid fa-angle-down text-[12px] text-[#64748b] transition-transform duration-200"></i>
+            </a>
+            <ul class="dropdown-menu list-none pl-8 mt-1">
+              <li class="active-sub mb-1"><a href="organization.html" class="block px-4 py-2 text-white bg-[#0038FF] font-semibold text-[13px] rounded transition-all duration-200">Organization Masterlist</a></li>
+              <li class="mb-1"><a href="partner-request.html" class="block px-4 py-2 text-[#64748b] text-[13px] font-medium rounded transition-all duration-200 hover:text-[#0038FF] hover:bg-[#f1f5f9]">Partner Request</a></li>
+            </ul>
+          </li>
+          <li class="mb-1 relative">
+            <a href="user-management.html" class="flex items-center justify-between px-4 py-3 text-[#334155] no-underline text-[14px] font-medium rounded-md transition-all duration-200 hover:bg-[#f1f5f9]">
+              <div class="left flex items-center gap-3"><i class="fa-regular fa-user w-5 text-[16px]"></i><span>User Management</span></div>
+            </a>
+          </li>
+          <li class="mb-1 relative">
+            <a href="feedback.html" class="flex items-center justify-between px-4 py-3 text-[#334155] no-underline text-[14px] font-medium rounded-md transition-all duration-200 hover:bg-[#f1f5f9]">
+              <div class="left flex items-center gap-3"><i class="fa-regular fa-comment-dots w-5 text-[16px]"></i><span>Feedback</span></div>
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </div>
+    <div class="logout px-6">
+      <a href="#" class="flex items-center gap-3 text-[#0038FF] no-underline text-[14px] font-medium"><i class="fa-solid fa-arrow-right-from-bracket"></i>Logout</a>
+    </div>
+  </aside>
+
+  <!-- Main View Component Frame -->
+  <main class="main flex-1 flex flex-col overflow-hidden bg-white m-4 border border-[#e2e8f0] rounded-lg">
+    <header class="topbar flex items-center justify-between px-6 py-5 border-b border-[#e2e8f0] shrink-0">
+      <h1 class="text-[22px] font-bold text-[#0038FF]">Organization Masterlist</h1>
+      <div class="topbar-actions flex items-center gap-5">
+       <a href="setting.html" style="color: inherit; text-decoration: none;">
+          <i class="fa-solid fa-gear text-[20px] text-[#0038FF] cursor-pointer"></i>
+       </a>
+       <div class="notification-container relative inline-flex items-center" id="notificationWrapper">
+          <i class="fa-regular fa-bell text-[20px] text-[#0038FF] cursor-pointer" id="notificationBellBtn"></i>
+          
+          <div class="notification-dropdown absolute top-full right-[-50px] mt-3 w-[320px] bg-white border border-[#e2e8f0] rounded-lg shadow-[0_4px_12px_rgba(0,0,0,0.05)] z-[1000]" id="notificationDropdown">
+            <div class="dropdown-header px-5 py-3.5 text-[13px] font-bold text-[#0038FF] border-b border-[#f1f5f9]">All Notification</div>
+            <div class="dropdown-item px-5 py-4 border-b border-[#f1f5f9] text-left">
+              <h4 class="text-[13px] font-bold text-black mb-1">New Organization Registered</h4>
+              <p class="text-[11px] text-[#64748b] leading-[1.4] font-normal">“Bantay Animal Welfare” has submitted partner request</p>
+            </div>
+            <div class="dropdown-footer px-5 py-4 text-center">
+              <a href="#" class="text-[13px] font-bold text-[#0038FF] no-underline block w-full">View All Notification</a>
+            </div>
+          </div>
+       </div>
+       <div class="profile-avatar w-9 h-9 bg-[#71717a] rounded-full flex items-center justify-center text-[#facc15] text-[18px]"><i class="fa-solid fa-user-gear"></i></div>
+      </div>
+    </header>
+
+    <div class="content-body flex-1 p-6 overflow-y-auto bg-white">
+      <!-- Search Input Container -->
+      <div class="search-box w-full max-w-[780px] mb-6 relative">
+        <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-[#94a3b8] text-[14px]"></i>
+        <input type="text" placeholder="Search organization name, contact, email..." class="w-full pl-11 pr-4 py-3 border border-[#cbd5e1] rounded-md text-[13px] outline-none text-[#334155] placeholder-[#94a3b8]">
+      </div>
+
+      <!-- Masterlist Responsive Cards Grid Components -->
+      <div class="org-grid grid grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-6 max-w-[1100px]">
+        
+        <!-- Card Item 1: PAWSsion Benevolence Circle -->
+        <div class="org-card bg-white border border-[#e2e8f0] rounded-lg overflow-hidden flex flex-col justify-between shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+          <div>
+            <div class="card-banner h-[110px] bg-cover bg-center relative bg-[#cbd5e1]" style="background-image: linear-gradient(rgba(0,56,255,0.1), rgba(0,56,255,0.2));">
+              <div class="card-logo w-[52px] h-[52px] rounded-full border-3 border-white bg-white absolute left-4 bottom-[-26px] shadow-[0_2px_4px_rgba(0,0,0,0.08)] flex items-center justify-center overflow-hidden"><i class="fa-solid fa-hands-holding-heart text-[20px] text-[#0038FF]"></i></div>
+            </div>
+            <div class="card-content pt-[38px] px-4 pb-4 flex-1">
+              <h3 class="text-[15px] font-bold text-black mb-0.5">PAWSsion Benevolence Circle</h3>
+              <span class="tag text-[11px] text-[#64748b] font-medium mb-3 block">Organization</span>
+              <p class="desc text-[11px] text-[#64748b] leading-relaxed mb-4 line-clamp-4 (-webkit-box-orient:vertical) overflow-hidden">Driven by compassion, Pawssion Project serves as a sanctuary of hope for stray and abandoned paws, working tirelessly to give every rescue a second chance at a loving home. Our organization is dedicated to caring for stray dogs and cats, advocating for animal rights, and promoting their welfare.</p>
+              
+              <div class="contact-info-list flex flex-col gap-2 mb-4 border-t border-dashed border-[#e2e8f0] pt-3">
+                <div class="info-item flex items-start gap-2.5 text-[11px] text-[#64748b]">
+                  <i class="fa-regular fa-envelope text-[13px] text-[#94a3b8] w-3.5 text-center mt-0.5"></i>
+                  <a href="mailto:pawssion@gmail.com" class="text-[#64748b] no-underline">pawssion@gmail.com</a>
+                </div>
+                <div class="info-item flex items-start gap-2.5 text-[11px] text-[#64748b]">
+                  <i class="fa-solid fa-phone text-[13px] text-[#94a3b8] w-3.5 text-center mt-0.5"></i>
+                  <span>09000000</span>
+                </div>
+                <div class="info-item flex items-start gap-2.5 text-[11px] text-[#64748b]">
+                  <i class="fa-solid fa-location-dot text-[13px] text-[#94a3b8] w-3.5 text-center mt-0.5"></i>
+                  <span>San Miguel, Nabua Camarines Sur</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="card-footer border-t border-[#f1f5f9] px-4 py-3 flex justify-between items-center bg-[#fafafa]">
+            <div class="reg-date text-[10px] text-[#94a3b8] font-medium">Registered on<strong class="block text-[#334155] text-[11px] mt-0.5 font-semibold">March 30, 2026</strong></div>
+            <button class="view-btn px-3 py-1.5 border border-[#0038FF] rounded bg-transparent text-[#0038FF] text-[11px] font-semibold cursor-pointer transition-all duration-200 hover:bg-[#0038FF] hover:text-white" onclick="openDetailsModal()">view details</button>
+          </div>
+        </div>
+
+        <!-- Card Item 2: PUP Sintang Pusa -->
+        <div class="org-card bg-white border border-[#e2e8f0] rounded-lg overflow-hidden flex flex-col justify-between shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+          <div>
+            <div class="card-banner h-[110px] bg-cover bg-center relative bg-[#cbd5e1]" style="background-image: linear-gradient(rgba(34,197,94,0.1), rgba(34,197,94,0.2));">
+              <div class="card-logo w-[52px] h-[52px] rounded-full border-3 border-white bg-white absolute left-4 bottom-[-26px] shadow-[0_2px_4px_rgba(0,0,0,0.08)] flex items-center justify-center overflow-hidden"><i class="fa-solid fa-cat text-[20px] text-[#0038FF]"></i></div>
+            </div>
+            <div class="card-content pt-[38px] px-4 pb-4 flex-1">
+              <h3 class="text-[15px] font-bold text-black mb-0.5">PUP Sintang Pusa</h3>
+              <span class="tag text-[11px] text-[#64748b] font-medium mb-3 block">Community</span>
+              <p class="desc text-[11px] text-[#64748b] leading-relaxed mb-4 line-clamp-4 (-webkit-box-orient:vertical) overflow-hidden">For the cats of PUP, we serve!</p>
+              
+              <div class="contact-info-list flex flex-col gap-2 mb-4 border-t border-dashed border-[#e2e8f0] pt-3">
+                <div class="info-item flex items-start gap-2.5 text-[11px] text-[#64748b]">
+                  <i class="fa-regular fa-envelope text-[13px] text-[#94a3b8] w-3.5 text-center mt-0.5"></i>
+                  <a href="mailto:pupsp.comms@gmail.com" class="text-[#64748b] no-underline">pupsp.comms@gmail.com</a>
+                </div>
+                <div class="info-item flex items-start gap-2.5 text-[11px] text-[#64748b]">
+                  <i class="fa-solid fa-location-dot text-[13px] text-[#94a3b8] w-3.5 text-center mt-0.5"></i>
+                  <span class="underline text-[#64748b] decoration-solid cursor-pointer">Anonas Street, Sta. Mesa, Manila, Philippines, 1016</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="card-footer border-t border-[#f1f5f9] px-4 py-3 flex justify-between items-center bg-[#fafafa]">
+            <div class="reg-date text-[10px] text-[#94a3b8] font-medium">Registered on<strong class="block text-[#334155] text-[11px] mt-0.5 font-semibold">March 30, 2026</strong></div>
+            <button class="view-btn px-3 py-1.5 border border-[#0038FF] rounded bg-transparent text-[#0038FF] text-[11px] font-semibold cursor-pointer transition-all duration-200 hover:bg-[#0038FF] hover:text-white" onclick="openDetailsModal()">view details</button>
+          </div>
+        </div>
+
+        <!-- Card Item 3: Roar Call -->
+        <div class="org-card bg-white border border-[#e2e8f0] rounded-lg overflow-hidden flex flex-col justify-between shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+          <div>
+            <div class="card-banner h-[110px] bg-cover bg-center relative bg-[#cbd5e1]" style="background-image: linear-gradient(rgba(245,158,11,0.1), rgba(245,158,11,0.2));">
+              <div class="card-logo w-[52px] h-[52px] rounded-full border-3 border-white bg-white absolute left-4 bottom-[-26px] shadow-[0_2px_4px_rgba(0,0,0,0.08)] flex items-center justify-center overflow-hidden"><i class="fa-solid fa-dog text-[20px] text-[#0038FF]"></i></div>
+            </div>
+            <div class="card-content pt-[38px] px-4 pb-4 flex-1">
+              <h3 class="text-[15px] font-bold text-black mb-0.5">Roar Call</h3>
+              <span class="tag text-[11px] text-[#64748b] font-medium mb-3 block">Youth Organization</span>
+              <p class="desc text-[11px] text-[#64748b] leading-relaxed mb-4 line-clamp-4 (-webkit-box-orient:vertical) overflow-hidden">Roar Call is the official advocacy campaign led by UST CSSC that amplifies animal welfare within the campus. It unites and empowers advocates to promote initiatives and champion the creation of an official organization for their care and protection.</p>
+            </div>
+          </div>
+          <div class="card-footer border-t border-[#f1f5f9] px-4 py-3 flex justify-between items-center bg-[#fafafa]">
+            <div class="reg-date text-[10px] text-[#94a3b8] font-medium">Registered on<strong class="block text-[#334155] text-[11px] mt-0.5 font-semibold">March 30, 2026</strong></div>
+            <button class="view-btn px-3 py-1.5 border border-[#0038FF] rounded bg-transparent text-[#0038FF] text-[11px] font-semibold cursor-pointer transition-all duration-200 hover:bg-[#0038FF] hover:text-white" onclick="openDetailsModal()">view details</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Sliding Side Panel Drawer Overlay for view details -->
+<div class="details-modal fixed inset-0 bg-[rgba(15,23,42,0.4)] z-[9999] justify-end" id="detailsModal" onclick="closeDetailsModal(event)">
+  <div class="modal-wrapper w-[calc(100%-260px)] h-full bg-[#f8fafc] flex flex-col" onclick="event.stopPropagation()">
+    <header class="modal-header-nav bg-white px-6 py-5 border-b border-[#e2e8f0] flex items-center justify-between">
+      <div class="breadcrumbs text-[16px] font-bold text-black flex items-center gap-2">
+        Organization Masterlist <span class="text-[#64748b] font-medium">&gt; Organization Details</span>
+      </div>
+      <div class="topbar-actions flex items-center gap-5">
+        <i class="fa-solid fa-gear text-[20px] text-[#0038FF] cursor-pointer"></i>
+        <i class="fa-regular fa-bell text-[20px] text-[#0038FF] cursor-pointer"></i>
+        <div class="profile-avatar w-9 h-9 bg-[#71717a] rounded-full flex items-center justify-center text-[#facc15] text-[18px]"><i class="fa-solid fa-user-gear"></i></div>
+      </div>
+    </header>
+
+    <div class="modal-body-scroll flex-1 p-6 overflow-y-auto flex flex-col gap-4">
+      <!-- Profile Branding Banner Row Component Box -->
+      <div class="detail-profile-card bg-white border border-[#e2e8f0] rounded-lg p-6 flex items-center justify-between">
+        <div class="profile-left-identity flex items-center gap-5">
+          <div class="big-avatar-circle w-20 h-20 rounded-full border border-[#e2e8f0] bg-white flex items-center justify-center text-[32px] text-[#0038FF]"><i class="fa-solid fa-hands-holding-heart"></i></div>
+          <div class="identity-text">
+            <h2 class="text-[20px] font-bold text-black mb-1.5">PAWSsion Benevolence Circle</h2>
+            <p class="text-[14px] text-[#334155] font-medium">Organization</p>
+          </div>
+        </div>
+        <div>
+          <div class="status-badge flex items-center gap-1.5 text-[#22c55e] text-[13px] font-semibold mb-3 justify-end">
+            <i class="fa-solid fa-circle-check"></i> Verified/Active
+          </div>
+          <div class="action-buttons-group flex gap-2">
+            <button class="action-btn px-4 py-2 rounded text-[13px] font-medium cursor-pointer bg-white border border-[#cbd5e1] text-[#0f172a]">Suspend</button>
+            <button class="action-btn px-4 py-2 rounded text-[13px] font-medium cursor-pointer bg-white border border-[#cbd5e1] text-[#0f172a]">Deactivate Account</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Two-Column Grid Info Dashboard Frame -->
+      <div class="details-two-columns grid grid-cols-[2fr_1fr] gap-4">
+        
+        <!-- Left Data Pillar -->
+        <div class="flex flex-col gap-4">
+          <!-- General and Contact Box Module Section -->
+          <div class="info-white-box bg-white border border-[#e2e8f0] rounded-lg p-6">
+            <h3 class="text-[14px] font-bold text-black mb-5 border-b border-[#f1f5f9] pb-3">General and Contact Information</h3>
+            <div class="details-meta-grid grid grid-cols-2 gap-6">
+              <div class="meta-block fullwidth col-span-2 mb-1">
+                <label class="text-[13px] font-bold text-black block mb-1.5">Description</label>
+                <p class="text-[12px] text-[#64748b] leading-relaxed">Driven by compassion, Pawssion Project serves as a sanctuary of hope for stray and abandoned paws, working tirelessly to give every rescue a second chance at a loving home. Our organization is dedicated to caring for stray dogs and cats, advocating for animal rights, and promoting their welfare.</p>
+              </div>
+              <div class="meta-block mb-1">
+                <label class="text-[13px] font-bold text-black block mb-1.5">Type/ Category</label>
+                <p class="text-[12px] text-[#64748b] leading-relaxed">Orgalzation</p>
+              </div>
+              <div class="meta-block mb-1">
+                <label class="text-[13px] font-bold text-black block mb-1.5">Phone Number</label>
+                <p class="text-[12px] text-[#64748b] leading-relaxed">37436626262</p>
+              </div>
+              <div class="meta-block mb-1">
+                <label class="text-[13px] font-bold text-black block mb-1.5">email</label>
+                <a href="mailto:pawssion@gmail.com" class="text-[12px] text-[#0038FF] underline">pawssion@gmail.com</a>
+              </div>
+              <div class="meta-block mb-1">
+                <label class="text-[13px] font-bold text-black block mb-1.5">Address</label>
+                <p class="text-[12px] text-[#64748b] leading-relaxed">San Miguel, Nabua Camarines Sur</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Platform Activity and Metrics Grid Container -->
+          <div class="info-white-box bg-white border border-[#e2e8f0] rounded-lg p-6">
+            <h3 class="text-[14px] font-bold text-black mb-5 border-b border-[#f1f5f9] pb-3">Platform Activity and Metrics</h3>
+            <div class="metrics-row-grid grid grid-cols-4 gap-3 mt-4">
+              <div class="metric-mini-card border border-[#e2e8f0] rounded-md p-3 flex items-center gap-3">
+                <div class="mini-icon-box m-blue w-8 h-8 rounded bg-[#eff6ff] text-[#2563eb] flex items-center justify-center text-[14px]"><i class="fa-solid fa-chart-simple"></i></div>
+                <div class="mini-text">
+                  <label class="text-[10px] text-[#64748b] block">Activity Status</label>
+                  <strong class="green-label block text-[#22c55e] text-[14px] font-semibold mt-0.5">High</strong>
+                  <span class="text-[10px] text-[#64748b]">Active Org</span>
+                </div>
+              </div>
+              <div class="metric-mini-card border border-[#e2e8f0] rounded-md p-3 flex items-center gap-3">
+                <div class="mini-icon-box m-green w-8 h-8 rounded bg-[#f0fdf4] text-[#16a34a] flex items-center justify-center text-[14px]"><i class="fa-solid fa-paw"></i></div>
+                <div class="mini-text">
+                  <label class="text-[10px] text-[#64748b] block">Total Animal Listed</label>
+                  <strong class="block text-black text-[16px] font-bold mt-0.5">0</strong>
+                  <span class="text-[10px] text-[#64748b]">Pets</span>
+                </div>
+              </div>
+              <div class="metric-mini-card border border-[#e2e8f0] rounded-md p-3 flex items-center gap-3">
+                <div class="mini-icon-box m-orange w-8 h-8 rounded bg-[#fffbeb] text-[#d97706] flex items-center justify-center text-[14px]"><i class="fa-solid fa-house-chimney-window"></i></div>
+                <div class="mini-text">
+                  <label class="text-[10px] text-[#64748b] block">Successful Adoption</label>
+                  <strong class="block text-black text-[16px] font-bold mt-0.5">0</strong>
+                  <span class="text-[10px] text-[#64748b]">Pets</span>
+                </div>
+              </div>
+              <div class="metric-mini-card border border-[#e2e8f0] rounded-md p-3 flex items-center gap-3">
+                <div class="mini-icon-box m-pink w-8 h-8 rounded bg-[#fdf2f8] text-[#db2777] flex items-center justify-center text-[14px]"><i class="fa-solid fa-hand-holding-heart"></i></div>
+                <div class="mini-text">
+                  <label class="text-[10px] text-[#64748b] block">Donation Handled</label>
+                  <strong class="block text-black text-[16px] font-bold mt-0.5">0</strong>
+                  <span class="text-[10px] text-[#64748b]">Total Amount</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="last-login-box mt-3 border border-[#e2e8f0] rounded-md p-3 flex items-center gap-3">
+              <div class="login-circle-avatar w-8 h-8 bg-[#fef3c7] rounded-full"></div>
+              <div class="mini-text">
+                <label class="text-[10px] text-[#64748b] block">Last System Login</label>
+                <strong class="block text-black text-[13px] font-bold mt-0.5">May 30, 2026</strong>
+                <span class="text-[10px] text-[#64748b]">10:30 P.M</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Side Data Pillar -->
+        <div>
+          <!-- Security Parameters Mini Widget Block Box -->
+          <div class="security-profile-card bg-white border border-[#e2e8f0] rounded-lg p-5 mb-4">
+            <h4 class="text-[13px] font-bold text-black mb-3">Account Security</h4>
+            <div class="admin-tag-row flex items-center gap-2 text-[13px] font-bold text-black mb-1">
+              PAWssion Benevolence Circle <span class="admin-badge bg-[#eff6ff] text-[#2563eb] text-[10px] font-semibold px-2 py-0.5 rounded-xl">Admin</span>
+            </div>
+            <p class="text-[12px] text-[#64748b]">pawssion@gmail.com</p>
+          </div>
+
+          <!-- Uploaded Credentials Verification Document Row Block Vault Layout -->
+          <div class="document-vault-card bg-white border border-[#e2e8f0] rounded-lg p-4 flex flex-col gap-2">
+            <div class="doc-row-item flex items-center justify-between py-3 border-b border-[#f1f5f9] text-[12px]">
+              <div class="doc-left-side flex items-center gap-2.5 font-semibold text-black">
+                <i class="fa-regular fa-file-pdf text-[16px] text-[#334155]"></i>
+                HDHHS.pdf
+              </div>
+              <div class="doc-right-actions flex items-center gap-4 text-[#64748b]">
+                <span class="doc-date font-normal">May 10, 2026</span>
+                <i class="fa-regular fa-eye text-[16px] cursor-pointer text-[#0f172a]"></i>
+                <i class="fa-solid fa-download text-[16px] cursor-pointer text-[#0f172a]"></i>
+              </div>
+            </div>
+            <div class="doc-row-item flex items-center justify-between py-3 border-none text-[12px]">
+              <div class="doc-left-side flex items-center gap-2.5 font-semibold text-black">
+                <i class="fa-regular fa-file-image text-[16px] text-[#334155]"></i>
+                HDHHS.jpg
+              </div>
+              <div class="doc-right-actions flex items-center gap-4 text-[#64748b]">
+                <span class="doc-date font-normal">May 10, 2026</span>
+                <i class="fa-regular fa-eye text-[16px] cursor-pointer text-[#0f172a]"></i>
+                <i class="fa-solid fa-download text-[16px] cursor-pointer text-[#0f172a]"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Sidebar Sub-dropdown Accordion Expand Script Logic
+document.getElementById('orgDropdownToggle').addEventListener('click', function (e) {
+    e.preventDefault();
+    this.parentElement.classList.toggle('open');
+});
+
+// Modal Open/Close Handler Triggers
+function openDetailsModal() {
+    document.getElementById('detailsModal').style.display = 'flex';
+}
+
+function closeDetailsModal(event) {
+    document.getElementById('detailsModal').style.display = 'none';
+}
+
+  // Notification Dropdown Toggle Feature Logic
+const bellBtn = document.getElementById('notificationBellBtn');
+const dropdown = document.getElementById('notificationDropdown');
+const wrapper = document.getElementById('notificationWrapper');
+
+bellBtn.addEventListener('click', (e) => {
+  e.stopPropagation();
+  wrapper.classList.toggle('active');
+});
+
+// Click outside to close layout drop menu frame
+document.addEventListener('click', (e) => {
+  if (!wrapper.contains(e.target)) {
+    wrapper.classList.remove('active');
+  }
+});
+</script>
+
+</body>
+</html>

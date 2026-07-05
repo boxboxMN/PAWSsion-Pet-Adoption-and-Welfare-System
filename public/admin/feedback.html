@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pawpon | Feedback</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Essential layout dependencies and JavaScript state hooks */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    /* Core Layout Mechanics preserved from dashboard.css */
+    .dropdown .dropdown-menu { display: none; }
+    .dropdown.open .dropdown-menu { display: block; }
+    .dropdown .fa-angle-down { transition: transform 0.2s; }
+    .dropdown.open .fa-angle-down { transform: rotate(180deg); }
+    
+    .notification-container .notification-dropdown { display: none; }
+    .notification-container.active .notification-dropdown { display: block; }
+  </style>
+</head>
+<body class="bg-[#f8fafc] text-[#1e293b] flex h-screen overflow-hidden font-['Inter',sans-serif]">
+
+<div class="wrapper flex w-full h-full">
+  <!-- Sidebar Navigation Panel Block Components Frame -->
+  <aside class="sidebar w-[260px] bg-white border-r border-[#e2e8f0] flex flex-col justify-between py-6 shrink-0">
+    <div>
+      <div class="logo flex items-center justify-between px-6 mb-8">
+        <div class="logo-inner flex items-center gap-3">
+          <div class="logo-icon text-[#0038FF] text-[28px]"><i class="fa-solid fa-paw"></i></div>
+          <div class="logo-text">
+            <h2 class="text-[20px] font-extrabold text-[#0038FF] leading-none">Pawpon</h2>
+            <p class="text-[11px] text-[#64748b] mt-1 font-medium">Admin Portal</p>
+          </div>
+        </div>
+        <div class="collapse-btn text-[#94a3b8] cursor-pointer text-[14px]">
+          <i class="fa-solid fa-angles-left"></i>
+        </div>
+      </div>
+      <nav>
+        <ul class="list-none px-3">
+          <li class="mb-1 relative">
+            <a href="dashboard.html" class="flex items-center justify-between px-4 py-3 text-[#334155] no-underline text-[14px] font-medium rounded-md transition-all duration-200 hover:bg-[#f1f5f9]">
+              <div class="left flex items-center gap-3"><i class="fa-solid fa-table-columns w-5 text-[16px]"></i><span>Dashboard</span></div>
+            </a>
+          </li>
+          <li class="dropdown mb-1 relative">
+            <a href="#" id="orgDropdownToggle" class="flex items-center justify-between px-4 py-3 text-[#334155] no-underline text-[14px] font-medium rounded-md transition-all duration-200 hover:bg-[#f1f5f9]">
+              <div class="left flex items-center gap-3"><i class="fa-solid fa-users-gear w-5 text-[16px]"></i><span>Organization</span></div>
+              <i class="fa-solid fa-angle-down text-[12px] text-[#64748b]"></i>
+            </a>
+            <ul class="dropdown-menu list-none pl-8 mt-1">
+              <li class="mb-1"><a href="organization.html" class="block px-4 py-2 text-[#64748b] text-[13px] font-medium rounded transition-all duration-200 hover:text-[#0038FF] hover:bg-[#f1f5f9]">Organization Masterlist</a></li>
+              <li class="mb-1"><a href="partner-request.html" class="block px-4 py-2 text-[#64748b] text-[13px] font-medium rounded transition-all duration-200 hover:text-[#0038FF] hover:bg-[#f1f5f9]">Partner Request</a></li>
+            </ul>
+          </li>
+          <li class="mb-1 relative">
+            <a href="user-management.html" class="flex items-center justify-between px-4 py-3 text-[#334155] no-underline text-[14px] font-medium rounded-md transition-all duration-200 hover:bg-[#f1f5f9]">
+              <div class="left flex items-center gap-3"><i class="fa-regular fa-user w-5 text-[16px]"></i><span>User Management</span></div>
+            </a>
+          </li>
+          <li class="active mb-1 relative">
+            <a href="feedback.html" class="flex items-center justify-between px-4 py-3 bg-[#0038FF] text-white no-underline text-[14px] font-semibold rounded-md transition-all duration-200">
+              <div class="left flex items-center gap-3"><i class="fa-regular fa-comment-dots w-5 text-[16px]"></i><span>Feedback</span></div>
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </div>
+    <div class="logout px-6">
+      <a href="#" class="flex items-center gap-3 text-[#0038FF] no-underline text-[14px] font-medium"><i class="fa-solid fa-arrow-right-from-bracket"></i>Logout</a>
+    </div>
+  </aside>
+
+  <!-- Main View Workspace Panel Layout -->
+  <main class="main flex-1 flex flex-col overflow-hidden bg-white m-4 border border-[#e2e8f0] rounded-lg">
+    <header class="topbar flex items-center justify-between px-6 py-5 border-b border-[#e2e8f0] shrink-0">
+      <h1 class="text-[22px] font-bold text-[#0038FF]">Feedback</h1>
+      <div class="topbar-actions flex items-center gap-5">
+        <a href="setting.html" style="color: inherit; text-decoration: none;">
+          <i class="fa-solid fa-gear text-[20px] text-[#0038FF] cursor-pointer"></i>
+        </a>
+        
+        <div class="notification-container relative inline-flex items-center" id="notificationWrapper">
+          <i class="fa-regular fa-bell text-[20px] text-[#0038FF] cursor-pointer" id="notificationBellBtn"></i>
+          <div class="notification-dropdown absolute top-full right-[-50px] mt-3 w-[320px] bg-white border border-[#e2e8f0] rounded-lg shadow-[0_4px_12px_rgba(0,0,0,0.05)] z-[1000]" id="notificationDropdown">
+            <div class="dropdown-header px-5 py-3.5 text-[13px] font-bold text-[#0038FF] border-b border-[#f1f5f9]">All Notification</div>
+            <div class="dropdown-item px-5 py-4 border-b border-[#f1f5f9] text-left">
+              <h4 class="text-[13px] font-bold text-black mb-1">New Organization Registered</h4>
+              <p class="text-[11px] text-[#64748b] leading-[1.4] font-normal">“Bantay Animal Welfare” has submitted partner request</p>
+            </div>
+            <div class="dropdown-footer px-5 py-4 text-center">
+              <a href="#" class="text-[13px] font-bold text-[#0038FF] no-underline block w-full">View All Notification</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="profile-container flex items-center">
+          <div class="profile-avatar w-9 h-9 bg-[#71717a] rounded-full flex items-center justify-center text-[#facc15] text-[18px]"><i class="fa-solid fa-user-gear"></i></div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Master-Detail Split Workspace Wrapper Grid -->
+    <div class="feedback-workspace flex flex-1 overflow-hidden bg-white">
+      
+      <!-- Left Stream Container Area: Search & Table Records Frame -->
+      <div class="feedback-left-frame flex-1 flex flex-col border-r border-[#e2e8f0] overflow-hidden">
+        
+        <!-- Search Filtering Header Action Bar Row -->
+        <div class="feedback-filters-bar flex items-center gap-4 padding p-6 shrink-0">
+          <div class="search-input-wrapper relative flex-1 max-w-[520px]">
+            <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 color text-black text-[14px]"></i>
+            <input type="text" placeholder="Search Feedback..." class="w-full pl-10 pr-4 py-2.5 text-[13px] border border-[#cbd5e1] rounded-lg outline-none bg-white text-[#334155] placeholder-[#94a3b8]">
+          </div>
+          <div class="date-dropdown-selector flex items-center gap-2 px-3.5 py-2.5 border border-[#cbd5e1] rounded-lg bg-white cursor-pointer">
+            <i class="text-[14px] text-black fa-regular fa-calendar"></i>
+            <span class="text-[13px] font-medium text-[#334155]">All Dates</span>
+            <i class="text-[14px] text-black fa-solid fa-angle-down"></i>
+          </div>
+        </div>
+
+        <!-- System Table Control View Layout Grid -->
+        <div class="feedback-table-container flex-1 overflow-y-auto px-6">
+          <table class="feedback-grid-table w-full border-collapse text-left">
+            <thead>
+              <tr>
+                <th style="width: 25%;" class="px-4 py-3 text-[13px] font-600 font-semibold text-black border-b border-[#e2e8f0]">Sender</th>
+                <th style="width: 35%;" class="px-4 py-3 text-[13px] font-600 font-semibold text-black border-b border-[#e2e8f0]">Message Review</th>
+                <th style="width: 25%;" class="px-4 py-3 text-[13px] font-600 font-semibold text-black border-b border-[#e2e8f0]">Date Submitted</th>
+                <th style="width: 15%; text-align: center;" class="px-4 py-3 text-[13px] font-600 font-semibold text-black border-b border-[#e2e8f0]">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="active-row-highlight bg-[#eff6ff]">
+                <td class="p-4 vertical-align border-y border-[#bfdbfe]">
+                  <div class="sender-profile-cell flex items-center gap-3">
+                    <div class="cell-avatar-wrapper w-8 h-8 rounded-full bg-[#1e293b] flex items-center justify-center text-white text-[13px]">
+                      <i class="fa-solid fa-user"></i>
+                    </div>
+                    <div class="cell-identity-text flex flex-col">
+                      <span class="name text-[13px] font-semibold text-black">Ezekiel Roswell</span>
+                      <span class="role text-[11px] text-[#64748b] font-medium">User</span>
+                    </div>
+                  </div>
+                </td>
+                <td class="p-4 vertical-align border-y border-[#bfdbfe]">
+                  <div class="message-preview-text text-[13px] text-black font-semibold whitespace-nowrap overflow-hidden text-ellipsis max-w-[280px]">
+                    di ako maka donate, sira ata system niyo ...
+                  </div>
+                </td>
+                <td class="p-4 vertical-align border-y border-[#bfdbfe]">
+                  <div class="date-time-cell flex flex-col text-[12px] font-medium text-[#64748b]">
+                    <span class="date">May 3, 2026</span>
+                    <span class="time">10:29 AM</span>
+                  </div>
+                </td>
+                <td style="text-align: center;" class="p-4 vertical-align border-y border-[#bfdbfe]">
+                  <button class="btn-review-action px-4 py-1.5 text-[12px] font-semibold text-[#0038FF] bg-white border border-[#0038FF] rounded cursor-pointer transition-all duration-200 hover:bg-[#0038FF] hover:text-white">Review</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Table Pagination Control Base Block -->
+        <div class="feedback-table-pagination flex items-center justify-between px-6 py-4 border-t border-[#e2e8f0] shrink-0">
+          <div class="records-counter-text text-[12px] text-[#94a3b8] font-medium">Showing 1 to 9 of 1200 feedback</div>
+          <div class="pagination-page-controls flex items-center gap-1">
+            <button class="pag-btn border border-[#e2e8f0] bg-white text-[#64748b] text-[13px] font-medium w-7 h-7 flex items-center justify-center rounded cursor-pointer"><i class="fa-solid fa-angle-left"></i></button>
+            <button class="pag-number active border border-[#0038FF] bg-white text-[#0038FF] text-[13px] font-bold w-7 h-7 flex items-center justify-center rounded cursor-pointer">1</button>
+            <button class="pag-number border border-[#e2e8f0] bg-white text-[#64748b] text-[13px] font-medium w-7 h-7 flex items-center justify-center rounded cursor-pointer">2</button>
+            <button class="pag-btn border border-[#e2e8f0] bg-white text-[#64748b] text-[13px] font-medium w-7 h-7 flex items-center justify-center rounded cursor-pointer"><i class="fa-solid fa-angle-right"></i></button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Side Meta Panel Panel Framework: Details Context Inspection Pane -->
+      <div class="feedback-right-frame w-[320px] bg-white p-6 flex flex-col gap-5 shrink-0 overflow-y-auto">
+        
+        <!-- Detail Block Card Module -->
+        <div class="detail-card-panel border border-[#e2e8f0] rounded-lg px-4 py-5">
+          <h3 class="panel-section-title text-[12px] font-bold text-black mb-3.5">Feedback Details</h3>
+          
+          <div class="detail-profile-identity-card flex gap-3 mb-6">
+            <div class="profile-large-avatar w-10 h-10 rounded-full bg-[#1e293b] text-white flex items-center justify-center text-[18px] shrink-0">
+              <i class="fa-solid fa-user"></i>
+            </div>
+            <div class="profile-meta-info">
+              <h4 class="text-[13px] font-bold text-black">Ezekiel Roswell</h4>
+              <p class="role text-[11px] text-[#64748b] font-medium mt-0.5">User</p>
+              <p class="email-address text-[11px] text-[#94a3b8] font-medium mt-1">ezek@gmail.com</p>
+              <div class="timestamp-stamp-row flex gap-3 text-[11px] text-[#64748b] font-medium mt-2">
+                <span>May 3, 2026</span>
+                <span>10:29 AM</span>
+              </div>
+            </div>
+          </div>
+
+          <h4 class="field-label-header text-[12px] font-bold text-black mb-2">Message</h4>
+          <div class="detailed-message-display-box bg-white border border-[#e2e8f0] rounded-md p-3 text-[13px] font-semibold text-black leading-[1.4] min-height min-h-[60px]">
+            di ako maka donate, sira ata system niyo ...
+          </div>
+        </div>
+
+        <!-- Action Panel Foot Box Grid Panel Element -->
+        <div class="detail-resolution-actions-panel border border-[#e2e8f0] rounded-lg px-4 py-5">
+          <h3 class="panel-section-title text-[12px] font-bold text-black mb-3.5">Resolution Action</h3>
+          <div class="resolution-buttons-group flex flex-col gap-2">
+            <button class="btn-action-resolve w-full flex items-center justify-center gap-2 p-2.5 text-[12px] font-bold border border-[#22c55e] text-[#22c55e] rounded-md bg-white cursor-pointer">
+              <i class="fa-regular fa-circle-check"></i>
+              <span>Mark as Resolve</span>
+            </button>
+            <button class="btn-action-archive w-full flex items-center justify-center gap-2 p-2.5 text-[12px] font-bold border border-[#ef4444] text-[#ef4444] rounded-md bg-white cursor-pointer">
+              <i class="fa-regular fa-box-archive"></i>
+              <span>Archive</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<script>
+  // Sidebar Sub-dropdown Accordion Expand Toggle Script Logic
+  document.getElementById('orgDropdownToggle').addEventListener('click', function(e) {
+    e.preventDefault();
+    this.parentElement.classList.toggle('open');
+  });
+
+  // Notification Dropdown Toggle Feature Logic
+  const bellBtn = document.getElementById('notificationBellBtn');
+  const dropdown = document.getElementById('notificationDropdown');
+  const wrapper = document.getElementById('notificationWrapper');
+
+  bellBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    wrapper.classList.toggle('active');
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!wrapper.contains(e.target)) {
+      wrapper.classList.remove('active');
+    }
+  });
+</script>
+</body>
+</html>
