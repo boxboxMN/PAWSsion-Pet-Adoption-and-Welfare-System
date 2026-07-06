@@ -7,7 +7,8 @@
     <title>Adoption Applications</title>
 
     <!-- Tailwind via CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.tailwindcss.com">
+    </script>
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
     <!-- Google Font: Inter -->
@@ -16,28 +17,23 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet" />
 
     <style>
-        *{
-        box-sizing:border-box;
+        * {
+            box-sizing: border-box;
         }
 
-        html{
-            scroll-behavior:smooth;
+        html {
+            scroll-behavior: smooth;
         }
 
-        body{
-            margin:0;
-            overscroll-behavior:none;
-                visibility:hidden;
-
-        }
-
-        body{
-            visibility:hidden;
+        body {
+            margin: 0;
+            overscroll-behavior: none;
+            visibility: hidden;
         }
 
         #sidebar,
-        #header{
-            visibility:hidden;
+        #header {
+            visibility: hidden;
         }
 
         .input-disabled {
@@ -75,6 +71,10 @@
             font-size: 0.875rem;
             letter-spacing: 0.025em;
         }
+        .section-title i {
+            color: #2563eb;
+        }
+
         #details-view {
             display: none;
         }
@@ -99,25 +99,172 @@
                 min-width: 600px;
             }
         }
+
+        /* ===== FORMAL FIELD STYLES ===== */
+        .formal-field {
+            margin-bottom: 0.25rem;
+        }
+        .formal-field label {
+            display: block;
+            font-size: 0.65rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: #6b7280;
+            margin-bottom: 0.15rem;
+        }
+        .formal-field .field-value {
+            font-size: 0.95rem;
+            color: #1f2937;
+            padding: 0.35rem 0 0.35rem 0.1rem;
+            border-bottom: 1px dashed #d1d5db;
+            background: transparent;
+            width: 100%;
+            min-height: 2rem;
+        }
+        .formal-field .field-value:last-child {
+            border-bottom: none;
+        }
+
+        /* Stepper */
+        .stepper-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: relative;
+            padding: 0.25rem 0;
+        }
+        .stepper-wrapper::before {
+            content: '';
+            position: absolute;
+            top: 1.1rem;
+            left: 2.5rem;
+            right: 2.5rem;
+            height: 2px;
+            background: #e5e7eb;
+            z-index: 0;
+        }
+        .step-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.2rem;
+            flex: 1;
+            position: relative;
+            z-index: 1;
+        }
+        .step-item .circle {
+            width: 2.2rem;
+            height: 2.2rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.7rem;
+            border: 2px solid #e5e7eb;
+            background: #fff;
+            color: #9ca3af;
+            transition: all 0.3s;
+        }
+        .step-item.active .circle {
+            border-color: #2563eb;
+            background: #2563eb;
+            color: #fff;
+            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
+        }
+        .step-item.completed .circle {
+            border-color: #22c55e;
+            background: #22c55e;
+            color: #fff;
+        }
+        .step-item .label {
+            font-size: 0.55rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: #9ca3af;
+            text-align: center;
+            max-width: 4.5rem;
+            line-height: 1.2;
+        }
+        .step-item.active .label,
+        .step-item.completed .label {
+            color: #1f2937;
+        }
+
+        /* Status badge */
+        .badge-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.2rem 0.9rem 0.2rem 0.7rem;
+            border-radius: 9999px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            border: 1px solid;
+        }
+        .badge-status .dot {
+            width: 0.45rem;
+            height: 0.45rem;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        .badge-status.active {
+            background: #fef9e7;
+            color: #b45309;
+            border-color: #fcd34d;
+        }
+        .badge-status.active .dot {
+            background: #eab308;
+        }
+        .badge-status.success {
+            background: #ecfdf5;
+            color: #065f46;
+            border-color: #6ee7b7;
+        }
+        .badge-status.success .dot {
+            background: #22c55e;
+        }
+        .badge-status.cancelled {
+            background: #fef2f2;
+            color: #991b1b;
+            border-color: #fca5a5;
+        }
+        .badge-status.cancelled .dot {
+            background: #ef4444;
+        }
+
+        @media (max-width: 640px) {
+            .stepper-wrapper::before {
+                left: 1.5rem;
+                right: 1.5rem;
+            }
+            .step-item .circle {
+                width: 1.8rem;
+                height: 1.8rem;
+                font-size: 0.6rem;
+            }
+            .step-item .label {
+                font-size: 0.45rem;
+                max-width: 3.5rem;
+            }
+        }
     </style>
 </head>
 
 <body class="bg-gray-100 h-full overflow-hidden">
 
     <!-- ===== SIDEBAR ===== -->
-    <div
-    id="sidebar"
-    class="fixed left-0 top-0 w-64 h-screen bg-white border-r border-gray-200 z-50">
+    <div id="sidebar" class="fixed left-0 top-0 w-64 h-screen bg-white border-r border-gray-200 z-50">
     </div>
+
     <!-- ===== MAIN CONTENT ===== -->
-    
     <main class="ml-64 pt-24 h-screen overflow-hidden bg-gray-50">
 
-        <!-- ===== HEADER ===== -->    
-    <div
-     id="header"
-     class="fixed top-0 left-64 right-0 h-24 bg-white border-b border-gray-200 z-40">
-    </div>
+        <!-- ===== HEADER ===== -->
+        <div id="header" class="fixed top-0 left-64 right-0 h-24 bg-white border-b border-gray-200 z-40">
+        </div>
 
         <!-- ===== ADOPTION APPLICATION ===== -->
         <div id="app" class="h-[calc(100vh-6rem)] overflow-y-auto p-8">
@@ -163,7 +310,7 @@
                     </div>
                 </div>
 
-                <!-- ===== DETAILS VIEW ===== -->
+                <!-- ===== DETAILS VIEW (FORMAL) ===== -->
                 <div id="details-view">
                     <!-- Back button + action buttons -->
                     <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-6">
@@ -175,35 +322,56 @@
                         </div>
                     </div>
 
-                    <!-- Title & Status -->
-                    <div class="mb-6">
-                        <h1 class="text-3xl font-bold text-gray-800">Adoption Application Details</h1>
-                        <p class="text-gray-500 mt-1">
-                            Status: <span id="detail-status-badge" class="font-semibold"></span>
-                        </p>
+                    <!-- Title, Status & Reference -->
+                    <div class="mb-6 flex flex-wrap items-center justify-between gap-3 border-b border-gray-200 pb-4">
+                        <div>
+                            <h1 class="text-2xl font-bold text-gray-800">Adoption Application Details</h1>
+                            <p class="text-sm text-gray-500 mt-0.5">Application #<span id="detail-ref">APP-2026-001</span></p>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="text-sm text-gray-500">Status:</span>
+                            <span id="detail-status-badge" class="font-semibold text-sm"></span>
+                        </div>
                     </div>
 
-                    <!-- Progress steps -->
-                    <div class="mb-6 flex flex-col gap-1 text-xs text-gray-400 uppercase tracking-wider">
-                        <span class="text-gray-700 font-semibold">1 Applicant Info</span>
-                        <span>2 Lifestyle</span>
-                        <span>3 Adoption Intent</span>
-                        <span>4 Emergency Contact</span>
-                        <span>5 Requirement</span>
+                    <!-- Progress stepper (formal) -->
+                    <div class="mb-6 bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                        <div class="stepper-wrapper" id="stepper-container">
+                            <div class="step-item active" data-step="1">
+                                <div class="circle">1</div>
+                                <span class="label">Applicant</span>
+                            </div>
+                            <div class="step-item" data-step="2">
+                                <div class="circle">2</div>
+                                <span class="label">Lifestyle</span>
+                            </div>
+                            <div class="step-item" data-step="3">
+                                <div class="circle">3</div>
+                                <span class="label">Intent</span>
+                            </div>
+                            <div class="step-item" data-step="4">
+                                <div class="circle">4</div>
+                                <span class="label">Emergency</span>
+                            </div>
+                            <div class="step-item" data-step="5">
+                                <div class="circle">5</div>
+                                <span class="label">Requirement</span>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Applicant Information -->
                     <div class="card">
                         <h2 class="section-title"><i class="fas fa-user"></i> Applicant Information</h2>
-                        <div class="grid md:grid-cols-3 gap-4" id="detail-applicant">
+                        <div class="grid md:grid-cols-3 gap-5" id="detail-applicant">
                             <!-- filled by JS -->
                         </div>
                     </div>
 
                     <!-- Lifestyle -->
                     <div class="card">
-                        <h2 class="section-title"><i class="fas fa-home"></i> Lifestyle & Home Assessment</h2>
-                        <div class="grid md:grid-cols-2 gap-4" id="detail-lifestyle">
+                        <h2 class="section-title"><i class="fas fa-home"></i> Lifestyle &amp; Home Assessment</h2>
+                        <div class="grid md:grid-cols-2 gap-5" id="detail-lifestyle">
                             <!-- filled by JS -->
                         </div>
                     </div>
@@ -211,13 +379,13 @@
                     <!-- Adoption Intent -->
                     <div class="card">
                         <h2 class="section-title"><i class="fas fa-heart"></i> Adoption Intent</h2>
-                        <textarea id="detail-intent" class="w-full border border-gray-300 rounded-md px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 h-28 resize-none input-disabled" disabled></textarea>
+                        <textarea id="detail-intent" class="w-full border border-gray-300 rounded-md px-4 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 h-28 resize-none input-disabled bg-gray-50" disabled></textarea>
                     </div>
 
                     <!-- Emergency Contact -->
                     <div class="card">
-                        <h2 class="section-title"><i class="fas fa-phone"></i> Emergency Contact</h2>
-                        <div class="grid md:grid-cols-3 gap-4" id="detail-emergency">
+                        <h2 class="section-title"><i class="fas fa-phone-alt"></i> Emergency Contact</h2>
+                        <div class="grid md:grid-cols-3 gap-5" id="detail-emergency">
                             <!-- filled by JS -->
                         </div>
                     </div>
@@ -225,8 +393,10 @@
                     <!-- Requirement -->
                     <div class="card">
                         <h2 class="section-title"><i class="fas fa-upload"></i> Uploaded Requirement</h2>
-                        <div class="border border-dashed border-gray-300 rounded-lg p-5 text-center text-gray-500">
-                            Uploaded File.pdf
+                        <div class="border border-dashed border-gray-300 rounded-lg p-5 text-center text-gray-500 bg-gray-50">
+                            <i class="fas fa-file-pdf text-2xl text-red-400 mb-2 block"></i>
+                            <span class="font-medium">Adoption_Requirement.pdf</span>
+                            <p class="text-xs text-gray-400 mt-1">Uploaded on <span id="detail-upload-date">Jan 12, 2026</span></p>
                         </div>
                     </div>
                 </div>
@@ -250,48 +420,46 @@
             }
         }
 
-    Promise.all([
-    loadComponent("sidebar", "/user/userSidebar.html"),
-    loadComponent("header", "/user/userHeader.html")
-])
-.then(() => {
+        Promise.all([
+            loadComponent("sidebar", "/user/userSidebar.html"),
+            loadComponent("header", "/user/userHeader.html")
+        ]).then(() => {
 
-    document.getElementById("sidebar").style.visibility = "visible";
-    document.getElementById("header").style.visibility = "visible";
+            document.getElementById("sidebar").style.visibility = "visible";
+            document.getElementById("header").style.visibility = "visible";
 
-    const currentPath = window.location.pathname;
-    const pageTitle = document.getElementById("pageTitle");
+            const currentPath = window.location.pathname;
+            const pageTitle = document.getElementById("pageTitle");
 
-    const links = document.querySelectorAll("#sidebar .nav-link");
+            const links = document.querySelectorAll("#sidebar .nav-link");
 
-    links.forEach(link => {
+            links.forEach(link => {
 
-        const href = link.getAttribute("href");
+                const href = link.getAttribute("href");
 
-        const isActive =
-            href === currentPath ||
-            (href !== "/dashboard" && currentPath.startsWith(href));
+                const isActive =
+                    href === currentPath ||
+                    (href !== "/dashboard" && currentPath.startsWith(href));
 
-        if (isActive) {
+                if (isActive) {
 
-            link.className =
-                "nav-link flex items-center gap-4 px-5 py-4 rounded-2xl bg-blue-600 text-white shadow";
+                    link.className =
+                        "nav-link flex items-center gap-4 px-5 py-4 rounded-2xl bg-blue-600 text-white shadow";
 
-            if (pageTitle) {
-                pageTitle.textContent = link.dataset.title;
-            }
+                    if (pageTitle) {
+                        pageTitle.textContent = link.dataset.title;
+                    }
 
-        } else {
+                } else {
 
-            link.className =
-                "nav-link flex items-center gap-4 px-5 py-4 rounded-2xl text-gray-800 hover:bg-blue-50 hover:text-blue-600 transition";
-        }
+                    link.className =
+                        "nav-link flex items-center gap-4 px-5 py-4 rounded-2xl text-gray-800 hover:bg-blue-50 hover:text-blue-600 transition";
+                }
 
-    });
-    document.body.style.visibility = "visible";
+            });
+            document.body.style.visibility = "visible";
 
-})
-.catch(error => console.error(error));
+        }).catch(error => console.error(error));
     </script>
 
     <!-- ===== ADOPTION APP SCRIPT ===== -->
@@ -389,10 +557,23 @@
         const backBtn = document.getElementById('back-btn');
         const detailsActions = document.getElementById('details-actions');
         const detailStatusBadge = document.getElementById('detail-status-badge');
+        const detailRef = document.getElementById('detail-ref');
+        const detailUploadDate = document.getElementById('detail-upload-date');
         const detailApplicant = document.getElementById('detail-applicant');
         const detailLifestyle = document.getElementById('detail-lifestyle');
         const detailIntent = document.getElementById('detail-intent');
         const detailEmergency = document.getElementById('detail-emergency');
+        const stepperContainer = document.getElementById('stepper-container');
+
+        // ===== HELPERS =====
+        function createFormalField(label, value) {
+            return `
+                        <div class="formal-field">
+                            <label>${label}</label>
+                            <div class="field-value">${value || '—'}</div>
+                        </div>
+                    `;
+        }
 
         // ===== RENDER FUNCTIONS =====
 
@@ -405,8 +586,8 @@
             }
             let html = '';
             filtered.forEach(app => {
-                const statusClass = app.status === 'Active' ? 'status-active' : app.status === 'Success' ?
-                    'status-success' : 'status-cancelled';
+                const statusClass = app.status === 'Active' ? 'active' : app.status === 'Success' ? 'success' :
+                    'cancelled';
                 html += `
                             <tr class="border-t border-gray-200 hover:bg-gray-50 transition">
                                 <td class="p-4">
@@ -416,7 +597,7 @@
                                     </div>
                                 </td>
                                 <td class="p-4">
-                                    <span class="text-sm font-semibold ${statusClass}">${app.status}</span>
+                                    <span class="badge-status ${statusClass}"><span class="dot"></span> ${app.status}</span>
                                 </td>
                                 <td class="p-4 text-sm text-gray-700">${app.organization}</td>
                                 <td class="p-4 text-sm text-gray-700">${app.date}</td>
@@ -439,42 +620,64 @@
             });
         }
 
+        // ===== UPDATE STEPPER =====
+        function updateStepper() {
+            const steps = stepperContainer.querySelectorAll('.step-item');
+            steps.forEach((step, idx) => {
+                step.classList.remove('active', 'completed');
+                if (idx === 0) step.classList.add('active');
+                else step.classList.add('completed');
+            });
+        }
+
         function showDetails(app) {
             selectedApp = app;
             listView.classList.add('hidden-view');
             detailsView.style.display = 'block';
 
-            const statusClass = app.status === 'Active' ? 'status-active' : app.status === 'Success' ?
-                'status-success' : 'status-cancelled';
-            detailStatusBadge.textContent = app.status;
-            detailStatusBadge.className = `font-semibold ${statusClass}`;
+            // Reference & upload date
+            detailRef.textContent = `APP-2026-${String(app.id).padStart(3, '0')}`;
+            detailUploadDate.textContent = app.date;
 
+            // Status badge (formal)
+            const statusKey = app.status === 'Active' ? 'active' : app.status === 'Success' ? 'success' : 'cancelled';
+            detailStatusBadge.className = `badge-status ${statusKey}`;
+            detailStatusBadge.innerHTML = `<span class="dot"></span> ${app.status}`;
+
+            // Stepper
+            updateStepper();
+
+            // Applicant – formal fields with labels
             const a = app.applicant;
             detailApplicant.innerHTML = `
-                        <input value="${a.fullName}" class="w-full border border-gray-300 rounded-md px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 input-disabled" disabled />
-                        <input value="${a.phone}" class="w-full border border-gray-300 rounded-md px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 input-disabled" disabled />
-                        <input value="${a.email}" class="w-full border border-gray-300 rounded-md px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 input-disabled" disabled />
-                        <input value="${a.address}" class="w-full border border-gray-300 rounded-md px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 input-disabled md:col-span-3" disabled />
-                        <input value="${a.civilStatus}" class="w-full border border-gray-300 rounded-md px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 input-disabled" disabled />
-                        <input value="${a.age}" class="w-full border border-gray-300 rounded-md px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 input-disabled" disabled />
-                        <input value="${a.occupation}" class="w-full border border-gray-300 rounded-md px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 input-disabled" disabled />
+                        ${createFormalField('Full Name', a.fullName)}
+                        ${createFormalField('Phone', a.phone)}
+                        ${createFormalField('Email', a.email)}
+                        <div class="md:col-span-3">${createFormalField('Address', a.address)}</div>
+                        ${createFormalField('Civil Status', a.civilStatus)}
+                        ${createFormalField('Age', a.age)}
+                        ${createFormalField('Occupation', a.occupation)}
                     `;
 
+            // Lifestyle – formal fields
             const l = app.lifestyle;
             detailLifestyle.innerHTML = `
-                        <input value="${l.workHours}" class="w-full border border-gray-300 rounded-md px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 input-disabled" disabled />
-                        <input value="${l.timeWithPet}" class="w-full border border-gray-300 rounded-md px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 input-disabled" disabled />
+                        ${createFormalField('Work Hours', l.workHours)}
+                        ${createFormalField('Time with Pet', l.timeWithPet)}
                     `;
 
+            // Intent
             detailIntent.value = app.intent;
 
+            // Emergency – formal fields
             const e = app.emergency;
             detailEmergency.innerHTML = `
-                        <input value="${e.name}" class="w-full border border-gray-300 rounded-md px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 input-disabled" disabled />
-                        <input value="${e.phone}" class="w-full border border-gray-300 rounded-md px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 input-disabled" disabled />
-                        <input value="${e.relation}" class="w-full border border-gray-300 rounded-md px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 input-disabled" disabled />
+                        ${createFormalField('Contact Name', e.name)}
+                        ${createFormalField('Phone', e.phone)}
+                        ${createFormalField('Relation', e.relation)}
                     `;
 
+            // Actions
             detailsActions.innerHTML = '';
             if (app.status === 'Active') {
                 detailsActions.innerHTML = `
@@ -485,6 +688,17 @@
                                 <i class="fas fa-times"></i> Cancel Application
                             </button>
                         `;
+                // Add event listeners for demo
+                detailsActions.querySelector('.edit')?.addEventListener('click', () => {
+                    alert('Edit mode would open here.');
+                });
+                detailsActions.querySelector('.cancel')?.addEventListener('click', () => {
+                    if (confirm('Are you sure you want to cancel this application?')) {
+                        app.status = 'Cancelled';
+                        goBack();
+                        renderTable();
+                    }
+                });
             }
         }
 
@@ -493,6 +707,7 @@
             listView.classList.remove('hidden-view');
             listView.style.display = 'block';
             selectedApp = null;
+            renderTable();
         }
 
         // ===== TAB SWITCHING =====
