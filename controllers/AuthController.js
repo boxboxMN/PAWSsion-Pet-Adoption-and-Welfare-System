@@ -84,7 +84,7 @@ exports.login = async (req, res) => {
     }
 
     const [rows] = await pool.query(
-      'SELECT account_id, email, password_hash, status FROM accounts WHERE email = ? LIMIT 1',
+      'SELECT account_id, email, password_hash, status, role FROM accounts WHERE email = ? LIMIT 1',
       [email]
     );
 
@@ -108,17 +108,44 @@ exports.login = async (req, res) => {
       return res.status(403).send('This account is not active.');
     }
 
-    const [adopterRows] = await pool.query(
-      'SELECT first_name, last_name FROM adopters WHERE account_id = ? LIMIT 1',
-      [account.account_id]
-    );
-
     req.session.accountId = account.account_id;
-    req.session.displayName = adopterRows[0]
-      ? `${adopterRows[0].first_name} ${adopterRows[0].last_name}`.trim()
-      : account.email;
+    req.session.role = account.role;
 
-    return res.redirect('/dashboard');
+    // Admin
+    if (account.role === "admin") {
+    return res.redirect("/admin/dashboard");
+    }
+
+    // Adopter
+    if (account.role === "adopter") {
+        const [adopterRows] = await pool.query(
+            "SELECT first_name, last_name FROM adopters WHERE account_id = ? LIMIT 1",
+            [account.account_id]
+        );
+
+        req.session.displayName = adopterRows.length
+            ? `${adopterRows[0].first_name} ${adopterRows[0].last_name}`.trim()
+            : account.email;
+
+        return res.redirect("/dashboard");
+    }
+
+    // Organization
+    if (account.role === "organization") {
+        const [orgRows] = await pool.query(
+            "SELECT organization_name FROM organizations WHERE account_id = ? LIMIT 1",
+            [account.account_id]
+        );
+
+        req.session.displayName = orgRows.length
+            ? orgRows[0].organization_name
+            : account.email;
+
+        return res.redirect("/org/dashboard");
+    }
+
+    return res.status(403).send("Unknown account role.");
+
   } catch (error) {
     console.error('login error:', error);
     return res.status(500).send('Unable to sign in right now.');

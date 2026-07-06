@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jul 05, 2026 at 08:43 AM
+-- Generation Time: Jul 06, 2026 at 07:20 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -38,6 +38,16 @@ CREATE TABLE `accounts` (
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `accounts`
+--
+
+INSERT INTO `accounts` (`account_id`, `email`, `password_hash`, `role`, `status`, `email_verified`, `created_at`, `updated_at`) VALUES
+(1, 'admin@pawpon.com', '$2b$10$l16R.DYg693wgKJJ20QQYucqrCl8.Zop120.UkdYO7g0TKXTc6vr6', 'admin', 'active', 1, '2026-07-06 14:27:26', '2026-07-06 14:40:55'),
+(2, 'maye@gmail.com', '$2b$10$fBoRZ9hzACik6Md.qXuuieJILqfW34Kl0gtQy/oOjK1aJGoYeb.F6', 'organization', 'pending', 0, '2026-07-06 15:05:19', '2026-07-06 15:05:19'),
+(3, '37436626262@org', '$2b$10$83xvjlDFSk4VS/25pEya7Oq1JLEbuis.Y7muVQDqyI3mAIpboVWzS', 'organization', 'pending', 0, '2026-07-06 15:06:25', '2026-07-06 15:06:25'),
+(4, 'mav@gmail.com', '$2b$10$ILw2E6hNngIrtumePkPFOue7if8JGl8j9S14QhscWfcFqvZxJaUqm', 'adopter', 'active', 1, '2026-07-06 17:19:46', '2026-07-06 17:19:46');
+
 -- --------------------------------------------------------
 
 --
@@ -51,6 +61,13 @@ CREATE TABLE `adopters` (
   `last_name` varchar(100) NOT NULL,
   `profile_picture` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `adopters`
+--
+
+INSERT INTO `adopters` (`adopter_id`, `account_id`, `first_name`, `last_name`, `profile_picture`) VALUES
+(1, 4, 'mav@gmail.com', 'mav@gmail.com', NULL);
 
 -- --------------------------------------------------------
 
@@ -72,6 +89,14 @@ CREATE TABLE `organizations` (
   `verification_status` enum('Pending','Approved','Rejected') DEFAULT 'Pending'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `organizations`
+--
+
+INSERT INTO `organizations` (`organization_id`, `account_id`, `organization_name`, `organization_type`, `contact_person`, `contact_number`, `address`, `city`, `province`, `description`, `verification_status`) VALUES
+(1, 2, 'PAWWSION', 'NGO', 'Althea IDK', '37436626262', 'San Miguel, Nabua Camarines Sur', 'Nabua', 'Camarines Sur', 'Driven by compassion, Pawssion Project serves as a sanctuary of hope for stray and abandoned paws, working tirelessly to give every rescue a second chance at a loving home. Our organization is dedicated to caring for stray dogs and cats, advocating for animal rights, and promoting their welfare.', 'Pending'),
+(2, 3, 'PAWPON', 'Foundation', '37436626262@org', '37436626262@org', '37436626262@org', '37436626262@org', '37436626262@org', '37436626262@org', 'Pending');
+
 -- --------------------------------------------------------
 
 --
@@ -85,6 +110,14 @@ CREATE TABLE `organization_documents` (
   `file_path` varchar(255) DEFAULT NULL,
   `uploaded_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `organization_documents`
+--
+
+INSERT INTO `organization_documents` (`document_id`, `organization_id`, `document_name`, `file_path`, `uploaded_at`) VALUES
+(1, 1, 'images.jpg', '06fe2c20a1278415a418850f8a48166f', '2026-07-06 15:05:19'),
+(2, 2, 'ð¥° So Cute ð¥º Knight.jpg', 'b32394245fa6f5420e85d88f8ccfe4ac', '2026-07-06 15:06:25');
 
 --
 -- Indexes for dumped tables
@@ -126,25 +159,25 @@ ALTER TABLE `organization_documents`
 -- AUTO_INCREMENT for table `accounts`
 --
 ALTER TABLE `accounts`
-  MODIFY `account_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `account_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `adopters`
 --
 ALTER TABLE `adopters`
-  MODIFY `adopter_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `adopter_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `organizations`
 --
 ALTER TABLE `organizations`
-  MODIFY `organization_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `organization_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `organization_documents`
 --
 ALTER TABLE `organization_documents`
-  MODIFY `document_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `document_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- Constraints for dumped tables

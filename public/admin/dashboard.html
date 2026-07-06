@@ -9,65 +9,30 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="../assets/js/adminSidebar.js"></script>
   <style>
     /* State-driven conditional classes linked with your JavaScript hooks */
-    .dropdown.open .dropdown-menu { display: block; }
-    .dropdown.open .fa-angle-down { transform: rotate(180deg); }
+    /* Sidebar */
+        .dropdown .dropdown-menu {
+            display: none;
+        }
+
+        .dropdown.open .dropdown-menu {
+            display: block;
+        }
+
+        .dropdown.open .fa-angle-down {
+            transform: rotate(180deg);
+        }
     .notification-container.active .notification-dropdown { display: block; }
   </style>
 </head>
 
 <body class="bg-[#f8fafc] text-[#1e293b] flex h-screen overflow-hidden font-['Inter',sans-serif]">
 <div class="wrapper flex w-full h-full">
-  <!-- Sidebar Panel Accordance to Image Layout -->
-  <aside class="sidebar w-[260px] bg-white border-r border-[#e2e8f0] flex flex-col justify-between py-6">
+   <!-- SIDEBAR -->
+        <div id="sidebar"></div>
     <div>
-      <div class="logo flex items-center justify-between px-6 mb-8">
-        <div class="logo-inner flex items-center gap-3">
-          <div class="logo-icon text-[#0038FF] text-[28px]"><i class="fa-solid fa-paw"></i></div>
-          <div class="logo-text">
-            <h2 class="text-[20px] font-extrabold text-[#0038FF] leading-none">Pawpon</h2>
-            <p class="text-[11px] text-[#64748b] mt-1 font-medium">Admin Portal</p>
-          </div>
-        </div>
-        <div class="collapse-btn text-[#94a3b8] cursor-pointer text-[14px]">
-          <i class="fa-solid fa-angles-left"></i>
-        </div>
-      </div>
-      <nav>
-        <ul class="list-none px-3">
-          <li class="active mb-1 relative">
-            <a href="/admin/dashboard" class="flex items-center justify-between px-4 py-3 bg-[#0038FF] text-white no-underline text-[14px] font-semibold rounded-md transition-all duration-200">
-              <div class="left flex items-center gap-3"><i class="fa-solid fa-table-columns w-5 text-[16px]"></i><span>Dashboard</span></div>
-            </a>
-          </li>
-          <li class="dropdown mb-1 relative">
-            <a href="#" id="orgDropdownToggle" class="flex items-center justify-between px-4 py-3 text-[#334155] no-underline text-[14px] font-medium rounded-md transition-all duration-200 hover:bg-[#f1f5f9]">
-              <div class="left flex items-center gap-3"><i class="fa-solid fa-users-gear w-5 text-[16px]"></i><span>Organization</span></div>
-              <i class="fa-solid fa-angle-down text-[12px] text-[#64748b] transition-transform duration-200"></i>
-            </a>
-            <ul class="dropdown-menu hidden list-none pl-8 mt-1">
-              <li class="mb-1"><a href="/admin/organization" class="block px-4 py-2 text-[#64748b] text-[13px] font-medium rounded transition-all duration-200 hover:text-[#0038FF] hover:bg-[#f1f5f9]">Organization Masterlist</a></li>
-              <li class="mb-1"><a href="/admin/partner-request" class="block px-4 py-2 text-[#64748b] text-[13px] font-medium rounded transition-all duration-200 hover:text-[#0038FF] hover:bg-[#f1f5f9]">Partner Request</a></li>
-            </ul>
-          </li>
-          <li class="mb-1 relative">
-            <a href="/admin/user-management" class="flex items-center justify-between px-4 py-3 text-[#334155] no-underline text-[14px] font-medium rounded-md transition-all duration-200 hover:bg-[#f1f5f9]">
-              <div class="left flex items-center gap-3"><i class="fa-regular fa-user w-5 text-[16px]"></i><span>User Management</span></div>
-            </a>
-          </li>
-          <li class="mb-1 relative">
-            <a href="/admin/feedback" class="flex items-center justify-between px-4 py-3 text-[#334155] no-underline text-[14px] font-medium rounded-md transition-all duration-200 hover:bg-[#f1f5f9]">
-              <div class="left flex items-center gap-3"><i class="fa-regular fa-comment-dots w-5 text-[16px]"></i><span>Feedback</span></div>
-            </a>
-          </li>
-        </ul>
-      </nav>
-    </div>
-    <div class="logout px-6">
-      <a href="#" class="flex items-center gap-3 text-[#0038FF] no-underline text-[14px] font-medium"><i class="fa-solid fa-arrow-right-from-bracket"></i>Logout</a>
-    </div>
-  </aside>
 
   <!-- Main View Container -->
   <main class="main flex-1 flex flex-col overflow-hidden bg-white m-4 border border-[#e2e8f0] rounded-lg">
@@ -195,12 +160,12 @@
 </div>
 
 <script>
-  // Organization Dropdown
-document.getElementById('orgDropdownToggle').addEventListener('click', function (e) {
-    e.preventDefault();
-    this.parentElement.classList.toggle('open');
+// ==========================
+// SIDEBAR DROPDOWN
+// ==========================
+document.addEventListener("DOMContentLoaded", () => {
+    loadSidebar("dashboard");
 });
-
 // Notification Dropdown
 const bellBtn = document.getElementById('notificationBellBtn');
 const dropdown = document.getElementById('notificationDropdown');
