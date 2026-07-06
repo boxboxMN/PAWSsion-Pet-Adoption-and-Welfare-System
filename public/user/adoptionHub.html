@@ -18,9 +18,19 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet" />
 
     <style>
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background-color: #f3f4f6;
+         *{
+            box-sizing:border-box;
+        }
+
+        html{
+            scroll-behavior:smooth;
+        }
+
+        body{
+            margin:0;
+            overscroll-behavior:none;
+                visibility:hidden;
+
         }
 
         .card-hover {
@@ -50,19 +60,23 @@
     </style>
 </head>
 
-<body class="bg-white">
+<body class="bg-gray-100 h-full overflow-hidden">
 
     <!-- ===== SIDEBAR ===== -->
-    <div id="sidebar"></div>
-
+    <div
+        id="sidebar"
+        class="fixed left-0 top-0 w-64 h-screen bg-white border-r border-gray-200 z-50">
+    </div>
     <!-- ===== MAIN CONTENT ===== -->
-<main class="flex-1 ml-64 min-h-screen bg-gray-50 flex flex-col">
-        <!-- ===== HEADER ===== -->
-        <div id="header" class="sticky top-0 z-20 bg-white"></div>
-
+    <main class="ml-64 pt-24 h-screen overflow-hidden bg-gray-50">       
+     <!-- ===== HEADER ===== -->
+        <div
+            id="header"
+            class="fixed top-0 left-64 right-0 h-24 bg-white border-b border-gray-200 z-40">
+        </div>
         <!-- ===== ADOPTION HUB ===== -->
-        <div class="p-6">
-            <div class="max-w-7xl mx-auto">
+        <div class="h-[calc(100vh-6rem)] overflow-y-auto p-8">            <
+        <div class="max-w-7xl mx-auto">
 
                 <!-- HEADER -->
                 <div class="mb-8">
@@ -198,21 +212,51 @@
                 console.error(error);
             }
         }
+Promise.all([
+    loadComponent("sidebar", "/user/userSidebar.html"),
+    loadComponent("header", "/user/userHeader.html")
+])
+.then(() => {
 
-        loadComponent("sidebar", "/user/userSidebar.html").then(() => {
-            const currentPath = window.location.pathname;
-            const links = document.querySelectorAll("#sidebar a[href]");
+    document.getElementById("sidebar").style.visibility = "visible";
+    document.getElementById("header").style.visibility = "visible";
 
-            links.forEach((link) => {
-                const href = link.getAttribute("href");
-                const isActive = href === currentPath || (href !== "/dashboard" && currentPath.startsWith(href));
+    const currentPath = window.location.pathname;
+    const pageTitle = document.getElementById("pageTitle");
 
-                link.className = isActive
-                    ? "flex items-center gap-4 px-5 py-4 rounded-2xl bg-blue-600 text-white shadow"
-                    : "flex items-center gap-4 px-5 py-4 rounded-2xl text-gray-800 hover:bg-blue-50 hover:text-blue-600 transition";
-            });
-        });
-        loadComponent("header", "/user/userHeader.html");
+    const links = document.querySelectorAll("#sidebar .nav-link");
+
+    links.forEach(link => {
+
+        const href = link.getAttribute("href");
+
+        const isActive =
+            href === currentPath ||
+            (href !== "/dashboard" && currentPath.startsWith(href));
+
+        if (isActive) {
+
+            link.className =
+                "nav-link flex items-center gap-4 px-5 py-4 rounded-2xl bg-blue-600 text-white shadow";
+
+            if (pageTitle) {
+                pageTitle.textContent = link.dataset.title;
+            }
+
+        } else {
+
+            link.className =
+                "nav-link flex items-center gap-4 px-5 py-4 rounded-2xl text-gray-800 hover:bg-blue-50 hover:text-blue-600 transition";
+
+        }
+
+    });
+
+   
+    document.body.style.visibility = "visible";
+
+})
+.catch(error => console.error(error));
     </script>
 
     <!-- ===== ADOPTION HUB SCRIPT ===== -->
@@ -406,7 +450,7 @@
         adoptBtn.addEventListener('click', function() {
             if (selectedPet) {
                 alert(`Starting adoption process for ${selectedPet.name}!`);
-                // Redirect to adoption form: window.location.href = "/adoption-form";
+               
             }
         });
 

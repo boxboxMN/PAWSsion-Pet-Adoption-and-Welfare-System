@@ -13,27 +13,45 @@
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
     <style>
-        html,
-        body {
-            height: 100%;
-            overflow: hidden;
+        *{
+            box-sizing:border-box;
+        }
+
+        html{
+            scroll-behavior:smooth;
+        }
+
+        body{
+            margin:0;
+            overscroll-behavior:none;
+            visibility: hidden;
+
+        }
+        #sidebar,
+        #header{
+            visibility:hidden;
         }
     </style>
 </head>
 
 <body class="bg-gray-100 h-full overflow-hidden">
 
-    <!-- Sidebar (fixed) -->
-    <div id="sidebar" class="fixed left-0 top-0 h-full z-30"></div>
-
+    <!-- Sidebar -->
+    <div
+        id="sidebar"
+        class="fixed left-0 top-0 w-64 h-screen bg-white border-r border-gray-200 z-50">
+    </div>
     <!-- Main content -->
-    <main class="ml-64 h-screen flex flex-col overflow-hidden bg-white">
+    <main class="ml-64 pt-24 h-screen overflow-hidden bg-gray-50">
 
-        <!-- Header (sticky at top) -->
-        <div id="header" class="flex-shrink-0 z-20 bg-gray-100"></div>
+        <!-- Header-->
+    <div
+        id="header"
+        class="fixed top-0 left-64 right-0 h-24 bg-white border-b border-gray-200 z-40">
+    </div>
+        <!-- Dashboard content -->
+<div class="h-[calc(100vh-6rem)] overflow-y-auto p-8">
 
-        <!-- Dashboard content (scrollable) -->
-        <div class="flex-1 overflow-y-auto p-8">
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
@@ -148,11 +166,8 @@
             </div>
 
         </div>
-        <!-- end scrollable -->
 
     </main>
-
-    <!-- Script para mag-load ng sidebar at header -->
     <script>
         async function loadComponent(id, file) {
             try {
@@ -183,24 +198,52 @@
                 }
             }
         }
+          loadUserName();
 
-        loadComponent("sidebar", "/user/userSidebar.html").then(() => {
-            const currentPath = window.location.pathname;
-            const links = document.querySelectorAll("#sidebar a[href]");
+    Promise.all([
+    loadComponent("sidebar", "/user/userSidebar.html"),
+    loadComponent("header", "/user/userHeader.html")
+])
+.then(() => {
 
-            links.forEach((link) => {
-                const href = link.getAttribute("href");
-                const isActive = href === currentPath || (href !== "/dashboard" && currentPath.startsWith(href));
+    document.getElementById("sidebar").style.visibility = "visible";
+    document.getElementById("header").style.visibility = "visible";
 
-                link.className = isActive
-                    ? "flex items-center gap-4 px-5 py-4 rounded-2xl bg-blue-600 text-white shadow"
-                    : "flex items-center gap-4 px-5 py-4 rounded-2xl text-gray-800 hover:bg-blue-50 hover:text-blue-600 transition";
-            });
-        });
-        loadComponent("header", "/user/userHeader.html");
-        loadUserName();
+    const currentPath = window.location.pathname;
+    const pageTitle = document.getElementById("pageTitle");
+
+    const links = document.querySelectorAll("#sidebar .nav-link");
+
+    links.forEach(link => {
+
+        const href = link.getAttribute("href");
+
+        const isActive =
+            href === currentPath ||
+            (href !== "/dashboard" && currentPath.startsWith(href));
+
+        if (isActive) {
+
+            link.className =
+                "nav-link flex items-center gap-4 px-5 py-4 rounded-2xl bg-blue-600 text-white shadow";
+
+            if (pageTitle) {
+                pageTitle.textContent = link.dataset.title;
+            }
+
+        } else {
+
+            link.className =
+                "nav-link flex items-center gap-4 px-5 py-4 rounded-2xl text-gray-800 hover:bg-blue-50 hover:text-blue-600 transition";
+        }
+
+    });
+
+    
+        document.body.style.visibility = "visible";
+    })
+    .catch(error => console.error(error));
     </script>
 
 </body>
-
 </html>

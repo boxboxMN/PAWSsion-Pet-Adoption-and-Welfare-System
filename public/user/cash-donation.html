@@ -7,7 +7,8 @@
     <title>Cash Donation</title>
 
     <!-- Tailwind via CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.tailwindcss.com">
+    </script>
 
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
@@ -18,36 +19,106 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet" />
 
     <style>
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background-color: #f3f4f6;
+        *{
+          box-sizing:border-box;
         }
-        input:focus, select:focus, textarea:focus {
+
+        html{
+            scroll-behavior:smooth;
+        }
+
+        body{
+            margin:0;
+            overscroll-behavior:none;
+                    visibility: hidden;
+
+        }
+        #sidebar,
+        #header{
+            visibility:hidden;
+        }
+        input:focus,
+        select:focus,
+        textarea:focus {
             outline: none;
             box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
         }
         .org-card {
             transition: all 0.2s;
+            cursor: pointer;
         }
         .org-card:hover {
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
         }
+        .org-card .checkmark {
+            display: none;
+        }
+        .org-card.selected .checkmark {
+            display: block;
+        }
+        .org-card.selected {
+            border: 2px solid #2563eb;
+        }
+        .donation-btn {
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        /* Modal overlay */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-overlay.active {
+            display: flex;
+        }
+        .modal-box {
+            background: white;
+            max-width: 500px;
+            width: 90%;
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            position: relative;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .modal-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            cursor: pointer;
+            font-size: 1.5rem;
+            color: #9ca3af;
+            transition: color 0.2s;
+        }
+        .modal-close:hover {
+            color: #374151;
+        }
     </style>
 </head>
 
-<body class="bg-white">
+<body class="bg-gray-100 h-full overflow-hidden">
 
     <!-- ===== SIDEBAR ===== -->
-    <div id="sidebar"></div>
-
+    <div
+        id="sidebar"
+        class="fixed left-0 top-0 w-64 h-screen bg-white border-r border-gray-200 z-50">
+    </div>
     <!-- ===== MAIN CONTENT ===== -->
-
- <main class="flex-1 ml-64 min-h-screen bg-gray-50 flex flex-col">
-        <!-- ===== HEADER ===== -->
-        <div id="header" class="sticky top-0 z-20 bg-white"></div>
-
+   
+    <main class="ml-64 pt-24 h-screen overflow-hidden bg-gray-50">
+        <div
+            id="header"
+            class="fixed top-0 left-64 right-0 h-24 bg-white border-b border-gray-200 z-40">
+        </div>
         <!-- ===== CASH DONATION PAGE ===== -->
-        <div class="p-6">
+        <div class="h-[calc(100vh-6rem)] overflow-y-auto p-8">
 
             <!-- HEADER SECTION -->
             <div class="text-center mb-8">
@@ -60,10 +131,10 @@
 
                 <!-- Buttons -->
                 <div class="flex justify-center gap-4 mt-6">
-                    <a href="/cash-donation" class="border border-blue-700 text-blue-700 hover:bg-blue-700 hover:text-white px-8 py-3 rounded-lg font-medium transition inline-block">
+                    <a href="/cash-donation" id="cashBtn" class="donation-btn bg-blue-700 text-white px-8 py-3 rounded-lg font-medium inline-block">
                         Cash Donation
                     </a>
-                    <a href="/inkind-donation" class="border border-blue-700 text-blue-700 hover:bg-blue-700 hover:text-white px-8 py-3 rounded-lg font-medium transition inline-block">
+                    <a href="/inkind-donation" id="inkindBtn" class="donation-btn border border-blue-700 text-blue-700 hover:bg-blue-700 hover:text-white px-8 py-3 rounded-lg font-medium inline-block">
                         In-Kind Donation
                     </a>
                 </div>
@@ -78,36 +149,38 @@
                     <!-- STEP 1: Select Organization -->
                     <h2 class="text-xl font-bold mb-4">Step 1: Select Organization</h2>
 
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-                        <!-- Card 1 (selected) -->
-                        <div class="border-2 border-blue-600 rounded-xl p-4 relative org-card">
-                            <div class="absolute top-0 right-0 bg-blue-600 text-white text-xs px-2 py-1 rounded-bl-lg">
-                                ✓
-                            </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8" id="orgContainer">
+                        <!-- Card 1 -->
+                        <div class="org-card selected border rounded-xl p-4 relative" data-org="1">
+                            <div class="checkmark absolute top-0 right-0 bg-blue-600 text-white text-xs px-2 py-1 rounded-bl-lg">✓</div>
                             <div class="flex justify-center mb-4">
                                 <img src="https://cdn-icons-png.flaticon.com/512/616/616408.png" alt="org" class="w-16 h-16" />
                             </div>
                             <h3 class="font-bold text-center text-sm">PAWssion Benevolence Circle</h3>
                             <p class="text-gray-500 text-xs text-center mt-2">Nabua, Camarines Sur</p>
-                            <p class="text-blue-600 text-xs text-center mt-4 cursor-pointer">View Organization Profile →</p>
+                            <p class="text-blue-600 text-xs text-center mt-4 view-profile-btn cursor-pointer" data-org="1">View Organization Profile →</p>
                         </div>
 
                         <!-- Card 2 -->
-                        <div class="border rounded-xl p-4 org-card">
+                        <div class="org-card border rounded-xl p-4 relative" data-org="2">
+                            <div class="checkmark absolute top-0 right-0 bg-blue-600 text-white text-xs px-2 py-1 rounded-bl-lg">✓</div>
                             <div class="flex justify-center mb-4">
                                 <img src="https://cdn-icons-png.flaticon.com/512/616/616430.png" alt="org" class="w-16 h-16" />
                             </div>
                             <h3 class="font-bold text-center text-sm">PUP Sintang Pusa</h3>
                             <p class="text-gray-500 text-xs text-center mt-2">Anonas Street, Sta Mesa Manila</p>
+                            <p class="text-blue-600 text-xs text-center mt-4 view-profile-btn cursor-pointer" data-org="2">View Organization Profile →</p>
                         </div>
 
                         <!-- Card 3 -->
-                        <div class="border rounded-xl p-4 org-card">
+                        <div class="org-card border rounded-xl p-4 relative" data-org="3">
+                            <div class="checkmark absolute top-0 right-0 bg-blue-600 text-white text-xs px-2 py-1 rounded-bl-lg">✓</div>
                             <div class="flex justify-center mb-4">
                                 <img src="https://cdn-icons-png.flaticon.com/512/616/616430.png" alt="org" class="w-16 h-16" />
                             </div>
                             <h3 class="font-bold text-center text-sm">PUP Sintang Pusa</h3>
                             <p class="text-gray-500 text-xs text-center mt-2">Youth Organization</p>
+                            <p class="text-blue-600 text-xs text-center mt-4 view-profile-btn cursor-pointer" data-org="3">View Organization Profile →</p>
                         </div>
                     </div>
 
@@ -204,6 +277,30 @@
 
     </main>
 
+    <!-- ===== ORGANIZATION PROFILE MODAL ===== -->
+    <div id="orgModal" class="modal-overlay">
+        <div class="modal-box">
+            <span id="modalClose" class="modal-close">&times;</span>
+            <h2 id="modalOrgName" class="text-2xl font-bold text-gray-800 mb-2">Organization Name</h2>
+            <p id="modalOrgAddress" class="text-gray-500 text-sm mb-3">Address</p>
+            <div class="flex items-center gap-3 mb-4">
+                <span class="text-blue-600"><i class="fas fa-phone"></i></span>
+                <span id="modalOrgPhone" class="text-gray-700">0917 123 4567</span>
+            </div>
+            <div class="flex items-center gap-3 mb-4">
+                <span class="text-blue-600"><i class="fas fa-envelope"></i></span>
+                <span id="modalOrgEmail" class="text-gray-700">contact@organization.com</span>
+            </div>
+            <div class="border-t border-gray-200 pt-4 mt-2">
+                <h3 class="font-semibold text-gray-700 mb-2">Mission</h3>
+                <p id="modalOrgMission" class="text-sm text-gray-600">
+                    To rescue, rehabilitate, and rehome animals in need, and to promote responsible pet ownership.
+                </p>
+            </div>
+            <button id="modalCloseBtn" class="mt-6 w-full bg-blue-700 hover:bg-blue-800 text-white py-2 rounded-lg transition">Close</button>
+        </div>
+    </div>
+
     <!-- ===== LOAD SIDEBAR & HEADER ===== -->
     <script>
         async function loadComponent(id, file) {
@@ -217,21 +314,149 @@
                 console.error(error);
             }
         }
+    Promise.all([
+    loadComponent("sidebar", "/user/userSidebar.html"),
+    loadComponent("header", "/user/userHeader.html")
+])
+.then(() => {
 
-        loadComponent("sidebar", "/user/userSidebar.html").then(() => {
-            const currentPath = window.location.pathname;
-            const links = document.querySelectorAll("#sidebar a[href]");
+    // Show components
+    document.getElementById("sidebar").style.visibility = "visible";
+    document.getElementById("header").style.visibility = "visible";
 
-            links.forEach((link) => {
-                const href = link.getAttribute("href");
-                const isActive = href === currentPath || (href !== "/dashboard" && currentPath.startsWith(href));
+    const currentPath = window.location.pathname;
+    const pageTitle = document.getElementById("pageTitle");
 
-                link.className = isActive
-                    ? "flex items-center gap-4 px-5 py-4 rounded-2xl bg-blue-600 text-white shadow"
-                    : "flex items-center gap-4 px-5 py-4 rounded-2xl text-gray-800 hover:bg-blue-50 hover:text-blue-600 transition";
+    // Pages na wala sa sidebar
+    const customTitles = {
+        "/profile": "Profile",
+        "/cash-donation": "Donation",
+        "/inkind-donation": "Donation"
+    };
+    if (pageTitle && customTitles[currentPath]) {
+        pageTitle.textContent = customTitles[currentPath];
+    }
+
+    const links = document.querySelectorAll("#sidebar .nav-link");
+
+    links.forEach(link => {
+
+        const href = link.getAttribute("href");
+
+        const isActive =
+            href === currentPath ||
+            (href !== "/dashboard" && currentPath.startsWith(href));
+
+        if (isActive) {
+
+            link.className =
+                "nav-link flex items-center gap-4 px-5 py-4 rounded-2xl bg-blue-600 text-white shadow";
+
+            // Update title para sa mga nasa sidebar
+            if (pageTitle && !customTitles[currentPath]) {
+                pageTitle.textContent = link.dataset.title;
+            }
+
+        } else {
+
+            link.className =
+                "nav-link flex items-center gap-4 px-5 py-4 rounded-2xl text-gray-800 hover:bg-blue-50 hover:text-blue-600 transition";
+        }
+    });
+    document.body.style.visibility = "visible";
+
+})
+.catch(error => console.error(error));
+    </script>
+
+    <!-- ===== SCRIPTS FOR ORGANIZATION SELECTION & MODAL ===== -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // ----- Organization selection -----
+            const cards = document.querySelectorAll('.org-card');
+            cards.forEach(card => {
+                card.addEventListener('click', function(e) {
+                    if (e.target.closest('.view-profile-btn')) return;
+                    cards.forEach(c => c.classList.remove('selected'));
+                    this.classList.add('selected');
+                });
+            });
+
+            // ----- Organization data (for modal) -----
+            const orgData = {
+                1: {
+                    name: "PAWssion Benevolence Circle",
+                    address: "Nabua, Camarines Sur",
+                    phone: "0992 737 4747",
+                    email: "pawssion@example.com",
+                    mission: "To rescue, rehabilitate, and rehome animals in need, and to promote responsible pet ownership and animal welfare in the community."
+                },
+                2: {
+                    name: "PUP Sintang Pusa",
+                    address: "Anonas Street, Sta Mesa Manila",
+                    phone: "0917 123 4567",
+                    email: "pupsintangpusa@example.com",
+                    mission: "To provide a safe haven for stray cats and advocate for their welfare through education and community engagement."
+                },
+                3: {
+                    name: "PUP Sintang Pusa",
+                    address: "Youth Organization - Manila",
+                    phone: "0917 123 4567",
+                    email: "pupsintangpusa.youth@example.com",
+                    mission: "To empower the youth to participate in animal rescue and care, fostering compassion and responsibility."
+                }
+            };
+
+            // ----- Modal elements -----
+            const modal = document.getElementById('orgModal');
+            const closeBtn = document.getElementById('modalClose');
+            const closeBtn2 = document.getElementById('modalCloseBtn');
+            const orgName = document.getElementById('modalOrgName');
+            const orgAddress = document.getElementById('modalOrgAddress');
+            const orgPhone = document.getElementById('modalOrgPhone');
+            const orgEmail = document.getElementById('modalOrgEmail');
+            const orgMission = document.getElementById('modalOrgMission');
+
+            function openModal(orgId) {
+                const data = orgData[orgId];
+                if (!data) return;
+                orgName.textContent = data.name;
+                orgAddress.textContent = data.address;
+                orgPhone.textContent = data.phone;
+                orgEmail.textContent = data.email;
+                orgMission.textContent = data.mission;
+                modal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closeModal() {
+                modal.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+
+            // Event listeners for "View Organization Profile" links
+            document.querySelectorAll('.view-profile-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const orgId = this.dataset.org;
+                    openModal(orgId);
+                });
+            });
+
+            // Close modal events
+            closeBtn.addEventListener('click', closeModal);
+            closeBtn2.addEventListener('click', closeModal);
+            modal.addEventListener('click', function(e) {
+                if (e.target === this) closeModal();
+            });
+
+            // Close on ESC key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && modal.classList.contains('active')) {
+                    closeModal();
+                }
             });
         });
-        loadComponent("header", "/user/userHeader.html");
     </script>
 
 </body>
