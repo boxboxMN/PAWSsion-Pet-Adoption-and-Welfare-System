@@ -3,6 +3,9 @@ const validator = require('validator');
 const pool = require('../config/database');
 
 exports.register = async (req, res) => {
+  console.log("=== REGISTER START ===");
+  console.log(req.body);
+
   try {
     const firstName = (req.body.firstName || '').trim();
     const lastName = (req.body.lastName || '').trim();
@@ -40,11 +43,15 @@ exports.register = async (req, res) => {
 
     try {
       await connection.beginTransaction();
+      console.log("Transaction started");
 
+      console.log("About to insert account...");
       const [accountResult] = await connection.execute(
         'INSERT INTO accounts (email, password_hash, role, status, email_verified) VALUES (?, ?, ?, ?, ?)',
         [email, passwordHash, 'adopter', 'active', 1]
       );
+
+      console.log("Account inserted!", accountResult);
 
       await connection.execute(
         'INSERT INTO adopters (account_id, first_name, last_name) VALUES (?, ?, ?)',
