@@ -7,7 +7,8 @@
     <title>Adoption Hub</title>
 
     <!-- Tailwind via CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.tailwindcss.com">
+    </script>
 
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
@@ -15,47 +16,35 @@
     <!-- Google Font: Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap"
+    rel="stylesheet" />
 
     <style>
-         *{
-            box-sizing:border-box;
+        body {
+            visibility: hidden;
         }
 
-        html{
-            scroll-behavior:smooth;
+        #sidebar,
+        #header {
+            visibility: hidden;
         }
-
-        body{
-            margin:0;
-            overscroll-behavior:none;
-                visibility:hidden;
-
+        .stepper-line {
+            position: absolute;
+            top: 1.15rem;
+            left: 2.5rem;
+            right: 2.5rem;
+            height: 2px;
+            background: #e2e8f0;
+            z-index: 0;
         }
-
-        .card-hover {
+        .step-circle {
             transition: all 0.3s ease;
         }
-        .card-hover:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        .upload-box-hover:hover {
+            border-color: #94a3b8;
         }
-        .image-scale {
-            transition: transform 0.5s ease;
-        }
-        .group:hover .image-scale {
-            transform: scale(1.05);
-        }
-
-        /* Hide/show views */
-        #list-view {
-            display: block;
-        }
-        #details-view {
-            display: none;
-        }
-        .hidden-view {
-            display: none !important;
+        .btn-back-hover:hover {
+            transform: translateX(-3px);
         }
     </style>
 </head>
@@ -63,20 +52,20 @@
 <body class="bg-gray-100 h-full overflow-hidden">
 
     <!-- ===== SIDEBAR ===== -->
-    <div
-        id="sidebar"
-        class="fixed left-0 top-0 w-64 h-screen bg-white border-r border-gray-200 z-50">
+    <div id="sidebar" class="fixed left-0 top-0 w-64 h-screen bg-white border-r border-gray-200 z-50">
     </div>
+
     <!-- ===== MAIN CONTENT ===== -->
-    <main class="ml-64 pt-24 h-screen overflow-hidden bg-gray-50">       
-     <!-- ===== HEADER ===== -->
-        <div
-            id="header"
-            class="fixed top-0 left-64 right-0 h-24 bg-white border-b border-gray-200 z-40">
+    <main class="ml-64 pt-24 h-screen overflow-hidden bg-gray-50">
+
+        <!-- ===== HEADER ===== -->
+        <div id="header" class="fixed top-0 left-64 right-0 h-24 bg-white border-b border-gray-200 z-40">
         </div>
+
         <!-- ===== ADOPTION HUB ===== -->
-        <div class="h-[calc(100vh-6rem)] overflow-y-auto p-8">            <
-        <div class="max-w-7xl mx-auto">
+        <div class="h-[calc(100vh-6rem)] overflow-y-auto p-6 lg:p-8">
+
+            <div class="max-w-7xl mx-auto">
 
                 <!-- HEADER -->
                 <div class="mb-8">
@@ -85,378 +74,701 @@
                 </div>
 
                 <!-- SEARCH & FILTER -->
-                <div id="search-bar" class="bg-white rounded-2xl shadow-sm p-4 mb-8 flex flex-col md:flex-row gap-4">
-                    <input
-                        type="text"
-                        id="search-input"
-                        placeholder="Search pet name or breed..."
-                        class="flex-1 border border-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-400"
-                    />
-                    <select
-                        id="type-filter"
-                        class="border border-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-400"
-                    >
-                        <option value="All">All Types</option>
-                        <option value="Dog">Dog</option>
-                        <option value="Cat">Cat</option>
-                    </select>
-                </div>
-
-                <!-- LIST VIEW (Grid) -->
-                <div id="list-view">
-                    <div id="pet-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                        <!-- Cards rendered by JS -->
-                    </div>
-                </div>
-
-                <!-- DETAILS VIEW -->
-                <div id="details-view">
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-
-                        <!-- Left: Image -->
-                        <div class="bg-white rounded-3xl shadow-sm overflow-hidden">
-                            <div class="relative">
-                                <img id="detail-image" src="" alt="" class="w-full h-[500px] object-cover" />
-                                <span id="detail-status-badge" class="absolute top-5 right-5 bg-green-400 text-white text-sm font-semibold px-4 py-2 rounded-full shadow-lg"></span>
-                            </div>
-                        </div>
-
-                        <!-- Right: Details -->
-                        <div class="bg-white rounded-3xl shadow-sm p-8">
-
-                            <!-- Back button -->
-                            <button id="back-btn" class="flex items-center gap-2 text-blue-600 font-medium hover:text-blue-700 mb-6">
-                                <i class="fas fa-arrow-left"></i> Back to Pets
-                            </button>
-
-                            <!-- Title -->
-                            <div class="mb-6">
-                                <h1 id="detail-name" class="text-3xl font-bold text-gray-800 uppercase"></h1>
-                                <p id="detail-breed" class="text-gray-500 mt-2 text-lg"></p>
-                            </div>
-
-                            <!-- Details -->
-                            <div class="space-y-5">
-                                <div class="flex gap-4">
-                                    <i class="fas fa-paw text-blue-600 mt-1"></i>
-                                    <div>
-                                        <p class="font-semibold text-gray-800">Type of Animal</p>
-                                        <p id="detail-type" class="text-gray-500"></p>
-                                    </div>
-                                </div>
-                                <div class="flex gap-4">
-                                    <i class="fas fa-birthday-cake text-blue-600 mt-1"></i>
-                                    <div>
-                                        <p class="font-semibold text-gray-800">Age</p>
-                                        <p id="detail-age" class="text-gray-500"></p>
-                                    </div>
-                                </div>
-                                <div class="flex gap-4">
-                                    <i id="detail-gender-icon" class="fas fa-mars text-blue-600 mt-1"></i>
-                                    <div>
-                                        <p class="font-semibold text-gray-800">Gender</p>
-                                        <p id="detail-gender" class="text-gray-500"></p>
-                                    </div>
-                                </div>
-                                <div class="flex gap-4">
-                                    <i class="fas fa-heart text-blue-600 mt-1"></i>
-                                    <div>
-                                        <p class="font-semibold text-gray-800">Color & Marking</p>
-                                        <p id="detail-color" class="text-gray-500"></p>
-                                    </div>
-                                </div>
-                                <div class="flex gap-4">
-                                    <i class="fas fa-shield-alt text-blue-600 mt-1"></i>
-                                    <div>
-                                        <p class="font-semibold text-gray-800">Behavior</p>
-                                        <p id="detail-behavior" class="text-gray-500 leading-relaxed"></p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Organization -->
-                            <div class="bg-gray-50 rounded-2xl p-5 mt-8 border border-gray-100">
-                                <p class="text-sm text-gray-400 mb-2">Organization</p>
-                                <div class="flex items-center justify-between">
-                                    <div>
-                                        <h3 class="font-bold text-gray-800">PAWSsion Benevolence Circle</h3>
-                                        <p class="text-gray-500 text-sm">Since 2022</p>
-                                    </div>
-                                    <span class="bg-green-100 text-green-700 text-xs font-semibold px-3 py-1 rounded-full">Verified</span>
-                                </div>
-                            </div>
-
-                            <!-- Start Adoption Button -->
-                            <button id="adopt-btn" class="w-full bg-blue-600 hover:bg-blue-700 transition text-white font-semibold py-4 rounded-2xl mt-8 shadow-lg">
-                                Start Adoption Process
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
+                <div class="bg-white rounded-2xl shadow-sm p-4 mb-8 flex flex-col md:flex-row gap-4">
+                    <input type="text" id="search-input" placeholder="Search pet name or breed..."
+                    class="flex-1 border border-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-400" />
+                    <select id="type-filter"
+                    class="border border-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-400">
+                    <option value="All">All Types</option>
+                    <option value="Dog">Dog</option>
+                    <option value="Cat">Cat</option>
+                </select>
             </div>
+
+            <!-- ===== LIST VIEW (Grid) ===== -->
+            <div id="list-view">
+                <div id="pet-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Cards rendered by JS -->
+                </div>
+            </div>
+
+            <!-- ===== DETAILS VIEW ===== -->
+            <div id="details-view" style="display:none;">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+
+                    <!-- Left: Image -->
+                    <div class="bg-white rounded-3xl shadow-sm overflow-hidden">
+                        <div class="relative">
+                            <img id="detail-image" src="" alt="" class="w-full h-[500px] object-cover" />
+                            <span id="detail-status-badge"
+                            class="absolute top-5 right-5 bg-green-400 text-white text-sm font-semibold px-4 py-2 rounded-full shadow-lg"></span>
+                        </div>
+                    </div>
+
+                    <!-- Right: Details -->
+                    <div class="bg-white rounded-3xl shadow-sm p-8">
+
+                        <!-- Back button -->
+                        <button id="back-btn" class="flex items-center gap-2 text-blue-600 font-medium hover:text-blue-700 mb-6 transition btn-back-hover">
+                            <i class="fas fa-arrow-left"></i> Back to Pets
+                        </button>
+
+                        <!-- Title -->
+                        <div class="mb-6">
+                            <h1 id="detail-name" class="text-3xl font-bold text-gray-800 uppercase"></h1>
+                            <p id="detail-breed" class="text-gray-500 mt-2 text-lg"></p>
+                        </div>
+
+                        <!-- Details -->
+                        <div class="space-y-5">
+                            <div class="flex gap-4">
+                                <i class="fas fa-paw text-blue-600 mt-1"></i>
+                                <div>
+                                    <p class="font-semibold text-gray-800">Type of Animal</p>
+                                    <p id="detail-type" class="text-gray-500"></p>
+                                </div>
+                            </div>
+                            <div class="flex gap-4">
+                                <i class="fas fa-birthday-cake text-blue-600 mt-1"></i>
+                                <div>
+                                    <p class="font-semibold text-gray-800">Age</p>
+                                    <p id="detail-age" class="text-gray-500"></p>
+                                </div>
+                            </div>
+                            <div class="flex gap-4">
+                                <i id="detail-gender-icon" class="fas fa-mars text-blue-600 mt-1"></i>
+                                <div>
+                                    <p class="font-semibold text-gray-800">Gender</p>
+                                    <p id="detail-gender" class="text-gray-500"></p>
+                                </div>
+                            </div>
+                            <div class="flex gap-4">
+                                <i class="fas fa-heart text-blue-600 mt-1"></i>
+                                <div>
+                                    <p class="font-semibold text-gray-800">Color & Marking</p>
+                                    <p id="detail-color" class="text-gray-500"></p>
+                                </div>
+                            </div>
+                            <div class="flex gap-4">
+                                <i class="fas fa-shield-alt text-blue-600 mt-1"></i>
+                                <div>
+                                    <p class="font-semibold text-gray-800">Behavior</p>
+                                    <p id="detail-behavior" class="text-gray-500 leading-relaxed"></p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Organization -->
+                        <div class="bg-gray-50 rounded-2xl p-5 mt-8 border border-gray-100">
+                            <p class="text-sm text-gray-400 mb-2">Organization</p>
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h3 class="font-bold text-gray-800">PAWSsion Benevolence Circle</h3>
+                                    <p class="text-gray-500 text-sm">Since 2022</p>
+                                </div>
+                                <span class="bg-green-100 text-green-700 text-xs font-semibold px-3 py-1 rounded-full">Verified</span>
+                            </div>
+                        </div>
+
+                        <!-- Start Adoption Button -->
+                        <button id="adopt-btn" class="w-full bg-blue-600 hover:bg-blue-700 transition text-white font-semibold py-4 rounded-2xl mt-8 shadow-lg">
+                            Start Adoption Process
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== APPLICATION VIEW (Formal Form) ===== -->
+            <div id="application-view" style="display:none;">
+
+                <div class="max-w-4xl mx-auto bg-white rounded-xl shadow-md border border-gray-200 p-6 lg:p-8">
+
+                    <!-- Back button -->
+                    <div class="flex items-center justify-between mb-4">
+                        <button id="app-back-btn" class="inline-flex items-center gap-2 text-blue-600 font-medium hover:text-blue-700 transition btn-back-hover">
+                            <i class="fas fa-arrow-left text-sm"></i> Back to Pet Details
+                        </button>
+                        <span id="app-pet-name" class="text-sm font-medium text-gray-600 bg-gray-100 px-4 py-1.5 rounded-full">
+                            Applying for: <span class="text-blue-600 font-bold"></span>
+                        </span>
+                    </div>
+
+                    <!-- Document Header -->
+                    <div class="border-b border-gray-100 pb-4 mb-6 flex flex-wrap items-center justify-between gap-3">
+                        <div>
+                            <h1 class="text-2xl font-bold text-gray-800">Adoption Application Form</h1>
+                            <div class="text-sm text-gray-500">Reference: <span id="app-ref-number" class="bg-gray-100 px-3 py-0.5 rounded-full font-mono">APP-2026-001</span></div>
+                        </div>
+                        <div>
+                            <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold border bg-yellow-50 text-yellow-700 border-yellow-300">
+                                <span class="w-1.5 h-1.5 rounded-full bg-yellow-500 inline-block"></span> Pending
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Status Row -->
+                    <div class="flex flex-wrap items-center gap-4 mb-4">
+                        <span class="text-sm text-gray-500">Submitted: <strong id="app-submitted-date" class="text-gray-800 font-semibold">Today</strong></span>
+                        <span class="text-gray-300">|</span>
+                        <span class="text-sm text-gray-500">Organization: <strong id="app-org-name" class="text-gray-800 font-semibold">PAWSsion Benevolence Circle</strong></span>
+                    </div>
+
+                    <!-- Stepper -->
+                    <div class="bg-white border border-gray-100 rounded-lg p-6 mb-6 relative">
+                        <div class="flex items-center justify-between relative">
+                            <!-- Line behind steps -->
+                            <div class="stepper-line"></div>
+
+                            <!-- Step 1 -->
+                            <div class="flex flex-col items-center gap-1 flex-1 relative z-10 step-item active" data-step="1">
+                                <div class="w-9 h-9 rounded-full border-2 border-gray-200 bg-white text-gray-400 font-bold text-xs flex items-center justify-center step-circle active:border-blue-600 active:bg-blue-600 active:text-white active:shadow-md completed:border-green-500 completed:bg-green-500 completed:text-white">
+                                    1
+                                </div>
+                                <span class="text-[10px] font-semibold uppercase tracking-wider text-gray-400 text-center max-w-[4.5rem] leading-tight step-label active:text-gray-800 completed:text-gray-800">Applicant</span>
+                            </div>
+                            <!-- Step 2 -->
+                            <div class="flex flex-col items-center gap-1 flex-1 relative z-10 step-item" data-step="2">
+                                <div class="w-9 h-9 rounded-full border-2 border-gray-200 bg-white text-gray-400 font-bold text-xs flex items-center justify-center step-circle active:border-blue-600 active:bg-blue-600 active:text-white active:shadow-md completed:border-green-500 completed:bg-green-500 completed:text-white">
+                                    2
+                                </div>
+                                <span class="text-[10px] font-semibold uppercase tracking-wider text-gray-400 text-center max-w-[4.5rem] leading-tight step-label active:text-gray-800 completed:text-gray-800">Lifestyle</span>
+                            </div>
+                            <!-- Step 3 -->
+                            <div class="flex flex-col items-center gap-1 flex-1 relative z-10 step-item" data-step="3">
+                                <div class="w-9 h-9 rounded-full border-2 border-gray-200 bg-white text-gray-400 font-bold text-xs flex items-center justify-center step-circle active:border-blue-600 active:bg-blue-600 active:text-white active:shadow-md completed:border-green-500 completed:bg-green-500 completed:text-white">
+                                    3
+                                </div>
+                                <span class="text-[10px] font-semibold uppercase tracking-wider text-gray-400 text-center max-w-[4.5rem] leading-tight step-label active:text-gray-800 completed:text-gray-800">Intent</span>
+                            </div>
+                            <!-- Step 4 -->
+                            <div class="flex flex-col items-center gap-1 flex-1 relative z-10 step-item" data-step="4">
+                                <div class="w-9 h-9 rounded-full border-2 border-gray-200 bg-white text-gray-400 font-bold text-xs flex items-center justify-center step-circle active:border-blue-600 active:bg-blue-600 active:text-white active:shadow-md completed:border-green-500 completed:bg-green-500 completed:text-white">
+                                    4
+                                </div>
+                                <span class="text-[10px] font-semibold uppercase tracking-wider text-gray-400 text-center max-w-[4.5rem] leading-tight step-label active:text-gray-800 completed:text-gray-800">Emergency</span>
+                            </div>
+                            <!-- Step 5 -->
+                            <div class="flex flex-col items-center gap-1 flex-1 relative z-10 step-item" data-step="5">
+                                <div class="w-9 h-9 rounded-full border-2 border-gray-200 bg-white text-gray-400 font-bold text-xs flex items-center justify-center step-circle active:border-blue-600 active:bg-blue-600 active:text-white active:shadow-md completed:border-green-500 completed:bg-green-500 completed:text-white">
+                                    5
+                                </div>
+                                <span class="text-[10px] font-semibold uppercase tracking-wider text-gray-400 text-center max-w-[4.5rem] leading-tight step-label active:text-gray-800 completed:text-gray-800">Requirement</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ===== FORM FIELDS ===== -->
+
+                    <!-- Applicant Information -->
+                    <div class="bg-white border border-gray-100 rounded-lg p-6 mb-6">
+                        <div class="flex items-center gap-2 font-semibold text-sm text-gray-800 border-b border-gray-100 pb-3 mb-4">
+                            <i class="fas fa-user w-8 h-8 flex items-center justify-center bg-blue-50 text-blue-600 rounded-lg"></i>
+                            Applicant Information
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="mb-2">
+                                <label class="block text-xs font-semibold uppercase tracking-wider text-gray-500">Full Name</label>
+                                <input type="text" id="app-fullname" placeholder="Juan Dela Cruz" class="w-full text-gray-800 border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none" />
+                            </div>
+                            <div class="mb-2">
+                                <label class="block text-xs font-semibold uppercase tracking-wider text-gray-500">Phone</label>
+                                <input type="text" id="app-phone" placeholder="09123456789" class="w-full text-gray-800 border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none" />
+                            </div>
+                            <div class="mb-2">
+                                <label class="block text-xs font-semibold uppercase tracking-wider text-gray-500">Email</label>
+                                <input type="email" id="app-email" placeholder="juan@gmail.com" class="w-full text-gray-800 border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none" />
+                            </div>
+                            <div class="mb-2 md:col-span-3">
+                                <label class="block text-xs font-semibold uppercase tracking-wider text-gray-500">Address</label>
+                                <input type="text" id="app-address" placeholder="Legazpi City, Albay" class="w-full text-gray-800 border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none" />
+                            </div>
+                            <div class="mb-2">
+                                <label class="block text-xs font-semibold uppercase tracking-wider text-gray-500">Civil Status</label>
+                                <select id="app-civil-status" class="w-full text-gray-800 border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none">
+                                    <option value="Single">Single</option>
+                                    <option value="Married">Married</option>
+                                    <option value="Divorced">Divorced</option>
+                                    <option value="Widowed">Widowed</option>
+                                </select>
+                            </div>
+                            <div class="mb-2">
+                                <label class="block text-xs font-semibold uppercase tracking-wider text-gray-500">Age</label>
+                                <input type="number" id="app-age" placeholder="22" class="w-full text-gray-800 border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none" />
+                            </div>
+                            <div class="mb-2">
+                                <label class="block text-xs font-semibold uppercase tracking-wider text-gray-500">Occupation</label>
+                                <input type="text" id="app-occupation" placeholder="Student" class="w-full text-gray-800 border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Lifestyle -->
+                    <div class="bg-white border border-gray-100 rounded-lg p-6 mb-6">
+                        <div class="flex items-center gap-2 font-semibold text-sm text-gray-800 border-b border-gray-100 pb-3 mb-4">
+                            <i class="fas fa-home w-8 h-8 flex items-center justify-center bg-blue-50 text-blue-600 rounded-lg"></i>
+                            Lifestyle &amp; Home Assessment
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="mb-2">
+                                <label class="block text-xs font-semibold uppercase tracking-wider text-gray-500">Work Hours</label>
+                                <input type="text" id="app-work-hours" placeholder="8AM – 5PM" class="w-full text-gray-800 border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none" />
+                            </div>
+                            <div class="mb-2">
+                                <label class="block text-xs font-semibold uppercase tracking-wider text-gray-500">Time Available with Pet (daily)</label>
+                                <input type="text" id="app-time-with-pet" placeholder="6 hours" class="w-full text-gray-800 border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Adoption Intent -->
+                    <div class="bg-white border border-gray-100 rounded-lg p-6 mb-6">
+                        <div class="flex items-center gap-2 font-semibold text-sm text-gray-800 border-b border-gray-100 pb-3 mb-4">
+                            <i class="fas fa-heart w-8 h-8 flex items-center justify-center bg-blue-50 text-blue-600 rounded-lg"></i>
+                            Adoption Intent
+                        </div>
+                        <textarea id="app-intent" class="w-full border border-gray-200 rounded-lg p-3 bg-gray-50 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none min-h-[100px] resize-y" placeholder="Tell us why you want to adopt this pet..."></textarea>
+                    </div>
+
+                    <!-- Emergency Contact -->
+                    <div class="bg-white border border-gray-100 rounded-lg p-6 mb-6">
+                        <div class="flex items-center gap-2 font-semibold text-sm text-gray-800 border-b border-gray-100 pb-3 mb-4">
+                            <i class="fas fa-phone-alt w-8 h-8 flex items-center justify-center bg-blue-50 text-blue-600 rounded-lg"></i>
+                            Emergency Contact
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="mb-2">
+                                <label class="block text-xs font-semibold uppercase tracking-wider text-gray-500">Contact Name</label>
+                                <input type="text" id="app-emergency-name" placeholder="Maria Cruz" class="w-full text-gray-800 border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none" />
+                            </div>
+                            <div class="mb-2">
+                                <label class="block text-xs font-semibold uppercase tracking-wider text-gray-500">Phone</label>
+                                <input type="text" id="app-emergency-phone" placeholder="09999999999" class="w-full text-gray-800 border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none" />
+                            </div>
+                            <div class="mb-2">
+                                <label class="block text-xs font-semibold uppercase tracking-wider text-gray-500">Relation</label>
+                                <input type="text" id="app-emergency-relation" placeholder="Mother" class="w-full text-gray-800 border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Uploaded Requirement -->
+                    <div class="bg-white border border-gray-100 rounded-lg p-6 mb-6">
+                        <div class="flex items-center gap-2 font-semibold text-sm text-gray-800 border-b border-gray-100 pb-3 mb-4">
+                            <i class="fas fa-upload w-8 h-8 flex items-center justify-center bg-blue-50 text-blue-600 rounded-lg"></i>
+                            Uploaded Requirement
+                        </div>
+                        <div id="upload-box" class="border-2 border-dashed border-gray-200 rounded-xl p-6 text-center bg-gray-50 hover:border-gray-400 cursor-pointer transition">
+                            <i class="fas fa-cloud-upload-alt text-4xl text-red-500 block mb-2"></i>
+                            <div class="file-name font-medium text-gray-800">Click to upload requirement</div>
+                            <div class="file-date text-xs text-gray-400 mt-1">Accepted: JPG, PNG, PDF (max 5MB)</div>
+                            <input type="file" id="file-input" class="hidden" accept=".jpg,.jpeg,.png,.pdf" />
+                        </div>
+                        <div id="upload-status" class="text-sm text-green-600 mt-2 hidden">
+                            <i class="fas fa-check-circle"></i> File uploaded successfully
+                        </div>
+                    </div>
+
+                    <!-- Submit -->
+                    <div class="flex flex-wrap items-center justify-between gap-3 mt-6 pt-4 border-t border-gray-200">
+                        <button id="app-back-btn-bottom" class="inline-flex items-center gap-2 text-blue-600 font-medium hover:text-blue-700 transition btn-back-hover">
+                            <i class="fas fa-arrow-left text-sm"></i> Back
+                        </button>
+                        <button id="app-submit-btn" class="bg-blue-600 hover:bg-blue-700 transition text-white font-semibold px-8 py-3 rounded-xl shadow-lg">
+                            <i class="fas fa-paper-plane mr-2"></i> Submit Application
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+
         </div>
+    </div>
 
-    </main>
+</main>
 
-    <!-- ===== LOAD SIDEBAR & HEADER ===== -->
-    <script>
-        async function loadComponent(id, file) {
-            try {
-                const response = await fetch(file);
-                if (!response.ok) {
-                    throw new Error(`Cannot load ${file}`);
+<!-- ===== LOAD SIDEBAR & HEADER ===== -->
+<script>
+    async function loadComponent(id, file) {
+        try {
+            const response = await fetch(file);
+            if (!response.ok) {
+                throw new Error(`Cannot load ${file}`);
+            }
+            document.getElementById(id).innerHTML = await response.text();
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    Promise.all([
+            loadComponent("sidebar", "/user/userSidebar.html"),
+            loadComponent("header", "/user/userHeader.html")
+        ])
+        .then(() => {
+
+            document.getElementById("sidebar").style.visibility = "visible";
+            document.getElementById("header").style.visibility = "visible";
+
+            const currentPath = window.location.pathname;
+            const pageTitle = document.getElementById("pageTitle");
+
+            const links = document.querySelectorAll("#sidebar .nav-link");
+
+            links.forEach(link => {
+
+                const href = link.getAttribute("href");
+
+                const isActive =
+                    href === currentPath ||
+                    (href !== "/dashboard" && currentPath.startsWith(href));
+
+                if (isActive) {
+
+                    link.className =
+                        "nav-link flex items-center gap-4 px-5 py-4 rounded-2xl bg-blue-600 text-white shadow";
+
+                    if (pageTitle) {
+                        pageTitle.textContent = link.dataset.title;
+                    }
+
+                } else {
+
+                    link.className =
+                        "nav-link flex items-center gap-4 px-5 py-4 rounded-2xl text-gray-800 hover:bg-blue-50 hover:text-blue-600 transition";
+
                 }
-                document.getElementById(id).innerHTML = await response.text();
-            } catch (error) {
-                console.error(error);
-            }
+
+            });
+
+            document.body.style.visibility = "visible";
+
+        })
+        .catch(error => console.error(error));
+</script>
+
+<!-- ===== ADOPTION HUB SCRIPT ===== -->
+<script>
+    // ===== PET DATA =====
+    const petsData = [{
+        name: "Adobo",
+        type: "Dog",
+        breed: "Aspin",
+        gender: "Male",
+        age: "Approximately 4–5 yrs old",
+        color: "Brown and white on extremities & tail",
+        behavior: "Very friendly, active, allows human interaction and petting",
+        status: "Available",
+        img: "https://placedog.net/400/500?id=1"
+    }, {
+        name: "Sadboi",
+        type: "Dog",
+        breed: "Beagle",
+        gender: "Male",
+        age: "2 yrs old",
+        color: "Black and white",
+        behavior: "Sweet and calm",
+        status: "Available",
+        img: "https://placedog.net/400/500?id=2"
+    }, {
+        name: "Lebron",
+        type: "Dog",
+        breed: "Golden Retriever",
+        gender: "Male",
+        age: "3 yrs old",
+        color: "Brown",
+        behavior: "Playful and energetic",
+        status: "Available",
+        img: "https://placedog.net/400/500?id=3"
+    }, {
+        name: "Bloop",
+        type: "Cat",
+        breed: "British Shorthair",
+        gender: "Female",
+        age: "1 yr old",
+        color: "White and orange",
+        behavior: "Very clingy and cute",
+        status: "Available",
+        img: "https://placekitten.com/400/500"
+    }, {
+        name: "Mandy",
+        type: "Dog",
+        breed: "Corgi",
+        gender: "Female",
+        age: "2 yrs old",
+        color: "Brown",
+        behavior: "Loves cuddles",
+        status: "Available",
+        img: "https://placedog.net/400/500?id=4"
+    }, {
+        name: "Albie",
+        type: "Cat",
+        breed: "Ragdoll",
+        gender: "Male",
+        age: "1 yr old",
+        color: "Cream",
+        behavior: "Quiet and sweet",
+        status: "Available",
+        img: "https://placekitten.com/401/500"
+    }];
+
+    // ===== STATE =====
+    let currentSearch = "";
+    let currentType = "All";
+    let selectedPet = null;
+
+    // ===== DOM REFS =====
+    const grid = document.getElementById('pet-grid');
+    const listView = document.getElementById('list-view');
+    const detailsView = document.getElementById('details-view');
+    const applicationView = document.getElementById('application-view');
+    const searchInput = document.getElementById('search-input');
+    const typeFilter = document.getElementById('type-filter');
+    const backBtn = document.getElementById('back-btn');
+    const adoptBtn = document.getElementById('adopt-btn');
+
+    const detailImage = document.getElementById('detail-image');
+    const detailStatusBadge = document.getElementById('detail-status-badge');
+    const detailName = document.getElementById('detail-name');
+    const detailBreed = document.getElementById('detail-breed');
+    const detailType = document.getElementById('detail-type');
+    const detailAge = document.getElementById('detail-age');
+    const detailGender = document.getElementById('detail-gender');
+    const detailGenderIcon = document.getElementById('detail-gender-icon');
+    const detailColor = document.getElementById('detail-color');
+    const detailBehavior = document.getElementById('detail-behavior');
+
+    // Application form refs
+    const appBackBtn = document.getElementById('app-back-btn');
+    const appBackBtnBottom = document.getElementById('app-back-btn-bottom');
+    const appPetName = document.getElementById('app-pet-name');
+    const appRefNumber = document.getElementById('app-ref-number');
+    const appSubmittedDate = document.getElementById('app-submitted-date');
+    const appOrgName = document.getElementById('app-org-name');
+    const appSubmitBtn = document.getElementById('app-submit-btn');
+    const fileInput = document.getElementById('file-input');
+    const uploadBox = document.getElementById('upload-box');
+    const uploadStatus = document.getElementById('upload-status');
+
+    // ===== GENERATE REFERENCE =====
+    function generateRef() {
+        const now = new Date();
+        const year = now.getFullYear();
+        const random = String(Math.floor(100 + Math.random() * 900));
+        return `APP-${year}-${random}`;
+    }
+
+    // ===== FORMAT DATE =====
+    function formatDate(date) {
+        const d = new Date(date);
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        return `${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
+    }
+
+    // ===== RENDER GRID =====
+    function renderGrid() {
+        const filtered = petsData.filter(pet => {
+            const searchMatch = pet.name.toLowerCase().includes(currentSearch.toLowerCase()) ||
+                pet.breed.toLowerCase().includes(currentSearch.toLowerCase());
+            const typeMatch = currentType === "All" || pet.type === currentType;
+            return searchMatch && typeMatch;
+        });
+
+        if (filtered.length === 0) {
+            grid.innerHTML =
+                `<div class="col-span-full text-center text-gray-500 py-12">No pets found matching your criteria.</div>`;
+            return;
         }
-Promise.all([
-    loadComponent("sidebar", "/user/userSidebar.html"),
-    loadComponent("header", "/user/userHeader.html")
-])
-.then(() => {
 
-    document.getElementById("sidebar").style.visibility = "visible";
-    document.getElementById("header").style.visibility = "visible";
+        let html = '';
+        filtered.forEach(pet => {
+            const genderIcon = pet.gender === "Male" ? "fa-mars text-blue-600" : "fa-venus text-pink-500";
+            html += `
+                        <div class="pet-card bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer group" data-name="${pet.name}">
+                            <div class="relative overflow-hidden h-64">
+                                <img src="${pet.img}" alt="${pet.name}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                                <span class="absolute top-3 right-3 bg-green-400 text-white text-xs font-semibold px-3 py-1 rounded-full shadow">${pet.status}</span>
+                            </div>
+                            <div class="p-4">
+                                <div class="flex justify-between items-center">
+                                    <div>
+                                        <h2 class="text-xl font-bold text-gray-800">${pet.name}</h2>
+                                        <p class="text-gray-500 text-sm mt-1">${pet.breed}</p>
+                                    </div>
+                                    <div>
+                                        <i class="fas ${genderIcon} text-lg"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+        });
 
-    const currentPath = window.location.pathname;
-    const pageTitle = document.getElementById("pageTitle");
+        grid.innerHTML = html;
 
-    const links = document.querySelectorAll("#sidebar .nav-link");
+        document.querySelectorAll('.pet-card').forEach(card => {
+            card.addEventListener('click', function() {
+                const name = this.dataset.name;
+                const pet = petsData.find(p => p.name === name);
+                if (pet) showDetails(pet);
+            });
+        });
+    }
 
-    links.forEach(link => {
+    // ===== SHOW DETAILS =====
+    function showDetails(pet) {
+        selectedPet = pet;
+        listView.style.display = 'none';
+        detailsView.style.display = 'block';
+        applicationView.style.display = 'none';
 
-        const href = link.getAttribute("href");
+        detailImage.src = pet.img;
+        detailImage.alt = pet.name;
+        detailStatusBadge.textContent = pet.status;
+        detailName.textContent = pet.name;
+        detailBreed.textContent = pet.breed;
+        detailType.textContent = pet.type;
+        detailAge.textContent = pet.age;
+        detailGender.textContent = pet.gender;
+        detailColor.textContent = pet.color;
+        detailBehavior.textContent = pet.behavior;
 
-        const isActive =
-            href === currentPath ||
-            (href !== "/dashboard" && currentPath.startsWith(href));
-
-        if (isActive) {
-
-            link.className =
-                "nav-link flex items-center gap-4 px-5 py-4 rounded-2xl bg-blue-600 text-white shadow";
-
-            if (pageTitle) {
-                pageTitle.textContent = link.dataset.title;
-            }
-
+        if (pet.gender === "Male") {
+            detailGenderIcon.className = "fas fa-mars text-blue-600 mt-1";
         } else {
-
-            link.className =
-                "nav-link flex items-center gap-4 px-5 py-4 rounded-2xl text-gray-800 hover:bg-blue-50 hover:text-blue-600 transition";
-
+            detailGenderIcon.className = "fas fa-venus text-pink-500 mt-1";
         }
+    }
 
+    // ===== SHOW APPLICATION FORM =====
+    function showApplication(pet) {
+        selectedPet = pet;
+        detailsView.style.display = 'none';
+        applicationView.style.display = 'block';
+
+        // Update application header
+        const nameSpan = appPetName.querySelector('span');
+        if (nameSpan) nameSpan.textContent = pet.name;
+        appRefNumber.textContent = generateRef();
+        appSubmittedDate.textContent = formatDate(new Date());
+        appOrgName.textContent = "PAWSsion Benevolence Circle";
+
+        // Reset stepper to first step
+        document.querySelectorAll('.step-item').forEach((el, idx) => {
+            el.classList.remove('active', 'completed');
+            if (idx === 0) el.classList.add('active');
+        });
+
+        // Scroll to top of application
+        document.querySelector('.h-\\[calc\\(100vh-6rem\\)\\]').scrollTop = 0;
+    }
+
+    // ===== GO BACK TO DETAILS =====
+    function goBackToDetails() {
+        applicationView.style.display = 'none';
+        detailsView.style.display = 'block';
+    }
+
+    // ===== GO BACK TO LIST =====
+    function goBackToList() {
+        detailsView.style.display = 'none';
+        applicationView.style.display = 'none';
+        listView.style.display = 'block';
+        selectedPet = null;
+    }
+
+    // ===== EVENT LISTENERS =====
+    searchInput.addEventListener('input', function() {
+        currentSearch = this.value;
+        renderGrid();
     });
 
-   
-    document.body.style.visibility = "visible";
-
-})
-.catch(error => console.error(error));
-    </script>
-
-    <!-- ===== ADOPTION HUB SCRIPT ===== -->
-    <script>
-        // ===== PET DATA =====
-        const petsData = [
-            {
-                name: "Adobo",
-                type: "Dog",
-                breed: "Aspin",
-                gender: "Male",
-                age: "Approximately 4–5 yrs old",
-                color: "Brown and white on extremities & tail",
-                behavior: "Very friendly, active, allows human interaction and petting",
-                status: "Available",
-                img: "https://placedog.net/400/500?id=1"
-            },
-            {
-                name: "Sadboi",
-                type: "Dog",
-                breed: "Beagle",
-                gender: "Male",
-                age: "2 yrs old",
-                color: "Black and white",
-                behavior: "Sweet and calm",
-                status: "Available",
-                img: "https://placedog.net/400/500?id=2"
-            },
-            {
-                name: "Lebron",
-                type: "Dog",
-                breed: "Golden Retriever",
-                gender: "Male",
-                age: "3 yrs old",
-                color: "Brown",
-                behavior: "Playful and energetic",
-                status: "Available",
-                img: "https://placedog.net/400/500?id=3"
-            },
-            {
-                name: "Bloop",
-                type: "Cat",
-                breed: "British Shorthair",
-                gender: "Female",
-                age: "1 yr old",
-                color: "White and orange",
-                behavior: "Very clingy and cute",
-                status: "Available",
-                img: "https://placekitten.com/400/500"
-            },
-            {
-                name: "Mandy",
-                type: "Dog",
-                breed: "Corgi",
-                gender: "Female",
-                age: "2 yrs old",
-                color: "Brown",
-                behavior: "Loves cuddles",
-                status: "Available",
-                img: "https://placedog.net/400/500?id=4"
-            },
-            {
-                name: "Albie",
-                type: "Cat",
-                breed: "Ragdoll",
-                gender: "Male",
-                age: "1 yr old",
-                color: "Cream",
-                behavior: "Quiet and sweet",
-                status: "Available",
-                img: "https://placekitten.com/401/500"
-            }
-        ];
-
-        // ===== STATE =====
-        let currentSearch = "";
-        let currentType = "All";
-        let selectedPet = null;
-
-        // ===== DOM REFS =====
-        const grid = document.getElementById('pet-grid');
-        const listView = document.getElementById('list-view');
-        const detailsView = document.getElementById('details-view');
-        const searchInput = document.getElementById('search-input');
-        const typeFilter = document.getElementById('type-filter');
-        const backBtn = document.getElementById('back-btn');
-        const adoptBtn = document.getElementById('adopt-btn');
-
-        const detailImage = document.getElementById('detail-image');
-        const detailStatusBadge = document.getElementById('detail-status-badge');
-        const detailName = document.getElementById('detail-name');
-        const detailBreed = document.getElementById('detail-breed');
-        const detailType = document.getElementById('detail-type');
-        const detailAge = document.getElementById('detail-age');
-        const detailGender = document.getElementById('detail-gender');
-        const detailGenderIcon = document.getElementById('detail-gender-icon');
-        const detailColor = document.getElementById('detail-color');
-        const detailBehavior = document.getElementById('detail-behavior');
-
-        // ===== RENDER =====
-        function renderGrid() {
-            const filtered = petsData.filter(pet => {
-                const searchMatch = pet.name.toLowerCase().includes(currentSearch.toLowerCase()) ||
-                                   pet.breed.toLowerCase().includes(currentSearch.toLowerCase());
-                const typeMatch = currentType === "All" || pet.type === currentType;
-                return searchMatch && typeMatch;
-            });
-
-            if (filtered.length === 0) {
-                grid.innerHTML = `<div class="col-span-full text-center text-gray-500 py-12">No pets found matching your criteria.</div>`;
-                return;
-            }
-
-            let html = '';
-            filtered.forEach(pet => {
-                const genderIcon = pet.gender === "Male" ? "fa-mars text-blue-600" : "fa-venus text-pink-500";
-                html += `
-                    <div class="pet-card bg-white rounded-2xl overflow-hidden shadow-sm card-hover cursor-pointer group" data-name="${pet.name}">
-                        <div class="relative overflow-hidden h-64">
-                            <img src="${pet.img}" alt="${pet.name}" class="w-full h-full object-cover image-scale" />
-                            <span class="absolute top-3 right-3 bg-green-400 text-white text-xs font-semibold px-3 py-1 rounded-full shadow">${pet.status}</span>
-                        </div>
-                        <div class="p-4">
-                            <div class="flex justify-between items-center">
-                                <div>
-                                    <h2 class="text-xl font-bold text-gray-800">${pet.name}</h2>
-                                    <p class="text-gray-500 text-sm mt-1">${pet.breed}</p>
-                                </div>
-                                <div>
-                                    <i class="fas ${genderIcon} text-lg"></i>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            });
-
-            grid.innerHTML = html;
-
-            document.querySelectorAll('.pet-card').forEach(card => {
-                card.addEventListener('click', function() {
-                    const name = this.dataset.name;
-                    const pet = petsData.find(p => p.name === name);
-                    if (pet) showDetails(pet);
-                });
-            });
-        }
-
-        function showDetails(pet) {
-            selectedPet = pet;
-            listView.classList.add('hidden-view');
-            detailsView.style.display = 'block';
-
-            detailImage.src = pet.img;
-            detailImage.alt = pet.name;
-            detailStatusBadge.textContent = pet.status;
-            detailName.textContent = pet.name;
-            detailBreed.textContent = pet.breed;
-            detailType.textContent = pet.type;
-            detailAge.textContent = pet.age;
-            detailGender.textContent = pet.gender;
-            detailColor.textContent = pet.color;
-            detailBehavior.textContent = pet.behavior;
-
-            if (pet.gender === "Male") {
-                detailGenderIcon.className = "fas fa-mars text-blue-600 mt-1";
-            } else {
-                detailGenderIcon.className = "fas fa-venus text-pink-500 mt-1";
-            }
-        }
-
-        function goBack() {
-            detailsView.style.display = 'none';
-            listView.classList.remove('hidden-view');
-            selectedPet = null;
-        }
-
-        // ===== EVENT LISTENERS =====
-        searchInput.addEventListener('input', function() {
-            currentSearch = this.value;
-            renderGrid();
-        });
-
-        typeFilter.addEventListener('change', function() {
-            currentType = this.value;
-            renderGrid();
-        });
-
-        backBtn.addEventListener('click', goBack);
-
-        adoptBtn.addEventListener('click', function() {
-            if (selectedPet) {
-                alert(`Starting adoption process for ${selectedPet.name}!`);
-               
-            }
-        });
-
-        // ===== INIT =====
+    typeFilter.addEventListener('change', function() {
+        currentType = this.value;
         renderGrid();
-    </script>
+    });
+
+    backBtn.addEventListener('click', goBackToList);
+
+    adoptBtn.addEventListener('click', function() {
+        if (selectedPet) {
+            showApplication(selectedPet);
+        }
+    });
+
+    // Application back buttons
+    appBackBtn.addEventListener('click', goBackToDetails);
+    appBackBtnBottom.addEventListener('click', goBackToDetails);
+
+    // File upload
+    uploadBox.addEventListener('click', function() {
+        fileInput.click();
+    });
+
+    fileInput.addEventListener('change', function(e) {
+        if (this.files && this.files[0]) {
+            const file = this.files[0];
+            const sizeMB = (file.size / 1024 / 1024).toFixed(2);
+            document.querySelector('.upload-box .file-name').textContent = `${file.name} (${sizeMB} MB)`;
+            uploadStatus.classList.remove('hidden');
+            uploadStatus.innerHTML = `<i class="fas fa-check-circle"></i> File "${file.name}" uploaded successfully`;
+        }
+    });
+
+    // Submit application
+    appSubmitBtn.addEventListener('click', function() {
+        // Simple validation
+        const fields = ['app-fullname', 'app-phone', 'app-email', 'app-address', 'app-age', 'app-occupation',
+            'app-work-hours', 'app-time-with-pet', 'app-intent', 'app-emergency-name', 'app-emergency-phone',
+            'app-emergency-relation'
+        ];
+        let missing = [];
+        fields.forEach(id => {
+            const el = document.getElementById(id);
+            if (el && !el.value.trim()) {
+                missing.push(el.placeholder || id);
+            }
+        });
+
+        if (missing.length > 0) {
+            alert(`Please fill in all required fields:\n- ${missing.join('\n- ')}`);
+            return;
+        }
+
+        // Check if file is uploaded
+        if (!fileInput.files || !fileInput.files[0]) {
+            alert('Please upload a requirement document.');
+            return;
+        }
+
+        // Success
+        alert(
+            `🎉 Application for ${selectedPet.name} submitted successfully!\n\nReference: ${appRefNumber.textContent}\nWe will notify you via email.`
+            );
+
+        // Reset form
+        document.querySelectorAll('#application-view input, #application-view textarea, #application-view select')
+            .forEach(el => {
+                if (el.type !== 'file' && el.type !== 'checkbox' && el.type !== 'radio') {
+                    el.value = '';
+                }
+            });
+        document.querySelector('.upload-box .file-name').textContent = 'Click to upload requirement';
+        uploadStatus.classList.add('hidden');
+        fileInput.value = '';
+
+        // Go back to details
+        goBackToDetails();
+    });
+
+    // ===== INIT =====
+    renderGrid();
+
+    // Show list view initially
+    listView.style.display = 'block';
+    detailsView.style.display = 'none';
+    applicationView.style.display = 'none';
+</script>
 
 </body>
+
 </html>
