@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     errorBox.classList.add("hidden");
-    fetch("/login", {
+    fetch("/auth/login", {
         method: "POST",
         headers: {
             "Content-Type": "application/json"
