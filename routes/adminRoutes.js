@@ -39,6 +39,59 @@ router.get("/logout", (req, res) => {
     });
 });
 
+
+/*
+=================================================
+GET ALL USERS
+=================================================
+*/
+router.get("/users", async (req, res) => {
+    try {
+
+        const [rows] = await pool.query(`
+            SELECT
+                a.account_id,
+                a.email,
+                a.role,
+                a.status,
+                a.email_verified,
+                a.created_at,
+
+                CASE
+                    WHEN a.role = 'admin'
+                        THEN 'Administrator'
+
+                    WHEN a.role = 'organization'
+                        THEN o.organization_name
+
+                    WHEN a.role = 'adopter'
+                        THEN CONCAT(ad.first_name,' ',ad.last_name)
+
+                    ELSE '-'
+                END AS name
+
+            FROM accounts a
+
+            LEFT JOIN organizations o
+                ON a.account_id = o.account_id
+
+            LEFT JOIN adopters ad
+                ON a.account_id = ad.account_id
+
+            ORDER BY a.created_at DESC
+        `);
+
+        res.json(rows);
+
+    } catch (err) {
+
+        console.error(err);
+        res.status(500).json({
+            message: "Database Error"
+        });
+
+    }
+});
 /*
 =================================================
 GET ALL PENDING ORGANIZATIONS

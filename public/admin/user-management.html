@@ -9,56 +9,11 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
-
+    <link rel="stylesheet" href="../assets/css/user-management.css" />
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="../assets/js/adminSidebar.js"></script>
     <script src="../assets/js/adminTopbar.js"></script>
 
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: "Inter", sans-serif;
-            background:
-                radial-gradient(circle at top left, #dbeafe, transparent 35%),
-                radial-gradient(circle at bottom right, #bfdbfe, transparent 30%),
-                #f8fafc;
-        }
-
-        .glass {
-            background: rgba(255, 255, 255, .65);
-            backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, .5);
-        }
-
-        .hide-scrollbar {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-        }
-
-        .hide-scrollbar::-webkit-scrollbar {
-            display: none;
-        }
-
-        .fadeIn {
-            animation: fade .25s ease;
-        }
-
-        @keyframes fade {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-    </style>
 </head>
 
 <body class="h-screen overflow-hidden text-slate-800">
@@ -74,9 +29,29 @@
                 <!-- HEADER -->
                 <div id="topbar"></div>
 
-                <!-- CONTENT — Empty, only the container remains -->
-                <div class="flex-1 overflow-y-auto px-8 pb-8 pt-4 hide-scrollbar">
-                    <!-- Content area intentionally left empty -->
+                <!-- CONTENT -->
+                <div class="flex-1 overflow-y-auto px-6 pb-6 pt-2 hide-scrollbar">
+
+                    <!-- Search + count -->
+                    <div class="search-wrap fadeIn">
+                        <div class="relative flex-1">
+                            <input
+                            type="text"
+                            id="searchInput"
+                            class="search-input w-full"
+                            placeholder="Search by user, action..."
+                            autocomplete="off"
+                            />
+                        </div>
+                        <span class="search-count" id="userCount">0 users</span>
+                    </div>
+
+                    <!-- User Cards Grid -->
+                    <div
+                        id="userRowsContainer"
+                        class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5 fadeIn">
+                    </div>
+
                 </div>
 
             </div>
@@ -84,17 +59,409 @@
 
     </div>
 
+    <!-- Overlay -->
+    <div class="panel-overlay" id="panelOverlay"></div>
+
+    <!-- Detail Panel -->
+    <div class="detail-panel" id="detailPanel">
+        <div class="panel-header">
+            <h3>User Details</h3>
+            <button class="panel-close" id="panelClose">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="panel-body" id="panelBody">
+            <!-- Rendered by JS -->
+        </div>
+    </div>
+
     <script>
-        // ==========================
-        // SIDEBAR & TOPBAR
-        // ==========================
         document.addEventListener("DOMContentLoaded", () => {
+
             loadSidebar("user-management");
+
             loadTopbar({
                 title: "User Management",
                 subtitle: "Manage all users across the platform. View, assign roles, and manage account status."
             });
+
+            loadUsers();
+
+            // Search filter
+            document.getElementById("searchInput").addEventListener("input", function() {
+                filterUsers(this.value.trim().toLowerCase());
+            });
+
+            // Panel close
+            document.getElementById("panelClose").addEventListener("click", closePanel);
+            document.getElementById("panelOverlay").addEventListener("click", closePanel);
+
+            document.addEventListener("keydown", (e) => {
+                if (e.key === "Escape") closePanel();
+            });
+
         });
+
+        // ─── Data ──────────────────────────────────────────────
+        let allUsers = [];
+        let selectedUserId = null;
+
+        // ─── Load users ────────────────────────────────────────
+        async function loadUsers() {
+            try {
+                const res = await fetch("/admin/users");
+                allUsers = await res.json();
+
+                if (!allUsers || allUsers.length === 0) {
+                    document.getElementById("userRowsContainer").innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-users"></i>
+                            <p>No users found</p>
+                        </div>
+                    `;
+                    document.getElementById("userCount").textContent = "0 users";
+                    return;
+                }
+
+                renderUsers(allUsers);
+
+            } catch (err) {
+                console.error("Failed to load users:", err);
+                document.getElementById("userRowsContainer").innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-exclamation-triangle" style="color:#f59e0b;"></i>
+                        <p>Unable to load users. Please try again.</p>
+                    </div>
+                `;
+            }
+        }
+
+        // ─── Render ────────────────────────────────────────────
+        function renderUsers(users) {
+            const container = document.getElementById("userRowsContainer");
+            container.innerHTML = "";
+
+            if (!users || users.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-search"></i>
+                        <p>No users match your search</p>
+                    </div>
+                `;
+                document.getElementById("userCount").textContent = "0 users";
+                return;
+            }
+
+            users.forEach((user, index) => {
+                const card = buildUserCard(user, index);
+                container.appendChild(card);
+            });
+
+            document.getElementById("userCount").textContent = `${users.length} user${users.length > 1 ? 's' : ''}`;
+        }
+
+        // ─── Build card ────────────────────────────────────────
+        function buildUserCard(user, index) {
+            const userId = user.account_id || user.id || `user-${index}`;
+            const name = user.name || "Unknown";
+            const role = user.role || "User";
+            const phone = user.phone || "—";
+            const email = user.email || "—";
+
+            const status = user.status || "active";
+            const isActive = status === "active" || status === "Active";
+            const isSuspended = status === "suspended" || status === "Suspended";
+            let statusClass = "active";
+            let statusLabel = "Active";
+            if (isSuspended) {
+                statusClass = "suspended";
+                statusLabel = "Suspended";
+            } else if (!isActive) {
+                statusClass = "inactive";
+                statusLabel = "Inactive";
+            }
+
+            // Format time
+            let timeStr = "Today 10:30 A.M";
+            if (user.created_at) {
+                const d = new Date(user.created_at);
+                const now = new Date();
+                const isToday = d.toDateString() === now.toDateString();
+                const hours = d.getHours();
+                const mins = String(d.getMinutes()).padStart(2, "0");
+                const ampm = hours >= 12 ? "P.M" : "A.M";
+                const hour12 = hours % 12 || 12;
+                const dateStr = isToday ? "Today" : d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+                timeStr = `${dateStr} ${hour12}:${mins} ${ampm}`;
+            }
+
+            // Avatar color
+            const avatarColors = ["green", "blue", "pink", "orange", "purple", "teal", "rose", "indigo", "amber", "cyan"];
+            const avatarClass = avatarColors[index % avatarColors.length];
+
+            const card = document.createElement("div");
+            card.className = `user-card fadeIn ${selectedUserId === userId ? 'selected' : ''}`;
+            card.style.animationDelay = `${index * 30}ms`;
+            card.dataset.userId = userId;
+
+            card.innerHTML = `
+                <!-- Header: Avatar + Name + Menu -->
+                <div class="flex justify-between items-start">
+                    <div class="flex gap-3">
+                        <div class="avatar ${avatarClass}">
+                            ${name.charAt(0)}
+                        </div>
+                        <div>
+                            <h3 class="font-semibold text-slate-800 text-sm">
+                                ${name}
+                            </h3>
+                            <p class="text-xs text-blue-600 capitalize font-medium">
+                                ${role}
+                            </p>
+                            <p class="text-xs text-slate-400 mt-0.5">
+                                ${timeStr}
+                            </p>
+                        </div>
+                    </div>
+                    <button class="menu-btn" data-action="menu" data-id="${userId}">
+                        <i class="fas fa-ellipsis-vertical"></i>
+                    </button>
+                </div>
+
+                <!-- Contact Info -->
+                <div class="mt-4 space-y-2.5 text-sm">
+                    <div class="flex items-center gap-3 text-slate-600">
+                        <i class="fas fa-phone text-slate-400 w-4 text-xs"></i>
+                        <span>${phone}</span>
+                    </div>
+                    <div class="flex items-center gap-3 text-slate-600">
+                        <i class="far fa-envelope text-slate-400 w-4 text-xs"></i>
+                        <span class="truncate">${email}</span>
+                    </div>
+                </div>
+
+                <!-- Status -->
+                <div class="mt-4">
+                    <span class="status-badge ${statusClass}">
+                        <span class="dot"></span>
+                        ${statusLabel}
+                    </span>
+                </div>
+            `;
+
+            // Menu button click - prevent card selection
+            const menuBtn = card.querySelector(".menu-btn");
+            menuBtn.addEventListener("click", (e) => {
+                e.stopPropagation();
+                // You can add a dropdown menu here if needed
+                console.log("Menu clicked for:", userId);
+            });
+
+            // Click card → open detail
+            card.addEventListener("click", (e) => {
+                if (e.target.closest(".menu-btn")) return;
+                selectUser(userId);
+            });
+
+            return card;
+        }
+
+        // ─── Select / toggle ──────────────────────────────────
+        function toggleSelect(userId) {
+            if (selectedUserId === userId) {
+                selectedUserId = null;
+                closePanel();
+            } else {
+                selectedUserId = userId;
+                const user = allUsers.find(u => (u.account_id || u.id) === userId);
+                if (user) openPanel(user);
+            }
+            const currentQuery = document.getElementById("searchInput").value.trim().toLowerCase();
+            const filtered = getFilteredUsers(currentQuery);
+            renderUsers(filtered);
+        }
+
+        function selectUser(userId) {
+            selectedUserId = userId;
+            const user = allUsers.find(u => (u.account_id || u.id) === userId);
+            if (user) openPanel(user);
+            const currentQuery = document.getElementById("searchInput").value.trim().toLowerCase();
+            const filtered = getFilteredUsers(currentQuery);
+            renderUsers(filtered);
+        }
+
+        function getFilteredUsers(query) {
+            if (!query) return allUsers;
+            return allUsers.filter(user => {
+                const name = (user.name || "").toLowerCase();
+                const email = (user.email || "").toLowerCase();
+                const phone = (user.phone || "").toLowerCase();
+                const role = (user.role || "").toLowerCase();
+                return name.includes(query) ||
+                    email.includes(query) ||
+                    phone.includes(query) ||
+                    role.includes(query);
+            });
+        }
+
+        // ─── Panel ─────────────────────────────────────────────
+        function openPanel(user) {
+            const panel = document.getElementById("detailPanel");
+            const overlay = document.getElementById("panelOverlay");
+            const body = document.getElementById("panelBody");
+
+            const name = user.name || "Unknown";
+            const initial = name.charAt(0).toUpperCase();
+            const role = user.role || "User";
+            const phone = user.phone || "—";
+            const email = user.email || "—";
+            const status = user.status || "active";
+            const isActive = status === "active" || status === "Active";
+            const isSuspended = status === "suspended" || status === "Suspended";
+
+            let statusLabel = "Active";
+            let statusColor = "text-emerald-600 bg-emerald-50";
+            let dotColor = "bg-emerald-500";
+            if (isSuspended) {
+                statusLabel = "Suspended";
+                statusColor = "text-red-600 bg-red-50";
+                dotColor = "bg-red-500";
+            } else if (!isActive) {
+                statusLabel = "Inactive";
+                statusColor = "text-gray-500 bg-gray-100";
+                dotColor = "bg-gray-400";
+            }
+
+            const registered = user.created_at ? new Date(user.created_at).toLocaleDateString("en-US", {
+                month: "short",
+                day: "numeric",
+                year: "numeric"
+            }) : "—";
+
+            const lastLogin = user.last_login ? new Date(user.last_login).toLocaleString("en-US", {
+                month: "short",
+                day: "numeric",
+                year: "numeric",
+                hour: "numeric",
+                minute: "2-digit",
+                hour12: true
+            }) : "—";
+
+            body.innerHTML = `
+                <div class="profile-avatar">${initial}</div>
+                <div class="flex items-center gap-3 flex-wrap mb-1">
+                    <span class="profile-name">${name}</span>
+                    <span class="profile-role">${role}</span>
+                </div>
+                <div class="flex items-center gap-2 mt-1 mb-4">
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-semibold ${statusColor}">
+                        <span class="w-2 h-2 rounded-full ${dotColor}"></span>
+                        ${statusLabel}
+                    </span>
+                </div>
+
+                <div class="bg-slate-50 rounded-xl p-4 space-y-0 mt-4">
+                    <div class="detail-row">
+                        <i class="fas fa-phone-alt"></i>
+                        <span class="label">Phone</span>
+                        <span class="value">${phone}</span>
+                    </div>
+                    <div class="detail-row">
+                        <i class="far fa-envelope"></i>
+                        <span class="label">Email</span>
+                        <span class="value">${email}</span>
+                    </div>
+                    <div class="detail-row">
+                        <i class="far fa-calendar-alt"></i>
+                        <span class="label">Registered</span>
+                        <span class="value">${registered}</span>
+                    </div>
+                    <div class="detail-row">
+                        <i class="fas fa-sign-in-alt"></i>
+                        <span class="label">Last Login</span>
+                        <span class="value">${lastLogin}</span>
+                    </div>
+                </div>
+
+                <div class="action-buttons mt-5">
+                    <button class="action-btn" data-action="toggle" data-id="${user.account_id || user.id}">
+                        <i class="fas ${isActive ? 'fa-pause-circle' : 'fa-play-circle'}"></i>
+                        ${isActive ? 'Deactivate' : 'Activate'} Account
+                        <span class="badge">${isActive ? 'Active' : 'Inactive'}</span>
+                    </button>
+                    <button class="action-btn" data-action="suspend" data-id="${user.account_id || user.id}">
+                        <i class="fas fa-ban"></i>
+                        Suspend Account
+                        ${isSuspended ? '<span class="badge">Suspended</span>' : ''}
+                    </button>
+                    <button class="action-btn danger" data-action="ban" data-id="${user.account_id || user.id}">
+                        <i class="fas fa-skull"></i>
+                        Permanent Ban
+                    </button>
+                </div>
+            `;
+
+            body.querySelectorAll(".action-btn").forEach(btn => {
+                btn.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    const action = btn.dataset.action;
+                    const id = btn.dataset.id;
+                    handleAction(action, id, user);
+                });
+            });
+
+            panel.classList.add("open");
+            overlay.classList.add("show");
+            document.body.style.overflow = "hidden";
+        }
+
+        function closePanel() {
+            document.getElementById("detailPanel").classList.remove("open");
+            document.getElementById("panelOverlay").classList.remove("show");
+            document.body.style.overflow = "";
+            selectedUserId = null;
+            const currentQuery = document.getElementById("searchInput").value.trim().toLowerCase();
+            const filtered = getFilteredUsers(currentQuery);
+            renderUsers(filtered);
+        }
+
+        // ─── Filter ────────────────────────────────────────────
+        function filterUsers(query) {
+            const filtered = getFilteredUsers(query);
+            renderUsers(filtered);
+            if (selectedUserId) {
+                const stillVisible = filtered.some(u => (u.account_id || u.id) === selectedUserId);
+                if (!stillVisible) closePanel();
+            }
+        }
+
+        // ─── Actions ───────────────────────────────────────────
+        function handleAction(action, id, user) {
+            const name = user.name || "User";
+
+            switch (action) {
+                case "toggle":
+                    const isActive = user.status === "active" || user.status === "Active";
+                    console.log(`[${action}] ${name} (${id}) → ${isActive ? 'inactive' : 'active'}`);
+                    alert(`${isActive ? 'Deactivating' : 'Activating'} ${name}... (API not implemented)`);
+                    break;
+
+                case "suspend":
+                    console.log(`[${action}] ${name} (${id})`);
+                    alert(`Suspending ${name}... (API not implemented)`);
+                    break;
+
+                case "ban":
+                    console.log(`[${action}] ${name} (${id})`);
+                    if (confirm(`Permanently ban ${name}? This action cannot be undone.`)) {
+                        alert(`Permanently banning ${name}... (API not implemented)`);
+                    }
+                    break;
+
+                default:
+                    console.warn("Unknown action:", action);
+            }
+        }
     </script>
 
 </body>
