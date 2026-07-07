@@ -1,101 +1,222 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Pawpon | Feedback</title>
-
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
-
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="../assets/js/adminSidebar.js"></script>
-    <script src="../assets/js/adminTopbar.js"></script>
-
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: "Inter", sans-serif;
-            background:
-                radial-gradient(circle at top left, #dbeafe, transparent 35%),
-                radial-gradient(circle at bottom right, #bfdbfe, transparent 30%),
-                #f8fafc;
-        }
-
-        .glass {
-            background: rgba(255, 255, 255, .65);
-            backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, .5);
-        }
-
-        .hide-scrollbar {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-        }
-
-        .hide-scrollbar::-webkit-scrollbar {
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pawpon | Feedback</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="../assets/js/adminSidebar.js"></script>
+  <script src="../assets/js/adminTopbar.js"></script>
+  <style>
+   /* Sidebar */
+        .dropdown .dropdown-menu {
             display: none;
         }
 
-        .fadeIn {
-            animation: fade .25s ease;
+        .dropdown.open .dropdown-menu {
+            display: block;
         }
 
-        @keyframes fade {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        .dropdown.open .fa-angle-down {
+            transform: rotate(180deg);
         }
-    </style>
+
+        /* Hide scrollbar but keep scrolling */
+        .hide-scrollbar {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;     /* Firefox */
+        }
+
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;             /* Chrome, Safari, Opera */
+        }
+
+        /* Glass Card */
+        .glass {
+            background: rgba(255, 255, 255, .65);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, .5);
+        }
+  </style>
 </head>
+<body class="bg-[#f8fafc] text-slate-800 h-screen overflow-hidden font-sans">
 
-<body class="h-screen overflow-hidden text-slate-800">
-    <div class="flex h-full">
+<div class="flex h-full">
 
-        <!-- Sidebar -->
-        <div id="sidebar"></div>
+    <!-- Sidebar -->
+    <div id="sidebar"></div>
 
-        <!-- Main -->
-        <main class="flex-1 p-3 overflow-hidden">
-            <div class="glass h-full rounded-3xl shadow-2xl flex flex-col relative overflow-visible">
+    <!-- Main -->
+    <main class="flex-1 p-3 overflow-hidden">
 
-                <!-- HEADER -->
-                <div id="topbar"></div>
+        <div class="glass h-full rounded-3xl shadow-2xl flex flex-col">
 
-                <!-- CONTENT — Empty, only the container remains -->
-                <div class="flex-1 overflow-y-auto px-8 pb-8 pt-4 hide-scrollbar">
-                    <!-- Content area intentionally left empty -->
-                </div>
+            <!-- Topbar -->
+            <div id="topbar"></div>
 
+            <!-- Content -->
+            <div class="flex-1 overflow-y-auto p-6 hide-scrollbar">
+
+
+  <div class="flex-1 flex flex-col overflow-hidden bg-white m-4 border border-[#e2e8f0] rounded-lg">
+
+    <!-- Master-Detail Split Workspace Wrapper Grid -->
+    <div class="feedback-workspace flex flex-1 overflow-hidden bg-white">
+      
+      <!-- Left Stream Container Area: Search & Table Records Frame -->
+      <div class="feedback-left-frame flex-1 flex flex-col border-r border-[#e2e8f0] overflow-hidden">
+        
+        <!-- Search Filtering Header Action Bar Row -->
+        <div class="feedback-filters-bar flex items-center gap-4 padding p-6 shrink-0">
+          <div class="search-input-wrapper relative flex-1 max-w-[520px]">
+            <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 color text-black text-[14px]"></i>
+            <input type="text" placeholder="Search Feedback..." class="w-full pl-10 pr-4 py-2.5 text-[13px] border border-[#cbd5e1] rounded-lg outline-none bg-white text-[#334155] placeholder-[#94a3b8]">
+          </div>
+          <div class="date-dropdown-selector flex items-center gap-2 px-3.5 py-2.5 border border-[#cbd5e1] rounded-lg bg-white cursor-pointer">
+            <i class="text-[14px] text-black fa-regular fa-calendar"></i>
+            <span class="text-[13px] font-medium text-[#334155]">All Dates</span>
+            <i class="text-[14px] text-black fa-solid fa-angle-down"></i>
+          </div>
+        </div>
+
+        <!-- System Table Control View Layout Grid -->
+        <div class="feedback-table-container flex-1 overflow-y-auto px-6">
+          <table class="feedback-grid-table w-full border-collapse text-left">
+            <thead>
+              <tr>
+                <th style="width: 25%;" class="px-4 py-3 text-[13px] font-600 font-semibold text-black border-b border-[#e2e8f0]">Sender</th>
+                <th style="width: 35%;" class="px-4 py-3 text-[13px] font-600 font-semibold text-black border-b border-[#e2e8f0]">Message Review</th>
+                <th style="width: 25%;" class="px-4 py-3 text-[13px] font-600 font-semibold text-black border-b border-[#e2e8f0]">Date Submitted</th>
+                <th style="width: 15%; text-align: center;" class="px-4 py-3 text-[13px] font-600 font-semibold text-black border-b border-[#e2e8f0]">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="active-row-highlight bg-[#eff6ff]">
+                <td class="p-4 vertical-align border-y border-[#bfdbfe]">
+                  <div class="sender-profile-cell flex items-center gap-3">
+                    <div class="cell-avatar-wrapper w-8 h-8 rounded-full bg-[#1e293b] flex items-center justify-center text-white text-[13px]">
+                      <i class="fa-solid fa-user"></i>
+                    </div>
+                    <div class="cell-identity-text flex flex-col">
+                      <span class="name text-[13px] font-semibold text-black">Ezekiel Roswell</span>
+                      <span class="role text-[11px] text-[#64748b] font-medium">User</span>
+                    </div>
+                  </div>
+                </td>
+                <td class="p-4 vertical-align border-y border-[#bfdbfe]">
+                  <div class="message-preview-text text-[13px] text-black font-semibold whitespace-nowrap overflow-hidden text-ellipsis max-w-[280px]">
+                    di ako maka donate, sira ata system niyo ...
+                  </div>
+                </td>
+                <td class="p-4 vertical-align border-y border-[#bfdbfe]">
+                  <div class="date-time-cell flex flex-col text-[12px] font-medium text-[#64748b]">
+                    <span class="date">May 3, 2026</span>
+                    <span class="time">10:29 AM</span>
+                  </div>
+                </td>
+                <td style="text-align: center;" class="p-4 vertical-align border-y border-[#bfdbfe]">
+                  <button class="btn-review-action px-4 py-1.5 text-[12px] font-semibold text-[#0038FF] bg-white border border-[#0038FF] rounded cursor-pointer transition-all duration-200 hover:bg-[#0038FF] hover:text-white">Review</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Table Pagination Control Base Block -->
+        <div class="feedback-table-pagination flex items-center justify-between px-6 py-4 border-t border-[#e2e8f0] shrink-0">
+          <div class="records-counter-text text-[12px] text-[#94a3b8] font-medium">Showing 1 to 9 of 1200 feedback</div>
+          <div class="pagination-page-controls flex items-center gap-1">
+            <button class="pag-btn border border-[#e2e8f0] bg-white text-[#64748b] text-[13px] font-medium w-7 h-7 flex items-center justify-center rounded cursor-pointer"><i class="fa-solid fa-angle-left"></i></button>
+            <button class="pag-number active border border-[#0038FF] bg-white text-[#0038FF] text-[13px] font-bold w-7 h-7 flex items-center justify-center rounded cursor-pointer">1</button>
+            <button class="pag-number border border-[#e2e8f0] bg-white text-[#64748b] text-[13px] font-medium w-7 h-7 flex items-center justify-center rounded cursor-pointer">2</button>
+            <button class="pag-btn border border-[#e2e8f0] bg-white text-[#64748b] text-[13px] font-medium w-7 h-7 flex items-center justify-center rounded cursor-pointer"><i class="fa-solid fa-angle-right"></i></button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Side Meta Panel Panel Framework: Details Context Inspection Pane -->
+      <div class="feedback-right-frame w-[320px] bg-white p-6 flex flex-col gap-5 shrink-0 overflow-y-auto">
+        
+        <!-- Detail Block Card Module -->
+        <div class="detail-card-panel border border-[#e2e8f0] rounded-lg px-4 py-5">
+          <h3 class="panel-section-title text-[12px] font-bold text-black mb-3.5">Feedback Details</h3>
+          
+          <div class="detail-profile-identity-card flex gap-3 mb-6">
+            <div class="profile-large-avatar w-10 h-10 rounded-full bg-[#1e293b] text-white flex items-center justify-center text-[18px] shrink-0">
+              <i class="fa-solid fa-user"></i>
             </div>
-        </main>
+            <div class="profile-meta-info">
+              <h4 class="text-[13px] font-bold text-black">Ezekiel Roswell</h4>
+              <p class="role text-[11px] text-[#64748b] font-medium mt-0.5">User</p>
+              <p class="email-address text-[11px] text-[#94a3b8] font-medium mt-1">ezek@gmail.com</p>
+              <div class="timestamp-stamp-row flex gap-3 text-[11px] text-[#64748b] font-medium mt-2">
+                <span>May 3, 2026</span>
+                <span>10:29 AM</span>
+              </div>
+            </div>
+          </div>
+
+          <h4 class="field-label-header text-[12px] font-bold text-black mb-2">Message</h4>
+          <div class="detailed-message-display-box bg-white border border-[#e2e8f0] rounded-md p-3 text-[13px] font-semibold text-black leading-[1.4] min-height min-h-[60px]">
+            di ako maka donate, sira ata system niyo ...
+          </div>
+        </div>
+
+        <!-- Action Panel Foot Box Grid Panel Element -->
+        <div class="detail-resolution-actions-panel border border-[#e2e8f0] rounded-lg px-4 py-5">
+          <h3 class="panel-section-title text-[12px] font-bold text-black mb-3.5">Resolution Action</h3>
+          <div class="resolution-buttons-group flex flex-col gap-2">
+            <button class="btn-action-resolve w-full flex items-center justify-center gap-2 p-2.5 text-[12px] font-bold border border-[#22c55e] text-[#22c55e] rounded-md bg-white cursor-pointer">
+              <i class="fa-regular fa-circle-check"></i>
+              <span>Mark as Resolve</span>
+            </button>
+            <button class="btn-action-archive w-full flex items-center justify-center gap-2 p-2.5 text-[12px] font-bold border border-[#ef4444] text-[#ef4444] rounded-md bg-white cursor-pointer">
+              <i class="fa-regular fa-box-archive"></i>
+              <span>Archive</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
 
     </div>
+  </main>
+</div>
 
-    <script>
-        // ==========================
-        // SIDEBAR & TOPBAR
-        // ==========================
-        document.addEventListener("DOMContentLoaded", () => {
-            loadSidebar("feedback");
-            loadTopbar({
-                title: "Feedback",
-                subtitle: "View and manage user feedback and inquiries."
-            });
-        });
-    </script>
+<script>
+// ==========================
+// SIDEBAR DROPDOWN
+// ==========================
+document.addEventListener("DOMContentLoaded", () => {
 
+    loadSidebar("feedback");
+
+    loadTopbar({
+        title: "Feedback",
+        subtitle: "Review and manage user feedback."
+    });
+
+});
+// Notification Dropdown
+const bellBtn = document.getElementById('notificationBellBtn');
+const dropdown = document.getElementById('notificationDropdown');
+const wrapper = document.getElementById('notificationWrapper');
+
+bellBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    wrapper.classList.toggle('active');
+});
+
+document.addEventListener('click', (e) => {
+    if (!wrapper.contains(e.target)) {
+        wrapper.classList.remove('active');
+    }
+});
+</script>
 </body>
 </html>

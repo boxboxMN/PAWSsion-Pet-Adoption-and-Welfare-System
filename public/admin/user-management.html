@@ -67,227 +67,100 @@ tailwind.config = {
 
 </style>
 
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Pawpon | User Management</title>
-
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
-    <link rel="stylesheet" href="../assets/css/user-management.css" />
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="../assets/js/adminSidebar.js"></script>
-    <script src="../assets/js/adminTopbar.js"></script>
-
 </head>
-<body class="bg-[#f8fafc] text-[#1e293b] flex h-screen overflow-hidden m-0 p-0 box-border font-sans">
 
-<div class="flex w-full h-full">
-  <!-- Sidebar Navigation Panel Block -->
-  <aside class="w-[260px] bg-white border-r border-[#e2e8f0] flex flex-col justify-between py-6 shrink-0">
-    <div>
-      <div class="flex items-center justify-between px-6 mb-8">
-        <div class="flex items-center gap-3">
-          <div class="text-[#0038FF] text-[28px]"><i class="fa-solid fa-paw"></i></div>
-          <div>
-            <h2 class="text-20px text-xl font-extrabold text-[#0038FF] highway-tight [line-height:1]">Pawpon</h2>
-            <p class="text-[11px] text-[#64748b] mt-1 font-medium">Admin Portal</p>
-          </div>
-        </div>
-        <div class="text-[#94a3b8] cursor-pointer text-sm"><i class="fa-solid fa-angles-left"></i></div>
-      </div>
-      <nav>
-        <ul class="list-none px-3">
-          <li class="mb-1 relative group">
-            <a href="dashboard.html" class="flex items-center justify-between py-3 px-4 text-[#334155] no-underline text-sm font-medium rounded-[6px] transition-all duration-200 hover:bg-slate-50">
-              <div class="flex items-center gap-3"><i class="w-5 text-base fa-solid fa-table-columns"></i><span>Dashboard</span></div>
-            </a>
-          </li>
-          <li class="mb-1 relative group dropdown">
-            <a href="#" id="orgDropdownToggle" class="flex items-center justify-between py-3 px-4 text-[#334155] no-underline text-sm font-medium rounded-[6px] transition-all duration-200 hover:bg-slate-50">
-              <div class="flex items-center gap-3"><i class="w-5 text-base fa-solid fa-users-gear"></i><span>Organization</span></div>
-              <i class="fa-solid fa-angle-down transition-transform duration-200 text-[12px] text-[#64748b] group-[.open]:rotate-180"></i>
-            </a>
-            <ul class="dropdown-menu hidden group-[.open]:block list-none pl-8 mt-1">
-              <li><a href="organization.html" class="block py-2 px-4 text-[#64748b] text-[13px] font-medium no-underline rounded-[6px] hover:bg-slate-50">Organization Masterlist</a></li>
-              <li><a href="partner-request.html" class="block py-2 px-4 text-[#64748b] text-[13px] font-medium no-underline rounded-[6px] hover:bg-slate-50">Partner Request</a></li>
-            </ul>
-          </li>
-          <li class="mb-1 relative active">
-            <a href="user-management.html" class="flex items-center justify-between py-3 px-4 text-white bg-[#0038FF] no-underline text-sm font-semibold rounded-[6px] transition-all duration-200">
-              <div class="flex items-center gap-3"><i class="w-5 text-base fa-regular fa-user"></i><span>User Management</span></div>
-            </a>
-          </li>
-          <li class="mb-1 relative group">
-            <a href="feedback.html" class="flex items-center justify-between py-3 px-4 text-[#334155] no-underline text-sm font-medium rounded-[6px] transition-all duration-200 hover:bg-slate-50">
-              <div class="flex items-center gap-3"><i class="w-5 text-base fa-regular fa-comment-dots"></i><span>Feedback</span></div>
-            </a>
-          </li>
-        </ul>
-      </nav>
-    </div>
-    <div class="px-6">
-      <a href="#" class="flex items-center gap-3 text-[#0038FF] no-underline text-sm font-medium"><i class="fa-solid fa-arrow-right-from-bracket"></i>Logout</a>
-    </div>
-  </aside>
+<body class="bg-[#f8fafc] text-slate-800 h-screen overflow-hidden font-sans">
 
-  <!-- Main Workspace View Components Frame -->
-  <main class="flex-1 flex flex-col overflow-hidden bg-white m-4 border border-[#e2e8f0] rounded-g rounded-md rounded-lg">
-    <header class="flex items-start justify-between py-6 px-8 border-b border-[#e2e8f0]">
-      <div>
-        <h1 class="text-2xl font-bold text-[#0038FF] leading-snug [line-height:1.2]">User Management</h1>
-        <p class="text-[12px] text-black font-semibold mt-1">Manage All Users across the platform. View, assign roles, and manage account status</p>
-      </div>
-      <div class="flex items-center gap-5 mt-1">
-        <a href="setting.html" style="color: inherit; text-decoration: none;">
-          <i class="fa-solid fa-gear text-[20px] text-[#0038FF] cursor-pointer"></i>
-        </a>
-        <div class="relative inline-flex items-center group/notification" id="notificationWrapper">
-          <i class="fa-regular fa-bell text-xl text-[#0038FF] cursor-pointer" id="notificationBellBtn"></i>
-          
-          <div class="hidden group-[.active]/notification:block absolute top-full right-[-50px] mt-3 w-[320px] bg-white border border-[#e2e8f0] rounded-lg shadow-[0_4px_12px_rgba(0,0,0,0.05)] z-[1000]" id="notificationDropdown">
-            <div class="py-3.5 px-5 text-[13px] font-bold text-[#0038FF] border-b border-[#f1f5f9]">All Notification</div>
-            <div class="py-4 px-5 border-b border-[#f1f5f9] text-left">
-              <h4 class="text-[13px] font-bold text-black mb-1">New Organization Registered</h4>
-              <p class="text-[11px] text-[#64748b] leading-[1.4] font-normal">“Bantay Animal Welfare” has submitted partner request</p>
-            </div>
-            <div class="py-4 px-5 text-center">
-              <a href="#" class="text-[13px] font-bold text-[#0038FF] no-underline block w-full">View All Notification</a>
-            </div>
-          </div>
-        </div>
-        <div class="w-9 h-9 bg-[#71717a] rounded-full flex items-center justify-center text-[#facc15] text-lg"><i class="fa-solid fa-user-gear"></i></div>
-      </div>
-    </header>
+<div class="flex h-full">
 
-    <!-- Two-Panel Workspace Split Screen Layout Component -->
-    <div class="flex-1 flex overflow-hidden">
-      
-      <!-- Left Main Body Stream Flow (Users Grid) -->
-      <div class="flex-1 p-6 overflow-y-auto flex flex-col gap-6">
-        <div class="w-full max-w-[640px] relative">
-          <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-black text-base"></i>
-          <input type="text" placeholder="Search by user, action..." class="w-full py-3 pl-12 pr-4 border border-[#cbd5e1] rounded-[6px] text-sm outline-none text-[#334155] placeholder-[#64748b] placeholder:font-medium">
-        </div>
+    <!-- Sidebar -->
+    <div id="sidebar"></div>
 
-        <div class="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-4 items-start">
-          
-          <!-- User Item Card 1 (Active / Selected Highlighted State) -->
-          <div class="bg-white border border-[#3b82f6] shadow-[0_0_0_1px_#3b82f6] rounded-[6px] p-4 flex flex-col justify-between min-h-[180px] relative transition-all duration-150 user-card selected">
-            <div class="flex items-start justify-between mb-4">
-              <div class="flex gap-3 items-start">
-                <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=80" alt="Maria Santos" class="w-10 h-10 rounded-full object-cover">
-                <div>
-                  <h3 class="text-sm font-bold text-black [line-height:1.2]">Maria Santos</h3>
-                  <span class="block text-[11px] text-[#2563eb] font-bold mt-0.5">User</span>
-                  <span class="block text-[10px] text-[#64748b] mt-0.5 font-medium">Today 10:30 A.M</span>
-                </div>
-              </div>
-            </div>
-            <div class="flex flex-col gap-2">
-              <div class="flex items-center gap-2 text-[11px] text-black font-medium"><i class="text-[#64748b] text-[12px] w-3.5 text-center fa-solid fa-phone"></i> 09346463662</div>
-              <div class="flex items-center gap-2 text-[11px] text-black font-medium"><i class="text-[#64748b] text-[12px] w-3.5 text-center fa-regular fa-envelope"></i> mari@gmail.com</div>
-              <span class="self-start text-[10px] font-bold py-1 px-2.5 rounded-[4px] mt-2 bg-[#dcfce7] text-[#15803d]">Active</span>
-            </div>
-          </div>
+    <!-- Main -->
+    <main class="flex-1 p-3 overflow-hidden">
 
-          <!-- User Item Card 2 -->
-          <div class="bg-white border border-[#e2e8f0] rounded-[6px] p-4 flex flex-col justify-between min-h-[180px] relative transition-all duration-150 user-card">
-            <div class="flex items-start justify-between mb-4">
-              <div class="flex gap-3 items-start">
-                <div class="w-10 h-10 rounded-full bg-[#e2e8f0] text-[#94a3b8] flex items-center justify-center text-xl"><i class="fa-solid fa-user"></i></div>
-                <div>
-                  <h3 class="text-sm font-bold text-black [line-height:1.2]">Joseph Mark</h3>
-                  <span class="block text-[11px] text-[#2563eb] font-bold mt-0.5">User</span>
-                  <span class="block text-[10px] text-[#64748b] mt-0.5 font-medium">Today 10:30 A.M</span>
-                </div>
-              </div>
-            </div>
-            <div class="flex flex-col gap-2">
-              <div class="flex items-center gap-2 text-[11px] text-black font-medium"><i class="text-[#64748b] text-[12px] w-3.5 text-center fa-solid fa-phone"></i> 037436262</div>
-              <div class="flex items-center gap-2 text-[11px] text-black font-medium"><i class="text-[#64748b] text-[12px] w-3.5 text-center fa-regular fa-envelope"></i> jm@gmail.com</div>
-              <span class="self-start text-[10px] font-bold py-1 px-2.5 rounded-[4px] mt-2 bg-[#dcfce7] text-[#15803d]">Active</span>
-            </div>
-          </div>
+        <div class="glass h-full rounded-3xl shadow-2xl flex flex-col">
 
-          <!-- User Item Card 3 -->
-          <div class="bg-white border border-[#e2e8f0] rounded-[6px] p-4 flex flex-col justify-between min-h-[180px] relative transition-all duration-150 user-card">
-            <div class="flex items-start justify-between mb-4">
-              <div class="flex gap-3 items-start">
-                <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=80" alt="Jonel Lomeda" class="w-10 h-10 rounded-full object-cover">
-                <div>
-                  <h3 class="text-sm font-bold text-black [line-height:1.2]">Jonel Lomeda</h3>
-                  <span class="block text-[11px] text-[#2563eb] font-bold mt-0.5">User</span>
-                  <span class="block text-[10px] text-[#64748b] mt-0.5 font-medium">Today 10:30 A.M</span>
-                </div>
-              </div>
-            </div>
-            <div class="flex flex-col gap-2">
-              <div class="flex items-center gap-2 text-[11px] text-black font-medium"><i class="text-[#64748b] text-[12px] w-3.5 text-center fa-solid fa-phone"></i> 037436262</div>
-              <div class="flex items-center gap-2 text-[11px] text-black font-medium"><i class="text-[#64748b] text-[12px] w-3.5 text-center fa-regular fa-envelope"></i> jonle@gmail.com</div>
-              <span class="self-start text-[10px] font-bold py-1 px-2.5 rounded-[4px] mt-2 bg-[#dcfce7] text-[#15803d]">Active</span>
-            </div>
-          </div>
+            <!-- Topbar -->
+            <div id="topbar"></div>
 
-          <!-- User Item Card 4 (With options ellipsis button) -->
-          <div class="bg-white border border-[#e2e8f0] rounded-[6px] p-4 flex flex-col justify-between min-h-[180px] relative transition-all duration-150 user-card">
-            <div class="flex items-start justify-between mb-4">
-              <div class="flex gap-3 items-start">
-                <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=80" alt="Mark Jake" class="w-10 h-10 rounded-full object-cover">
-                <div>
-                  <h3 class="text-sm font-bold text-black [line-height:1.2]">Mark Jake</h3>
-                  <span class="block text-[11px] text-[#2563eb] font-bold mt-0.5">User</span>
-                  <span class="block text-[10px] text-[#64748b] mt-0.5 font-medium">Today 10:30 A.M</span>
-                </div>
-              </div>
-              <button class="bg-none border-none text-black text-sm cursor-pointer py-0.5 px-1"><i class="fa-solid fa-ellipsis-vertical"></i></button>
-            </div>
-            <div class="flex flex-col gap-2">
-              <div class="flex items-center gap-2 text-[11px] text-black font-medium"><i class="text-[#64748b] text-[12px] w-3.5 text-center fa-solid fa-phone"></i> 037436262</div>
-              <div class="flex items-center gap-2 text-[11px] text-black font-medium"><i class="text-[#64748b] text-[12px] w-3.5 text-center fa-regular fa-envelope"></i> mj@gmail.com</div>
-              <span class="self-start text-[10px] font-bold py-1 px-2.5 rounded-[4px] mt-2 bg-[#dcfce7] text-[#15803d]">Active</span>
-            </div>
-          </div>
+            <!-- Content -->
+            <div class="flex-1 overflow-y-auto p-6 hide-scrollbar">
 
-          <!-- User Item Card 5 -->
-          <div class="bg-white border border-[#e2e8f0] rounded-[6px] p-4 flex flex-col justify-between min-h-[180px] relative transition-all duration-150 user-card">
-            <div class="flex items-start justify-between mb-4">
-              <div class="flex gap-3 items-start">
-                <div class="w-10 h-10 rounded-full bg-[#e2e8f0] text-[#94a3b8] flex items-center justify-center text-xl"><i class="fa-solid fa-user"></i></div>
-                <div>
-                  <h3 class="text-sm font-bold text-black [line-height:1.2]">Emenem</h3>
-                  <span class="block text-[11px] text-[#2563eb] font-bold mt-0.5">User</span>
-                  <span class="block text-[10px] text-[#64748b] mt-0.5 font-medium">Today 10:30 A.M</span>
-                </div>
-              </div>
-            </div>
-            <div class="flex flex-col gap-2">
-              <div class="flex items-center gap-2 text-[11px] text-black font-medium"><i class="text-[#64748b] text-[12px] w-3.5 text-center fa-solid fa-phone"></i> 037436262</div>
-              <div class="flex items-center gap-2 text-[11px] text-black font-medium"><i class="text-[#64748b] text-[12px] w-3.5 text-center fa-regular fa-envelope"></i> 123@gmail.com</div>
-              <span class="self-start text-[10px] font-bold py-1 px-2.5 rounded-[4px] mt-2 bg-[#dcfce7] text-[#15803d]">Active</span>
-            </div>
-          </div>
+                <div class="bg-white rounded-2xl border border-slate-200 h-full flex flex-col overflow-hidden">
 
-          <!-- User Item Card 6 (Suspended State Card Example) -->
-          <div class="bg-white border border-[#e2e8f0] rounded-[6px] p-4 flex flex-col justify-between min-h-[180px] relative transition-all duration-150 user-card">
-            <div class="flex items-start justify-between mb-4">
-              <div class="flex gap-3 items-start">
-                <div class="w-10 h-10 rounded-full bg-[#e2e8f0] text-[#94a3b8] flex items-center justify-center text-xl"><i class="fa-solid fa-user"></i></div>
-                <div>
-                  <h3 class="text-sm font-bold text-black [line-height:1.2]">Jerome</h3>
-                  <span class="block text-[11px] text-[#2563eb] font-bold mt-0.5">User</span>
-                  <span class="block text-[10px] text-[#64748b] mt-0.5 font-medium">Today 10:30 A.M</span>
-                </div>
-              </div>
-            </div>
-            <div class="flex flex-col gap-2">
-              <div class="flex items-center gap-2 text-[11px] text-black font-medium"><i class="text-[#64748b] text-[12px] w-3.5 text-center fa-solid fa-phone"></i> 037436262</div>
-              <div class="flex items-center gap-2 text-[11px] text-black font-medium"><i class="text-[#64748b] text-[12px] w-3.5 text-center fa-regular fa-envelope"></i> kd@gmail.com</div>
-              <span class="self-start text-[10px] font-bold py-1 px-2.5 rounded-[4px] mt-2 bg-[#fee2e2] text-[#b91c1c]">Suspended</span>
-            </div>
-          </div>
+                    <!-- Users Layout -->
 
+                    <div class="flex flex-1 overflow-hidden">
+
+                        <!-- LEFT PANEL -->
+
+                        <div class="flex-1 p-6 overflow-y-auto">
+
+                            <!-- Search -->
+
+                            <div class="relative max-w-xl mb-6">
+
+                                <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+
+                                <input
+                                    type="text"
+                                    placeholder="Search users..."
+                                    class="w-full rounded-xl border border-slate-300 pl-12 pr-4 py-3 outline-none focus:ring-2 focus:ring-blue-500">
+
+                            </div>
+
+                            <!-- User Grid -->
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+
+                                <!-- USER CARD 1 -->
+
+                                <div class="bg-white border-2 border-blue-500 rounded-2xl p-5 shadow-sm hover:shadow-lg transition">
+
+                                    <div class="flex gap-3">
+
+                                        <img
+                                            src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=120"
+                                            class="w-12 h-12 rounded-full object-cover">
+
+                                        <div>
+
+                                            <h3 class="font-bold">
+                                                Maria Santos
+                                            </h3>
+
+                                            <p class="text-blue-600 text-sm">
+                                                User
+                                            </p>
+
+                                            <p class="text-xs text-slate-400">
+                                                Today 10:30 AM
+                                            </p>
+
+                                        </div>
+
+                                    </div>
+
+                                    <div class="mt-5 space-y-2 text-sm">
+
+                                        <p>
+                                            <i class="fa-solid fa-phone mr-2 text-slate-500"></i>
+                                            09346463662
+                                        </p>
+
+                                        <p>
+                                            <i class="fa-regular fa-envelope mr-2 text-slate-500"></i>
+                                            mari@gmail.com
+                                        </p>
+
+                                        <span class="inline-flex px-3 py-1 rounded-full bg-green-100 text-green-700 text-xs font-semibold">
+                                            Active
+                                        </span>
+
+                                    </div>
+
+                                </div>
         </div>
       </div>
 
@@ -343,27 +216,36 @@ tailwind.config = {
 </div>
 
 <script>
-  document.getElementById('orgDropdownToggle').addEventListener('click', function(e) {
-    e.preventDefault();
-    this.parentElement.classList.toggle('open');
-  });
+// ==========================
+// SIDEBAR DROPDOWN
+// ==========================
+document.addEventListener("DOMContentLoaded", () => {
+    loadSidebar("user-management");
 
-  // Notification Dropdown Toggle Feature Logic
-  const bellBtn = document.getElementById('notificationBellBtn');
-  const dropdown = document.getElementById('notificationDropdown');
-  const wrapper = document.getElementById('notificationWrapper');
+    loadTopbar({
+        title: "User Management",
+        subtitle: "Manage all users across the platform."
+    });
 
-  bellBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    wrapper.classList.toggle('active');
-  });
+    // Wait until the topbar is injected
+    setTimeout(() => {
+        const bellBtn = document.getElementById("notificationBellBtn");
+        const wrapper = document.getElementById("notificationWrapper");
 
-  // Click outside to close layout drop menu frame
-  document.addEventListener('click', (e) => {
-    if (!wrapper.contains(e.target)) {
-      wrapper.classList.remove('active');
-    }
-  });
+        if (bellBtn && wrapper) {
+            bellBtn.addEventListener("click", (e) => {
+                e.stopPropagation();
+                wrapper.classList.toggle("active");
+            });
+
+            document.addEventListener("click", (e) => {
+                if (!wrapper.contains(e.target)) {
+                    wrapper.classList.remove("active");
+                }
+            });
+        }
+    }, 100);
+});
 </script>
 </body>
 </html>
