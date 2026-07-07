@@ -1,222 +1,971 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pawpon | Feedback</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="../assets/js/adminSidebar.js"></script>
-  <script src="../assets/js/adminTopbar.js"></script>
-  <style>
-   /* Sidebar */
-        .dropdown .dropdown-menu {
-            display: none;
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pawpon | Feedback</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ["Inter", "sans-serif"]
+                    }
+                }
+            }
+        }
+    </script>
+
+    <script src="../assets/js/adminSidebar.js"></script>
+    <script src="../assets/js/adminTopbar.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
-        .dropdown.open .dropdown-menu {
-            display: block;
+        body {
+            font-family: "Inter", sans-serif;
+            background:
+                radial-gradient(circle at top left, #dbeafe, transparent 35%),
+                radial-gradient(circle at bottom right, #bfdbfe, transparent 30%),
+                #f8fafc;
         }
 
-        .dropdown.open .fa-angle-down {
-            transform: rotate(180deg);
-        }
-
-        /* Hide scrollbar but keep scrolling */
-        .hide-scrollbar {
-            -ms-overflow-style: none;  /* IE and Edge */
-            scrollbar-width: none;     /* Firefox */
-        }
-
-        .hide-scrollbar::-webkit-scrollbar {
-            display: none;             /* Chrome, Safari, Opera */
-        }
-
-        /* Glass Card */
         .glass {
             background: rgba(255, 255, 255, .65);
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
             border: 1px solid rgba(255, 255, 255, .5);
         }
-  </style>
+
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .fadeIn {
+            animation: fade .3s ease;
+        }
+        @keyframes fade {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ─── Feedback Table ─── */
+        .feedback-table-wrap {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, .04);
+            transition: all .2s ease;
+        }
+        .feedback-table-wrap:hover {
+            box-shadow: 0 8px 25px rgba(0, 0, 0, .08);
+        }
+
+        .feedback-table-wrap table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .feedback-table-wrap table th {
+            font-size: 12px;
+            font-weight: 600;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            padding: 16px 20px;
+            text-align: left;
+            border-bottom: 2px solid #f1f5f9;
+            background: #fafcff;
+        }
+
+        .feedback-table-wrap table td {
+            padding: 14px 20px;
+            font-size: 14px;
+            color: #0f172a;
+            border-bottom: 1px solid #f1f5f9;
+            vertical-align: middle;
+        }
+
+        .feedback-table-wrap table tbody tr:last-child td {
+            border-bottom: none;
+        }
+        .feedback-table-wrap table tbody tr:hover td {
+            background: #f8fafc;
+        }
+        .feedback-table-wrap table tbody tr.selected td {
+            background: #eff6ff;
+        }
+
+        .feedback-table-wrap .sender-cell {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .feedback-table-wrap .sender-cell .avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+        .feedback-table-wrap .sender-cell .avatar-placeholder {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 14px;
+            color: #fff;
+            flex-shrink: 0;
+            text-transform: uppercase;
+        }
+        .feedback-table-wrap .sender-cell .name {
+            font-weight: 600;
+            color: #0f172a;
+        }
+        .feedback-table-wrap .sender-cell .role {
+            font-size: 12px;
+            color: #64748b;
+        }
+
+        .feedback-table-wrap .message-preview {
+            max-width: 300px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: #1e293b;
+        }
+
+        .feedback-table-wrap .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 14px 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+        }
+        .feedback-table-wrap .status-badge .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        .feedback-table-wrap .status-badge.pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        .feedback-table-wrap .status-badge.pending .dot {
+            background: #f59e0b;
+        }
+        .feedback-table-wrap .status-badge.resolved {
+            background: #ecfdf5;
+            color: #065f46;
+        }
+        .feedback-table-wrap .status-badge.resolved .dot {
+            background: #10b981;
+        }
+        .feedback-table-wrap .status-badge.archived {
+            background: #f1f5f9;
+            color: #475569;
+        }
+        .feedback-table-wrap .status-badge.archived .dot {
+            background: #94a3b8;
+        }
+
+        .feedback-table-wrap .action-btn {
+            padding: 6px 16px;
+            border-radius: 6px;
+            border: 1px solid #3b82f6;
+            background: transparent;
+            color: #3b82f6;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all .2s;
+            font-family: "Inter", sans-serif;
+        }
+        .feedback-table-wrap .action-btn:hover {
+            background: #3b82f6;
+            color: #fff;
+        }
+
+        /* ─── Detail Panel ─── */
+        .detail-panel {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 400px;
+            max-width: 92vw;
+            height: 100vh;
+            background: #ffffff;
+            box-shadow: -8px 0 30px rgba(0, 0, 0, .06);
+            z-index: 100;
+            transform: translateX(110%);
+            transition: transform .35s cubic-bezier(.22, .68, 0, 1);
+            overflow-y: auto;
+            padding: 0;
+            border-left: 1px solid #e2e8f0;
+        }
+        .detail-panel.open {
+            transform: translateX(0);
+        }
+
+        .detail-panel .panel-header {
+            padding: 18px 24px;
+            border-bottom: 1px solid #f1f5f9;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #fafcff;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        .detail-panel .panel-header h3 {
+            font-size: 16px;
+            font-weight: 700;
+            color: #0f172a;
+        }
+        .detail-panel .panel-close {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            border: none;
+            background: #f1f5f9;
+            color: #64748b;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all .2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .detail-panel .panel-close:hover {
+            background: #e2e8f0;
+            color: #0f172a;
+        }
+
+        .detail-panel .panel-body {
+            padding: 24px;
+        }
+
+        .detail-panel .profile-avatar {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin: 0 auto 14px;
+            display: block;
+            border: 2px solid #f1f5f9;
+        }
+
+        .detail-panel .profile-avatar-placeholder {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            font-weight: 700;
+            color: #fff;
+            margin: 0 auto 14px;
+            text-transform: uppercase;
+            border: 2px solid #f1f5f9;
+        }
+
+        .detail-panel .profile-name {
+            font-size: 18px;
+            font-weight: 700;
+            color: #0f172a;
+            text-align: center;
+        }
+        .detail-panel .profile-role {
+            font-size: 14px;
+            color: #64748b;
+            font-weight: 500;
+            text-align: center;
+        }
+        .detail-panel .profile-email {
+            font-size: 13px;
+            color: #64748b;
+            text-align: center;
+            margin-top: 4px;
+        }
+
+        .detail-panel .detail-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin: 20px 0 24px;
+            background: #f8fafc;
+            border-radius: 10px;
+            padding: 16px;
+        }
+        .detail-panel .detail-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            font-size: 14px;
+            padding: 6px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .detail-panel .detail-row:last-child {
+            border-bottom: none;
+        }
+        .detail-panel .detail-row .label {
+            color: #94a3b8;
+            font-weight: 500;
+        }
+        .detail-panel .detail-row .value {
+            font-weight: 600;
+            color: #0f172a;
+            text-align: right;
+        }
+        .detail-panel .detail-row .value.status-pending {
+            color: #d97706;
+        }
+        .detail-panel .detail-row .value.status-resolved {
+            color: #059669;
+        }
+        .detail-panel .detail-row .value.status-archived {
+            color: #475569;
+        }
+
+        .detail-panel .message-box {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 16px;
+            font-size: 14px;
+            color: #0f172a;
+            line-height: 1.6;
+            min-height: 70px;
+            margin-top: 6px;
+        }
+
+        .detail-panel .action-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .detail-panel .action-buttons .action-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 12px 18px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            background: #fff;
+            font-size: 13px;
+            font-weight: 600;
+            color: #1e293b;
+            cursor: pointer;
+            transition: all .2s;
+            font-family: "Inter", sans-serif;
+            width: 100%;
+            text-align: center;
+        }
+        .detail-panel .action-buttons .action-btn:hover {
+            background: #f8fafc;
+            border-color: #94a3b8;
+        }
+        .detail-panel .action-buttons .action-btn i {
+            color: #94a3b8;
+            font-size: 15px;
+        }
+        .detail-panel .action-buttons .action-btn.resolve {
+            color: #065f46;
+            border-color: #a7f3d0;
+        }
+        .detail-panel .action-buttons .action-btn.resolve i {
+            color: #10b981;
+        }
+        .detail-panel .action-buttons .action-btn.resolve:hover {
+            background: #ecfdf5;
+            border-color: #34d399;
+        }
+        .detail-panel .action-buttons .action-btn.archive {
+            color: #991b1b;
+            border-color: #fca5a5;
+        }
+        .detail-panel .action-buttons .action-btn.archive i {
+            color: #ef4444;
+        }
+        .detail-panel .action-buttons .action-btn.archive:hover {
+            background: #fef2f2;
+            border-color: #f87171;
+        }
+
+        /* ─── Search ─── */
+        .search-wrap {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+        .search-input {
+            flex: 1;
+            min-width: 200px;
+            background: #f1f5f9;
+            border: 1px solid transparent;
+            border-radius: 40px;
+            padding: 9px 20px 9px 44px;
+            font-size: 14px;
+            color: #0f172a;
+            outline: none;
+            transition: all .25s;
+            font-family: "Inter", sans-serif;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: 16px center;
+            background-size: 18px;
+        }
+        .search-input:focus {
+            background-color: #fff;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, .15);
+            border-color: #93c5fd;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236366f1' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: 16px center;
+            background-size: 18px;
+        }
+        .search-input::placeholder {
+            color: #94a3b8;
+            font-size: 13px;
+        }
+        .search-count {
+            font-size: 13px;
+            color: #94a3b8;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 48px 20px;
+            color: #94a3b8;
+        }
+        .empty-state i {
+            font-size: 40px;
+            color: #cbd5e1;
+            margin-bottom: 12px;
+            display: block;
+        }
+        .empty-state p {
+            font-size: 15px;
+            font-weight: 500;
+        }
+
+        /* overlay */
+        .panel-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, .25);
+            z-index: 99;
+            opacity: 0;
+            visibility: hidden;
+            transition: all .3s ease;
+        }
+        .panel-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* ─── Responsive ─── */
+        @media (max-width: 1024px) {
+            .feedback-table-wrap .message-preview {
+                max-width: 150px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .feedback-table-wrap {
+                overflow-x: auto;
+            }
+            .feedback-table-wrap table {
+                min-width: 700px;
+            }
+            .detail-panel {
+                width: 100%;
+                max-width: 100vw;
+                border-radius: 0;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .detail-panel .panel-body {
+                padding: 16px;
+            }
+            .feedback-table-wrap table th,
+            .feedback-table-wrap table td {
+                padding: 10px 14px;
+                font-size: 13px;
+            }
+        }
+    </style>
 </head>
-<body class="bg-[#f8fafc] text-slate-800 h-screen overflow-hidden font-sans">
 
-<div class="flex h-full">
+<body class="h-screen overflow-hidden text-slate-800">
+    <div class="flex h-full">
 
-    <!-- Sidebar -->
-    <div id="sidebar"></div>
+        <!-- Sidebar -->
+        <div id="sidebar"></div>
 
-    <!-- Main -->
-    <main class="flex-1 p-3 overflow-hidden">
+        <!-- Main -->
+        <main class="flex-1 p-3 overflow-hidden">
+            <div class="glass h-full rounded-3xl shadow-2xl flex flex-col relative overflow-visible">
 
-        <div class="glass h-full rounded-3xl shadow-2xl flex flex-col">
+                <!-- HEADER -->
+                <div id="topbar"></div>
 
-            <!-- Topbar -->
-            <div id="topbar"></div>
+                <!-- CONTENT -->
+                <div class="flex-1 overflow-y-auto px-6 pb-6 pt-2 hide-scrollbar">
 
-            <!-- Content -->
-            <div class="flex-1 overflow-y-auto p-6 hide-scrollbar">
-
-
-  <div class="flex-1 flex flex-col overflow-hidden bg-white m-4 border border-[#e2e8f0] rounded-lg">
-
-    <!-- Master-Detail Split Workspace Wrapper Grid -->
-    <div class="feedback-workspace flex flex-1 overflow-hidden bg-white">
-      
-      <!-- Left Stream Container Area: Search & Table Records Frame -->
-      <div class="feedback-left-frame flex-1 flex flex-col border-r border-[#e2e8f0] overflow-hidden">
-        
-        <!-- Search Filtering Header Action Bar Row -->
-        <div class="feedback-filters-bar flex items-center gap-4 padding p-6 shrink-0">
-          <div class="search-input-wrapper relative flex-1 max-w-[520px]">
-            <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 color text-black text-[14px]"></i>
-            <input type="text" placeholder="Search Feedback..." class="w-full pl-10 pr-4 py-2.5 text-[13px] border border-[#cbd5e1] rounded-lg outline-none bg-white text-[#334155] placeholder-[#94a3b8]">
-          </div>
-          <div class="date-dropdown-selector flex items-center gap-2 px-3.5 py-2.5 border border-[#cbd5e1] rounded-lg bg-white cursor-pointer">
-            <i class="text-[14px] text-black fa-regular fa-calendar"></i>
-            <span class="text-[13px] font-medium text-[#334155]">All Dates</span>
-            <i class="text-[14px] text-black fa-solid fa-angle-down"></i>
-          </div>
-        </div>
-
-        <!-- System Table Control View Layout Grid -->
-        <div class="feedback-table-container flex-1 overflow-y-auto px-6">
-          <table class="feedback-grid-table w-full border-collapse text-left">
-            <thead>
-              <tr>
-                <th style="width: 25%;" class="px-4 py-3 text-[13px] font-600 font-semibold text-black border-b border-[#e2e8f0]">Sender</th>
-                <th style="width: 35%;" class="px-4 py-3 text-[13px] font-600 font-semibold text-black border-b border-[#e2e8f0]">Message Review</th>
-                <th style="width: 25%;" class="px-4 py-3 text-[13px] font-600 font-semibold text-black border-b border-[#e2e8f0]">Date Submitted</th>
-                <th style="width: 15%; text-align: center;" class="px-4 py-3 text-[13px] font-600 font-semibold text-black border-b border-[#e2e8f0]">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr class="active-row-highlight bg-[#eff6ff]">
-                <td class="p-4 vertical-align border-y border-[#bfdbfe]">
-                  <div class="sender-profile-cell flex items-center gap-3">
-                    <div class="cell-avatar-wrapper w-8 h-8 rounded-full bg-[#1e293b] flex items-center justify-center text-white text-[13px]">
-                      <i class="fa-solid fa-user"></i>
+                    <!-- Search + count -->
+                    <div class="search-wrap fadeIn">
+                        <div class="relative flex-1">
+                            <input
+                            type="text"
+                            id="searchInput"
+                            class="search-input w-full"
+                            placeholder="Search feedback..."
+                            autocomplete="off"
+                            />
+                        </div>
+                        <span class="search-count" id="feedbackCount">0 feedback</span>
                     </div>
-                    <div class="cell-identity-text flex flex-col">
-                      <span class="name text-[13px] font-semibold text-black">Ezekiel Roswell</span>
-                      <span class="role text-[11px] text-[#64748b] font-medium">User</span>
+
+                    <!-- Feedback Table -->
+                    <div class="feedback-table-wrap fadeIn">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th style="width: 22%;">Sender</th>
+                                    <th style="width: 35%;">Message</th>
+                                    <th style="width: 20%;">Date Submitted</th>
+                                    <th style="width: 13%;">Status</th>
+                                    <th style="width: 10%; text-align: center;">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="feedbackTableBody">
+                                <!-- Rendered by JS -->
+                            </tbody>
+                        </table>
                     </div>
-                  </div>
-                </td>
-                <td class="p-4 vertical-align border-y border-[#bfdbfe]">
-                  <div class="message-preview-text text-[13px] text-black font-semibold whitespace-nowrap overflow-hidden text-ellipsis max-w-[280px]">
-                    di ako maka donate, sira ata system niyo ...
-                  </div>
-                </td>
-                <td class="p-4 vertical-align border-y border-[#bfdbfe]">
-                  <div class="date-time-cell flex flex-col text-[12px] font-medium text-[#64748b]">
-                    <span class="date">May 3, 2026</span>
-                    <span class="time">10:29 AM</span>
-                  </div>
-                </td>
-                <td style="text-align: center;" class="p-4 vertical-align border-y border-[#bfdbfe]">
-                  <button class="btn-review-action px-4 py-1.5 text-[12px] font-semibold text-[#0038FF] bg-white border border-[#0038FF] rounded cursor-pointer transition-all duration-200 hover:bg-[#0038FF] hover:text-white">Review</button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
 
-        <!-- Table Pagination Control Base Block -->
-        <div class="feedback-table-pagination flex items-center justify-between px-6 py-4 border-t border-[#e2e8f0] shrink-0">
-          <div class="records-counter-text text-[12px] text-[#94a3b8] font-medium">Showing 1 to 9 of 1200 feedback</div>
-          <div class="pagination-page-controls flex items-center gap-1">
-            <button class="pag-btn border border-[#e2e8f0] bg-white text-[#64748b] text-[13px] font-medium w-7 h-7 flex items-center justify-center rounded cursor-pointer"><i class="fa-solid fa-angle-left"></i></button>
-            <button class="pag-number active border border-[#0038FF] bg-white text-[#0038FF] text-[13px] font-bold w-7 h-7 flex items-center justify-center rounded cursor-pointer">1</button>
-            <button class="pag-number border border-[#e2e8f0] bg-white text-[#64748b] text-[13px] font-medium w-7 h-7 flex items-center justify-center rounded cursor-pointer">2</button>
-            <button class="pag-btn border border-[#e2e8f0] bg-white text-[#64748b] text-[13px] font-medium w-7 h-7 flex items-center justify-center rounded cursor-pointer"><i class="fa-solid fa-angle-right"></i></button>
-          </div>
-        </div>
-      </div>
+                </div>
 
-      <!-- Right Side Meta Panel Panel Framework: Details Context Inspection Pane -->
-      <div class="feedback-right-frame w-[320px] bg-white p-6 flex flex-col gap-5 shrink-0 overflow-y-auto">
-        
-        <!-- Detail Block Card Module -->
-        <div class="detail-card-panel border border-[#e2e8f0] rounded-lg px-4 py-5">
-          <h3 class="panel-section-title text-[12px] font-bold text-black mb-3.5">Feedback Details</h3>
-          
-          <div class="detail-profile-identity-card flex gap-3 mb-6">
-            <div class="profile-large-avatar w-10 h-10 rounded-full bg-[#1e293b] text-white flex items-center justify-center text-[18px] shrink-0">
-              <i class="fa-solid fa-user"></i>
             </div>
-            <div class="profile-meta-info">
-              <h4 class="text-[13px] font-bold text-black">Ezekiel Roswell</h4>
-              <p class="role text-[11px] text-[#64748b] font-medium mt-0.5">User</p>
-              <p class="email-address text-[11px] text-[#94a3b8] font-medium mt-1">ezek@gmail.com</p>
-              <div class="timestamp-stamp-row flex gap-3 text-[11px] text-[#64748b] font-medium mt-2">
-                <span>May 3, 2026</span>
-                <span>10:29 AM</span>
-              </div>
-            </div>
-          </div>
-
-          <h4 class="field-label-header text-[12px] font-bold text-black mb-2">Message</h4>
-          <div class="detailed-message-display-box bg-white border border-[#e2e8f0] rounded-md p-3 text-[13px] font-semibold text-black leading-[1.4] min-height min-h-[60px]">
-            di ako maka donate, sira ata system niyo ...
-          </div>
-        </div>
-
-        <!-- Action Panel Foot Box Grid Panel Element -->
-        <div class="detail-resolution-actions-panel border border-[#e2e8f0] rounded-lg px-4 py-5">
-          <h3 class="panel-section-title text-[12px] font-bold text-black mb-3.5">Resolution Action</h3>
-          <div class="resolution-buttons-group flex flex-col gap-2">
-            <button class="btn-action-resolve w-full flex items-center justify-center gap-2 p-2.5 text-[12px] font-bold border border-[#22c55e] text-[#22c55e] rounded-md bg-white cursor-pointer">
-              <i class="fa-regular fa-circle-check"></i>
-              <span>Mark as Resolve</span>
-            </button>
-            <button class="btn-action-archive w-full flex items-center justify-center gap-2 p-2.5 text-[12px] font-bold border border-[#ef4444] text-[#ef4444] rounded-md bg-white cursor-pointer">
-              <i class="fa-regular fa-box-archive"></i>
-              <span>Archive</span>
-            </button>
-          </div>
-        </div>
-
-      </div>
+        </main>
 
     </div>
-  </main>
-</div>
 
-<script>
-// ==========================
-// SIDEBAR DROPDOWN
-// ==========================
-document.addEventListener("DOMContentLoaded", () => {
+    <!-- Overlay -->
+    <div class="panel-overlay" id="panelOverlay"></div>
 
-    loadSidebar("feedback");
+    <!-- Detail Panel -->
+    <div class="detail-panel" id="detailPanel">
+        <div class="panel-header">
+            <h3>Feedback Details</h3>
+            <button class="panel-close" id="panelClose">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="panel-body" id="panelBody">
+            <!-- Rendered by JS -->
+        </div>
+    </div>
 
-    loadTopbar({
-        title: "Feedback",
-        subtitle: "Review and manage user feedback."
-    });
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
 
-});
-// Notification Dropdown
-const bellBtn = document.getElementById('notificationBellBtn');
-const dropdown = document.getElementById('notificationDropdown');
-const wrapper = document.getElementById('notificationWrapper');
+            loadSidebar("feedback");
 
-bellBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    wrapper.classList.toggle('active');
-});
+            loadTopbar({
+                title: "Feedback",
+                subtitle: "Review and manage user feedback."
+            });
 
-document.addEventListener('click', (e) => {
-    if (!wrapper.contains(e.target)) {
-        wrapper.classList.remove('active');
-    }
-});
-</script>
+            loadFeedback();
+
+            // Search filter
+            document.getElementById("searchInput").addEventListener("input", function() {
+                filterFeedback(this.value.trim().toLowerCase());
+            });
+
+            // Panel close
+            document.getElementById("panelClose").addEventListener("click", closePanel);
+            document.getElementById("panelOverlay").addEventListener("click", closePanel);
+
+            document.addEventListener("keydown", (e) => {
+                if (e.key === "Escape") closePanel();
+            });
+
+        });
+
+        // ─── Data ──────────────────────────────────────────────
+        let allFeedback = [];
+        let selectedFeedbackId = null;
+
+        // ─── Avatar images ────────────────────────────────────
+        const avatarImages = [
+            "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=120",
+            "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=120",
+            "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&q=80&w=120",
+            "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=120",
+            "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=120",
+            "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=120",
+        ];
+
+        function getAvatarUrl(index) {
+            return avatarImages[index % avatarImages.length];
+        }
+
+        // ─── Load feedback ─────────────────────────────────────
+        async function loadFeedback() {
+            try {
+                const res = await fetch("/admin/feedback");
+                allFeedback = await res.json();
+
+                if (!allFeedback || allFeedback.length === 0) {
+                    document.getElementById("feedbackTableBody").innerHTML = `
+                        <tr>
+                            <td colspan="5">
+                                <div class="empty-state">
+                                    <i class="fas fa-comment"></i>
+                                    <p>No feedback found</p>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                    document.getElementById("feedbackCount").textContent = "0 feedback";
+                    return;
+                }
+
+                renderFeedback(allFeedback);
+
+            } catch (err) {
+                console.error("Failed to load feedback:", err);
+                // Fallback: use sample data for demo
+                allFeedback = getSampleFeedback();
+                renderFeedback(allFeedback);
+            }
+        }
+
+        // ─── Sample data (fallback) ──────────────────────────
+        function getSampleFeedback() {
+            return [
+                { id: 1, sender_name: "Ezekiel Roswell", sender_email: "ezek@gmail.com", sender_role: "User", message: "di ako maka donate, sira ata system niyo ...", date: "2026-05-03T10:29:00", status: "pending" },
+                { id: 2, sender_name: "Maria Santos", sender_email: "mari@gmail.com", sender_role: "User", message: "Thank you for the quick response to my concern. Great support team!", date: "2026-05-02T14:15:00", status: "resolved" },
+                { id: 3, sender_name: "Joseph Mark", sender_email: "jm@gmail.com", sender_role: "User", message: "I think there's a bug in the payment processing page. It keeps loading.", date: "2026-05-01T09:45:00", status: "pending" },
+                { id: 4, sender_name: "Jonel Lomeda", sender_email: "jonle@gmail.com", sender_role: "User", message: "The new update is great! Love the new features.", date: "2026-04-30T16:20:00", status: "resolved" },
+                { id: 5, sender_name: "Angeline Regine", sender_email: "arg@gmail.com", sender_role: "User", message: "Can we have a dark mode option? It would be very helpful.", date: "2026-04-29T11:00:00", status: "archived" },
+                { id: 6, sender_name: "Mark Jake", sender_email: "mj@gmail.com", sender_role: "User", message: "I'm having trouble logging in. It says invalid credentials.", date: "2026-04-28T08:30:00", status: "pending" },
+                { id: 7, sender_name: "Yvan El", sender_email: "vanel@gmail.com", sender_role: "User", message: "Great platform! Very intuitive and easy to use.", date: "2026-04-27T13:45:00", status: "resolved" },
+                { id: 8, sender_name: "Muisin", sender_email: "msis@gmail.com", sender_role: "User", message: "The donation feature is not working properly. Please fix.", date: "2026-04-26T10:00:00", status: "pending" },
+                { id: 9, sender_name: "Emenem", sender_email: "123@gmail.com", sender_role: "User", message: "I would like to request a feature for recurring donations.", date: "2026-04-25T09:15:00", status: "archived" },
+            ];
+        }
+
+        // ─── Render ────────────────────────────────────────────
+        function renderFeedback(feedback) {
+            const tbody = document.getElementById("feedbackTableBody");
+            tbody.innerHTML = "";
+
+            if (!feedback || feedback.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="5">
+                            <div class="empty-state">
+                                <i class="fas fa-search"></i>
+                                <p>No feedback match your search</p>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                document.getElementById("feedbackCount").textContent = "0 feedback";
+                return;
+            }
+
+            feedback.forEach((item, index) => {
+                const row = buildFeedbackRow(item, index);
+                tbody.appendChild(row);
+            });
+
+            document.getElementById("feedbackCount").textContent = `${feedback.length} feedback`;
+        }
+
+        // ─── Build row ─────────────────────────────────────────
+        function buildFeedbackRow(item, index) {
+            const id = item.id || `feedback-${index}`;
+            const name = item.sender_name || "Unknown";
+            const email = item.sender_email || "—";
+            const role = item.sender_role || "User";
+            const message = item.message || "No message";
+            const status = item.status || "pending";
+
+            let statusClass = "pending";
+            let statusLabel = "Pending";
+            if (status === "resolved" || status === "Resolved") {
+                statusClass = "resolved";
+                statusLabel = "Resolved";
+            } else if (status === "archived" || status === "Archived") {
+                statusClass = "archived";
+                statusLabel = "Archived";
+            }
+
+            // Format date
+            let dateStr = "Today 10:30 A.M";
+            if (item.date) {
+                const d = new Date(item.date);
+                const now = new Date();
+                const isToday = d.toDateString() === now.toDateString();
+                const hours = d.getHours();
+                const mins = String(d.getMinutes()).padStart(2, "0");
+                const ampm = hours >= 12 ? "P.M" : "A.M";
+                const hour12 = hours % 12 || 12;
+                const datePart = isToday ? "Today" : d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+                dateStr = `${datePart} ${hour12}:${mins} ${ampm}`;
+            }
+
+            const avatarUrl = getAvatarUrl(index);
+
+            const tr = document.createElement("tr");
+            tr.className = `${selectedFeedbackId === id ? 'selected' : ''}`;
+            tr.dataset.feedbackId = id;
+
+            tr.innerHTML = `
+                <td>
+                    <div class="sender-cell">
+                        <img
+                            src="${avatarUrl}"
+                            alt="${name}"
+                            class="avatar"
+                            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'"
+                        />
+                        <div class="avatar-placeholder" style="display:none; background: linear-gradient(135deg, #6366f1, #8b5cf6);">
+                            ${name.charAt(0)}
+                        </div>
+                        <div>
+                            <div class="name">${name}</div>
+                            <div class="role">${role}</div>
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <div class="message-preview" title="${message}">${message}</div>
+                </td>
+                <td>
+                    <div class="text-slate-600 text-sm">${dateStr}</div>
+                </td>
+                <td>
+                    <span class="status-badge ${statusClass}">
+                        <span class="dot"></span>
+                        ${statusLabel}
+                    </span>
+                </td>
+                <td style="text-align: center;">
+                    <button class="action-btn" data-action="review" data-id="${id}">Review</button>
+                </td>
+            `;
+
+            // Click row → open detail
+            tr.addEventListener("click", (e) => {
+                if (e.target.closest(".action-btn")) return;
+                selectFeedback(id);
+            });
+
+            // Review button
+            const reviewBtn = tr.querySelector(".action-btn");
+            reviewBtn.addEventListener("click", (e) => {
+                e.stopPropagation();
+                selectFeedback(id);
+            });
+
+            return tr;
+        }
+
+        // ─── Select ────────────────────────────────────────────
+        function selectFeedback(id) {
+            selectedFeedbackId = id;
+            const item = allFeedback.find(f => (f.id || `feedback-${allFeedback.indexOf(f)}`) === id);
+            if (item) openPanel(item);
+            const currentQuery = document.getElementById("searchInput").value.trim().toLowerCase();
+            const filtered = getFilteredFeedback(currentQuery);
+            renderFeedback(filtered);
+        }
+
+        function getFilteredFeedback(query) {
+            if (!query) return allFeedback;
+            return allFeedback.filter(item => {
+                const name = (item.sender_name || "").toLowerCase();
+                const email = (item.sender_email || "").toLowerCase();
+                const message = (item.message || "").toLowerCase();
+                return name.includes(query) ||
+                    email.includes(query) ||
+                    message.includes(query);
+            });
+        }
+
+        // ─── Panel ─────────────────────────────────────────────
+        function openPanel(item) {
+            const panel = document.getElementById("detailPanel");
+            const overlay = document.getElementById("panelOverlay");
+            const body = document.getElementById("panelBody");
+
+            const id = item.id || "0";
+            const name = item.sender_name || "Unknown";
+            const initial = name.charAt(0).toUpperCase();
+            const role = item.sender_role || "User";
+            const email = item.sender_email || "—";
+            const message = item.message || "No message";
+            const status = item.status || "pending";
+
+            let statusLabel = "Pending";
+            let statusClass = "status-pending";
+            if (status === "resolved" || status === "Resolved") {
+                statusLabel = "Resolved";
+                statusClass = "status-resolved";
+            } else if (status === "archived" || status === "Archived") {
+                statusLabel = "Archived";
+                statusClass = "status-archived";
+            }
+
+            const date = item.date ? new Date(item.date) : new Date();
+            const dateStr = date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+            const timeStr = date.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
+
+            const avatarUrl = getAvatarUrl(allFeedback.indexOf(item));
+
+            body.innerHTML = `
+                <img
+                    src="${avatarUrl}"
+                    alt="${name}"
+                    class="profile-avatar"
+                    onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'"
+                />
+                <div class="profile-avatar-placeholder" style="display:none; background: linear-gradient(135deg, #6366f1, #8b5cf6); margin: 0 auto 14px;">
+                    ${initial}
+                </div>
+
+                <div class="profile-name">${name}</div>
+                <div class="profile-role">${role}</div>
+                <div class="profile-email">${email}</div>
+
+                <div class="detail-grid">
+                    <div class="detail-row">
+                        <span class="label">Date</span>
+                        <span class="value">${dateStr} ${timeStr}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">Status</span>
+                        <span class="value ${statusClass}">${statusLabel}</span>
+                    </div>
+                </div>
+
+                <h4 class="text-sm font-semibold text-slate-800 mb-2">Message</h4>
+                <div class="message-box">${message}</div>
+
+                <h4 class="text-sm font-semibold text-slate-800 mt-5 mb-3">Resolution Action</h4>
+
+                <div class="action-buttons">
+                    <button class="action-btn resolve" data-action="resolve" data-id="${id}">
+                        <i class="fa-regular fa-circle-check"></i>
+                        Mark as Resolve
+                    </button>
+                    <button class="action-btn archive" data-action="archive" data-id="${id}">
+                        <i class="fa-regular fa-box-archive"></i>
+                        Archive
+                    </button>
+                </div>
+            `;
+
+            body.querySelectorAll(".action-btn").forEach(btn => {
+                btn.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    const action = btn.dataset.action;
+                    const id = btn.dataset.id;
+                    handleAction(action, id, item);
+                });
+            });
+
+            panel.classList.add("open");
+            overlay.classList.add("show");
+            document.body.style.overflow = "hidden";
+        }
+
+        function closePanel() {
+            document.getElementById("detailPanel").classList.remove("open");
+            document.getElementById("panelOverlay").classList.remove("show");
+            document.body.style.overflow = "";
+            selectedFeedbackId = null;
+            const currentQuery = document.getElementById("searchInput").value.trim().toLowerCase();
+            const filtered = getFilteredFeedback(currentQuery);
+            renderFeedback(filtered);
+        }
+
+        // ─── Filter ────────────────────────────────────────────
+        function filterFeedback(query) {
+            const filtered = getFilteredFeedback(query);
+            renderFeedback(filtered);
+            if (selectedFeedbackId) {
+                const stillVisible = filtered.some(f => (f.id || `feedback-${allFeedback.indexOf(f)}`) === selectedFeedbackId);
+                if (!stillVisible) closePanel();
+            }
+        }
+
+        // ─── Actions ───────────────────────────────────────────
+        function handleAction(action, id, item) {
+            const name = item.sender_name || "User";
+
+            switch (action) {
+                case "resolve":
+                    console.log(`[${action}] ${name} (${id})`);
+                    alert(`Marking feedback from ${name} as resolved... (API not implemented)`);
+                    break;
+
+                case "archive":
+                    console.log(`[${action}] ${name} (${id})`);
+                    if (confirm(`Archive feedback from ${name}?`)) {
+                        alert(`Archiving feedback from ${name}... (API not implemented)`);
+                    }
+                    break;
+
+                default:
+                    console.warn("Unknown action:", action);
+            }
+        }
+    </script>
+
 </body>
 </html>

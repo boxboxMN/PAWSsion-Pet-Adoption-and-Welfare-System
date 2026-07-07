@@ -597,4 +597,38 @@ router.put("/users/:id/suspend", async(req,res)=>{
     }
 
 });
+/*
+=================================================
+DASHBOARD STATS
+=================================================
+*/
+router.get("/dashboard/stats", async (req, res) => {
+    try {
+
+        // Total Approved Organizations
+        const [[organizations]] = await pool.query(`
+            SELECT COUNT(*) AS totalOrganizations
+            FROM organizations
+            WHERE verification_status = 'Approved'
+        `);
+
+        // Total Active Users
+        const [[users]] = await pool.query(`
+            SELECT COUNT(*) AS totalActiveUsers
+            FROM accounts
+            WHERE status = 'active'
+        `);
+
+        res.json({
+            totalOrganizations: organizations.totalOrganizations,
+            totalActiveUsers: users.totalActiveUsers
+        });
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({
+            message: "Database Error"
+        });
+    }
+});
 module.exports = router;
