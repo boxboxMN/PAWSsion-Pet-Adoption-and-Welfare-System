@@ -1,11 +1,19 @@
-async function loadTopbar() {
-
+async function loadTopbar(options = {}) {
     const container = document.getElementById("topbar");
     if (!container) return;
 
-    const response = await fetch("topbar.html");
+    // Load the HTML
+    const response = await fetch("./topbar.html");
     container.innerHTML = await response.text();
 
+    // Set page title & subtitle
+    document.getElementById("topbarTitle").textContent =
+        options.title || "Dashboard";
+
+    document.getElementById("topbarSubtitle").textContent =
+        options.subtitle || "";
+
+    // Notification dropdown
     const bell = document.getElementById("notificationBellBtn");
     const dropdown = document.getElementById("notificationDropdown");
 
@@ -14,7 +22,6 @@ async function loadTopbar() {
     // Open / Close
     bell.addEventListener("click", function (e) {
         e.stopPropagation();
-
         dropdown.classList.toggle("hidden");
     });
 

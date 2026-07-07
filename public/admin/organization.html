@@ -1,396 +1,477 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pawpon | Organization Masterlist</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-<script src="https://cdn.tailwindcss.com"></script>
-<style>
-  /* Mandatory state-driven animations and JavaScript operational overrides */
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  
-  .dropdown .dropdown-menu { display: none; }
-  .dropdown.open .dropdown-menu { display: block; }
-  .dropdown.open .fa-angle-down { transform: rotate(180deg); }
-  
-  .notification-container .notification-dropdown { display: none; }
-  .notification-container.active .notification-dropdown { display: block; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pawpon | Organization Masterlist</title>
 
-  /* Modal state handling template matches your JS hook requirements */
-  .details-modal { display: none; }
-  @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
-  .modal-wrapper { animation: slideIn 0.25s ease-out; }
-</style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="../assets/js/adminSidebar.js"></script>
+    <script src="../assets/js/adminTopbar.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Inter", sans-serif;
+            background:
+                radial-gradient(circle at top left, #dbeafe, transparent 35%),
+                radial-gradient(circle at bottom right, #bfdbfe, transparent 30%),
+                #f8fafc;
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, .65);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, .5);
+        }
+        /* Hide scrollbar but keep scrolling */
+        .hide-scrollbar {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;     /* Firefox */
+        }
+
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;             /* Chrome, Safari, Opera */
+        }
+
+        .fadeIn {
+            animation: fade .25s ease;
+        }
+
+        @keyframes fade {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
 </head>
-<body class="bg-[#f8fafc] text-[#1e293b] flex h-screen overflow-hidden font-['Inter',sans-serif]">
 
-<div class="wrapper flex w-full h-full">
-  <!-- Sidebar Navigation Panel Block -->
-  <aside class="sidebar w-[260px] bg-white border-r border-[#e2e8f0] flex flex-col justify-between py-6 shrink-0">
-    <div>
-      <div class="logo flex items-center justify-between px-6 mb-8">
-        <div class="logo-inner flex items-center gap-3">
-          <div class="logo-icon text-[#0038FF] text-[28px]"><i class="fa-solid fa-paw"></i></div>
-          <div class="logo-text">
-            <h2 class="text-[20px] font-extrabold text-[#0038FF] leading-none">Pawpon</h2>
-            <p class="text-[11px] text-[#64748b] mt-1 font-medium">Admin Portal</p>
-          </div>
-        </div>
-        <div class="collapse-btn text-[#94a3b8] cursor-pointer text-[14px]">
-          <i class="fa-solid fa-angles-left"></i>
-        </div>
-      </div>
-      <nav>
-        <ul class="list-none px-3">
-          <li class="mb-1 relative">
-            <a href="dashboard.html" class="flex items-center justify-between px-4 py-3 text-[#334155] no-underline text-[14px] font-medium rounded-md transition-all duration-200 hover:bg-[#f1f5f9]">
-              <div class="left flex items-center gap-3"><i class="fa-solid fa-table-columns w-5 text-[16px]"></i><span>Dashboard</span></div>
-            </a>
-          </li>
-          <li class="dropdown open mb-1 relative">
-            <a href="#" id="orgDropdownToggle" class="flex items-center justify-between px-4 py-3 text-[#334155] no-underline text-[14px] font-medium rounded-md transition-all duration-200 hover:bg-[#f1f5f9]">
-              <div class="left flex items-center gap-3"><i class="fa-solid fa-users-gear w-5 text-[16px]"></i><span>Organization</span></div>
-              <i class="fa-solid fa-angle-down text-[12px] text-[#64748b] transition-transform duration-200"></i>
-            </a>
-            <ul class="dropdown-menu list-none pl-8 mt-1">
-              <li class="active-sub mb-1"><a href="organization.html" class="block px-4 py-2 text-white bg-[#0038FF] font-semibold text-[13px] rounded transition-all duration-200">Organization Masterlist</a></li>
-              <li class="mb-1"><a href="partner-request.html" class="block px-4 py-2 text-[#64748b] text-[13px] font-medium rounded transition-all duration-200 hover:text-[#0038FF] hover:bg-[#f1f5f9]">Partner Request</a></li>
-            </ul>
-          </li>
-          <li class="mb-1 relative">
-            <a href="user-management.html" class="flex items-center justify-between px-4 py-3 text-[#334155] no-underline text-[14px] font-medium rounded-md transition-all duration-200 hover:bg-[#f1f5f9]">
-              <div class="left flex items-center gap-3"><i class="fa-regular fa-user w-5 text-[16px]"></i><span>User Management</span></div>
-            </a>
-          </li>
-          <li class="mb-1 relative">
-            <a href="feedback.html" class="flex items-center justify-between px-4 py-3 text-[#334155] no-underline text-[14px] font-medium rounded-md transition-all duration-200 hover:bg-[#f1f5f9]">
-              <div class="left flex items-center gap-3"><i class="fa-regular fa-comment-dots w-5 text-[16px]"></i><span>Feedback</span></div>
-            </a>
-          </li>
-        </ul>
-      </nav>
-    </div>
-    <div class="logout px-6">
-      <a href="#" class="flex items-center gap-3 text-[#0038FF] no-underline text-[14px] font-medium"><i class="fa-solid fa-arrow-right-from-bracket"></i>Logout</a>
-    </div>
-  </aside>
+<body class="h-screen overflow-hidden text-slate-800">
+    <div class="flex h-full">
 
-  <!-- Main View Component Frame -->
-  <main class="main flex-1 flex flex-col overflow-hidden bg-white m-4 border border-[#e2e8f0] rounded-lg">
-    <header class="topbar flex items-center justify-between px-6 py-5 border-b border-[#e2e8f0] shrink-0">
-      <h1 class="text-[22px] font-bold text-[#0038FF]">Organization Masterlist</h1>
-      <div class="topbar-actions flex items-center gap-5">
-       <a href="setting.html" style="color: inherit; text-decoration: none;">
-          <i class="fa-solid fa-gear text-[20px] text-[#0038FF] cursor-pointer"></i>
-       </a>
-       <div class="notification-container relative inline-flex items-center" id="notificationWrapper">
-          <i class="fa-regular fa-bell text-[20px] text-[#0038FF] cursor-pointer" id="notificationBellBtn"></i>
-          
-          <div class="notification-dropdown absolute top-full right-[-50px] mt-3 w-[320px] bg-white border border-[#e2e8f0] rounded-lg shadow-[0_4px_12px_rgba(0,0,0,0.05)] z-[1000]" id="notificationDropdown">
-            <div class="dropdown-header px-5 py-3.5 text-[13px] font-bold text-[#0038FF] border-b border-[#f1f5f9]">All Notification</div>
-            <div class="dropdown-item px-5 py-4 border-b border-[#f1f5f9] text-left">
-              <h4 class="text-[13px] font-bold text-black mb-1">New Organization Registered</h4>
-              <p class="text-[11px] text-[#64748b] leading-[1.4] font-normal">“Bantay Animal Welfare” has submitted partner request</p>
-            </div>
-            <div class="dropdown-footer px-5 py-4 text-center">
-              <a href="#" class="text-[13px] font-bold text-[#0038FF] no-underline block w-full">View All Notification</a>
-            </div>
-          </div>
-       </div>
-       <div class="profile-avatar w-9 h-9 bg-[#71717a] rounded-full flex items-center justify-center text-[#facc15] text-[18px]"><i class="fa-solid fa-user-gear"></i></div>
-      </div>
-    </header>
+        <!-- Sidebar -->
+        <div id="sidebar"></div>
 
-    <div class="content-body flex-1 p-6 overflow-y-auto bg-white">
-      <!-- Search Input Container -->
-      <div class="search-box w-full max-w-[780px] mb-6 relative">
-        <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-[#94a3b8] text-[14px]"></i>
-        <input type="text" placeholder="Search organization name, contact, email..." class="w-full pl-11 pr-4 py-3 border border-[#cbd5e1] rounded-md text-[13px] outline-none text-[#334155] placeholder-[#94a3b8]">
-      </div>
+        <!-- Main -->
+        <main class="flex-1 p-3 overflow-hidden">
+          <div class="glass h-full rounded-3xl shadow-2xl flex flex-col relative overflow-visible">
 
-      <!-- Masterlist Responsive Cards Grid Components -->
-      <div class="org-grid grid grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-6 max-w-[1100px]">
-        
-        <div
-          id="organizationGrid"
-          class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-        </div>
+              <!-- HEADER -->
+              <div id="topbar"></div>
 
-      </div>
-    </div>
-  </main>
-</div>
+              <!-- CONTENT -->
+              <div class="flex-1 overflow-y-auto px-8 pb-8 pt-4 hide-scrollbar">
 
-<!-- Sliding Side Panel Drawer Overlay for view details -->
-<div class="details-modal fixed inset-0 bg-[rgba(15,23,42,0.4)] z-[9999] justify-end" id="detailsModal" onclick="closeDetailsModal(event)">
-  <div class="modal-wrapper w-[calc(100%-260px)] h-full bg-[#f8fafc] flex flex-col" onclick="event.stopPropagation()">
-    <header class="modal-header-nav bg-white px-6 py-5 border-b border-[#e2e8f0] flex items-center justify-between">
-      <div class="breadcrumbs text-[16px] font-bold text-black flex items-center gap-2">
-        Organization Masterlist <span class="text-[#64748b] font-medium">&gt; Organization Details</span>
-      </div>
-      <div class="topbar-actions flex items-center gap-5">
-        <i class="fa-solid fa-gear text-[20px] text-[#0038FF] cursor-pointer"></i>
-        <i class="fa-regular fa-bell text-[20px] text-[#0038FF] cursor-pointer"></i>
-        <div class="profile-avatar w-9 h-9 bg-[#71717a] rounded-full flex items-center justify-center text-[#facc15] text-[18px]"><i class="fa-solid fa-user-gear"></i></div>
-      </div>
-    </header>
+                    <!-- Search -->
+                    <div class="relative max-w-xl mb-8">
+                        <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
 
-    <div class="modal-body-scroll flex-1 p-6 overflow-y-auto flex flex-col gap-4">
-      <!-- Profile Branding Banner Row Component Box -->
-      <div class="detail-profile-card bg-white border border-[#e2e8f0] rounded-lg p-6 flex items-center justify-between">
-        <div class="profile-left-identity flex items-center gap-5">
-          <div class="big-avatar-circle w-20 h-20 rounded-full border border-[#e2e8f0] bg-white flex items-center justify-center text-[32px] text-[#0038FF]"><i class="fa-solid fa-hands-holding-heart"></i></div>
-          <div class="identity-text">
-            <h2 class="text-[20px] font-bold text-black mb-1.5">PAWSsion Benevolence Circle</h2>
-            <p class="text-[14px] text-[#334155] font-medium">Organization</p>
-          </div>
-        </div>
-        <div>
-          <div class="status-badge flex items-center gap-1.5 text-[#22c55e] text-[13px] font-semibold mb-3 justify-end">
-            <i class="fa-solid fa-circle-check"></i> Verified/Active
-          </div>
-          <div class="action-buttons-group flex gap-2">
-            <button class="action-btn px-4 py-2 rounded text-[13px] font-medium cursor-pointer bg-white border border-[#cbd5e1] text-[#0f172a]">Suspend</button>
-            <button class="action-btn px-4 py-2 rounded text-[13px] font-medium cursor-pointer bg-white border border-[#cbd5e1] text-[#0f172a]">Deactivate Account</button>
-          </div>
-        </div>
-      </div>
+                        <input
+                            id="searchOrganization"
+                            type="text"
+                            placeholder="Search organization..."
+                            class="w-full pl-12 pr-5 py-3 rounded-xl border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
 
-      <!-- Two-Column Grid Info Dashboard Frame -->
-      <div class="details-two-columns grid grid-cols-[2fr_1fr] gap-4">
-        
-        <!-- Left Data Pillar -->
-        <div class="flex flex-col gap-4">
-          <!-- General and Contact Box Module Section -->
-          <div class="info-white-box bg-white border border-[#e2e8f0] rounded-lg p-6">
-            <h3 class="text-[14px] font-bold text-black mb-5 border-b border-[#f1f5f9] pb-3">General and Contact Information</h3>
-            <div class="details-meta-grid grid grid-cols-2 gap-6">
-              <div class="meta-block fullwidth col-span-2 mb-1">
-                <label class="text-[13px] font-bold text-black block mb-1.5">Description</label>
-                <p class="text-[12px] text-[#64748b] leading-relaxed">Driven by compassion, Pawssion Project serves as a sanctuary of hope for stray and abandoned paws, working tirelessly to give every rescue a second chance at a loving home. Our organization is dedicated to caring for stray dogs and cats, advocating for animal rights, and promoting their welfare.</p>
-              </div>
-              <div class="meta-block mb-1">
-                <label class="text-[13px] font-bold text-black block mb-1.5">Type/ Category</label>
-                <p class="text-[12px] text-[#64748b] leading-relaxed">Orgalzation</p>
-              </div>
-              <div class="meta-block mb-1">
-                <label class="text-[13px] font-bold text-black block mb-1.5">Phone Number</label>
-                <p class="text-[12px] text-[#64748b] leading-relaxed">37436626262</p>
-              </div>
-              <div class="meta-block mb-1">
-                <label class="text-[13px] font-bold text-black block mb-1.5">email</label>
-                <a href="mailto:pawssion@gmail.com" class="text-[12px] text-[#0038FF] underline">pawssion@gmail.com</a>
-              </div>
-              <div class="meta-block mb-1">
-                <label class="text-[13px] font-bold text-black block mb-1.5">Address</label>
-                <p class="text-[12px] text-[#64748b] leading-relaxed">San Miguel, Nabua Camarines Sur</p>
-              </div>
-            </div>
-          </div>
-
-          <!-- Platform Activity and Metrics Grid Container -->
-          <div class="info-white-box bg-white border border-[#e2e8f0] rounded-lg p-6">
-            <h3 class="text-[14px] font-bold text-black mb-5 border-b border-[#f1f5f9] pb-3">Platform Activity and Metrics</h3>
-            <div class="metrics-row-grid grid grid-cols-4 gap-3 mt-4">
-              <div class="metric-mini-card border border-[#e2e8f0] rounded-md p-3 flex items-center gap-3">
-                <div class="mini-icon-box m-blue w-8 h-8 rounded bg-[#eff6ff] text-[#2563eb] flex items-center justify-center text-[14px]"><i class="fa-solid fa-chart-simple"></i></div>
-                <div class="mini-text">
-                  <label class="text-[10px] text-[#64748b] block">Activity Status</label>
-                  <strong class="green-label block text-[#22c55e] text-[14px] font-semibold mt-0.5">High</strong>
-                  <span class="text-[10px] text-[#64748b]">Active Org</span>
-                </div>
-              </div>
-              <div class="metric-mini-card border border-[#e2e8f0] rounded-md p-3 flex items-center gap-3">
-                <div class="mini-icon-box m-green w-8 h-8 rounded bg-[#f0fdf4] text-[#16a34a] flex items-center justify-center text-[14px]"><i class="fa-solid fa-paw"></i></div>
-                <div class="mini-text">
-                  <label class="text-[10px] text-[#64748b] block">Total Animal Listed</label>
-                  <strong class="block text-black text-[16px] font-bold mt-0.5">0</strong>
-                  <span class="text-[10px] text-[#64748b]">Pets</span>
-                </div>
-              </div>
-              <div class="metric-mini-card border border-[#e2e8f0] rounded-md p-3 flex items-center gap-3">
-                <div class="mini-icon-box m-orange w-8 h-8 rounded bg-[#fffbeb] text-[#d97706] flex items-center justify-center text-[14px]"><i class="fa-solid fa-house-chimney-window"></i></div>
-                <div class="mini-text">
-                  <label class="text-[10px] text-[#64748b] block">Successful Adoption</label>
-                  <strong class="block text-black text-[16px] font-bold mt-0.5">0</strong>
-                  <span class="text-[10px] text-[#64748b]">Pets</span>
-                </div>
-              </div>
-              <div class="metric-mini-card border border-[#e2e8f0] rounded-md p-3 flex items-center gap-3">
-                <div class="mini-icon-box m-pink w-8 h-8 rounded bg-[#fdf2f8] text-[#db2777] flex items-center justify-center text-[14px]"><i class="fa-solid fa-hand-holding-heart"></i></div>
-                <div class="mini-text">
-                  <label class="text-[10px] text-[#64748b] block">Donation Handled</label>
-                  <strong class="block text-black text-[16px] font-bold mt-0.5">0</strong>
-                  <span class="text-[10px] text-[#64748b]">Total Amount</span>
-                </div>
-              </div>
-            </div>
-
-            <div class="last-login-box mt-3 border border-[#e2e8f0] rounded-md p-3 flex items-center gap-3">
-              <div class="login-circle-avatar w-8 h-8 bg-[#fef3c7] rounded-full"></div>
-              <div class="mini-text">
-                <label class="text-[10px] text-[#64748b] block">Last System Login</label>
-                <strong class="block text-black text-[13px] font-bold mt-0.5">May 30, 2026</strong>
-                <span class="text-[10px] text-[#64748b]">10:30 P.M</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Right Side Data Pillar -->
-        <div>
-          <!-- Security Parameters Mini Widget Block Box -->
-          <div class="security-profile-card bg-white border border-[#e2e8f0] rounded-lg p-5 mb-4">
-            <h4 class="text-[13px] font-bold text-black mb-3">Account Security</h4>
-            <div class="admin-tag-row flex items-center gap-2 text-[13px] font-bold text-black mb-1">
-              PAWssion Benevolence Circle <span class="admin-badge bg-[#eff6ff] text-[#2563eb] text-[10px] font-semibold px-2 py-0.5 rounded-xl">Admin</span>
-            </div>
-            <p class="text-[12px] text-[#64748b]">pawssion@gmail.com</p>
-          </div>
-
-          <!-- Uploaded Credentials Verification Document Row Block Vault Layout -->
-          <div class="document-vault-card bg-white border border-[#e2e8f0] rounded-lg p-4 flex flex-col gap-2">
-            <div class="doc-row-item flex items-center justify-between py-3 border-b border-[#f1f5f9] text-[12px]">
-              <div class="doc-left-side flex items-center gap-2.5 font-semibold text-black">
-                <i class="fa-regular fa-file-pdf text-[16px] text-[#334155]"></i>
-                HDHHS.pdf
-              </div>
-              <div class="doc-right-actions flex items-center gap-4 text-[#64748b]">
-                <span class="doc-date font-normal">May 10, 2026</span>
-                <i class="fa-regular fa-eye text-[16px] cursor-pointer text-[#0f172a]"></i>
-                <i class="fa-solid fa-download text-[16px] cursor-pointer text-[#0f172a]"></i>
-              </div>
-            </div>
-            <div class="doc-row-item flex items-center justify-between py-3 border-none text-[12px]">
-              <div class="doc-left-side flex items-center gap-2.5 font-semibold text-black">
-                <i class="fa-regular fa-file-image text-[16px] text-[#334155]"></i>
-                HDHHS.jpg
-              </div>
-              <div class="doc-right-actions flex items-center gap-4 text-[#64748b]">
-                <span class="doc-date font-normal">May 10, 2026</span>
-                <i class="fa-regular fa-eye text-[16px] cursor-pointer text-[#0f172a]"></i>
-                <i class="fa-solid fa-download text-[16px] cursor-pointer text-[#0f172a]"></i>
-              </div>
-            </div>
-          </div>
-        </div>
-
-      </div>
-    </div>
-  </div>
-</div>
-
-<script>
- async function loadOrganizations(){
-
-    const res=await fetch("/admin/organizations");
-
-    const organizations=await res.json();
-
-    const grid=document.getElementById("organizationGrid");
-
-    if(organizations.length===0){
-
-        grid.innerHTML=`
-
-        <div class="col-span-full bg-white rounded-xl border p-10 text-center">
-
-            <i class="fa-solid fa-building text-5xl text-blue-500"></i>
-
-            <h2 class="mt-4 text-xl font-bold">
-
-                No Approved Organizations
-
-            </h2>
-
-        </div>
-
-        `;
-
-        return;
-
-    }
-
-    grid.innerHTML="";
-
-    organizations.forEach(org=>{
-
-        grid.innerHTML+=`
-
-        <div class="bg-white rounded-2xl shadow border hover:shadow-xl transition">
-
-            <div class="h-28 bg-gradient-to-r from-blue-600 to-indigo-500 rounded-t-2xl"></div>
-
-            <div class="p-6 -mt-10">
-
-                <div class="w-20 h-20 rounded-full bg-white border flex items-center justify-center text-3xl text-blue-600">
-
-                    <i class="fa-solid fa-paw"></i>
+                    <!-- Cards -->
+                    <div
+                        id="organizationGrid"
+                        class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+                    </div>
 
                 </div>
+            </div>
+        </main>
 
-                <h2 class="font-bold text-xl mt-4">
+<!-- ========================================= -->
+<!-- ORGANIZATION DETAILS DRAWER -->
+<!-- ========================================= -->
+<div
+    id="detailsModal"
+    class="hidden fixed inset-0 bg-black/40 backdrop-blur-sm z-[9999] justify-end"
+    onclick="closeDetailsModal(event)">
 
-                    ${org.organization_name}
+    <div
+        class="w-full max-w-5xl h-full bg-slate-50 flex flex-col shadow-2xl"
+        onclick="event.stopPropagation()">
 
+        <!-- Header -->
+        <div class="bg-white border-b border-slate-200 px-8 py-6 flex justify-between items-center">
+            <div>
+                <h2 class="text-2xl font-bold text-slate-800">
+                    Organization Details
                 </h2>
 
-                <p class="text-blue-600">
-
-                    ${org.organization_type}
-
+                <p class="text-slate-500 text-sm mt-1">
+                    View organization information.
                 </p>
+            </div>
 
-                <p class="text-gray-600 mt-4">
+            <button
+                onclick="closeDetailsModal()"
+                class="w-10 h-10 rounded-xl hover:bg-slate-100 transition">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+        </div>
 
-                    ${org.description||""}
+        <!-- Body -->
+        <div class="flex-1 overflow-y-auto p-8">
 
-                </p>
+            <!-- Profile -->
+            <div class="bg-white rounded-3xl shadow border p-8 flex justify-between items-center">
+                <div class="flex items-center gap-6">
+                    <div class="w-24 h-24 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white flex items-center justify-center text-4xl">
+                        <i class="fa-solid fa-building"></i>
+                    </div>
 
-                <div class="mt-5 space-y-2 text-sm">
+                    <div>
+                        <h2
+                            id="detailName"
+                            class="text-3xl font-bold">
+                            -
+                        </h2>
 
-                    <p>
+                        <p
+                            id="detailType"
+                            class="text-blue-600 mt-2">
+                            -
+                        </p>
 
-                        <i class="fa fa-envelope"></i>
+                        <span
+                            id="detailStatus"
+                            class="inline-flex mt-4 px-4 py-1 rounded-full bg-green-100 text-green-700 text-sm font-semibold">
+                            Approved
+                        </span>
+                    </div>
+                </div>
+            </div>
 
-                        ${org.email}
+            <!-- Information -->
+            <div class="grid lg:grid-cols-3 gap-6 mt-8">
 
-                    </p>
+                <!-- Left -->
+                <div class="lg:col-span-2 space-y-6">
 
-                    <p>
+                    <!-- General -->
+                    <div class="bg-white rounded-2xl shadow border p-6">
+                        <h3 class="font-bold text-lg mb-5">
+                            General Information
+                        </h3>
 
-                        <i class="fa fa-phone"></i>
+                        <div class="grid md:grid-cols-2 gap-5">
 
-                        ${org.contact_number}
+                            <div>
+                                <div class="bg-white border border-slate-200 rounded-2xl p-5">
+                                    <h4 class="text-xs uppercase tracking-widest text-slate-400 font-semibold mb-5">
+                                        Contact Person
+                                    </h4>
 
-                    </p>
+                                    <div>
+                                        <p class="text-[11px] uppercase tracking-wider text-slate-400">
+                                            Representative
+                                        </p>
 
-                    <p>
+                                        <p
+                                            id="modalContactPerson"
+                                            class="mt-1 text-sm font-semibold text-slate-800 break-words">
+                                            N/A
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
 
-                        <i class="fa fa-location-dot"></i>
+                            <div>
+                                <label class="text-xs uppercase text-slate-500">
+                                    Email
+                                </label>
 
-                        ${org.address}
+                                <p
+                                    id="detailEmail"
+                                    class="mt-2 font-semibold">
+                                    -
+                                </p>
+                            </div>
 
-                    </p>
+                            <div>
+                                <label class="text-xs uppercase text-slate-500">
+                                    Phone
+                                </label>
+
+                                <p
+                                    id="detailPhone"
+                                    class="mt-2 font-semibold">
+                                    -
+                                </p>
+                            </div>
+
+                            <div>
+                                <label class="text-xs uppercase text-slate-500">
+                                    Address
+                                </label>
+
+                                <p
+                                    id="detailAddress"
+                                    class="mt-2 font-semibold">
+                                    -
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Description -->
+                    <div class="bg-white rounded-2xl shadow border p-6">
+                        <h3 class="font-bold text-lg mb-5">
+                            Description
+                        </h3>
+
+                        <p
+                            id="detailDescription"
+                            class="leading-7 text-slate-600">
+                            -
+                        </p>
+                    </div>
 
                 </div>
 
+                <!-- Right -->
+                <div class="space-y-6">
+
+                    <!-- Account -->
+                    <div class="bg-white rounded-2xl shadow border p-6">
+                        <h3 class="font-bold mb-5">
+                            Account
+                        </h3>
+
+                        <div class="space-y-4">
+                            <div>
+                                <label class="text-xs uppercase text-slate-500">
+                                    Verification
+                                </label>
+
+                                <p
+                                    id="detailVerification"
+                                    class="font-semibold mt-2">
+                                    -
+                                </p>
+                            </div>
+
+                            <div>
+                                <label class="text-xs uppercase text-slate-500">
+                                    Account Status
+                                </label>
+
+                                <p
+                                    id="detailAccountStatus"
+                                    class="font-semibold mt-2">
+                                    -
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Documents -->
+                    <div class="bg-white rounded-2xl shadow border p-6">
+                        <h3 class="font-bold mb-5">
+                            Uploaded Documents
+                        </h3>
+
+                        <div
+                            id="documentsContainer"
+                            class="space-y-3">
+                        </div>
+                    </div>
+                </div>
             </div>
-
         </div>
+    </div>
+</div>
+</div>
+</body>
+<script>
+  // ============================================
+// INITIALIZE
+// ============================================
+let organizations = [];
 
+document.addEventListener("DOMContentLoaded", () => {
+    loadSidebar("organization-masterlist");
+    loadTopbar({
+    title: "Organization Masterlist",
+    subtitle: "View and manage all approved organizations."
+});
+    loadOrganizations();
+});
+
+// ============================================
+// LOAD ORGANIZATIONS
+// ============================================
+async function loadOrganizations() {
+    try {
+        const response = await fetch("/admin/organizations");
+        if (!response.ok) {
+            throw new Error("Unable to load organizations.");
+        }
+
+        organizations = await response.json();
+        renderOrganizations(organizations);
+    } catch (err) {
+        console.error(err);
+        document.getElementById("organizationGrid").innerHTML = `
+            <div class="col-span-full">
+                <div class="glass rounded-3xl p-16 text-center">
+                    <i class="fa-solid fa-triangle-exclamation text-6xl text-red-500"></i>
+                    <h2 class="text-2xl font-bold mt-6">Failed to Load Organizations</h2>
+                    <p class="text-slate-500 mt-2">Please try again later.</p>
+                </div>
+            </div>
         `;
-
-    });
-
+    }
 }
 
-loadOrganizations();
-</script>
+// ============================================
+// RENDER ORGANIZATION CARDS
+// ============================================
+function renderOrganizations(data) {
+    const grid = document.getElementById("organizationGrid");
 
-</body>
+    if (data.length === 0) {
+        grid.innerHTML = `
+            <div class="col-span-full">
+                <div class="glass rounded-3xl p-16 text-center">
+                    <i class="fa-solid fa-building text-6xl text-blue-500"></i>
+                    <h2 class="text-2xl font-bold mt-5">No Organizations Found</h2>
+                </div>
+            </div>
+        `;
+        return;
+    }
+
+    // Map and join for better DOM performance than appending innerHTML in a loop
+    grid.innerHTML = data.map(org => `
+        <div class="glass rounded-3xl shadow-lg hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 overflow-hidden">
+            <div class="h-28 bg-gradient-to-r from-blue-600 to-indigo-600"></div>
+            <div class="p-6 -mt-12">
+                <div class="w-24 h-24 rounded-full bg-white border-4 border-white shadow flex items-center justify-center text-blue-600 text-4xl">
+                    <i class="fa-solid fa-building"></i>
+                </div>
+                <h2 class="text-2xl font-bold mt-5">${org.organization_name}</h2>
+                <p class="text-blue-600 mt-1">${org.organization_type}</p>
+                <p class="text-slate-600 mt-5 line-clamp-3">${org.description || "No description provided."}</p>
+                <div class="mt-6 space-y-2 text-sm">
+                    <p><i class="fa-solid fa-envelope text-blue-600 mr-2"></i>${org.email}</p>
+                    <p><i class="fa-solid fa-phone text-blue-600 mr-2"></i>${org.contact_number}</p>
+                    <p><i class="fa-solid fa-location-dot text-blue-600 mr-2"></i>${org.address}</p>
+                </div>
+                <button onclick="openDetails(${org.organization_id})"
+                    class="mt-6 w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 rounded-xl hover:from-blue-700 hover:to-indigo-700 transition">
+                    View Details
+                </button>
+            </div>
+        </div>
+    `).join('');
+}
+
+// ============================================
+// SEARCH
+// ============================================
+document.addEventListener("input", function(e) {
+    if (e.target.id !== "searchOrganization") return;
+
+    const keyword = e.target.value.toLowerCase();
+    const filtered = organizations.filter(org => {
+        return (
+            org.organization_name.toLowerCase().includes(keyword) ||
+            org.organization_type.toLowerCase().includes(keyword) ||
+            org.email.toLowerCase().includes(keyword) ||
+            org.contact_number.toLowerCase().includes(keyword) ||
+            org.address.toLowerCase().includes(keyword)
+        );
+    });
+
+    renderOrganizations(filtered);
+});
+
+// ============================================
+// DETAILS DRAWER
+// ============================================
+function openDetails(id) {
+    const org = organizations.find(o => o.organization_id == id);
+    if (!org) return;
+
+    document.getElementById("detailName").textContent = org.organization_name;
+    document.getElementById("detailType").textContent = org.organization_type;
+    document.getElementById("detailPerson").textContent = org.contact_person;
+    document.getElementById("detailEmail").textContent = org.email;
+    document.getElementById("detailPhone").textContent = org.contact_number;
+    document.getElementById("detailAddress").textContent = `${org.address}, ${org.city}, ${org.province}`;
+    document.getElementById("detailDescription").textContent = org.description || "No description provided.";
+    document.getElementById("detailVerification").textContent = org.verification_status;
+    document.getElementById("detailAccountStatus").textContent = org.status;
+
+    loadDocuments(org);
+
+    const modal = document.getElementById("detailsModal");
+    modal.classList.remove("hidden");
+    modal.classList.add("flex");
+    document.getElementById("modalContactPerson").textContent =
+    org.contact_person ?? "N/A";
+}
+
+// ============================================
+// DOCUMENTS
+// ============================================
+function loadDocuments(org) {
+    const container = document.getElementById("documentsContainer");
+    container.innerHTML = "";
+
+    if (!org.document_name) {
+        container.innerHTML = `<p class="text-slate-500 text-sm">No uploaded documents.</p>`;
+        return;
+    }
+
+    container.innerHTML = `
+        <div class="border rounded-xl p-4 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <i class="fa-regular fa-file text-2xl text-blue-600"></i>
+                <span>${org.document_name}</span>
+            </div>
+            <div class="flex gap-4 text-lg">
+                <a href="/uploads/${org.file_path}" target="_blank">
+                    <i class="fa-regular fa-eye"></i>
+                </a>
+                <a href="/uploads/${org.file_path}" download>
+                    <i class="fa-solid fa-download"></i>
+                </a>
+            </div>
+        </div>
+    `;
+}
+
+// ============================================
+// CLOSE DRAWER
+// ============================================
+function closeDetailsModal(event) {
+    // Closes if triggered programmatically (no event passed) or if the backdrop wrapper is clicked
+    if (!event || event.target.id === "detailsModal") {
+        const modal = document.getElementById("detailsModal");
+        modal.classList.remove("flex");
+        modal.classList.add("hidden");
+    }
+}
+</script>
 </html>
