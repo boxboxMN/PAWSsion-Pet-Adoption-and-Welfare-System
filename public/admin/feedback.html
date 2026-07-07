@@ -9,101 +9,61 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="../assets/js/adminSidebar.js"></script>
+  <script src="../assets/js/adminTopbar.js"></script>
   <style>
-    /* Essential layout dependencies and JavaScript state hooks */
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    
-    /* Core Layout Mechanics preserved from dashboard.css */
-    .dropdown .dropdown-menu { display: none; }
-    .dropdown.open .dropdown-menu { display: block; }
-    .dropdown .fa-angle-down { transition: transform 0.2s; }
-    .dropdown.open .fa-angle-down { transform: rotate(180deg); }
-    
-    .notification-container .notification-dropdown { display: none; }
-    .notification-container.active .notification-dropdown { display: block; }
+   /* Sidebar */
+        .dropdown .dropdown-menu {
+            display: none;
+        }
+
+        .dropdown.open .dropdown-menu {
+            display: block;
+        }
+
+        .dropdown.open .fa-angle-down {
+            transform: rotate(180deg);
+        }
+
+        /* Hide scrollbar but keep scrolling */
+        .hide-scrollbar {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;     /* Firefox */
+        }
+
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;             /* Chrome, Safari, Opera */
+        }
+
+        /* Glass Card */
+        .glass {
+            background: rgba(255, 255, 255, .65);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, .5);
+        }
   </style>
 </head>
-<body class="bg-[#f8fafc] text-[#1e293b] flex h-screen overflow-hidden font-['Inter',sans-serif]">
+<body class="bg-[#f8fafc] text-slate-800 h-screen overflow-hidden font-sans">
 
-<div class="wrapper flex w-full h-full">
-  <!-- Sidebar Navigation Panel Block Components Frame -->
-  <aside class="sidebar w-[260px] bg-white border-r border-[#e2e8f0] flex flex-col justify-between py-6 shrink-0">
-    <div>
-      <div class="logo flex items-center justify-between px-6 mb-8">
-        <div class="logo-inner flex items-center gap-3">
-          <div class="logo-icon text-[#0038FF] text-[28px]"><i class="fa-solid fa-paw"></i></div>
-          <div class="logo-text">
-            <h2 class="text-[20px] font-extrabold text-[#0038FF] leading-none">Pawpon</h2>
-            <p class="text-[11px] text-[#64748b] mt-1 font-medium">Admin Portal</p>
-          </div>
-        </div>
-        <div class="collapse-btn text-[#94a3b8] cursor-pointer text-[14px]">
-          <i class="fa-solid fa-angles-left"></i>
-        </div>
-      </div>
-      <nav>
-        <ul class="list-none px-3">
-          <li class="mb-1 relative">
-            <a href="dashboard.html" class="flex items-center justify-between px-4 py-3 text-[#334155] no-underline text-[14px] font-medium rounded-md transition-all duration-200 hover:bg-[#f1f5f9]">
-              <div class="left flex items-center gap-3"><i class="fa-solid fa-table-columns w-5 text-[16px]"></i><span>Dashboard</span></div>
-            </a>
-          </li>
-          <li class="dropdown mb-1 relative">
-            <a href="#" id="orgDropdownToggle" class="flex items-center justify-between px-4 py-3 text-[#334155] no-underline text-[14px] font-medium rounded-md transition-all duration-200 hover:bg-[#f1f5f9]">
-              <div class="left flex items-center gap-3"><i class="fa-solid fa-users-gear w-5 text-[16px]"></i><span>Organization</span></div>
-              <i class="fa-solid fa-angle-down text-[12px] text-[#64748b]"></i>
-            </a>
-            <ul class="dropdown-menu list-none pl-8 mt-1">
-              <li class="mb-1"><a href="organization.html" class="block px-4 py-2 text-[#64748b] text-[13px] font-medium rounded transition-all duration-200 hover:text-[#0038FF] hover:bg-[#f1f5f9]">Organization Masterlist</a></li>
-              <li class="mb-1"><a href="partner-request.html" class="block px-4 py-2 text-[#64748b] text-[13px] font-medium rounded transition-all duration-200 hover:text-[#0038FF] hover:bg-[#f1f5f9]">Partner Request</a></li>
-            </ul>
-          </li>
-          <li class="mb-1 relative">
-            <a href="user-management.html" class="flex items-center justify-between px-4 py-3 text-[#334155] no-underline text-[14px] font-medium rounded-md transition-all duration-200 hover:bg-[#f1f5f9]">
-              <div class="left flex items-center gap-3"><i class="fa-regular fa-user w-5 text-[16px]"></i><span>User Management</span></div>
-            </a>
-          </li>
-          <li class="active mb-1 relative">
-            <a href="feedback.html" class="flex items-center justify-between px-4 py-3 bg-[#0038FF] text-white no-underline text-[14px] font-semibold rounded-md transition-all duration-200">
-              <div class="left flex items-center gap-3"><i class="fa-regular fa-comment-dots w-5 text-[16px]"></i><span>Feedback</span></div>
-            </a>
-          </li>
-        </ul>
-      </nav>
-    </div>
-    <div class="logout px-6">
-      <a href="#" class="flex items-center gap-3 text-[#0038FF] no-underline text-[14px] font-medium"><i class="fa-solid fa-arrow-right-from-bracket"></i>Logout</a>
-    </div>
-  </aside>
+<div class="flex h-full">
 
-  <!-- Main View Workspace Panel Layout -->
-  <main class="main flex-1 flex flex-col overflow-hidden bg-white m-4 border border-[#e2e8f0] rounded-lg">
-    <header class="topbar flex items-center justify-between px-6 py-5 border-b border-[#e2e8f0] shrink-0">
-      <h1 class="text-[22px] font-bold text-[#0038FF]">Feedback</h1>
-      <div class="topbar-actions flex items-center gap-5">
-        <a href="setting.html" style="color: inherit; text-decoration: none;">
-          <i class="fa-solid fa-gear text-[20px] text-[#0038FF] cursor-pointer"></i>
-        </a>
-        
-        <div class="notification-container relative inline-flex items-center" id="notificationWrapper">
-          <i class="fa-regular fa-bell text-[20px] text-[#0038FF] cursor-pointer" id="notificationBellBtn"></i>
-          <div class="notification-dropdown absolute top-full right-[-50px] mt-3 w-[320px] bg-white border border-[#e2e8f0] rounded-lg shadow-[0_4px_12px_rgba(0,0,0,0.05)] z-[1000]" id="notificationDropdown">
-            <div class="dropdown-header px-5 py-3.5 text-[13px] font-bold text-[#0038FF] border-b border-[#f1f5f9]">All Notification</div>
-            <div class="dropdown-item px-5 py-4 border-b border-[#f1f5f9] text-left">
-              <h4 class="text-[13px] font-bold text-black mb-1">New Organization Registered</h4>
-              <p class="text-[11px] text-[#64748b] leading-[1.4] font-normal">“Bantay Animal Welfare” has submitted partner request</p>
-            </div>
-            <div class="dropdown-footer px-5 py-4 text-center">
-              <a href="#" class="text-[13px] font-bold text-[#0038FF] no-underline block w-full">View All Notification</a>
-            </div>
-          </div>
-        </div>
+    <!-- Sidebar -->
+    <div id="sidebar"></div>
 
-        <div class="profile-container flex items-center">
-          <div class="profile-avatar w-9 h-9 bg-[#71717a] rounded-full flex items-center justify-center text-[#facc15] text-[18px]"><i class="fa-solid fa-user-gear"></i></div>
-        </div>
-      </div>
-    </header>
+    <!-- Main -->
+    <main class="flex-1 p-3 overflow-hidden">
+
+        <div class="glass h-full rounded-3xl shadow-2xl flex flex-col">
+
+            <!-- Topbar -->
+            <div id="topbar"></div>
+
+            <!-- Content -->
+            <div class="flex-1 overflow-y-auto p-6 hide-scrollbar">
+
+
+  <div class="flex-1 flex flex-col overflow-hidden bg-white m-4 border border-[#e2e8f0] rounded-lg">
 
     <!-- Master-Detail Split Workspace Wrapper Grid -->
     <div class="feedback-workspace flex flex-1 overflow-hidden bg-white">
@@ -229,27 +189,34 @@
 </div>
 
 <script>
-  // Sidebar Sub-dropdown Accordion Expand Toggle Script Logic
-  document.getElementById('orgDropdownToggle').addEventListener('click', function(e) {
-    e.preventDefault();
-    this.parentElement.classList.toggle('open');
-  });
+// ==========================
+// SIDEBAR DROPDOWN
+// ==========================
+document.addEventListener("DOMContentLoaded", () => {
 
-  // Notification Dropdown Toggle Feature Logic
-  const bellBtn = document.getElementById('notificationBellBtn');
-  const dropdown = document.getElementById('notificationDropdown');
-  const wrapper = document.getElementById('notificationWrapper');
+    loadSidebar("feedback");
 
-  bellBtn.addEventListener('click', (e) => {
+    loadTopbar({
+        title: "Feedback",
+        subtitle: "Review and manage user feedback."
+    });
+
+});
+// Notification Dropdown
+const bellBtn = document.getElementById('notificationBellBtn');
+const dropdown = document.getElementById('notificationDropdown');
+const wrapper = document.getElementById('notificationWrapper');
+
+bellBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     wrapper.classList.toggle('active');
-  });
+});
 
-  document.addEventListener('click', (e) => {
+document.addEventListener('click', (e) => {
     if (!wrapper.contains(e.target)) {
-      wrapper.classList.remove('active');
+        wrapper.classList.remove('active');
     }
-  });
+});
 </script>
 </body>
 </html>

@@ -2,6 +2,7 @@ const express = require("express");
 const path = require("path");
 const pool = require("../config/database");
 
+
 const router = express.Router();
 
 router.get("/dashboard", (req, res) => {
@@ -285,4 +286,264 @@ router.get("/document/download/:id", async (req, res) => {
     }
 });
 
+/*
+=================================================
+GET ALL USERS
+=================================================
+*/
+
+router.get("/users", async (req, res) => {
+    try {
+
+        const [rows] = await pool.query(`
+            SELECT
+                a.account_id,
+                a.email,
+                a.role,
+                a.status,
+                a.email_verified,
+                a.created_at,
+
+                ad.first_name,
+                ad.last_name,
+                ad.profile_picture,
+
+                o.organization_name,
+                o.contact_person,
+                o.contact_number,
+                o.city,
+                o.province
+
+            FROM accounts a
+
+            LEFT JOIN adopters ad
+                ON a.account_id = ad.account_id
+
+            LEFT JOIN organizations o
+                ON a.account_id = o.account_id
+
+            ORDER BY a.created_at DESC
+        `);
+
+        const users = rows.map(user => {
+
+            let name = "";
+
+            if (user.role === "organization") {
+                name = user.organization_name || "Unnamed Organization";
+            } else {
+                name =
+                    `${user.first_name || ""} ${user.last_name || ""}`.trim();
+
+                if (!name)
+                    name = user.email;
+            }
+
+            return {
+                account_id: user.account_id,
+                name,
+                email: user.email,
+                role: user.role,
+                status: user.status,
+                created_at: user.created_at,
+
+                phone: user.contact_number || "N/A",
+
+                city: user.city || "",
+
+                province: user.province || "",
+
+                profile_picture: user.profile_picture,
+
+                organization_name: user.organization_name,
+
+                contact_person: user.contact_person
+            };
+
+        });
+
+        res.json(users);
+
+    } catch (err) {
+
+        console.error(err);
+
+        res.status(500).json({
+            message: "Database Error"
+        });
+
+    }
+});
+/*
+=================================================
+GET SINGLE USER
+=================================================
+*/
+
+router.get("/users/:id", async (req, res) => {
+
+    try {
+
+        const id = req.params.id;
+
+        const [[user]] = await pool.query(`
+            SELECT
+
+                a.account_id,
+                a.email,
+                a.role,
+                a.status,
+                a.created_at,
+
+                ad.first_name,
+                ad.last_name,
+                ad.profile_picture,
+
+                o.organization_name,
+                o.contact_person,
+                o.contact_number,
+                o.address,
+                o.city,
+                o.province
+
+            FROM accounts a
+
+            LEFT JOIN adopters ad
+                ON a.account_id = ad.account_id
+
+            LEFT JOIN organizations o
+                ON a.account_id = o.account_id
+
+            WHERE a.account_id=?
+
+        `,[id]);
+
+        if(!user){
+
+            return res.status(404).json({
+                message:"User not found"
+            });
+
+        }
+
+        user.name =
+            user.role==="organization"
+            ? user.organization_name
+            : `${user.first_name || ""} ${user.last_name || ""}`.trim();
+
+        res.json(user);
+
+    } catch(err){
+
+        console.error(err);
+
+        res.status(500).json({
+            message:"Database Error"
+        });
+
+    }
+
+});
+/*
+=================================================
+ACTIVATE / DEACTIVATE USER
+=================================================
+*/
+
+router.put("/users/:id/status", async (req,res)=>{
+
+    try{
+
+        const id=req.params.id;
+
+        const [[account]]=await pool.query(
+
+            `SELECT status
+             FROM accounts
+             WHERE account_id=?`,
+
+            [id]
+
+        );
+
+        if(!account){
+
+            return res.status(404).json({
+                message:"User not found"
+            });
+
+        }
+
+        const newStatus=
+            account.status==="active"
+            ? "disabled"
+            : "active";
+
+        await pool.query(
+
+            `UPDATE accounts
+             SET status=?
+             WHERE account_id=?`,
+
+            [newStatus,id]
+
+        );
+
+        res.json({
+
+            success:true,
+            status:newStatus
+
+        });
+
+    }catch(err){
+
+        console.error(err);
+
+        res.status(500).json({
+            message:"Database Error"
+        });
+
+    }
+
+});
+/*
+=================================================
+SUSPEND USER
+=================================================
+*/
+
+router.put("/users/:id/suspend", async(req,res)=>{
+
+    try{
+
+        const id=req.params.id;
+
+        await pool.query(
+
+            `UPDATE accounts
+             SET status='disabled'
+             WHERE account_id=?`,
+
+            [id]
+
+        );
+
+        res.json({
+            success:true
+        });
+
+    }
+
+    catch(err){
+
+        console.error(err);
+
+        res.status(500).json({
+            message:"Database Error"
+        });
+
+    }
+
+});
 module.exports = router;
