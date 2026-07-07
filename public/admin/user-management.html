@@ -1,6 +1,72 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Pawpon | User Management</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+<link rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+<script src="https://cdn.tailwindcss.com"></script>
+
+<script>
+tailwind.config = {
+    theme: {
+        extend: {
+            fontFamily: {
+                sans: ["Inter", "sans-serif"]
+            }
+        }
+    }
+}
+</script>
+
+<script src="../assets/js/adminSidebar.js"></script>
+<script src="../assets/js/adminTopbar.js"></script>
+
+<style>
+
+.dropdown .dropdown-menu{
+    display:none;
+}
+
+.dropdown.open .dropdown-menu{
+    display:block;
+}
+
+.dropdown.open .fa-angle-down{
+    transform:rotate(180deg);
+}
+
+/* Hide Scrollbar */
+
+.hide-scrollbar{
+    -ms-overflow-style:none;
+    scrollbar-width:none;
+}
+
+.hide-scrollbar::-webkit-scrollbar{
+    display:none;
+}
+
+/* Glass */
+
+.glass{
+    background:rgba(255,255,255,.65);
+    backdrop-filter:blur(16px);
+    -webkit-backdrop-filter:blur(16px);
+    border:1px solid rgba(255,255,255,.5);
+}
+
+</style>
+
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Pawpon | User Management</title>
@@ -15,454 +81,289 @@
     <script src="../assets/js/adminTopbar.js"></script>
 
 </head>
+<body class="bg-[#f8fafc] text-[#1e293b] flex h-screen overflow-hidden m-0 p-0 box-border font-sans">
 
-<body class="h-screen overflow-hidden text-slate-800">
-    <div class="flex h-full">
+<div class="flex w-full h-full">
+  <!-- Sidebar Navigation Panel Block -->
+  <aside class="w-[260px] bg-white border-r border-[#e2e8f0] flex flex-col justify-between py-6 shrink-0">
+    <div>
+      <div class="flex items-center justify-between px-6 mb-8">
+        <div class="flex items-center gap-3">
+          <div class="text-[#0038FF] text-[28px]"><i class="fa-solid fa-paw"></i></div>
+          <div>
+            <h2 class="text-20px text-xl font-extrabold text-[#0038FF] highway-tight [line-height:1]">Pawpon</h2>
+            <p class="text-[11px] text-[#64748b] mt-1 font-medium">Admin Portal</p>
+          </div>
+        </div>
+        <div class="text-[#94a3b8] cursor-pointer text-sm"><i class="fa-solid fa-angles-left"></i></div>
+      </div>
+      <nav>
+        <ul class="list-none px-3">
+          <li class="mb-1 relative group">
+            <a href="dashboard.html" class="flex items-center justify-between py-3 px-4 text-[#334155] no-underline text-sm font-medium rounded-[6px] transition-all duration-200 hover:bg-slate-50">
+              <div class="flex items-center gap-3"><i class="w-5 text-base fa-solid fa-table-columns"></i><span>Dashboard</span></div>
+            </a>
+          </li>
+          <li class="mb-1 relative group dropdown">
+            <a href="#" id="orgDropdownToggle" class="flex items-center justify-between py-3 px-4 text-[#334155] no-underline text-sm font-medium rounded-[6px] transition-all duration-200 hover:bg-slate-50">
+              <div class="flex items-center gap-3"><i class="w-5 text-base fa-solid fa-users-gear"></i><span>Organization</span></div>
+              <i class="fa-solid fa-angle-down transition-transform duration-200 text-[12px] text-[#64748b] group-[.open]:rotate-180"></i>
+            </a>
+            <ul class="dropdown-menu hidden group-[.open]:block list-none pl-8 mt-1">
+              <li><a href="organization.html" class="block py-2 px-4 text-[#64748b] text-[13px] font-medium no-underline rounded-[6px] hover:bg-slate-50">Organization Masterlist</a></li>
+              <li><a href="partner-request.html" class="block py-2 px-4 text-[#64748b] text-[13px] font-medium no-underline rounded-[6px] hover:bg-slate-50">Partner Request</a></li>
+            </ul>
+          </li>
+          <li class="mb-1 relative active">
+            <a href="user-management.html" class="flex items-center justify-between py-3 px-4 text-white bg-[#0038FF] no-underline text-sm font-semibold rounded-[6px] transition-all duration-200">
+              <div class="flex items-center gap-3"><i class="w-5 text-base fa-regular fa-user"></i><span>User Management</span></div>
+            </a>
+          </li>
+          <li class="mb-1 relative group">
+            <a href="feedback.html" class="flex items-center justify-between py-3 px-4 text-[#334155] no-underline text-sm font-medium rounded-[6px] transition-all duration-200 hover:bg-slate-50">
+              <div class="flex items-center gap-3"><i class="w-5 text-base fa-regular fa-comment-dots"></i><span>Feedback</span></div>
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </div>
+    <div class="px-6">
+      <a href="#" class="flex items-center gap-3 text-[#0038FF] no-underline text-sm font-medium"><i class="fa-solid fa-arrow-right-from-bracket"></i>Logout</a>
+    </div>
+  </aside>
 
-        <!-- Sidebar -->
-        <div id="sidebar"></div>
-
-        <!-- Main -->
-        <main class="flex-1 p-3 overflow-hidden">
-            <div class="glass h-full rounded-3xl shadow-2xl flex flex-col relative overflow-visible">
-
-                <!-- HEADER -->
-                <div id="topbar"></div>
-
-                <!-- CONTENT -->
-                <div class="flex-1 overflow-y-auto px-6 pb-6 pt-2 hide-scrollbar">
-
-                    <!-- Search + count -->
-                    <div class="search-wrap fadeIn">
-                        <div class="relative flex-1">
-                            <input
-                            type="text"
-                            id="searchInput"
-                            class="search-input w-full"
-                            placeholder="Search by user, action..."
-                            autocomplete="off"
-                            />
-                        </div>
-                        <span class="search-count" id="userCount">0 users</span>
-                    </div>
-
-                    <!-- User Cards Grid -->
-                    <div
-                        id="userRowsContainer"
-                        class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5 fadeIn">
-                    </div>
-
-                </div>
-
+  <!-- Main Workspace View Components Frame -->
+  <main class="flex-1 flex flex-col overflow-hidden bg-white m-4 border border-[#e2e8f0] rounded-g rounded-md rounded-lg">
+    <header class="flex items-start justify-between py-6 px-8 border-b border-[#e2e8f0]">
+      <div>
+        <h1 class="text-2xl font-bold text-[#0038FF] leading-snug [line-height:1.2]">User Management</h1>
+        <p class="text-[12px] text-black font-semibold mt-1">Manage All Users across the platform. View, assign roles, and manage account status</p>
+      </div>
+      <div class="flex items-center gap-5 mt-1">
+        <a href="setting.html" style="color: inherit; text-decoration: none;">
+          <i class="fa-solid fa-gear text-[20px] text-[#0038FF] cursor-pointer"></i>
+        </a>
+        <div class="relative inline-flex items-center group/notification" id="notificationWrapper">
+          <i class="fa-regular fa-bell text-xl text-[#0038FF] cursor-pointer" id="notificationBellBtn"></i>
+          
+          <div class="hidden group-[.active]/notification:block absolute top-full right-[-50px] mt-3 w-[320px] bg-white border border-[#e2e8f0] rounded-lg shadow-[0_4px_12px_rgba(0,0,0,0.05)] z-[1000]" id="notificationDropdown">
+            <div class="py-3.5 px-5 text-[13px] font-bold text-[#0038FF] border-b border-[#f1f5f9]">All Notification</div>
+            <div class="py-4 px-5 border-b border-[#f1f5f9] text-left">
+              <h4 class="text-[13px] font-bold text-black mb-1">New Organization Registered</h4>
+              <p class="text-[11px] text-[#64748b] leading-[1.4] font-normal">“Bantay Animal Welfare” has submitted partner request</p>
             </div>
-        </main>
+            <div class="py-4 px-5 text-center">
+              <a href="#" class="text-[13px] font-bold text-[#0038FF] no-underline block w-full">View All Notification</a>
+            </div>
+          </div>
+        </div>
+        <div class="w-9 h-9 bg-[#71717a] rounded-full flex items-center justify-center text-[#facc15] text-lg"><i class="fa-solid fa-user-gear"></i></div>
+      </div>
+    </header>
+
+    <!-- Two-Panel Workspace Split Screen Layout Component -->
+    <div class="flex-1 flex overflow-hidden">
+      
+      <!-- Left Main Body Stream Flow (Users Grid) -->
+      <div class="flex-1 p-6 overflow-y-auto flex flex-col gap-6">
+        <div class="w-full max-w-[640px] relative">
+          <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-black text-base"></i>
+          <input type="text" placeholder="Search by user, action..." class="w-full py-3 pl-12 pr-4 border border-[#cbd5e1] rounded-[6px] text-sm outline-none text-[#334155] placeholder-[#64748b] placeholder:font-medium">
+        </div>
+
+        <div class="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-4 items-start">
+          
+          <!-- User Item Card 1 (Active / Selected Highlighted State) -->
+          <div class="bg-white border border-[#3b82f6] shadow-[0_0_0_1px_#3b82f6] rounded-[6px] p-4 flex flex-col justify-between min-h-[180px] relative transition-all duration-150 user-card selected">
+            <div class="flex items-start justify-between mb-4">
+              <div class="flex gap-3 items-start">
+                <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=80" alt="Maria Santos" class="w-10 h-10 rounded-full object-cover">
+                <div>
+                  <h3 class="text-sm font-bold text-black [line-height:1.2]">Maria Santos</h3>
+                  <span class="block text-[11px] text-[#2563eb] font-bold mt-0.5">User</span>
+                  <span class="block text-[10px] text-[#64748b] mt-0.5 font-medium">Today 10:30 A.M</span>
+                </div>
+              </div>
+            </div>
+            <div class="flex flex-col gap-2">
+              <div class="flex items-center gap-2 text-[11px] text-black font-medium"><i class="text-[#64748b] text-[12px] w-3.5 text-center fa-solid fa-phone"></i> 09346463662</div>
+              <div class="flex items-center gap-2 text-[11px] text-black font-medium"><i class="text-[#64748b] text-[12px] w-3.5 text-center fa-regular fa-envelope"></i> mari@gmail.com</div>
+              <span class="self-start text-[10px] font-bold py-1 px-2.5 rounded-[4px] mt-2 bg-[#dcfce7] text-[#15803d]">Active</span>
+            </div>
+          </div>
+
+          <!-- User Item Card 2 -->
+          <div class="bg-white border border-[#e2e8f0] rounded-[6px] p-4 flex flex-col justify-between min-h-[180px] relative transition-all duration-150 user-card">
+            <div class="flex items-start justify-between mb-4">
+              <div class="flex gap-3 items-start">
+                <div class="w-10 h-10 rounded-full bg-[#e2e8f0] text-[#94a3b8] flex items-center justify-center text-xl"><i class="fa-solid fa-user"></i></div>
+                <div>
+                  <h3 class="text-sm font-bold text-black [line-height:1.2]">Joseph Mark</h3>
+                  <span class="block text-[11px] text-[#2563eb] font-bold mt-0.5">User</span>
+                  <span class="block text-[10px] text-[#64748b] mt-0.5 font-medium">Today 10:30 A.M</span>
+                </div>
+              </div>
+            </div>
+            <div class="flex flex-col gap-2">
+              <div class="flex items-center gap-2 text-[11px] text-black font-medium"><i class="text-[#64748b] text-[12px] w-3.5 text-center fa-solid fa-phone"></i> 037436262</div>
+              <div class="flex items-center gap-2 text-[11px] text-black font-medium"><i class="text-[#64748b] text-[12px] w-3.5 text-center fa-regular fa-envelope"></i> jm@gmail.com</div>
+              <span class="self-start text-[10px] font-bold py-1 px-2.5 rounded-[4px] mt-2 bg-[#dcfce7] text-[#15803d]">Active</span>
+            </div>
+          </div>
+
+          <!-- User Item Card 3 -->
+          <div class="bg-white border border-[#e2e8f0] rounded-[6px] p-4 flex flex-col justify-between min-h-[180px] relative transition-all duration-150 user-card">
+            <div class="flex items-start justify-between mb-4">
+              <div class="flex gap-3 items-start">
+                <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=80" alt="Jonel Lomeda" class="w-10 h-10 rounded-full object-cover">
+                <div>
+                  <h3 class="text-sm font-bold text-black [line-height:1.2]">Jonel Lomeda</h3>
+                  <span class="block text-[11px] text-[#2563eb] font-bold mt-0.5">User</span>
+                  <span class="block text-[10px] text-[#64748b] mt-0.5 font-medium">Today 10:30 A.M</span>
+                </div>
+              </div>
+            </div>
+            <div class="flex flex-col gap-2">
+              <div class="flex items-center gap-2 text-[11px] text-black font-medium"><i class="text-[#64748b] text-[12px] w-3.5 text-center fa-solid fa-phone"></i> 037436262</div>
+              <div class="flex items-center gap-2 text-[11px] text-black font-medium"><i class="text-[#64748b] text-[12px] w-3.5 text-center fa-regular fa-envelope"></i> jonle@gmail.com</div>
+              <span class="self-start text-[10px] font-bold py-1 px-2.5 rounded-[4px] mt-2 bg-[#dcfce7] text-[#15803d]">Active</span>
+            </div>
+          </div>
+
+          <!-- User Item Card 4 (With options ellipsis button) -->
+          <div class="bg-white border border-[#e2e8f0] rounded-[6px] p-4 flex flex-col justify-between min-h-[180px] relative transition-all duration-150 user-card">
+            <div class="flex items-start justify-between mb-4">
+              <div class="flex gap-3 items-start">
+                <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=80" alt="Mark Jake" class="w-10 h-10 rounded-full object-cover">
+                <div>
+                  <h3 class="text-sm font-bold text-black [line-height:1.2]">Mark Jake</h3>
+                  <span class="block text-[11px] text-[#2563eb] font-bold mt-0.5">User</span>
+                  <span class="block text-[10px] text-[#64748b] mt-0.5 font-medium">Today 10:30 A.M</span>
+                </div>
+              </div>
+              <button class="bg-none border-none text-black text-sm cursor-pointer py-0.5 px-1"><i class="fa-solid fa-ellipsis-vertical"></i></button>
+            </div>
+            <div class="flex flex-col gap-2">
+              <div class="flex items-center gap-2 text-[11px] text-black font-medium"><i class="text-[#64748b] text-[12px] w-3.5 text-center fa-solid fa-phone"></i> 037436262</div>
+              <div class="flex items-center gap-2 text-[11px] text-black font-medium"><i class="text-[#64748b] text-[12px] w-3.5 text-center fa-regular fa-envelope"></i> mj@gmail.com</div>
+              <span class="self-start text-[10px] font-bold py-1 px-2.5 rounded-[4px] mt-2 bg-[#dcfce7] text-[#15803d]">Active</span>
+            </div>
+          </div>
+
+          <!-- User Item Card 5 -->
+          <div class="bg-white border border-[#e2e8f0] rounded-[6px] p-4 flex flex-col justify-between min-h-[180px] relative transition-all duration-150 user-card">
+            <div class="flex items-start justify-between mb-4">
+              <div class="flex gap-3 items-start">
+                <div class="w-10 h-10 rounded-full bg-[#e2e8f0] text-[#94a3b8] flex items-center justify-center text-xl"><i class="fa-solid fa-user"></i></div>
+                <div>
+                  <h3 class="text-sm font-bold text-black [line-height:1.2]">Emenem</h3>
+                  <span class="block text-[11px] text-[#2563eb] font-bold mt-0.5">User</span>
+                  <span class="block text-[10px] text-[#64748b] mt-0.5 font-medium">Today 10:30 A.M</span>
+                </div>
+              </div>
+            </div>
+            <div class="flex flex-col gap-2">
+              <div class="flex items-center gap-2 text-[11px] text-black font-medium"><i class="text-[#64748b] text-[12px] w-3.5 text-center fa-solid fa-phone"></i> 037436262</div>
+              <div class="flex items-center gap-2 text-[11px] text-black font-medium"><i class="text-[#64748b] text-[12px] w-3.5 text-center fa-regular fa-envelope"></i> 123@gmail.com</div>
+              <span class="self-start text-[10px] font-bold py-1 px-2.5 rounded-[4px] mt-2 bg-[#dcfce7] text-[#15803d]">Active</span>
+            </div>
+          </div>
+
+          <!-- User Item Card 6 (Suspended State Card Example) -->
+          <div class="bg-white border border-[#e2e8f0] rounded-[6px] p-4 flex flex-col justify-between min-h-[180px] relative transition-all duration-150 user-card">
+            <div class="flex items-start justify-between mb-4">
+              <div class="flex gap-3 items-start">
+                <div class="w-10 h-10 rounded-full bg-[#e2e8f0] text-[#94a3b8] flex items-center justify-center text-xl"><i class="fa-solid fa-user"></i></div>
+                <div>
+                  <h3 class="text-sm font-bold text-black [line-height:1.2]">Jerome</h3>
+                  <span class="block text-[11px] text-[#2563eb] font-bold mt-0.5">User</span>
+                  <span class="block text-[10px] text-[#64748b] mt-0.5 font-medium">Today 10:30 A.M</span>
+                </div>
+              </div>
+            </div>
+            <div class="flex flex-col gap-2">
+              <div class="flex items-center gap-2 text-[11px] text-black font-medium"><i class="text-[#64748b] text-[12px] w-3.5 text-center fa-solid fa-phone"></i> 037436262</div>
+              <div class="flex items-center gap-2 text-[11px] text-black font-medium"><i class="text-[#64748b] text-[12px] w-3.5 text-center fa-regular fa-envelope"></i> kd@gmail.com</div>
+              <span class="self-start text-[10px] font-bold py-1 px-2.5 rounded-[4px] mt-2 bg-[#fee2e2] text-[#b91c1c]">Suspended</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Right Inspect Details Static Sidebar Component Drawer -->
+      <aside class="w-[320px] bg-white border-l border-[#e2e8f0] py-8 px-6 flex flex-col overflow-y-auto relative shrink-0">
+        <button class="absolute top-4 right-4 bg-none border-none text-[20px] text-black font-bold cursor-pointer">&times;</button>
+        
+        <div class="flex flex-col align-center items-center text-center mb-6">
+          <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=120" alt="Maria Santos" class="w-20 h-20 rounded-full object-cover mb-3">
+          <h2 class="text-lg font-bold text-black [line-height:1.2]">Maria Santos</h2>
+          <p class="text-xs text-[#64748b] font-semibold mt-1">User</p>
+          <p class="text-[11px] text-[#64748b] mt-0.5">mari@gmail.com</p>
+        </div>
+
+        <div class="flex flex-col gap-4 mb-8">
+          <div class="grid grid-cols-[100px_1fr] text-xs items-baseline">
+            <span class="text-[#64748b] font-medium">Phone</span>
+            <span class="text-black font-semibold text-right [letter-spacing:0.2px]">09346463662</span>
+          </div>
+          <div class="grid grid-cols-[100px_1fr] text-xs items-baseline">
+            <span class="text-[#64748b] font-medium">Registered</span>
+            <span class="text-black font-semibold text-right">Jan 15, 2026</span>
+          </div>
+          <div class="grid grid-cols-[100px_1fr] text-xs items-baseline">
+            <span class="text-[#64748b] font-medium">Last Login</span>
+            <span class="text-black font-semibold text-right">May 30, 2026 10:30 A.M</span>
+          </div>
+          <div class="grid grid-cols-[100px_1fr] text-xs items-baseline">
+            <span class="text-[#64748b] font-medium">Status</span>
+            <span class="text-[#22c55e] font-bold text-right">Active</span>
+          </div>
+        </div>
+
+        <div>
+          <h3 class="text-sm font-bold text-black mb-3">Account Actions</h3>
+          
+          <button class="w-full py-2.5 px-4 bg-white border border-black rounded-[6px] text-xs font-bold text-black cursor-pointer flex items-center justify-center gap-2.5 mb-2.5 transition-colors duration-150 hover:bg-[#f8fafc]">
+            <i class="fa-solid fa-arrows-rotate text-sm"></i> Active/Deactivate
+          </button>
+          
+          <button class="w-full py-2.5 px-4 bg-white border border-black rounded-[6px] text-xs font-bold text-black cursor-pointer flex items-center justify-center gap-2.5 mb-2.5 transition-colors duration-150 hover:bg-[#f8fafc]">
+            <i class="fa-solid fa-user-slash text-sm"></i> Suspend Account
+          </button>
+          
+          <button class="w-full py-2.5 px-4 bg-white border border-black rounded-[6px] text-xs font-bold text-black cursor-pointer flex items-center justify-center gap-2.5 transition-colors duration-150 hover:bg-[#f8fafc]">
+            Permanent Ban
+          </button>
+        </div>
+      </aside>
 
     </div>
+  </main>
+</div>
 
-    <!-- Overlay -->
-    <div class="panel-overlay" id="panelOverlay"></div>
+<script>
+  document.getElementById('orgDropdownToggle').addEventListener('click', function(e) {
+    e.preventDefault();
+    this.parentElement.classList.toggle('open');
+  });
 
-    <!-- Detail Panel -->
-    <div class="detail-panel" id="detailPanel">
-        <div class="panel-header">
-            <h3>User Details</h3>
-            <button class="panel-close" id="panelClose">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-        <div class="panel-body" id="panelBody">
-            <!-- Rendered by JS -->
-        </div>
-    </div>
+  // Notification Dropdown Toggle Feature Logic
+  const bellBtn = document.getElementById('notificationBellBtn');
+  const dropdown = document.getElementById('notificationDropdown');
+  const wrapper = document.getElementById('notificationWrapper');
 
-    <script>
-        document.addEventListener("DOMContentLoaded", () => {
+  bellBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    wrapper.classList.toggle('active');
+  });
 
-            loadSidebar("user-management");
-
-            loadTopbar({
-                title: "User Management",
-                subtitle: "Manage all users across the platform. View, assign roles, and manage account status."
-            });
-
-            loadUsers();
-
-            // Search filter
-            document.getElementById("searchInput").addEventListener("input", function() {
-                filterUsers(this.value.trim().toLowerCase());
-            });
-
-            // Panel close
-            document.getElementById("panelClose").addEventListener("click", closePanel);
-            document.getElementById("panelOverlay").addEventListener("click", closePanel);
-
-            document.addEventListener("keydown", (e) => {
-                if (e.key === "Escape") closePanel();
-            });
-
-        });
-
-        // ─── Data ──────────────────────────────────────────────
-        let allUsers = [];
-        let selectedUserId = null;
-
-        // ─── Load users ────────────────────────────────────────
-        async function loadUsers() {
-            try {
-                const res = await fetch("/admin/users");
-                allUsers = await res.json();
-
-                if (!allUsers || allUsers.length === 0) {
-                    document.getElementById("userRowsContainer").innerHTML = `
-                        <div class="empty-state">
-                            <i class="fas fa-users"></i>
-                            <p>No users found</p>
-                        </div>
-                    `;
-                    document.getElementById("userCount").textContent = "0 users";
-                    return;
-                }
-
-                renderUsers(allUsers);
-
-            } catch (err) {
-                console.error("Failed to load users:", err);
-                document.getElementById("userRowsContainer").innerHTML = `
-                    <div class="empty-state">
-                        <i class="fas fa-exclamation-triangle" style="color:#f59e0b;"></i>
-                        <p>Unable to load users. Please try again.</p>
-                    </div>
-                `;
-            }
-        }
-
-        // ─── Render ────────────────────────────────────────────
-        function renderUsers(users) {
-            const container = document.getElementById("userRowsContainer");
-            container.innerHTML = "";
-
-            if (!users || users.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <i class="fas fa-search"></i>
-                        <p>No users match your search</p>
-                    </div>
-                `;
-                document.getElementById("userCount").textContent = "0 users";
-                return;
-            }
-
-            users.forEach((user, index) => {
-                const card = buildUserCard(user, index);
-                container.appendChild(card);
-            });
-
-            document.getElementById("userCount").textContent = `${users.length} user${users.length > 1 ? 's' : ''}`;
-        }
-
-        // ─── Build card ────────────────────────────────────────
-        function buildUserCard(user, index) {
-            const userId = user.account_id || user.id || `user-${index}`;
-            const name = user.name || "Unknown";
-            const role = user.role || "User";
-            const phone = user.phone || "—";
-            const email = user.email || "—";
-
-            const status = user.status || "active";
-            const isActive = status === "active" || status === "Active";
-            const isSuspended = status === "suspended" || status === "Suspended";
-            let statusClass = "active";
-            let statusLabel = "Active";
-            if (isSuspended) {
-                statusClass = "suspended";
-                statusLabel = "Suspended";
-            } else if (!isActive) {
-                statusClass = "inactive";
-                statusLabel = "Inactive";
-            }
-
-            // Format time
-            let timeStr = "Today 10:30 A.M";
-            if (user.created_at) {
-                const d = new Date(user.created_at);
-                const now = new Date();
-                const isToday = d.toDateString() === now.toDateString();
-                const hours = d.getHours();
-                const mins = String(d.getMinutes()).padStart(2, "0");
-                const ampm = hours >= 12 ? "P.M" : "A.M";
-                const hour12 = hours % 12 || 12;
-                const dateStr = isToday ? "Today" : d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-                timeStr = `${dateStr} ${hour12}:${mins} ${ampm}`;
-            }
-
-            // Avatar color
-            const avatarColors = ["green", "blue", "pink", "orange", "purple", "teal", "rose", "indigo", "amber", "cyan"];
-            const avatarClass = avatarColors[index % avatarColors.length];
-
-            const card = document.createElement("div");
-            card.className = `user-card fadeIn ${selectedUserId === userId ? 'selected' : ''}`;
-            card.style.animationDelay = `${index * 30}ms`;
-            card.dataset.userId = userId;
-
-            card.innerHTML = `
-                <!-- Header: Avatar + Name + Menu -->
-                <div class="flex justify-between items-start">
-                    <div class="flex gap-3">
-                        <div class="avatar ${avatarClass}">
-                            ${name.charAt(0)}
-                        </div>
-                        <div>
-                            <h3 class="font-semibold text-slate-800 text-sm">
-                                ${name}
-                            </h3>
-                            <p class="text-xs text-blue-600 capitalize font-medium">
-                                ${role}
-                            </p>
-                            <p class="text-xs text-slate-400 mt-0.5">
-                                ${timeStr}
-                            </p>
-                        </div>
-                    </div>
-                    <button class="menu-btn" data-action="menu" data-id="${userId}">
-                        <i class="fas fa-ellipsis-vertical"></i>
-                    </button>
-                </div>
-
-                <!-- Contact Info -->
-                <div class="mt-4 space-y-2.5 text-sm">
-                    <div class="flex items-center gap-3 text-slate-600">
-                        <i class="fas fa-phone text-slate-400 w-4 text-xs"></i>
-                        <span>${phone}</span>
-                    </div>
-                    <div class="flex items-center gap-3 text-slate-600">
-                        <i class="far fa-envelope text-slate-400 w-4 text-xs"></i>
-                        <span class="truncate">${email}</span>
-                    </div>
-                </div>
-
-                <!-- Status -->
-                <div class="mt-4">
-                    <span class="status-badge ${statusClass}">
-                        <span class="dot"></span>
-                        ${statusLabel}
-                    </span>
-                </div>
-            `;
-
-            // Menu button click - prevent card selection
-            const menuBtn = card.querySelector(".menu-btn");
-            menuBtn.addEventListener("click", (e) => {
-                e.stopPropagation();
-                // You can add a dropdown menu here if needed
-                console.log("Menu clicked for:", userId);
-            });
-
-            // Click card → open detail
-            card.addEventListener("click", (e) => {
-                if (e.target.closest(".menu-btn")) return;
-                selectUser(userId);
-            });
-
-            return card;
-        }
-
-        // ─── Select / toggle ──────────────────────────────────
-        function toggleSelect(userId) {
-            if (selectedUserId === userId) {
-                selectedUserId = null;
-                closePanel();
-            } else {
-                selectedUserId = userId;
-                const user = allUsers.find(u => (u.account_id || u.id) === userId);
-                if (user) openPanel(user);
-            }
-            const currentQuery = document.getElementById("searchInput").value.trim().toLowerCase();
-            const filtered = getFilteredUsers(currentQuery);
-            renderUsers(filtered);
-        }
-
-        function selectUser(userId) {
-            selectedUserId = userId;
-            const user = allUsers.find(u => (u.account_id || u.id) === userId);
-            if (user) openPanel(user);
-            const currentQuery = document.getElementById("searchInput").value.trim().toLowerCase();
-            const filtered = getFilteredUsers(currentQuery);
-            renderUsers(filtered);
-        }
-
-        function getFilteredUsers(query) {
-            if (!query) return allUsers;
-            return allUsers.filter(user => {
-                const name = (user.name || "").toLowerCase();
-                const email = (user.email || "").toLowerCase();
-                const phone = (user.phone || "").toLowerCase();
-                const role = (user.role || "").toLowerCase();
-                return name.includes(query) ||
-                    email.includes(query) ||
-                    phone.includes(query) ||
-                    role.includes(query);
-            });
-        }
-
-        // ─── Panel ─────────────────────────────────────────────
-        function openPanel(user) {
-            const panel = document.getElementById("detailPanel");
-            const overlay = document.getElementById("panelOverlay");
-            const body = document.getElementById("panelBody");
-
-            const name = user.name || "Unknown";
-            const initial = name.charAt(0).toUpperCase();
-            const role = user.role || "User";
-            const phone = user.phone || "—";
-            const email = user.email || "—";
-            const status = user.status || "active";
-            const isActive = status === "active" || status === "Active";
-            const isSuspended = status === "suspended" || status === "Suspended";
-
-            let statusLabel = "Active";
-            let statusColor = "text-emerald-600 bg-emerald-50";
-            let dotColor = "bg-emerald-500";
-            if (isSuspended) {
-                statusLabel = "Suspended";
-                statusColor = "text-red-600 bg-red-50";
-                dotColor = "bg-red-500";
-            } else if (!isActive) {
-                statusLabel = "Inactive";
-                statusColor = "text-gray-500 bg-gray-100";
-                dotColor = "bg-gray-400";
-            }
-
-            const registered = user.created_at ? new Date(user.created_at).toLocaleDateString("en-US", {
-                month: "short",
-                day: "numeric",
-                year: "numeric"
-            }) : "—";
-
-            const lastLogin = user.last_login ? new Date(user.last_login).toLocaleString("en-US", {
-                month: "short",
-                day: "numeric",
-                year: "numeric",
-                hour: "numeric",
-                minute: "2-digit",
-                hour12: true
-            }) : "—";
-
-            body.innerHTML = `
-                <div class="profile-avatar">${initial}</div>
-                <div class="flex items-center gap-3 flex-wrap mb-1">
-                    <span class="profile-name">${name}</span>
-                    <span class="profile-role">${role}</span>
-                </div>
-                <div class="flex items-center gap-2 mt-1 mb-4">
-                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-semibold ${statusColor}">
-                        <span class="w-2 h-2 rounded-full ${dotColor}"></span>
-                        ${statusLabel}
-                    </span>
-                </div>
-
-                <div class="bg-slate-50 rounded-xl p-4 space-y-0 mt-4">
-                    <div class="detail-row">
-                        <i class="fas fa-phone-alt"></i>
-                        <span class="label">Phone</span>
-                        <span class="value">${phone}</span>
-                    </div>
-                    <div class="detail-row">
-                        <i class="far fa-envelope"></i>
-                        <span class="label">Email</span>
-                        <span class="value">${email}</span>
-                    </div>
-                    <div class="detail-row">
-                        <i class="far fa-calendar-alt"></i>
-                        <span class="label">Registered</span>
-                        <span class="value">${registered}</span>
-                    </div>
-                    <div class="detail-row">
-                        <i class="fas fa-sign-in-alt"></i>
-                        <span class="label">Last Login</span>
-                        <span class="value">${lastLogin}</span>
-                    </div>
-                </div>
-
-                <div class="action-buttons mt-5">
-                    <button class="action-btn" data-action="toggle" data-id="${user.account_id || user.id}">
-                        <i class="fas ${isActive ? 'fa-pause-circle' : 'fa-play-circle'}"></i>
-                        ${isActive ? 'Deactivate' : 'Activate'} Account
-                        <span class="badge">${isActive ? 'Active' : 'Inactive'}</span>
-                    </button>
-                    <button class="action-btn" data-action="suspend" data-id="${user.account_id || user.id}">
-                        <i class="fas fa-ban"></i>
-                        Suspend Account
-                        ${isSuspended ? '<span class="badge">Suspended</span>' : ''}
-                    </button>
-                    <button class="action-btn danger" data-action="ban" data-id="${user.account_id || user.id}">
-                        <i class="fas fa-skull"></i>
-                        Permanent Ban
-                    </button>
-                </div>
-            `;
-
-            body.querySelectorAll(".action-btn").forEach(btn => {
-                btn.addEventListener("click", (e) => {
-                    e.stopPropagation();
-                    const action = btn.dataset.action;
-                    const id = btn.dataset.id;
-                    handleAction(action, id, user);
-                });
-            });
-
-            panel.classList.add("open");
-            overlay.classList.add("show");
-            document.body.style.overflow = "hidden";
-        }
-
-        function closePanel() {
-            document.getElementById("detailPanel").classList.remove("open");
-            document.getElementById("panelOverlay").classList.remove("show");
-            document.body.style.overflow = "";
-            selectedUserId = null;
-            const currentQuery = document.getElementById("searchInput").value.trim().toLowerCase();
-            const filtered = getFilteredUsers(currentQuery);
-            renderUsers(filtered);
-        }
-
-        // ─── Filter ────────────────────────────────────────────
-        function filterUsers(query) {
-            const filtered = getFilteredUsers(query);
-            renderUsers(filtered);
-            if (selectedUserId) {
-                const stillVisible = filtered.some(u => (u.account_id || u.id) === selectedUserId);
-                if (!stillVisible) closePanel();
-            }
-        }
-
-        // ─── Actions ───────────────────────────────────────────
-        function handleAction(action, id, user) {
-            const name = user.name || "User";
-
-            switch (action) {
-                case "toggle":
-                    const isActive = user.status === "active" || user.status === "Active";
-                    console.log(`[${action}] ${name} (${id}) → ${isActive ? 'inactive' : 'active'}`);
-                    alert(`${isActive ? 'Deactivating' : 'Activating'} ${name}... (API not implemented)`);
-                    break;
-
-                case "suspend":
-                    console.log(`[${action}] ${name} (${id})`);
-                    alert(`Suspending ${name}... (API not implemented)`);
-                    break;
-
-                case "ban":
-                    console.log(`[${action}] ${name} (${id})`);
-                    if (confirm(`Permanently ban ${name}? This action cannot be undone.`)) {
-                        alert(`Permanently banning ${name}... (API not implemented)`);
-                    }
-                    break;
-
-                default:
-                    console.warn("Unknown action:", action);
-            }
-        }
-    </script>
-
+  // Click outside to close layout drop menu frame
+  document.addEventListener('click', (e) => {
+    if (!wrapper.contains(e.target)) {
+      wrapper.classList.remove('active');
+    }
+  });
+</script>
 </body>
 </html>
