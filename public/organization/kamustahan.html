@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Organization Dashboard - Adopted Pets</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+</head>
+<body class="bg-slate-100 font-['Inter',_sans-serif] min-h-screen">
+
+    <div id="headerContainer"></div>
+    <div id="sidebarContainer"></div>
+
+    <main id="mainContent"
+        data-sidebar-collapsed="false"
+        class="pt-28 pb-12 px-4 md:px-8 transition-all duration-200 ease-in-out left-0 md:ml-[280px] data-[sidebar-collapsed=true]:md:ml-20">
+        
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            
+            <div class="flex items-center gap-8 border-b border-gray-100 mb-6 -mx-6 px-6">
+                <button class="text-sm font-semibold text-blue-600 border-b-2 border-blue-600 pb-3 px-1 transition-colors">
+                    Active
+                </button>
+                <button class="text-sm font-medium text-gray-500 hover:text-gray-800 pb-3 px-1 transition-colors">
+                    Archive
+                </button>
+            </div>
+
+            <div class="flex flex-col sm:flex-row items-center gap-4 mb-8">
+                <div class="relative flex-1 w-full">
+                    <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-base"></i>
+                    <input type="text" placeholder="Search by pets name, adopter..." 
+                        class="w-full pl-11 pr-4 py-2.5 bg-white border border-gray-200 rounded-lg text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:border-blue-500 transition-colors" />
+                </div>
+                <button class="w-full sm:w-auto bg-white border border-gray-200 text-gray-700 px-5 py-2.5 rounded-lg text-sm font-medium inline-flex items-center justify-center gap-2 hover:bg-gray-50 whitespace-nowrap shadow-sm transition-colors">
+                    <i class="fa-solid fa-arrows-up-down text-gray-400 text-xs"></i> Sort
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                <div class="bg-white border border-gray-100 p-6 rounded-2xl shadow-sm flex items-center justify-between">
+                    <div>
+                        <span class="text-sm font-semibold text-gray-800 block">Total Adopted Pets</span>
+                        <span class="text-4xl font-bold text-gray-900 block mt-2">13</span>
+                        <span class="text-xs text-gray-400 font-medium block mt-1">All Time</span>
+                    </div>
+                    <div class="w-14 h-14 bg-blue-50 text-blue-500 rounded-2xl flex items-center justify-center text-2xl shadow-sm">
+                        <i class="fa-solid fa-paw"></i>
+                    </div>
+                </div>
+
+                <div class="bg-white border border-gray-100 p-6 rounded-2xl shadow-sm flex items-center justify-between">
+                    <div>
+                        <span class="text-sm font-semibold text-gray-800 block">For Update</span>
+                        <span class="text-4xl font-bold text-gray-900 block mt-2">3</span>
+                        <span class="text-xs text-gray-400 font-medium block mt-1">Need Updates</span>
+                    </div>
+                    <div class="w-14 h-14 bg-orange-50 text-amber-500 rounded-2xl flex items-center justify-center text-2xl shadow-sm">
+                        <i class="fa-regular fa-clock"></i>
+                    </div>
+                </div>
+
+                <div class="bg-white border border-gray-100 p-6 rounded-2xl shadow-sm flex items-center justify-between">
+                    <div>
+                        <span class="text-sm font-semibold text-gray-800 block">Updated</span>
+                        <span class="text-4xl font-bold text-gray-900 block mt-2">11</span>
+                        <span class="text-xs text-gray-400 font-medium block mt-1">With recent updates</span>
+                    </div>
+                    <div class="w-14 h-14 bg-emerald-50 text-emerald-500 rounded-2xl flex items-center justify-center text-2xl shadow-sm">
+                        <i class="fa-regular fa-circle-check"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="text-xs font-bold text-gray-500 border-b border-gray-100 uppercase tracking-wider">
+                            <th class="pb-4 px-2 w-[22%]">Pets</th>
+                            <th class="pb-4 px-2 w-[22%]">Adopter</th>
+                            <th class="pb-4 px-2 w-[22%]">Date</th>
+                            <th class="pb-4 px-2 w-[18%]">Status</th>
+                            <th class="pb-4 px-2 text-right pr-6 w-[16%]">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100 text-sm text-gray-700">
+                        <tr class="hover:bg-gray-50/40 transition-colors">
+                            <td class="py-5 px-2">
+                                <div class="flex items-center gap-3">
+                                    <img src="https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&q=80&w=80&h=80" alt="Lebron" class="w-10 h-10 rounded-full object-cover border border-gray-100 shadow-sm" />
+                                    <div>
+                                        <span class="font-bold text-gray-900 block text-base">Lebron</span>
+                                        <span class="text-xs text-gray-400 font-medium block mt-0.5">Dog</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="py-5 px-2">
+                                <span class="font-bold text-gray-900 block text-[15px]">Jhyzzeel Dianela</span>
+                                <span class="text-xs text-gray-400 block mt-0.5">jhy@gmail.com</span>
+                            </td>
+                            <td class="py-5 px-2">
+                                <span class="font-bold text-gray-900 block text-[15px]">April 15 2026</span>
+                                <span class="text-xs text-gray-400 block mt-0.5">38 days ago</span>
+                            </td>
+                            <td class="py-5 px-2">
+                                <span class="inline-flex items-center gap-1 px-3 py-1 text-xs font-bold bg-emerald-100 text-emerald-600 rounded-full">
+                                    <i class="fa-solid fa-check text-[10px]"></i> updated
+                                </span>
+                            </td>
+                            <td class="py-5 px-2 text-right pr-6">
+                                <button class="bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 px-3 py-1.5 rounded-lg text-xs font-bold inline-flex items-center gap-1.5 shadow-sm transition-colors">
+                                    <i class="fa-regular fa-eye text-gray-400"></i> View
+                                </button>
+                            </td>
+                        </tr>
+
+                        <tr class="hover:bg-gray-50/40 transition-colors">
+                            <td class="py-5 px-2">
+                                <div class="flex items-center gap-3">
+                                    <img src="https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&q=80&w=80&h=80" alt="Cheeto" class="w-10 h-10 rounded-full object-cover border border-gray-100 shadow-sm" />
+                                    <div>
+                                        <span class="font-bold text-gray-900 block text-base">Cheeto</span>
+                                        <span class="text-xs text-gray-400 font-medium block mt-0.5">Cat</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="py-5 px-2">
+                                <span class="font-bold text-gray-900 block text-[15px]">Josh Wa</span>
+                                <span class="text-xs text-gray-400 block mt-0.5">juswa@gmail.com</span>
+                            </td>
+                            <td class="py-5 px-2">
+                                <span class="font-bold text-gray-900 block text-[15px]">April 10, 2026</span>
+                                <span class="text-xs text-gray-400 block mt-0.5">12 days ago</span>
+                            </td>
+                            <td class="py-5 px-2">
+                                <span class="inline-flex items-center gap-1 px-3 py-1 text-xs font-bold bg-emerald-100 text-emerald-600 rounded-full">
+                                    <i class="fa-solid fa-check text-[10px]"></i> updated
+                                </span>
+                            </td>
+                            <td class="py-5 px-2 text-right pr-6">
+                                <button class="bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 px-3 py-1.5 rounded-lg text-xs font-bold inline-flex items-center gap-1.5 shadow-sm transition-colors">
+                                    <i class="fa-regular fa-eye text-gray-400"></i> View
+                                </button>
+                            </td>
+                        </tr>
+
+                        <tr class="hover:bg-gray-50/40 transition-colors">
+                            <td class="py-5 px-2">
+                                <div class="flex items-center gap-3">
+                                    <img src="https://images.unsplash.com/photo-1533738363-b7f9aef128ce?auto=format&fit=crop&q=80&w=80&h=80" alt="Tobi" class="w-10 h-10 rounded-full object-cover border border-gray-100 shadow-sm" />
+                                    <div>
+                                        <span class="font-bold text-gray-900 block text-base">Tobi</span>
+                                        <span class="text-xs text-gray-400 font-medium block mt-0.5">Cat</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="py-5 px-2">
+                                <span class="font-bold text-gray-900 block text-[15px]">Lisa</span>
+                                <span class="text-xs text-gray-400 block mt-0.5">lisasoberano@gmail.com</span>
+                            </td>
+                            <td class="py-5 px-2">
+                                <span class="font-bold text-gray-900 block text-[15px]">April 05, 2026</span>
+                                <span class="text-xs text-gray-400 block mt-0.5">17 days ago</span>
+                            </td>
+                            <td class="py-5 px-2">
+                                <span class="inline-flex items-center gap-1 px-3 py-1 text-xs font-bold bg-emerald-100 text-emerald-600 rounded-full">
+                                    <i class="fa-solid fa-check text-[10px]"></i> updated
+                                </span>
+                            </td>
+                            <td class="py-5 px-2 text-right pr-6">
+                                <button class="bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 px-3 py-1.5 rounded-lg text-xs font-bold inline-flex items-center gap-1.5 shadow-sm transition-colors">
+                                    <i class="fa-regular fa-eye text-gray-400"></i> View
+                                </button>
+                            </td>
+                        </tr>
+
+                        <tr class="hover:bg-gray-50/40 transition-colors">
+                            <td class="py-5 px-2">
+                                <div class="flex items-center gap-3">
+                                    <img src="https://images.unsplash.com/photo-1573865526739-10659fec78a5?auto=format&fit=crop&q=80&w=80&h=80" alt="Mikha" class="w-10 h-10 rounded-full object-cover border border-gray-100 shadow-sm" />
+                                    <div>
+                                        <span class="font-bold text-gray-900 block text-base">Mikha</span>
+                                        <span class="text-xs text-gray-400 font-medium block mt-0.5">Cat</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="py-5 px-2">
+                                <span class="font-bold text-gray-900 block text-[15px]">Moo</span>
+                                <span class="text-xs text-gray-400 block mt-0.5">mo@gmail.com</span>
+                            </td>
+                            <td class="py-5 px-2">
+                                <span class="font-bold text-gray-900 block text-[15px]">March 01, 2026</span>
+                                <span class="text-xs text-gray-400 block mt-0.5">52 days ago</span>
+                            </td>
+                            <td class="py-5 px-2">
+                                <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-amber-50 border border-amber-200 text-amber-500">
+                                    <i class="fa-regular fa-clock text-[10px]"></i> For Update
+                                </span>
+                            </td>
+                            <td class="py-5 px-2 text-right pr-6">
+                                <button class="bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 px-3 py-1.5 rounded-lg text-xs font-bold inline-flex items-center gap-1.5 shadow-sm transition-colors">
+                                    <i class="fa-regular fa-eye text-gray-400"></i> View
+                                </button>
+                            </td>
+                        </tr>
+
+                        <tr class="hover:bg-gray-50/40 transition-colors">
+                            <td class="py-5 px-2">
+                                <div class="flex items-center gap-3">
+                                    <img src="https://images.unsplash.com/photo-1533743983669-94fa5c4338ec?auto=format&fit=crop&q=80&w=80&h=80" alt="Baby Shark 1" class="w-10 h-10 rounded-full object-cover border border-gray-100 shadow-sm" />
+                                    <div>
+                                        <span class="font-bold text-gray-900 block text-base">Baby Shark 1</span>
+                                        <span class="text-xs text-gray-400 font-medium block mt-0.5">Cat</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="py-5 px-2">
+                                <span class="font-bold text-gray-900 block text-[15px]">Jay Vin</span>
+                                <span class="text-xs text-gray-400 block mt-0.5">jv@gmail.com</span>
+                            </td>
+                            <td class="py-5 px-2">
+                                <span class="font-bold text-gray-900 block text-[15px]">April 18, 2026</span>
+                                <span class="text-xs text-gray-400 block mt-0.5">4 days ago</span>
+                            </td>
+                            <td class="py-5 px-2">
+                                <span class="inline-flex items-center gap-1 px-3 py-1 text-xs font-bold bg-emerald-100 text-emerald-600 rounded-full">
+                                    <i class="fa-solid fa-check text-[10px]"></i> updated
+                                </span>
+                            </td>
+                            <td class="py-5 px-2 text-right pr-6">
+                                <button class="bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 px-3 py-1.5 rounded-lg text-xs font-bold inline-flex items-center gap-1.5 shadow-sm transition-colors">
+                                    <i class="fa-regular fa-eye text-gray-400"></i> View
+                                </button>
+                            </td>
+                        </tr>
+
+                        <tr class="hover:bg-gray-50/40 transition-colors">
+                            <td class="py-5 px-2">
+                                <div class="flex items-center gap-3">
+                                    <img src="https://images.unsplash.com/photo-1495360010541-f48722b34f7d?auto=format&fit=crop&q=80&w=80&h=80" alt="Gawe" class="w-10 h-10 rounded-full object-cover border border-gray-100 shadow-sm" />
+                                    <div>
+                                        <span class="font-bold text-gray-900 block text-base">Gawe</span>
+                                        <span class="text-xs text-gray-400 font-medium block mt-0.5">Cat</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="py-5 px-2">
+                                <span class="font-bold text-gray-900 block text-[15px]">Noche</span>
+                                <span class="text-xs text-gray-400 block mt-0.5">nochebella@gmail.com</span>
+                            </td>
+                            <td class="py-5 px-2">
+                                <span class="font-bold text-gray-900 block text-[15px]">April 20, 2026</span>
+                                <span class="text-xs text-gray-400 block mt-0.5">2 days ago</span>
+                            </td>
+                            <td class="py-5 px-2">
+                                <span class="inline-flex items-center gap-1 px-3 py-1 text-xs font-bold bg-emerald-100 text-emerald-600 rounded-full">
+                                    <i class="fa-solid fa-check text-[10px]"></i> updated
+                                </span>
+                            </td>
+                            <td class="py-5 px-2 text-right pr-6">
+                                <button class="bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 px-3 py-1.5 rounded-lg text-xs font-bold inline-flex items-center gap-1.5 shadow-sm transition-colors">
+                                    <i class="fa-regular fa-eye text-gray-400"></i> View
+                                </button>
+                            </td>
+                        </tr>
+
+                        <tr class="hover:bg-gray-50/40 transition-colors">
+                            <td class="py-5 px-2">
+                                <div class="flex items-center gap-3">
+                                    <img src="https://images.unsplash.com/photo-1533743928179-4a57b69a45dd?auto=format&fit=crop&q=80&w=80&h=80" alt="Flerken" class="w-10 h-10 rounded-full object-cover border border-gray-100 shadow-sm" />
+                                    <div>
+                                        <span class="font-bold text-gray-900 block text-base">Flerken</span>
+                                        <span class="text-xs text-gray-400 font-medium block mt-0.5">Cat</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="py-5 px-2">
+                                <span class="font-bold text-gray-900 block text-[15px]">Juan Dela Cruz</span>
+                                <span class="text-xs text-gray-400 block mt-0.5">jdc@gmail.com</span>
+                            </td>
+                            <td class="py-5 px-2">
+                                <span class="font-bold text-gray-900 block text-[15px]">March 20, 2026</span>
+                                <span class="text-xs text-gray-400 block mt-0.5">29 days ago</span>
+                            </td>
+                            <td class="py-5 px-2">
+                                <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-amber-50 border border-amber-200 text-amber-500">
+                                    <i class="fa-regular fa-clock text-[10px]"></i> For Update
+                                </span>
+                            </td>
+                            <td class="py-5 px-2 text-right pr-6">
+                                <button class="bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 px-3 py-1.5 rounded-lg text-xs font-bold inline-flex items-center gap-1.5 shadow-sm transition-colors">
+                                    <i class="fa-regular fa-eye text-gray-400"></i> View
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="bg-white border-t border-gray-100 pt-6 mt-4 flex items-center justify-between">
+                <span class="text-sm font-medium text-gray-500">Showing 1 to 7 of 12 results</span>
+                <div class="flex items-center gap-1.5">
+                    <button class="w-8 h-8 flex items-center justify-center text-gray-400 hover:bg-gray-50 border border-gray-200 rounded-lg transition-colors">
+                        <i class="fa-solid fa-chevron-left text-[11px]"></i>
+                    </button>
+                    <button class="w-8 h-8 flex items-center justify-center bg-white border border-blue-600 text-blue-600 font-bold text-sm rounded-lg shadow-sm">
+                        1
+                    </button>
+                    <button class="w-8 h-8 flex items-center justify-center text-gray-700 hover:bg-gray-50 border border-gray-200 rounded-lg transition-colors">
+                        2
+                    </button>
+                    <button class="w-8 h-8 flex items-center justify-center text-gray-400 hover:bg-gray-50 border border-gray-200 rounded-lg transition-colors">
+                        <i class="fa-solid fa-chevron-right text-[11px]"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async function() {
+            
+            // --- STEP A: FETCH AND INJECT THE SIDEBAR AND HEADER ---
+            try {
+                const [headerResponse, sidebarResponse] = await Promise.all([
+                    fetch('/organization/header.html'), 
+                    fetch('/organization/sidebar.html')  
+                ]);
+
+                if (headerResponse.ok) {
+                    document.getElementById('headerContainer').innerHTML = await headerResponse.text();
+                } else {
+                    console.error('Failed to load header:', headerResponse.statusText);
+                }
+
+                if (sidebarResponse.ok) {
+                    document.getElementById('sidebarContainer').innerHTML = await sidebarResponse.text();
+                } else {
+                    console.error('Failed to load sidebar:', sidebarResponse.statusText);
+                }
+            } catch (error) {
+                console.error("Critical error loading components:", error);
+            }
+
+            // --- STEP B: INITIALIZE YOUR INTERACTION LOGIC ---
+            const sidebar = document.getElementById('sidebar');
+            const appHeader = document.getElementById('appHeader');
+            const mainContent = document.getElementById('mainContent');
+            const overlay = document.getElementById('sidebarOverlay');
+            
+            const collapseBtn = document.getElementById('collapseBtn');
+            const collapseIcon = document.getElementById('collapseIcon');
+            const mobileToggle = document.getElementById('mobileToggle');
+            const notifBtn = document.getElementById('notificationBtn');
+            const notifPopup = document.getElementById('notificationPopup');
+            const markReadBtn = document.getElementById('markReadBtn');
+            const notifList = document.getElementById('notifList');
+
+            // 1. DESKTOP SIDEBAR COLLAPSE
+            if (collapseBtn && sidebar) {
+                collapseBtn.addEventListener('click', function() {
+                    const isCollapsed = sidebar.getAttribute('data-collapsed') === 'true';
+                    const newState = !isCollapsed;
+                    
+                    sidebar.setAttribute('data-collapsed', newState);
+                    if (appHeader) appHeader.setAttribute('data-sidebar-collapsed', newState);
+                    if (mainContent) mainContent.setAttribute('data-sidebar-collapsed', newState);
+                    
+                    document.querySelectorAll('.sidebar-text').forEach(el => {
+                        el.style.display = newState ? 'none' : '';
+                    });
+                    const container = document.getElementById('logoContainer');
+                    if (container) container.style.justifyContent = newState ? 'center' : 'between';
+
+                    if (collapseIcon) {
+                        collapseIcon.style.transform = newState ? 'rotate(180deg)' : 'rotate(0deg)';
+                    }
+                });
+            }
+
+            // 2. MOBILE DRAWER TOGGLE
+            function toggleMobileMenu() {
+                if (!sidebar) return;
+                const isOpen = sidebar.getAttribute('data-mobile-open') === 'true';
+                const newState = !isOpen;
+
+                sidebar.setAttribute('data-mobile-open', newState);
+                if (overlay) overlay.setAttribute('data-mobile-open', newState);
+                document.body.style.overflow = newState ? 'hidden' : '';
+            }
+
+            if (mobileToggle) mobileToggle.addEventListener('click', toggleMobileMenu);
+            if (overlay) overlay.addEventListener('click', toggleMobileMenu);
+
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && sidebar && sidebar.getAttribute('data-mobile-open') === 'true') {
+                    toggleMobileMenu();
+                }
+            });
+
+            // 3. NOTIFICATION POPUP PANEL
+            if (notifBtn && notifPopup) {
+                notifBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const isOpen = notifPopup.getAttribute('data-open') === 'true';
+                    notifPopup.setAttribute('data-open', !isOpen);
+                });
+
+                document.addEventListener('click', function(e) {
+                    if (!notifBtn.contains(e.target) && !notifPopup.contains(e.target)) {
+                        notifPopup.setAttribute('data-open', 'false');
+                    }
+                });
+            }
+
+            // Clear Notifications Action
+            if (markReadBtn && notifList) {
+                markReadBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const dot = document.querySelector('.notif-dot');
+                    if (dot) dot.style.display = 'none';
+                    notifList.innerHTML = `
+                        <div class="text-center py-8 text-gray-400 text-sm">
+                            <i class="fa-regular fa-bell-slash text-xl block mb-1.5"></i>
+                            No new notifications
+                        </div>
+                    `;
+                    setTimeout(() => {
+                        if (notifPopup) notifPopup.setAttribute('data-open', 'false');
+                    }, 400);
+                });
+            }
+        });
+    </script>
+</body>
+</html>

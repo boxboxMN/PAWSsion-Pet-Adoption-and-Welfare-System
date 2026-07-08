@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Organization Dashboard - Donations</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+</head>
+<body class="bg-slate-100 font-['Inter',_sans-serif] min-h-screen">
+
+    <div id="headerContainer"></div>
+    <div id="sidebarContainer"></div>
+
+    <main id="mainContent"
+        data-sidebar-collapsed="false"
+        class="pt-28 pb-12 px-4 md:px-8 transition-all duration-200 ease-in-out left-0 md:ml-[280px] data-[sidebar-collapsed=true]:md:ml-20">
+        
+        <div class="mb-6">
+            <h1 class="text-2xl font-bold text-blue-900">Donations Overview</h1>
+            <p class="text-sm text-gray-500 mt-1">Track funds and in-kind resources submitted by sponsors</p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+            <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex items-center gap-5">
+                <div class="w-14 h-14 bg-indigo-50/60 text-indigo-800 rounded-xl flex items-center justify-center text-2xl">
+                    <i class="fa-solid fa-coins"></i>
+                </div>
+                <div>
+                    <span class="text-sm font-semibold text-gray-500 block">Total Donation</span>
+                    <span class="text-2xl font-bold text-gray-900 block mt-1">₱430.00</span>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex items-center gap-5">
+                <div class="w-14 h-14 bg-indigo-50/60 text-indigo-800 rounded-xl flex items-center justify-center text-xl">
+                    <i class="fa-solid fa-box-archive"></i>
+                </div>
+                <div>
+                    <span class="text-sm font-semibold text-gray-500 block">In-Kind Donation</span>
+                    <span class="text-2xl font-bold text-gray-900 block mt-1">1</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
+            <div class="relative w-full sm:max-w-xl">
+                <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                <input type="text" placeholder="Search" 
+                    class="w-full pl-11 pr-4 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:border-indigo-500" />
+            </div>
+            
+            <button class="w-full sm:w-auto bg-white border border-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium inline-flex items-center justify-center gap-2 hover:bg-gray-50">
+                <i class="fa-solid fa-sliders text-gray-400"></i> All Status <i class="fa-solid fa-chevron-down text-xs text-gray-400 ml-1"></i>
+            </button>
+        </div>
+
+        <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-gray-50/70 border-b border-gray-100 text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                            <th class="py-4 px-6">Date</th>
+                            <th class="py-4 px-6">Donor</th>
+                            <th class="py-4 px-6">Amount/Type</th>
+                            <th class="py-4 px-6">Method/Source</th>
+                            <th class="py-4 px-6">Status</th>
+                            <th class="py-4 px-6 text-center">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100 text-sm text-gray-700">
+                        <tr class="hover:bg-gray-50/30 transition-colors">
+                            <td class="py-4 px-6">
+                                <span class="font-semibold text-gray-900 block">Feb 11, 2026</span>
+                                <span class="text-xs text-gray-400 block mt-0.5">9:30 A.M</span>
+                            </td>
+                            <td class="py-4 px-6 font-medium text-gray-900">Kaye Ubaldo</td>
+                            <td class="py-4 px-6 font-semibold text-gray-900">₱ 300.00</td>
+                            <td class="py-4 px-6">
+                                <span class="font-semibold text-gray-900 block">GCASH</span>
+                                <span class="text-xs text-gray-400 block mt-0.5">ref no: 4726263636464</span>
+                            </td>
+                            <td class="py-4 px-6">
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-medium bg-emerald-100/70 text-emerald-600 rounded-full">
+                                    <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>Verified
+                                </span>
+                            </td>
+                            <td class="py-4 px-6 text-center">
+                                <button class="text-gray-400 hover:text-indigo-600 transition-colors"><i class="fa-regular fa-eye text-lg"></i></button>
+                            </td>
+                        </tr>
+
+                        <tr class="hover:bg-gray-50/30 transition-colors">
+                            <td class="py-4 px-6">
+                                <span class="font-semibold text-gray-900 block">Feb 11, 2026</span>
+                                <span class="text-xs text-gray-400 block mt-0.5">9:30 A.M</span>
+                            </td>
+                            <td class="py-4 px-6 font-medium text-gray-900">Carla Karura</td>
+                            <td class="py-4 px-6 font-semibold text-gray-900">₱ 100.00</td>
+                            <td class="py-4 px-6">
+                                <span class="font-semibold text-gray-900 block">GCASH</span>
+                                <span class="text-xs text-gray-400 block mt-0.5">ref no: 36463662</span>
+                            </td>
+                            <td class="py-4 px-6">
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-medium bg-amber-100/70 text-amber-600 rounded-full">
+                                    <span class="w-1.5 h-1.5 bg-amber-500 rounded-full"></span>pending
+                                </span>
+                            </td>
+                            <td class="py-4 px-6 text-center">
+                                <button class="text-gray-400 hover:text-indigo-600 transition-colors"><i class="fa-regular fa-eye text-lg"></i></button>
+                            </td>
+                        </tr>
+
+                        <tr class="hover:bg-gray-50/30 transition-colors">
+                            <td class="py-4 px-6">
+                                <span class="font-semibold text-gray-900 block">Feb 11, 2026</span>
+                                <span class="text-xs text-gray-400 block mt-0.5">9:30 A.M</span>
+                            </td>
+                            <td class="py-4 px-6 font-medium text-gray-900">Magie San</td>
+                            <td class="py-4 px-6 font-semibold text-gray-900">₱ 30.00</td>
+                            <td class="py-4 px-6">
+                                <span class="font-semibold text-gray-900 block">GCASH</span>
+                                <span class="text-xs text-gray-400 block mt-0.5">ref no: 3646369887622</span>
+                            </td>
+                            <td class="py-4 px-6">
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-medium bg-amber-100/70 text-amber-600 rounded-full">
+                                    <span class="w-1.5 h-1.5 bg-amber-500 rounded-full"></span>pending
+                                </span>
+                            </td>
+                            <td class="py-4 px-6 text-center">
+                                <button class="text-gray-400 hover:text-indigo-600 transition-colors"><i class="fa-regular fa-eye text-lg"></i></button>
+                            </td>
+                        </tr>
+
+                        <tr class="hover:bg-gray-50/30 transition-colors">
+                            <td class="py-4 px-6">
+                                <span class="font-semibold text-gray-900 block">March 30, 2026</span>
+                                <span class="text-xs text-gray-400 block mt-0.5">9:30 A.M</span>
+                            </td>
+                            <td class="py-4 px-6 font-medium text-gray-900">Jhyzzeel Dianela</td>
+                            <td class="py-4 px-6">
+                                <span class="text-gray-500 block">Dog Food (2kg)</span>
+                                <span class="text-gray-500 block">+ Blankets</span>
+                            </td>
+                            <td class="py-4 px-6 font-semibold text-gray-900">In-Kind</td>
+                            <td class="py-4 px-6">
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-medium bg-amber-100/70 text-amber-600 rounded-full">
+                                    <span class="w-1.5 h-1.5 bg-amber-500 rounded-full"></span>pending
+                                </span>
+                            </td>
+                            <td class="py-4 px-6 text-center">
+                                <button class="text-gray-400 hover:text-indigo-600 transition-colors"><i class="fa-regular fa-eye text-lg"></i></button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="bg-white border-t border-gray-100 px-6 py-4 flex items-center justify-between">
+                <span class="text-sm text-gray-500">Showing 1 to 4 of 4 results</span>
+                <div class="flex items-center gap-2">
+                    <button class="w-8 h-8 flex items-center justify-center text-gray-400 hover:bg-gray-100 rounded-lg transition-colors">
+                        <i class="fa-solid fa-chevron-left text-xs"></i>
+                    </button>
+                    <button class="w-8 h-8 flex items-center justify-center bg-blue-50 text-blue-600 font-semibold border border-blue-100 text-sm rounded-lg">
+                        1
+                    </button>
+                    <button class="w-8 h-8 flex items-center justify-center text-gray-400 hover:bg-gray-100 rounded-lg transition-colors">
+                        <i class="fa-solid fa-chevron-right text-xs"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async function() {
+            // --- STEP A: FETCH AND INJECT THE SIDEBAR AND HEADER ---
+            try {
+                const [headerResponse, sidebarResponse] = await Promise.all([
+                    fetch('/organization/header.html'), 
+                    fetch('/organization/sidebar.html')  
+                ]);
+
+                if (headerResponse.ok) {
+                    document.getElementById('headerContainer').innerHTML = await headerResponse.text();
+                } else {
+                    console.error('Failed to load header:', headerResponse.statusText);
+                }
+
+                if (sidebarResponse.ok) {
+                    document.getElementById('sidebarContainer').innerHTML = await sidebarResponse.text();
+                } else {
+                    console.error('Failed to load sidebar:', sidebarResponse.statusText);
+                }
+            } catch (error) {
+                console.error("Critical error loading components:", error);
+            }
+
+            // --- STEP B: INITIALIZE INTERACTION LOGIC ---
+            const sidebar = document.getElementById('sidebar');
+            const appHeader = document.getElementById('appHeader');
+            const mainContent = document.getElementById('mainContent');
+            const overlay = document.getElementById('sidebarOverlay');
+            
+            const collapseBtn = document.getElementById('collapseBtn');
+            const collapseIcon = document.getElementById('collapseIcon');
+            const mobileToggle = document.getElementById('mobileToggle');
+            const notifBtn = document.getElementById('notificationBtn');
+            const notifPopup = document.getElementById('notificationPopup');
+            const markReadBtn = document.getElementById('markReadBtn');
+            const notifList = document.getElementById('notifList');
+
+            // 1. DESKTOP SIDEBAR COLLAPSE
+            if (collapseBtn && sidebar) {
+                collapseBtn.addEventListener('click', function() {
+                    const isCollapsed = sidebar.getAttribute('data-collapsed') === 'true';
+                    const newState = !isCollapsed;
+                    
+                    sidebar.setAttribute('data-collapsed', newState);
+                    if (appHeader) appHeader.setAttribute('data-sidebar-collapsed', newState);
+                    if (mainContent) mainContent.setAttribute('data-sidebar-collapsed', newState);
+                    
+                    document.querySelectorAll('.sidebar-text').forEach(el => {
+                        el.style.display = newState ? 'none' : '';
+                    });
+                    const container = document.getElementById('logoContainer');
+                    if (container) container.style.justifyContent = newState ? 'center' : 'between';
+
+                    if (collapseIcon) {
+                        collapseIcon.style.transform = newState ? 'rotate(180deg)' : 'rotate(0deg)';
+                    }
+                });
+            }
+
+            // 2. MOBILE DRAWER TOGGLE
+            function toggleMobileMenu() {
+                if (!sidebar) return;
+                const isOpen = sidebar.getAttribute('data-mobile-open') === 'true';
+                const newState = !isOpen;
+
+                sidebar.setAttribute('data-mobile-open', newState);
+                if (overlay) overlay.setAttribute('data-mobile-open', newState);
+                document.body.style.overflow = newState ? 'hidden' : '';
+            }
+
+            if (mobileToggle) mobileToggle.addEventListener('click', toggleMobileMenu);
+            if (overlay) overlay.addEventListener('click', toggleMobileMenu);
+
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && sidebar && sidebar.getAttribute('data-mobile-open') === 'true') {
+                    toggleMobileMenu();
+                }
+            });
+
+            // 3. NOTIFICATION POPUP PANEL
+            if (notifBtn && notifPopup) {
+                notifBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const isOpen = notifPopup.getAttribute('data-open') === 'true';
+                    notifPopup.setAttribute('data-open', !isOpen);
+                });
+
+                document.addEventListener('click', function(e) {
+                    if (!notifBtn.contains(e.target) && !notifPopup.contains(e.target)) {
+                        notifPopup.setAttribute('data-open', 'false');
+                    }
+                });
+            }
+
+            // Clear Notifications Action
+            if (markReadBtn && notifList) {
+                markReadBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const dot = document.querySelector('.notif-dot');
+                    if (dot) dot.style.display = 'none';
+                    notifList.innerHTML = `
+                        <div class="text-center py-8 text-gray-400 text-sm">
+                            <i class="fa-regular fa-bell-slash text-xl block mb-1.5"></i>
+                            No new notifications
+                        </div>
+                    `;
+                    setTimeout(() => {
+                        if (notifPopup) notifPopup.setAttribute('data-open', 'false');
+                    }, 400);
+                });
+            }
+        });
+    </script>
+</body>
+</html>

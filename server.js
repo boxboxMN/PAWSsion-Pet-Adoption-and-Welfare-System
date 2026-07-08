@@ -31,6 +31,8 @@ app.use(userRoutes);
 app.use("/admin", adminRoutes);
 app.use("/org", orgRoutes);
 
+
+
 app.get('/api/current-user', async (req, res) => {
   try {
     const accountId = req.session?.accountId || req.session?.userId || req.query.accountId || req.query.userId;

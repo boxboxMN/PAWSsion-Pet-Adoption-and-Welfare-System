@@ -1,0 +1,68 @@
+<header
+  id="appHeader"
+  data-sidebar-collapsed="false"
+  class="fixed top-0 left-0 md:left-[280px] right-0 h-20 bg-white border-b border-gray-200/80 px-8 flex items-center justify-between z-30 transition-all duration-200 shadow-sm data-[sidebar-collapsed=true]:md:left-20"
+>
+  <div>
+    <h1 id="pageTitle" class="text-2xl font-semibold text-gray-900 tracking-tight ml-10 md:ml-0">
+      Dashboard
+    </h1>
+  </div>
+
+  <div class="flex items-center gap-4 relative">
+    <button
+      id="notificationBtn"
+      class="relative w-11 h-11 rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors text-blue-900"
+      aria-label="Notifications"
+    >
+      <i class="fa-regular fa-bell text-xl"></i>
+      <span class="notif-dot absolute top-2.5 right-2.5 w-2.5 h-2.5 bg-red-500 rounded-full ring-2 ring-white"></span>
+    </button>
+
+    <div
+      id="notificationPopup"
+      class="absolute top-full right-0 mt-2 w-80 bg-white rounded-2xl border border-gray-200 shadow-xl overflow-hidden opacity-0 invisible transition-all duration-200 scale-95 origin-top-right data-[open=true]:opacity-100 data-[open=true]:visible data-[open=true]:scale-100 z-50"
+    >
+      <div class="px-5 py-3.5 border-b border-gray-100 flex justify-between items-center">
+        <h3 class="font-semibold text-gray-900 text-sm">Notifications</h3>
+        <button
+          id="markReadBtn"
+          class="text-xs font-semibold text-blue-900 hover:bg-blue-50 px-2 py-1 rounded-lg transition-colors"
+        >
+          Mark all read
+        </button>
+      </div>
+      <div id="notifList" class="max-h-64 overflow-y-auto">
+        <a href="#" class="flex gap-3.5 p-4 border-b border-gray-50 hover:bg-gray-50/80 transition-colors items-start">
+          <span class="text-xl flex-shrink-0">🐶</span>
+          <div>
+            <p class="font-medium text-gray-900 text-sm">Adoption Approved</p>
+            <p class="text-xs text-gray-500 mt-0.5 leading-relaxed">Your adoption request has been approved.</p>
+          </div>
+        </a>
+        <a href="#" class="flex gap-3.5 p-4 border-b border-gray-50 hover:bg-gray-50/80 transition-colors items-start">
+          <span class="text-xl flex-shrink-0">💰</span>
+          <div>
+            <p class="font-medium text-gray-900 text-sm">Donation Received</p>
+            <p class="text-xs text-gray-500 mt-0.5 leading-relaxed">Thank you for your donation.</p>
+          </div>
+        </a>
+        <a href="#" class="flex gap-3.5 p-4 hover:bg-gray-50/80 transition-colors items-start">
+          <span class="text-xl flex-shrink-0">📢</span>
+          <div>
+            <p class="font-medium text-gray-900 text-sm">New Pets Available</p>
+            <p class="text-xs text-gray-500 mt-0.5 leading-relaxed">Browse the latest pets for adoption.</p>
+          </div>
+        </a>
+      </div>
+    </div>
+
+    <a
+      href="/org/profile"
+      id="profileLink"
+      class="w-11 h-11 rounded-full border border-gray-200 flex items-center justify-center hover:border-blue-900 hover:bg-blue-50/50 transition-colors text-blue-900"
+    >
+      <i class="fa-regular fa-user text-base"></i>
+    </a>
+  </div>
+</header>
