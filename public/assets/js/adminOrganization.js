@@ -374,7 +374,6 @@ function loadDocuments(data) {
             </div>
 
             <div class="flex gap-2">
-
                 <a
                     href="/admin/document/view/${doc.document_id}"
                     target="_blank"
@@ -387,17 +386,11 @@ function loadDocuments(data) {
                 <a
                     href="/admin/document/download/${doc.document_id}"
                     class="w-10 h-10 rounded-xl bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center transition">
-
                     <i class="fa-solid fa-download"></i>
-
                 </a>
-
             </div>
-
         </div>
-
     `).join("");
-
 }
 // ============================================
 // CLOSE DRAWER
