@@ -49,7 +49,6 @@ document.addEventListener('DOMContentLoaded', () => {
             window.location.href = response.url;
             return;
         }
-
         const message = await response.text();
 
         errorBox.textContent = message;

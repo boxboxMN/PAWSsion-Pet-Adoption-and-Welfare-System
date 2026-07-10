@@ -1,7 +1,7 @@
 //Routes para sa Organization modules (manage pets, adoption requests, donations, atbp.).
-
 const express = require("express");
 const path = require("path");
+const pool = require("../config/database");
 
 const router = express.Router();
 router.get("/dashboard", (req, res) => {

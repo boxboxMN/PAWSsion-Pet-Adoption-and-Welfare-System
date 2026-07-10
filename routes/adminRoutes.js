@@ -5,6 +5,8 @@ const pool = require("../config/database");
 
 const router = express.Router();
 
+router.get("/dashboard/stats", adminController.getDashboardStats);
+
 router.get("/dashboard", (req, res) => {
     res.sendFile(path.join(__dirname, "../public/admin/dashboard.html"));
 });
@@ -631,4 +633,5 @@ router.get("/dashboard/stats", async (req, res) => {
         });
     }
 });
+
 module.exports = router;

@@ -14,7 +14,8 @@
     <script src="../assets/js/adminSidebar.js"></script>
     <script src="../assets/js/adminTopbar.js"></script>
 
-    <style>
+<style>
+        /* Minimal custom styles — only for glass effect, scrollbar, and animations */
         * {
             margin: 0;
             padding: 0;
@@ -22,13 +23,41 @@
         }
 
         body {
-            font-family: 'Inter', sans-serif;
+            font-family: "Inter", sans-serif;
             background:
                 radial-gradient(circle at top left, #dbeafe, transparent 35%),
                 radial-gradient(circle at bottom right, #bfdbfe, transparent 30%),
                 #f8fafc;
         }
 
+        .glass {
+            background: rgba(255, 255, 255, .65);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, .5);
+        }
+
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .fadeIn {
+            animation: fade .3s ease;
+        }
+        @keyframes fade {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
         /* Sidebar */
         .dropdown .dropdown-menu {
             display: none;
@@ -41,41 +70,7 @@
         .dropdown.open .fa-angle-down {
             transform: rotate(180deg);
         }
-
-        /* Hide scrollbar but keep scrolling */
-        .hide-scrollbar {
-            -ms-overflow-style: none;  /* IE and Edge */
-            scrollbar-width: none;     /* Firefox */
-        }
-
-        .hide-scrollbar::-webkit-scrollbar {
-            display: none;             /* Chrome, Safari, Opera */
-        }
-
-        /* Glass Card */
-        .glass {
-            background: rgba(255, 255, 255, .65);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, .5);
-        }
-
-        /* Modal Animation */
-        .fadeIn {
-            animation: fade .25s ease;
-        }
-
-        @keyframes fade {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-    </style>
+</style>
 </head>
 <body class="h-screen overflow-hidden text-slate-800">
 
@@ -334,6 +329,8 @@ document.addEventListener("DOMContentLoaded", () => {
         title: "Partner Requests",
         subtitle: "Review pending organizations requesting partnership."
     });
+
+    loadPartnerRequest();
 });
 
 // ==========================
