@@ -205,7 +205,6 @@
     <!-- 3. INTERACTION SCRIPT WITH ASYNC FETCH -->
     <script>
         document.addEventListener('DOMContentLoaded', async function() {
-            
             // --- STEP A: FETCH AND INJECT THE SIDEBAR AND HEADER ---
             try {
                 // Pinagsabay natin i-request para mabilis ang loading
@@ -243,7 +242,21 @@
             const notifPopup = document.getElementById('notificationPopup');
             const markReadBtn = document.getElementById('markReadBtn');
             const notifList = document.getElementById('notifList');
+            
+            // Load logged in organization
+            try {
+                const response = await fetch("/api/organization/profile");
 
+                if (response.ok) {
+                    const organization = await response.json();
+
+                    document.getElementById("organizationName").textContent =
+                        organization.organization_name;
+                }
+            } catch (error) {
+                console.error("Unable to load organization name:", error);
+            }    
+            
             // 1. DESKTOP SIDEBAR COLLAPSE
             if (collapseBtn && sidebar) {
                 collapseBtn.addEventListener('click', function() {
