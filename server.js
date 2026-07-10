@@ -74,6 +74,53 @@ app.get('/api/current-user', async (req, res) => {
   }
 });
 
+app.get("/api/organization/pending", async (req, res) => {
+
+    if (!req.session.accountId) {
+        return res.status(401).json({
+            error: "Unauthorized"
+        });
+    }
+
+    try {
+
+        const [rows] = await pool.query(
+
+            `SELECT
+                organization_name,
+                verification_status,
+                accounts.created_at
+            FROM organizations
+            JOIN accounts
+            ON organizations.account_id = accounts.account_id
+            WHERE organizations.account_id = ?`,
+
+            [req.session.accountId]
+
+        );
+
+        if (!rows.length) {
+            return res.status(404).json({
+                error: "Organization not found"
+            });
+        }
+
+        res.json(rows[0]);
+
+    }
+
+    catch(err){
+
+        console.error(err);
+
+        res.status(500).json({
+            error:"Server Error"
+        });
+
+    }
+
+});
+
 const PORT = 3000;
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);

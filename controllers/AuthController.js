@@ -94,18 +94,40 @@ exports.login = async (req, res) => {
 
     const account = rows[0];
 
-    if (account.status !== 'active') {
-      return res.status(403).send('This account is not active.');
-    }
+    // Pending organization accounts
+if (
+    account.role === "organization" &&
+    account.status === "pending"
+) {
+
+    req.session.accountId = account.account_id;
+    req.session.role = account.role;
+
+    const [orgRows] = await pool.query(
+        `SELECT organization_name
+         FROM organizations
+         WHERE account_id = ?
+         LIMIT 1`,
+        [account.account_id]
+    );
+
+    req.session.displayName =
+        orgRows.length > 0
+            ? orgRows[0].organization_name
+            : account.email;
+
+    return res.redirect("/org/pending");
+}
+
+// Rejected / Disabled accounts
+if (account.status !== "active") {
+    return res.status(403).send("This account is not active.");
+}
 
     const isValidPassword = await bcrypt.compare(password, account.password_hash);
 
     if (!isValidPassword) {
       return res.status(401).send('Incorrect password.');
-    }
-
-    if (account.status !== 'active') {
-      return res.status(403).send('This account is not active.');
     }
 
     req.session.accountId = account.account_id;
