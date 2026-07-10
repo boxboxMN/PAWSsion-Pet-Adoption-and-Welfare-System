@@ -17,4 +17,4 @@ npx tailwindcss init
 2. npx tailwindcss -i ./public/assets/css/input.css -o ./public/assets/css/tailwind.css --watch
 3. npm install multer for uploading files
 4. working admin side email: admin@pawpon.com || password: admin@pawpon.com
-5. add sessions for each user (not yet started, kelangan ata middleware)
+5. add sessions for each user (not yet started)
