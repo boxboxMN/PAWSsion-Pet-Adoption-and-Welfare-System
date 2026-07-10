@@ -1,9 +1,6 @@
 # PAWSsion-Pet-Adoption-and-Welfare-System
 TEAM HONEYGOLD S/Y 2026-2027
 
-NO MIDDLEWARE!
-USE CODE SANITATION AND FRONTEND VLAIDATION!
-
 
 matchmaking.html → Interface ng user.
 matchmaking.js → Nagpapadala ng request.
