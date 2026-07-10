@@ -19,3 +19,4 @@ tailwind install
 npx tailwindcss init
 2.npx tailwindcss -i ./public/assets/css/input.css -o ./public/assets/css/tailwind.css --watch
 3.npm install multer for uploading files
+4. add sessions for each user
