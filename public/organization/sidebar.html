@@ -101,6 +101,7 @@
     document.addEventListener('DOMContentLoaded', async function() {
         
         // --- STEP A: FETCH AND INJECT THE SIDEBAR AND HEADER ---
+        // taking the sidebar to put the loader
         try {
             const [headerResponse, sidebarResponse] = await Promise.all([
                 fetch('/organization/header.html'), 

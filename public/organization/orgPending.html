@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width,initial-scale=1">
+
+<title>Verification Pending</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+
+<link rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+</head>
+
+<body class="bg-slate-50">
+
+<div id="sidebarContainer"></div>
+
+<div id="headerContainer"></div>
+
+<main
+id="mainContent"
+class="pt-24 md:ml-[280px] transition-all duration-200 p-8">
+
+<div class="min-h-[75vh] flex items-center justify-center">
+
+<div id="verificationContent" class="max-w-xl text-center">
+
+<div class="text-6xl mb-6">
+
+<i class="fa-regular fa-hourglass-half text-purple-500"></i>
+
+</div>
+
+<h1
+class="text-4xl font-bold text-blue-700 mb-3">
+
+Verification Pending
+
+</h1>
+
+<p class="text-xl text-gray-700 mb-2">
+
+Hello,
+
+<strong id="organizationName">
+Organization
+</strong>
+
+</p>
+
+<p class="text-gray-500">
+
+Welcome to Pawpon. Your account is currently
+being reviewed by our System Administrator.
+
+<br>
+
+We are verifying the authenticity of your
+uploaded documents.
+
+</p>
+
+<div
+class="bg-amber-50 border border-amber-200 rounded-xl mt-8 p-6 inline-block text-left">
+
+<p>
+
+<strong>Current Status:</strong>
+
+<span id="status"></span>
+
+</p>
+
+<p>
+
+<strong>Date Submitted:</strong>
+
+<span id="submitted"></span>
+
+</p>
+
+<p>
+
+<strong>Estimated Time:</strong>
+
+24–48 Hours
+
+</p>
+
+</div>
+
+<p class="mt-8 text-gray-600">
+
+Once your account has been approved,
+Pet Management, Adoption Tracking,
+Donations and Analytics will automatically
+be unlocked.
+
+</p>
+
+</div>
+
+</div>
+
+</main>
+
+<script src="/organization/orgPending.js"></script>
+
+</body>
+<script>
+    document.addEventListener("DOMContentLoaded", async () => {
+
+    // Load sidebar
+    const sidebar = await fetch("/organization/sidebar.html");
+    document.getElementById("sidebarContainer").innerHTML =
+        await sidebar.text();
+
+    // Load header
+    const header = await fetch("/organization/header.html");
+    document.getElementById("headerContainer").innerHTML =
+        await header.text();
+
+    // Dashboard active
+    const dashboardLink = document.querySelector('a[href="/org/dashboard"]');
+
+    if (dashboardLink) {
+
+        dashboardLink.classList.remove(
+            "text-gray-600",
+            "hover:bg-blue-50/50",
+            "hover:text-blue-900"
+        );
+
+        dashboardLink.classList.add(
+            "bg-blue-900",
+            "text-white",
+            "shadow-md"
+        );
+
+        const icon = dashboardLink.querySelector("i");
+
+        if (icon) {
+            icon.classList.remove(
+                "text-gray-400",
+                "group-hover:text-blue-900"
+            );
+
+            icon.classList.add("text-white");
+        }
+
+    }
+
+    // Disable all other menu items
+    document.querySelectorAll(".nav-link").forEach(link => {
+
+        if (link.getAttribute("href") !== "/org/dashboard") {
+
+            link.classList.add(
+                "opacity-40",
+                "cursor-not-allowed"
+            );
+
+            link.addEventListener("click", function(e){
+                e.preventDefault();
+            });
+
+        }
+
+    });
+
+    // Load organization status
+    await loadStatus();
+
+    // Check every 5 seconds
+    statusChecker = setInterval(loadStatus, 5000);
+
+});
+
+let statusChecker;
+
+async function loadStatus() {
+
+    const response = await fetch("/api/organization/pending");
+
+    if (!response.ok) {
+
+        window.location.href = "/auth/login.html";
+        return;
+
+    }
+
+    const data = await response.json();
+    console.log("API Response:", data);
+    console.log("account_status:", data.account_status);
+    console.log("verification_status:", data.verification_status);
+
+    document.getElementById("organizationName").textContent =
+        data.organization_name;
+
+    document.getElementById("status").textContent =
+        data.verification_status;
+
+    document.getElementById("submitted").textContent =
+        new Date(data.created_at).toLocaleDateString();
+
+    if (
+    data.account_status?.toLowerCase() === "active" ||
+    data.verification_status?.toLowerCase() === "approved"
+) {
+
+    clearInterval(statusChecker);
+
+    document.getElementById("verificationContent").innerHTML = `
+    
+        <div class="text-6xl mb-6">
+            <i class="fa-solid fa-circle-check text-green-500"></i>
+        </div>
+
+        <h1 class="text-4xl font-bold text-green-600 mb-3">
+            Verification Approved
+        </h1>
+
+        <p class="text-xl text-gray-700 mb-4">
+            Congratulations,
+            <strong>${data.organization_name}</strong>!
+        </p>
+
+        <p class="text-gray-600 leading-relaxed">
+            Your organization has been successfully verified by the
+            <strong>Pawpon Administrator.</strong>
+        </p>
+
+        <div class="bg-green-50 border border-green-200 rounded-2xl p-6 mt-8 text-left">
+
+            <p class="text-green-700 font-semibold mb-2">
+                <i class="fa-solid fa-badge-check mr-2"></i>
+                Your account is now active.
+            </p>
+
+            <p class="text-gray-700">
+                To protect your account and refresh your permissions,
+                please log in again using your organization credentials.
+            </p>
+
+        </div>
+
+        <div class="mt-8">
+
+            <a href="/auth/logout"
+               class="inline-flex items-center gap-2 bg-blue-700 hover:bg-blue-800 text-white font-semibold px-6 py-3 rounded-xl transition">
+
+                <i class="fa-solid fa-right-to-bracket"></i>
+
+                Login Again
+
+            </a>
+
+        </div>
+
+    `;
+        clearInterval(statusChecker);
+
+    }
+
+}
+</script>
+</html>
