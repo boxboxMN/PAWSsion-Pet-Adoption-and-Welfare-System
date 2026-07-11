@@ -4,6 +4,7 @@ const path = require("path");
 const pool = require("../config/database");
 
 const router = express.Router();
+router.use(checkOrganizationApproval);
 router.get("/dashboard", (req, res) => {
     res.sendFile(path.join(__dirname, "../public/organization/dashboard.html"));
 });
@@ -48,7 +49,6 @@ async function checkOrganizationApproval(req, res, next) {
     next();
 
 }
-router.use(checkOrganizationApproval);
 
 router.get("/pets", (req, res) => {
     res.sendFile(path.join(__dirname, "../public/organization/pets.html"));
@@ -64,9 +64,6 @@ router.get("/kamustahan", (req, res) => {
 });
 router.get("/analytics", (req, res) => {
     res.sendFile(path.join(__dirname, "../public/organization/analytics.html"));
-});
-router.get("/settings", (req, res) => {
-    res.sendFile(path.join(__dirname, "../public/organization/settings.html"));
 });
 router.get("/settings", (req, res) => {
     res.sendFile(path.join(__dirname, "../public/organization/settings.html"));
