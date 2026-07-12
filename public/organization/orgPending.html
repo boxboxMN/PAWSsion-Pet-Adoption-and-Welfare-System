@@ -206,7 +206,11 @@ async function loadStatus() {
         data.verification_status;
 
     document.getElementById("submitted").textContent =
-        new Date(data.created_at).toLocaleDateString();
+    new Date(data.created_at).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric"
+    });
 
     if (
     data.account_status?.toLowerCase() === "active" ||
