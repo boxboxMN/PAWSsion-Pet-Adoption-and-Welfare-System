@@ -6,6 +6,8 @@
     <title>Organization Dashboard - Donations</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <script src="../assets/js/orgSidebar.js"></script>
+    <script src="../assets/js/orgTopbar.js"></script>
 </head>
 <body class="bg-slate-100 font-['Inter',_sans-serif] min-h-screen">
 
@@ -15,11 +17,6 @@
     <main id="mainContent"
         data-sidebar-collapsed="false"
         class="pt-28 pb-12 px-4 md:px-8 transition-all duration-200 ease-in-out left-0 md:ml-[280px] data-[sidebar-collapsed=true]:md:ml-20">
-        
-        <div class="mb-6">
-            <h1 class="text-2xl font-bold text-blue-900">Donations Overview</h1>
-            <p class="text-sm text-gray-500 mt-1">Track funds and in-kind resources submitted by sponsors</p>
-        </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
             <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex items-center gap-5">
@@ -173,119 +170,48 @@
         </div>
     </main>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', async function() {
-            // --- STEP A: FETCH AND INJECT THE SIDEBAR AND HEADER ---
-            try {
-                const [headerResponse, sidebarResponse] = await Promise.all([
-                    fetch('/organization/header.html'), 
-                    fetch('/organization/sidebar.html')  
-                ]);
+<script>
+    document.addEventListener("DOMContentLoaded", async () => {
 
-                if (headerResponse.ok) {
-                    document.getElementById('headerContainer').innerHTML = await headerResponse.text();
-                } else {
-                    console.error('Failed to load header:', headerResponse.statusText);
-                }
+    // ==========================
+    // Load Shared Components
+    // =========================
 
-                if (sidebarResponse.ok) {
-                    document.getElementById('sidebarContainer').innerHTML = await sidebarResponse.text();
-                } else {
-                    console.error('Failed to load sidebar:', sidebarResponse.statusText);
-                }
-            } catch (error) {
-                console.error("Critical error loading components:", error);
+    await loadTopbar({
+        title: "Donations Overview",
+        subtitle: "Track funds and in-kind resources submitted by sponsors"
+    });
+
+    await loadSidebar("dashboard");
+
+    // ==========================
+    // Load Organization Name
+    // ==========================
+    try {
+        const response = await fetch("/api/organization/profile");
+
+        if (response.ok) {
+            const organization = await response.json();
+
+            const organizationName = document.getElementById("organizationName");
+
+            if (organizationName) {
+                organizationName.textContent =
+                    organization.organization_name;
             }
+        }
+    } catch (error) {
+        console.error("Unable to load organization:", error);
+    }
 
-            // --- STEP B: INITIALIZE INTERACTION LOGIC ---
-            const sidebar = document.getElementById('sidebar');
-            const appHeader = document.getElementById('appHeader');
-            const mainContent = document.getElementById('mainContent');
-            const overlay = document.getElementById('sidebarOverlay');
-            
-            const collapseBtn = document.getElementById('collapseBtn');
-            const collapseIcon = document.getElementById('collapseIcon');
-            const mobileToggle = document.getElementById('mobileToggle');
-            const notifBtn = document.getElementById('notificationBtn');
-            const notifPopup = document.getElementById('notificationPopup');
-            const markReadBtn = document.getElementById('markReadBtn');
-            const notifList = document.getElementById('notifList');
+    // ==========================
+    // Load Dashboard Statistics
+    // ==========================
+    if (typeof loadDashboardStats === "function") {
+        loadDashboardStats();
+    }
 
-            // 1. DESKTOP SIDEBAR COLLAPSE
-            if (collapseBtn && sidebar) {
-                collapseBtn.addEventListener('click', function() {
-                    const isCollapsed = sidebar.getAttribute('data-collapsed') === 'true';
-                    const newState = !isCollapsed;
-                    
-                    sidebar.setAttribute('data-collapsed', newState);
-                    if (appHeader) appHeader.setAttribute('data-sidebar-collapsed', newState);
-                    if (mainContent) mainContent.setAttribute('data-sidebar-collapsed', newState);
-                    
-                    document.querySelectorAll('.sidebar-text').forEach(el => {
-                        el.style.display = newState ? 'none' : '';
-                    });
-                    const container = document.getElementById('logoContainer');
-                    if (container) container.style.justifyContent = newState ? 'center' : 'between';
-
-                    if (collapseIcon) {
-                        collapseIcon.style.transform = newState ? 'rotate(180deg)' : 'rotate(0deg)';
-                    }
-                });
-            }
-
-            // 2. MOBILE DRAWER TOGGLE
-            function toggleMobileMenu() {
-                if (!sidebar) return;
-                const isOpen = sidebar.getAttribute('data-mobile-open') === 'true';
-                const newState = !isOpen;
-
-                sidebar.setAttribute('data-mobile-open', newState);
-                if (overlay) overlay.setAttribute('data-mobile-open', newState);
-                document.body.style.overflow = newState ? 'hidden' : '';
-            }
-
-            if (mobileToggle) mobileToggle.addEventListener('click', toggleMobileMenu);
-            if (overlay) overlay.addEventListener('click', toggleMobileMenu);
-
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape' && sidebar && sidebar.getAttribute('data-mobile-open') === 'true') {
-                    toggleMobileMenu();
-                }
-            });
-
-            // 3. NOTIFICATION POPUP PANEL
-            if (notifBtn && notifPopup) {
-                notifBtn.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    const isOpen = notifPopup.getAttribute('data-open') === 'true';
-                    notifPopup.setAttribute('data-open', !isOpen);
-                });
-
-                document.addEventListener('click', function(e) {
-                    if (!notifBtn.contains(e.target) && !notifPopup.contains(e.target)) {
-                        notifPopup.setAttribute('data-open', 'false');
-                    }
-                });
-            }
-
-            // Clear Notifications Action
-            if (markReadBtn && notifList) {
-                markReadBtn.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    const dot = document.querySelector('.notif-dot');
-                    if (dot) dot.style.display = 'none';
-                    notifList.innerHTML = `
-                        <div class="text-center py-8 text-gray-400 text-sm">
-                            <i class="fa-regular fa-bell-slash text-xl block mb-1.5"></i>
-                            No new notifications
-                        </div>
-                    `;
-                    setTimeout(() => {
-                        if (notifPopup) notifPopup.setAttribute('data-open', 'false');
-                    }, 400);
-                });
-            }
-        });
-    </script>
+});
+</script>
 </body>
 </html>

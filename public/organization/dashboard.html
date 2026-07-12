@@ -7,9 +7,9 @@
     <!-- Tailwind CSS at FontAwesome (Siguraduhing naka-link nang maayos) -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="../assets/js/orgTopbar.js"></script>
     <script src="../assets/js/orgSidebar.js"></script>
-
+    <script src="../assets/js/orgTopbar.js"></script>
+    
 </head>
 <body class="bg-slate-100 font-['Inter',_sans-serif] min-h-screen">
 
@@ -19,8 +19,7 @@
 
     <main 
         id="mainContent" 
-        data-sidebar-collapsed="false"
-        class="pt-28 pb-12 px-4 md:px-8 transition-all duration-200 ease-in-out left-0 md:ml-[280px] data-[sidebar-collapsed=true]:md:ml-20"
+        class="pt-28 pb-12 px-4 md:px-8 transition-all duration-200 ease-in-out left-0 md:ml-[280px]"
     >
         <div class="bg-gradient-to-r from-blue-900 to-indigo-950 rounded-2xl p-6 md:p-8 shadow-md border border-blue-950/20 relative overflow-hidden group">
             <div class="absolute -right-10 -top-10 w-40 h-40 bg-white/5 rounded-full blur-2xl group-hover:bg-white/10 transition duration-500"></div>
@@ -208,37 +207,17 @@
     <!-- 3. INTERACTION SCRIPT WITH ASYNC FETCH -->
 <script>
 document.addEventListener("DOMContentLoaded", async () => {
-    let sidebar;
-    let appHeader;
-    let mainContent;
-    let overlay;
 
-    let collapseBtn;
-    let collapseIcon;
-    let mobileToggle;
-
-    let notifBtn;
-    let notifPopup;
-    let markReadBtn;
-    let notifList;
-    
-highlightActiveLink(activePage);
     // ==========================
-    // Get Elements
-    // ==========================
-    sidebar = document.getElementById("sidebar");
-    appHeader = document.getElementById("appHeader");
-    mainContent = document.getElementById("mainContent");
-    overlay = document.getElementById("sidebarOverlay");
+    // Load Shared Components
+    // =========================
 
-    collapseBtn = document.getElementById("collapseBtn");
-    collapseIcon = document.getElementById("collapseIcon");
-    mobileToggle = document.getElementById("mobileToggle");
+    await loadTopbar({
+        title: "Dashboard",
+        subtitle: "Manage your rescue pets, track adoption requests, and stay updated with your organization's progress."
+    });
 
-    notifBtn = document.getElementById("notificationBtn");
-    notifPopup = document.getElementById("notificationPopup");
-    markReadBtn = document.getElementById("markReadBtn");
-    notifList = document.getElementById("notifList");
+    await loadSidebar("dashboard");
 
     // ==========================
     // Load Organization Name
@@ -249,8 +228,7 @@ highlightActiveLink(activePage);
         if (response.ok) {
             const organization = await response.json();
 
-            const organizationName =
-                document.getElementById("organizationName");
+            const organizationName = document.getElementById("organizationName");
 
             if (organizationName) {
                 organizationName.textContent =
@@ -262,147 +240,12 @@ highlightActiveLink(activePage);
     }
 
     // ==========================
-    // Dashboard Stats
+    // Load Dashboard Statistics
     // ==========================
     if (typeof loadDashboardStats === "function") {
         loadDashboardStats();
     }
 
-    // ==========================
-    // Desktop Sidebar Collapse
-    // ==========================
-    if (collapseBtn && sidebar) {
-        collapseBtn.addEventListener("click", () => {
-            const isCollapsed =
-                sidebar.getAttribute("data-collapsed") === "true";
-
-            const newState = !isCollapsed;
-
-            sidebar.setAttribute("data-collapsed", newState);
-
-            if (appHeader) {
-                appHeader.setAttribute(
-                    "data-sidebar-collapsed",
-                    newState
-                );
-            }
-
-            if (mainContent) {
-                mainContent.setAttribute(
-                    "data-sidebar-collapsed",
-                    newState
-                );
-            }
-
-            document.querySelectorAll(".sidebar-text").forEach((text) => {
-                text.style.display = newState ? "none" : "";
-            });
-
-            const logoContainer =
-                document.getElementById("logoContainer");
-
-            if (logoContainer) {
-                logoContainer.style.justifyContent = newState
-                    ? "center"
-                    : "space-between";
-            }
-
-            if (collapseIcon) {
-                collapseIcon.style.transform = newState
-                    ? "rotate(180deg)"
-                    : "rotate(0deg)";
-            }
-        });
-    }
-
-    // ==========================
-    // Mobile Sidebar
-    // ==========================
-    function toggleMobileMenu() {
-        if (!sidebar) return;
-
-        const isOpen =
-            sidebar.getAttribute("data-mobile-open") === "true";
-
-        const newState = !isOpen;
-
-        sidebar.setAttribute("data-mobile-open", newState);
-
-        if (overlay) {
-            overlay.setAttribute("data-mobile-open", newState);
-        }
-
-        document.body.style.overflow = newState ? "hidden" : "";
-    }
-
-    if (mobileToggle) {
-        mobileToggle.addEventListener("click", toggleMobileMenu);
-    }
-
-    if (overlay) {
-        overlay.addEventListener("click", toggleMobileMenu);
-    }
-
-    document.addEventListener("keydown", (e) => {
-        if (
-            e.key === "Escape" &&
-            sidebar &&
-            sidebar.getAttribute("data-mobile-open") === "true"
-        ) {
-            toggleMobileMenu();
-        }
-    });
-
-    // ==========================
-    // Notifications
-    // ==========================
-    if (notifBtn && notifPopup) {
-        notifBtn.addEventListener("click", (e) => {
-            e.stopPropagation();
-
-            const isOpen =
-                notifPopup.getAttribute("data-open") === "true";
-
-            notifPopup.setAttribute("data-open", !isOpen);
-        });
-
-        document.addEventListener("click", (e) => {
-            if (
-                !notifBtn.contains(e.target) &&
-                !notifPopup.contains(e.target)
-            ) {
-                notifPopup.setAttribute("data-open", "false");
-            }
-        });
-    }
-
-    // ==========================
-    // Mark Notifications Read
-    // ==========================
-    if (markReadBtn && notifList) {
-        markReadBtn.addEventListener("click", (e) => {
-            e.stopPropagation();
-
-            const dot = document.querySelector(".notif-dot");
-
-            if (dot) {
-                dot.style.display = "none";
-            }
-
-            notifList.innerHTML = `
-                <div class="text-center py-8 text-gray-400 text-sm">
-                    <i class="fa-regular fa-bell-slash text-xl block mb-1.5"></i>
-                    No new notifications
-                </div>
-            `;
-
-            setTimeout(() => {
-                if (notifPopup) {
-                    notifPopup.setAttribute("data-open", "false");
-                }
-            }, 400);
-        });
-    }
 });
 </script>
 </body>
