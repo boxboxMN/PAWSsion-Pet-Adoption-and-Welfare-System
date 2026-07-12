@@ -9,12 +9,20 @@ exports.register = async (req, res) => {
   try {
     const firstName = (req.body.firstName || '').trim();
     const lastName = (req.body.lastName || '').trim();
+    const phoneNumber = (req.body.phoneNumber || '').trim();
     const email = (req.body.email || '').trim().toLowerCase();
     const password = req.body.password || '';
     const confirmPassword = req.body.confirmPassword || '';
 
-    if (!firstName || !lastName || !email || !password || !confirmPassword) {
-      return res.status(400).send('All fields are required.');
+    if (
+    !firstName ||
+    !lastName ||
+    !phoneNumber ||
+    !email ||
+    !password ||
+    !confirmPassword
+    ) {
+        return res.status(400).send('All fields are required.');
     }
 
     if (!validator.isEmail(email)) {
@@ -50,13 +58,34 @@ exports.register = async (req, res) => {
         'INSERT INTO accounts (email, password_hash, role, status, email_verified) VALUES (?, ?, ?, ?, ?)',
         [email, passwordHash, 'adopter', 'active', 1]
       );
+      const [rows] = await connection.query(
+          "SELECT * FROM adopters WHERE account_id = ?",
+          [accountResult.insertId]
+      );
 
+      console.log(rows);
       console.log("Account inserted!", accountResult);
 
-      await connection.execute(
-        'INSERT INTO adopters (account_id, first_name, last_name) VALUES (?, ?, ?)',
-        [accountResult.insertId, firstName, lastName]
+      const [adopterResult] = await connection.execute(
+          `INSERT INTO adopters
+          (account_id, first_name, last_name, phone_number)
+          VALUES (?, ?, ?, ?)`,
+          [
+              accountResult.insertId,
+              firstName,
+              lastName,
+              phoneNumber
+          ]
       );
+
+      console.log(adopterResult);
+
+      const [check] = await connection.query(
+          "SELECT * FROM adopters WHERE account_id = ?",
+          [accountResult.insertId]
+      );
+
+      console.log("Inserted adopter:", check);
 
       await connection.commit();
         // Redirect user back to login page after successful registration

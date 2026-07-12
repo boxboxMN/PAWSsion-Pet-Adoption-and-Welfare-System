@@ -34,7 +34,27 @@
                     <input id="lastName" name="lastName" type="text" placeholder="Enter Last Name" required>
                 </div>
             </div>
+            <!-- PHONE NUMBER -->
+            <div class="full">
+                <label>
+                    Phone Number
+                    <span class="required">*</span>
+                </label>
 
+                <div class="input-box">
+                    <i class="fa-solid fa-phone icon"></i>
+
+                    <input
+                        id="phoneNumber"
+                        name="phoneNumber"
+                        type="tel"
+                        placeholder="09XXXXXXXXX"
+                        maxlength="11"
+                        pattern="^09\d{9}$"
+                        required
+                    >
+                </div>
+            </div>
            <!-- EMAIL -->
             <div class="full">
                 <label>Email Address <span class="required">*</span></label>
