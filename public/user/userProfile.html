@@ -246,8 +246,7 @@ body{
         </div>
 
     </main>
-    <!-- ===== LOAD SIDEBAR & HEADER ===== -->
-    <script>
+   <script>
         async function loadComponent(id, file) {
             try {
                 const response = await fetch(file);
@@ -259,75 +258,53 @@ body{
                 console.error(error);
             }
         }
+
         Promise.all([
-        loadComponent("sidebar", "/user/userSidebar.html"),
-        loadComponent("header", "/user/userHeader.html")
-    ])
-    .then(() => {
+            loadComponent("sidebar", "/user/userSidebar.html"),
+            loadComponent("header", "/user/userHeader.html")
+        ])
+        .then(() => {
+            
+            document.getElementById("sidebar").style.visibility = "visible";
+            document.getElementById("header").style.visibility = "visible";
 
-        // Show components
-        document.getElementById("sidebar").style.visibility = "visible";
-        document.getElementById("header").style.visibility = "visible";
-
-        const currentPath = window.location.pathname;
-        const pageTitle = document.getElementById("pageTitle");
-        const customTitles = {
-            "/profile": "Profile",
-            "/cash-donation": "Donation",
-            "/inkind-donation": "Donation"
-        };
-        if (pageTitle && customTitles[currentPath]) {
-            pageTitle.textContent = customTitles[currentPath];
-        }
-
-        const links = document.querySelectorAll("#sidebar .nav-link");
-
-        links.forEach(link => {
-
-            const href = link.getAttribute("href");
-
-            const isActive =
-                href === currentPath ||
-                (href !== "/dashboard" && currentPath.startsWith(href));
-
-            if (isActive) {
-
-                link.className =
-                    "nav-link flex items-center gap-4 px-5 py-4 rounded-2xl bg-blue-600 text-white shadow";
-
-                // Update title para sa mga nasa sidebar
-                if (pageTitle && !customTitles[currentPath]) {
-                    pageTitle.textContent = link.dataset.title;
-                }
-
-            } else {
-
-                link.className =
-                    "nav-link flex items-center gap-4 px-5 py-4 rounded-2xl text-gray-800 hover:bg-blue-50 hover:text-blue-600 transition";
-
+            const currentPath = window.location.pathname;
+            const pageTitle = document.getElementById("pageTitle");
+            const customTitles = {
+                "/profile": "Profile",
+                "/cash-donation": "Donation",
+                "/inkind-donation": "Donation"
+            };
+            if (pageTitle && customTitles[currentPath]) {
+                pageTitle.textContent = customTitles[currentPath];
             }
 
-        });
+            const links = document.querySelectorAll("#sidebar .nav-link");
+            links.forEach(link => {
+                const href = link.getAttribute("href");
+                const isActive = href === currentPath || (href !== "/dashboard" && currentPath.startsWith(href));
 
-        document.body.style.visibility = "visible";
+                if (isActive) {
+                    link.className = "nav-link flex items-center gap-4 px-5 py-4 rounded-2xl bg-blue-600 text-white shadow";
+                    if (pageTitle && !customTitles[currentPath]) {
+                        pageTitle.textContent = link.dataset.title;
+                    }
+                } else {
+                    link.className = "nav-link flex items-center gap-4 px-5 py-4 rounded-2xl text-gray-800 hover:bg-blue-50 hover:text-blue-600 transition";
+                }
+            });
 
-    })
-    .catch(error => console.error(error));
+            document.body.style.visibility = "visible";
+        })
+        .catch(error => console.error(error));
 
         let isEditing = false;
         let isPasswordFormVisible = false;
 
-        let userData = {
-            fullName: "Jhyzeel Dianela",
-            email: "jhdianela@gmail.com",
-            mobile: "09924974712",
-            accountType: "User",
-            avatar: null // stores base64 image or null for default
-        };
-
-        // ===== DOM REFS =====
+        
         const displayName = document.getElementById('display-name');
         const displayAccountType = document.getElementById('display-account-type');
+        const memberSinceText = document.querySelector('.fa-calendar-alt').nextElementSibling;
 
         const fullNameDisplay = document.getElementById('full-name-display');
         const fullNameInput = document.getElementById('full-name-input');
@@ -348,122 +325,148 @@ body{
         const confirmPassword = document.getElementById('confirm-password');
         const updatePasswordBtn = document.getElementById('update-password-btn');
 
+       
         const avatarContainer = document.getElementById('avatarContainer');
-        const avatarDisplay = document.getElementById('avatarDisplay');
         const avatarOverlay = document.getElementById('avatarOverlay');
         const avatarInput = document.getElementById('avatarInput');
+        const avatarDisplay = document.getElementById('avatarDisplay');
 
+      
+        function setAvatarEditMode(editable) {
+            const container = document.getElementById('avatarContainer');
+            if(container) {
+                if(editable) container.classList.add('editable');
+                else container.classList.remove('editable');
+            }
+        }
+        async function fetchProfileData() {
+            try {
+                const response = await fetch('/api/user/profile');
+                if (!response.ok) throw new Error("Failed to fetch profile");
+                
+                const data = await response.json();
+                
+                const fName = data.first_name || '';
+                const lName = data.last_name || '';
+                const fullCombinedName = `${fName} ${lName}`.trim() || 'No Name Set';
 
-        function renderAvatar() {
-            if (userData.avatar) {
-                avatarDisplay.innerHTML = `<img src="${userData.avatar}" alt="Avatar" />`;
-            } else {
-                avatarDisplay.innerHTML = `<i class="fas fa-user"></i>`;
-                avatarDisplay.className = 'avatar-placeholder'; // reset class
+                displayName.textContent = fullCombinedName;
+                displayAccountType.textContent = data.role ? data.role.toUpperCase() : 'USER';
+                
+                fullNameDisplay.textContent = fullCombinedName;
+                fullNameInput.value = fullCombinedName;
+
+                emailDisplay.textContent = data.email || '';
+                emailInput.value = data.email || '';
+
+                mobileDisplay.textContent = data.phone_number || 'N/A';
+                mobileInput.value = data.phone_number || '';
+
+                
+                if (data.profile_picture) {
+                    avatarDisplay.innerHTML = `<img src="${data.profile_picture}" alt="Profile Picture" class="w-full h-full object-cover rounded-full">`;
+                } else {
+                    avatarDisplay.innerHTML = `<i class="fas fa-user"></i>`;
+                }
+
+                if (data.created_at) {
+                    const date = new Date(data.created_at);
+                    memberSinceText.textContent = `Member since ${date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`;
+                }
+
+            } catch (error) {
+                console.error("Error loading profile:", error);
             }
         }
 
-        function setAvatarEditMode(enabled) {
-            if (enabled) {
-                avatarContainer.classList.add('editable');
-            } else {
-                avatarContainer.classList.remove('editable');
-            }
-        }
-
-        avatarInput.addEventListener('change', function(e) {
-            const file = this.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = function(event) {
-                const dataUrl = event.target.result;
-                avatarDisplay.innerHTML = `<img src="${dataUrl}" alt="Avatar" />`;
-                userData.avatar = dataUrl;
-            };
-            reader.readAsDataURL(file);
-            // Reset input so same file can be re-selected
-            this.value = '';
-        });
-
-        // Click on overlay opens file picker (only when editable)
-        avatarOverlay.addEventListener('click', function() {
-            if (isEditing) {
-                avatarInput.click();
-            }
-        });
-
-        // ===== PROFILE FUNCTIONS =====
-
-        function updateDisplay() {
-            displayName.textContent = userData.fullName;
-            displayAccountType.textContent = userData.accountType;
-
-            fullNameDisplay.textContent = userData.fullName;
-            fullNameInput.value = userData.fullName;
-
-            emailDisplay.textContent = userData.email;
-            emailInput.value = userData.email;
-
-            mobileDisplay.textContent = userData.mobile;
-            mobileInput.value = userData.mobile;
-
-            renderAvatar();
-        }
-
-        function enterEditMode() {
-            isEditing = true;
-            editBtn.classList.add('hidden');
-            editActions.classList.remove('hidden');
-
-            // Show inputs, hide displays
-            fullNameDisplay.classList.add('hidden');
-            fullNameInput.classList.remove('hidden');
-            emailDisplay.classList.add('hidden');
-            emailInput.classList.remove('hidden');
-            mobileDisplay.classList.add('hidden');
-            mobileInput.classList.remove('hidden');
-
-            // Enable avatar editing
-            setAvatarEditMode(true);
-        }
-
-        function exitEditMode() {
-            isEditing = false;
-            editBtn.classList.remove('hidden');
-            editActions.classList.add('hidden');
-
-            // Show displays, hide inputs
-            fullNameDisplay.classList.remove('hidden');
-            fullNameInput.classList.add('hidden');
-            emailDisplay.classList.remove('hidden');
-            emailInput.classList.add('hidden');
-            mobileDisplay.classList.remove('hidden');
-            mobileInput.classList.add('hidden');
-
-            // Disable avatar editing
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchProfileData();
             setAvatarEditMode(false);
+        });
 
-            // Reset avatar to saved data (in case user cancelled)
-            renderAvatar();
+ 
+       function enterEditMode() {
+        isEditing = true;
+        editBtn.classList.add('hidden');
+        editActions.classList.remove('hidden');
 
-            // Reset to saved data
-            updateDisplay();
+        fullNameDisplay.classList.add('hidden');
+        fullNameInput.classList.remove('hidden');
+        emailDisplay.classList.add('hidden');
+        emailInput.classList.remove('hidden');
+        mobileDisplay.classList.add('hidden');
+        mobileInput.classList.remove('hidden');
+        
+        if (avatarOverlay) {
+            avatarOverlay.classList.remove('hidden');
+            avatarOverlay.style.opacity = "1"; 
         }
+        setAvatarEditMode(true);
+    }
 
-        function saveProfile() {
-            // Update userData from inputs
-            userData.fullName = fullNameInput.value.trim() || userData.fullName;
-            userData.email = emailInput.value.trim() || userData.email;
-            userData.mobile = mobileInput.value.trim() || userData.mobile;
-            // avatar is already updated via file change, but if not changed, it retains previous
+    function exitEditMode() {
+        isEditing = false;
+        editBtn.classList.remove('hidden');
+        editActions.classList.add('hidden');
 
-            updateDisplay();
-            exitEditMode();
+        fullNameDisplay.classList.remove('hidden');
+        fullNameInput.classList.add('hidden');
+        emailDisplay.classList.remove('hidden');
+        emailInput.classList.add('hidden');
+        mobileDisplay.classList.remove('hidden');
+        mobileInput.classList.add('hidden');
+        
+      
+        if (avatarOverlay) {
+            avatarOverlay.classList.add('hidden');
+            avatarOverlay.style.opacity = "0";
+        }
+        setAvatarEditMode(false);
+    }
 
-            alert('Profile Updated Successfully!');
+        // ==========================================
+        // SAVE PROFILE TO DATABASE DYNAMICALLY
+        // ==========================================
+        async function saveProfile() {
+            const updatedData = {
+                fullName: fullNameInput.value.trim(),
+                email: emailInput.value.trim(),
+                mobile: mobileInput.value.trim()
+            };
+
+            if (!updatedData.fullName || !updatedData.email) {
+                alert('Full name and Email cannot be left empty.');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/user/profile/update', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(updatedData)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert('Profile Updated Successfully in Database!');
+                    fetchProfileData();
+                    exitEditMode();
+                    
+                    if(typeof loadComponent === "function") {
+                       loadComponent("header", "/user/userHeader.html");
+                    }
+                } else {
+                    alert('Failed to update profile: ' + result.error);
+                }
+            } catch (error) {
+                console.error("Network update error:", error);
+                alert('A network error occurred while updating profile.');
+            }
         }
 
         function cancelEdit() {
+            fetchProfileData(); 
             exitEditMode();
         }
 
@@ -471,32 +474,33 @@ body{
             isPasswordFormVisible = !isPasswordFormVisible;
             if (isPasswordFormVisible) {
                 passwordForm.classList.remove('hidden');
-                togglePasswordBtn.innerHTML = '<i class="fas fa-times"></i> Cancel';
-                togglePasswordBtn.classList.remove('border-blue-500', 'text-blue-500');
-                togglePasswordBtn.classList.add('border-red-400', 'text-red-500');
+                togglePasswordBtn.innerHTML = '<i class="fas fa-times"></i> Cancel Change';
+                togglePasswordBtn.className = "flex items-center gap-2 border border-red-500 text-red-500 px-4 py-2 rounded-lg hover:bg-red-50 transition-custom";
             } else {
                 passwordForm.classList.add('hidden');
                 togglePasswordBtn.innerHTML = '<i class="fas fa-lock"></i> Change Password';
-                togglePasswordBtn.classList.remove('border-red-400', 'text-red-500');
-                togglePasswordBtn.classList.add('border-blue-500', 'text-blue-500');
+                togglePasswordBtn.className = "flex items-center gap-2 border border-blue-500 text-blue-500 px-4 py-2 rounded-lg hover:bg-blue-50 transition-custom";
+                
+                // Linisin ang input fields kapag sinarado
                 currentPassword.value = '';
                 newPassword.value = '';
                 confirmPassword.value = '';
             }
         }
 
-        function updatePassword() {
-            const current = currentPassword.value.trim();
+        
+        async function updatePassword() {
+            const currentPwd = currentPassword.value.trim();
             const newPwd = newPassword.value.trim();
             const confirm = confirmPassword.value.trim();
 
-            if (!current || !newPwd || !confirm) {
+            if (!currentPwd || !newPwd || !confirm) {
                 alert('Please fill in all password fields.');
                 return;
             }
 
             if (newPwd !== confirm) {
-                alert('Passwords do not match!');
+                alert('New passwords do not match!');
                 return;
             }
 
@@ -505,17 +509,98 @@ body{
                 return;
             }
 
-            alert('Password Changed Successfully!');
+            try {
+                const response = await fetch('/api/user/profile/password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        currentPassword: currentPwd,
+                        newPassword: newPwd
+                    })
+                });
 
-            currentPassword.value = '';
-            newPassword.value = '';
-            confirmPassword.value = '';
-            togglePasswordForm();
+                const result = await response.json();
+
+                if (result.success) {
+                    alert('Password Changed Successfully in Database!');
+                    togglePasswordForm(); 
+                } else {
+                    alert('Failed to change password: ' + result.error);
+                }
+            } catch (error) {
+                console.error("Network update error for password:", error);
+                alert('A network error occurred while updating the password.');
+            }
         }
+
+        // ==========================================
+        // DYNAMIC PROFILE PICTURE UPLOAD LOGIC
+        // ==========================================
+       
+        avatarOverlay.addEventListener('click', () => {
+            if (isEditing) {
+                avatarInput.click();
+            } else {
+                alert('Please click "Edit Profile" first before changing your profile picture.');
+            }
+        });
+
+        avatarInput.addEventListener('change', async function() {
+            const file = this.files[0];
+            if (!file) return;
+
+          
+            if (!file.type.startsWith('image/')) {
+                alert('Please select an image file.');
+                return;
+            }
+
+            
+            if (file.size > 2 * 1024 * 1024) {
+                alert('File size is too large. Maximum limit is 2MB.');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('avatar', file); 
+
+            try {
+                const response = await fetch('/api/user/profile/avatar', {
+                    method: 'POST',
+                    body: formData 
+                });
+
+               
+                if (!response.ok) {
+                    const errData = await response.json().catch(() => ({}));
+                    throw new Error(errData.error || `Server responded with status ${response.status}`);
+                }
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert('Profile picture uploaded successfully!');
+                   
+                    avatarDisplay.innerHTML = `<img src="${result.avatarUrl}" alt="Profile Picture" class="w-full h-full object-cover rounded-full">`;
+                    
+                    
+                    if (typeof loadComponent === "function") {
+                        loadComponent("header", "/user/userHeader.html");
+                    }
+                } else {
+                    alert('Failed to upload: ' + result.error);
+                }
+            } catch (error) {
+                console.error("Avatar upload error detailed:", error);
+                alert('A network error occurred: ' + error.message);
+            }
+        });
+
+        // Events listeners mapping
         editBtn.addEventListener('click', enterEditMode);
         saveBtn.addEventListener('click', saveProfile);
         cancelBtn.addEventListener('click', cancelEdit);
-
+        
         togglePasswordBtn.addEventListener('click', togglePasswordForm);
         updatePasswordBtn.addEventListener('click', updatePassword);
 
@@ -526,9 +611,6 @@ body{
                 }
             });
         });
-        updateDisplay();
-        setAvatarEditMode(false); 
     </script>
-
 </body>
 </html>
