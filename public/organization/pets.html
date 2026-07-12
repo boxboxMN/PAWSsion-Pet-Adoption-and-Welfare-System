@@ -1,142 +1,203 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Organization Dashboard</title>
-    <script src="https://cdn.tailwindcss.com">
-    </script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+
+    <script src="../assets/js/orgPets.js" defer></script>
+    <script src="../assets/js/orgTopbar.js"></script>
+    <script src="../assets/js/orgSidebar.js"></script>
 </head>
-<body class="bg-slate-100 font-['Inter',_sans-serif] min-h-screen">
+<body class="bg-slate-100 font-['Inter',sans-serif] min-h-screen">
 
-    <!-- HEADER & SIDEBAR CONTAINERS -->
-    <div id="headerContainer"></div>
-    <div id="sidebarContainer"></div>
+<div id="headerContainer"></div>
+<div id="sidebarContainer"></div>
 
-    <!-- MAIN CONTENT – intentionally left empty (no cards, no stats, no styling) -->
-    <main id="mainContent"
-    data-sidebar-collapsed="false"
-    class="pt-28 pb-12 px-4 md:px-8 transition-all duration-200 ease-in-out left-0 md:ml-[280px] data-[sidebar-collapsed=true]:md:ml-20">
-    <!-- 👇 Nothing here – just the bare structural container -->
+<main id="mainContent" class="pt-28 pb-12 px-4 md:px-8 transition-all duration-200 ease-in-out md:ml-[280px] data-[sidebar-collapsed=true]:md:ml-20">
+    <!-- Toolbar -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4">
+        <div class="flex flex-wrap items-center gap-3">
+            <!-- Search -->
+            <div class="relative flex-1 min-w-[250px]">
+                <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                <input id="searchPet" type="text" placeholder="Search pet..." class="w-full pl-11 pr-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-600 focus:border-blue-600">
+            </div>
+
+            <!-- Status -->
+            <select id="statusFilter" class="px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-600">
+                <option value="">All Status</option>
+                <option>Available</option>
+                <option>Pending</option>
+                <option>Adopted</option>
+                <option>Archived</option>
+            </select>
+
+            <!-- Species -->
+            <select id="typeFilter" class="px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-600">
+                <option value="">All Species</option>
+                <option>Dog</option>
+                <option>Cat</option>
+            </select>
+
+            <button id="addPetBtn" class="bg-blue-700 hover:bg-blue-800 text-white px-5 py-2.5 rounded-xl flex items-center gap-2">
+                <i class="fa-solid fa-plus"></i>
+                Add Pet
+            </button>
+        </div>
+    </div>
+
+    <!-- PETS -->
+    <div id="petsContainer" class="mt-6"></div>
 </main>
 
-<script>
-    document.addEventListener('DOMContentLoaded', async function() {
-            
-            // --- STEP A: FETCH AND INJECT THE SIDEBAR AND HEADER ---
-            try {
-                // Pinagsabay natin i-request para mabilis ang loading
-                const [headerResponse, sidebarResponse] = await Promise.all([
-                    fetch('/organization/header.html'), // Kung saan naka-serve ang header mo
-                    fetch('/organization/sidebar.html')  // Kung saan naka-serve ang sidebar mo
-                ]);
+<!-- ========================= -->
+<!-- ADD PET MODAL -->
+<!-- ========================= -->
+<div id="petModal" class="fixed inset-0 hidden items-center justify-center bg-black/50 z-50 p-5">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-5xl max-h-[95vh] overflow-y-auto">
+        <div class="border-b px-8 py-5 flex items-center justify-between">
+            <h2 class="text-2xl font-bold text-slate-800">
+                <i class="fa-solid fa-paw text-blue-700 mr-2"></i>
+                Add New Pet
+            </h2>
+            <button id="closePetModal" class="text-2xl text-slate-500 hover:text-red-600">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
 
-                if (headerResponse.ok) {
-                    document.getElementById('headerContainer').innerHTML = await headerResponse.text();
-                } else {
-                    console.error('Failed to load header:', headerResponse.statusText);
-                }
+        <form id="petForm" enctype="multipart/form-data" class="p-8">
+            <input type="hidden" name="organization_id" id="organization_id">
 
-                if (sidebarResponse.ok) {
-                    document.getElementById('sidebarContainer').innerHTML = await sidebarResponse.text();
-                } else {
-                    console.error('Failed to load sidebar:', sidebarResponse.statusText);
-                }
-            } catch (error) {
-                console.error("Critical error loading components:", error);
-            }
+            <!-- BASIC INFORMATION -->
+            <div class="mb-8">
+                <h3 class="text-lg font-semibold text-blue-700 mb-4">Basic Information</h3>
+                <div class="grid md:grid-cols-2 gap-5">
+                    <!-- NAME -->
+                    <div>
+                        <label class="block text-sm font-medium mb-1">
+                            Pet Name <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text" name="name" maxlength="100" required placeholder="Enter pet name" class="w-full rounded-lg border p-2.5">
+                    </div>
 
-            // --- STEP B: INITIALIZE YOUR INTERACTION LOGIC ---
-            // Ngayong tapos na mag-load ang components, hindi na magiging null ang mga ito!
-            const sidebar = document.getElementById('sidebar');
-            const appHeader = document.getElementById('appHeader');
-            const mainContent = document.getElementById('mainContent');
-            const overlay = document.getElementById('sidebarOverlay');
-            
-            const collapseBtn = document.getElementById('collapseBtn');
-            const collapseIcon = document.getElementById('collapseIcon');
-            const mobileToggle = document.getElementById('mobileToggle');
-            const notifBtn = document.getElementById('notificationBtn');
-            const notifPopup = document.getElementById('notificationPopup');
-            const markReadBtn = document.getElementById('markReadBtn');
-            const notifList = document.getElementById('notifList');
+                    <!-- SPECIES -->
+                    <div>
+                        <label class="block text-sm font-medium mb-1">
+                            Species <span class="text-red-500">*</span>
+                        </label>
+                        <select name="species" required class="w-full rounded-lg border p-2.5">
+                            <option value="" selected disabled>Select species</option>
+                            <option value="Dog">Dog</option>
+                            <option value="Cat">Cat</option>
+                        </select>
+                    </div>
 
-            // 1. DESKTOP SIDEBAR COLLAPSE
-            if (collapseBtn && sidebar) {
-                collapseBtn.addEventListener('click', function() {
-                    const isCollapsed = sidebar.getAttribute('data-collapsed') === 'true';
-                    const newState = !isCollapsed;
-                    
-                    sidebar.setAttribute('data-collapsed', newState);
-                    if (appHeader) appHeader.setAttribute('data-sidebar-collapsed', newState);
-                    if (mainContent) mainContent.setAttribute('data-sidebar-collapsed', newState);
-                    
-                    document.querySelectorAll('.sidebar-text').forEach(el => {
-                        el.style.display = newState ? 'none' : '';
-                    });
-                    const container = document.getElementById('logoContainer');
-                    if (container) container.style.justifyContent = newState ? 'center' : 'between';
+                    <!-- GENDER -->
+                    <div>
+                        <label class="block text-sm font-medium mb-1">
+                            Gender <span class="text-red-500">*</span>
+                        </label>
+                        <select name="gender" required class="w-full rounded-lg border p-2.5">
+                            <option value="" selected disabled>Select gender</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                        </select>
+                    </div>
 
-                    if (collapseIcon) {
-                        collapseIcon.style.transform = newState ? 'rotate(180deg)' : 'rotate(0deg)';
-                    }
-                });
-            }
+                    <!-- AGE -->
+                    <div>
+                        <label class="block text-sm font-medium mb-1">
+                            Age Group <span class="text-red-500">*</span>
+                        </label>
+                        <select name="age" required class="w-full rounded-lg border p-2.5">
+                            <option value="" selected disabled>Select age group</option>
+                            <option value="Puppy/Kitten (0-1 yr old)">Puppy / Kitten (0-1 yr old)</option>
+                            <option value="Adolescence (2-3 yrs old)">Adolescence (2-3 yrs old)</option>
+                            <option value="Adult (4-7 yrs old)">Adult (4-7 yrs old)</option>
+                            <option value="Senior (8-10 yrs old)">Senior (8-10 yrs old)</option>
+                        </select>
+                    </div>
 
-            // 2. MOBILE DRAWER TOGGLE
-            function toggleMobileMenu() {
-                if (!sidebar) return;
-                const isOpen = sidebar.getAttribute('data-mobile-open') === 'true';
-                const newState = !isOpen;
+                    <!-- BIRTH DATE -->
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Birth Date</label>
+                        <input type="date" name="birth_date" class="w-full rounded-lg border p-2.5">
+                    </div>
 
-                sidebar.setAttribute('data-mobile-open', newState);
-                if (overlay) overlay.setAttribute('data-mobile-open', newState);
-                document.body.style.overflow = newState ? 'hidden' : '';
-            }
+                    <!-- COLOR -->
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Color</label>
+                        <input type="text" name="color" maxlength="100" placeholder="Ex. Brown and White" class="w-full rounded-lg border p-2.5">
+                    </div>
+                </div>
+            </div>
 
-            if (mobileToggle) mobileToggle.addEventListener('click', toggleMobileMenu);
-            if (overlay) overlay.addEventListener('click', toggleMobileMenu);
+            <!-- HEALTH -->
+            <div class="mb-8">
+                <h3 class="text-lg font-semibold text-blue-700 mb-4">Health Information</h3>
+                <div class="grid md:grid-cols-2 gap-5">
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Health Status</label>
+                        <select name="health_status" class="w-full rounded-lg border p-2.5">
+                            <option value="Healthy">Healthy</option>
+                            <option value="Sick">Sick</option>
+                            <option value="Under Treatment">Under Treatment</option>
+                            <option value="Recovered">Recovered</option>
+                        </select>
+                    </div>
 
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape' && sidebar && sidebar.getAttribute('data-mobile-open') === 'true') {
-                    toggleMobileMenu();
-                }
-            });
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Vaccination Status</label>
+                        <select name="vaccination_status" class="w-full rounded-lg border p-2.5">
+                            <option value="Vaccinated">Vaccinated</option>
+                            <option value="Not Vaccinated">Not Vaccinated</option>
+                            <option value="Unknown">Unknown</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
 
-            // 3. NOTIFICATION POPUP PANEL
-            if (notifBtn && notifPopup) {
-                notifBtn.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    const isOpen = notifPopup.getAttribute('data-open') === 'true';
-                    notifPopup.setAttribute('data-open', !isOpen);
-                });
+            <!-- ADOPTION -->
+            <div class="mb-8">
+                <h3 class="text-lg font-semibold text-blue-700 mb-4">Adoption Information</h3>
+                <div class="grid md:grid-cols-2 gap-5">
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Adoption Status</label>
+                        <select name="adoption_status" class="w-full rounded-lg border p-2.5">
+                            <option value="Available">Available</option>
+                            <option value="Pending">Pending</option>
+                            <option value="Adopted">Adopted</option>
+                            <option value="Archived">Archived</option>
+                        </select>
+                    </div>
 
-                document.addEventListener('click', function(e) {
-                    if (!notifBtn.contains(e.target) && !notifPopup.contains(e.target)) {
-                        notifPopup.setAttribute('data-open', 'false');
-                    }
-                });
-            }
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Pet Image</label>
+                        <input type="file" name="image" accept=".jpg,.jpeg,.png,.webp" class="w-full rounded-lg border p-2.5">
+                    </div>
+                </div>
+            </div>
 
-            // Clear Notifications Action
-            if (markReadBtn && notifList) {
-                markReadBtn.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    const dot = document.querySelector('.notif-dot');
-                    if (dot) dot.style.display = 'none';
-                    notifList.innerHTML = `
-                        <div class="text-center py-8 text-gray-400 text-sm">
-                            <i class="fa-regular fa-bell-slash text-xl block mb-1.5"></i>
-                            No new notifications
-                        </div>
-                    `;
-                    setTimeout(() => {
-                        if (notifPopup) notifPopup.setAttribute('data-open', 'false');
-                    }, 400);
-                });
-            }
-        });
-    </script>
+            <!-- DESCRIPTION -->
+            <div>
+                <label class="block text-sm font-medium mb-1">Behavior Description</label>
+                <textarea name="behavior_description" rows="5" maxlength="1000" placeholder="Describe the pet's personality, friendliness, behavior, and special notes..." class="w-full rounded-lg border p-3 resize-none"></textarea>
+            </div>
+
+            <!-- BUTTONS -->
+            <div class="flex justify-end gap-3 mt-8">
+                <button type="button" id="cancelPetBtn" class="px-6 py-2.5 rounded-lg border border-slate-300 hover:bg-slate-100">Cancel</button>
+                <button type="submit" class="bg-blue-700 hover:bg-blue-800 text-white px-8 py-2.5 rounded-lg">
+                    <i class="fa-solid fa-floppy-disk mr-2"></i>
+                    Save Pet
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
 </body>
 </html>
