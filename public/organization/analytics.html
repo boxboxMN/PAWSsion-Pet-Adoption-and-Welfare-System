@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <script src="../assets/js/orgSidebar.js"></script>
     <script src="../assets/js/orgTopbar.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body class="bg-slate-100 font-['Inter',_sans-serif] min-h-screen">
 
@@ -18,10 +19,108 @@
 
     <!-- MAIN CONTENT – intentionally left empty (no cards, no stats, no styling) -->
     <main id="mainContent"
-    data-sidebar-collapsed="false"
-    class="pt-28 pb-12 px-4 md:px-8 transition-all duration-200 ease-in-out left-0 md:ml-[280px] data-[sidebar-collapsed=true]:md:ml-20">
-    <!-- 👇 Nothing here – just the bare structural container -->
-</main>
+        data-sidebar-collapsed="false"
+        class="pt-28 pb-12 px-4 md:px-8 transition-all duration-200 ease-in-out left-0 md:ml-[280px] data-[sidebar-collapsed=true]:md:ml-20">
+        <!-- date and export buttons -->
+
+        <div class="flex w-full items-center justify-end gap-3 mb-6">
+  
+            <div class="relative inline-block">
+              <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-700">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                </svg>
+              </span>
+              
+              <select class="appearance-none bg-white border border-gray-200 text-gray-800 text-sm font-medium py-2 pl-9 pr-1 rounded shadow-sm hover:border-gray-300 focus:outline-none focus:ring-1 focus:ring-gray-400 cursor-pointer">
+                <option value="2026-01">January 2026</option>
+                <option value="2026-02">February 2026</option>
+                <option value="2026-03">March 2026</option>
+                <option value="2026-04">April 2026</option>
+                <option value="2026-05" selected>May 2026</option>
+                <option value="2026-06">June 2026</option>
+                <option value="2026-07">July 2026</option>
+                <option value="2026-08">August 2026</option>
+                <option value="2026-09">September 2026</option>
+                <option value="2026-10">October 2026</option>
+                <option value="2026-11">November 2026</option>
+                <option value="2026-12">December 2026</option>
+              </select>
+              
+              <span class="absolute inset-y-0 right-0 flex items-center pr-2.5 pointer-events-none text-gray-500">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
+              </span>
+            </div>
+          
+            <button class="flex items-center gap-2 bg-white border border-gray-200 text-gray-800 text-sm font-medium py-2 px-3 rounded shadow-sm hover:bg-gray-50 hover:border-gray-300 focus:outline-none focus:ring-1 focus:ring-gray-400 transition-colors">
+              <svg class="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+              </svg>
+              <span>Export Report</span>
+            </button>       
+          </div>
+
+          <!-- Add your dashboard content here -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-6xl mx-auto">
+    
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 flex flex-col justify-between">
+              <div class="p-4">
+                <h3 class="text-sm font-bold text-gray-700 mb-4">Number of Adopted Pets (This month)</h3>
+                <div class="relative h-[220px] flex justify-center">
+                  <canvas id="adoptedPetsChart"></canvas>
+                </div>
+              </div>
+              <div class="bg-emerald-50 border-t border-gray-200 px-4 py-2 flex justify-between items-center text-sm font-bold text-emerald-900 rounded-b-lg">
+                <span>Total Adopted Pets</span>
+                <span>78</span>
+              </div>
+            </div>
+        
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 flex flex-col justify-between">
+              <div class="p-4">
+                <h3 class="text-sm font-bold text-gray-700 mb-4">Available Pets by Type (This month)</h3>
+                <div class="relative h-[220px] flex justify-center">
+                  <canvas id="availablePetsChart"></canvas>
+                </div>
+              </div>
+              <div class="bg-emerald-50 border-t border-gray-200 px-4 py-2 flex justify-between items-center text-sm font-bold text-emerald-900 rounded-b-lg">
+                <span>Total Available Pets</span>
+                <span>52</span>
+              </div>
+            </div>
+        
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 flex flex-col justify-between">
+              <div class="p-4">
+                <h3 class="text-sm font-bold text-gray-700 mb-4">Cash Donation by Payment Method (This month)</h3>
+                <div class="relative h-[220px] flex justify-center">
+                  <canvas id="cashDonationChart"></canvas>
+                </div>
+              </div>
+              <div class="bg-emerald-50 border-t border-gray-200 px-4 py-2 flex justify-between items-center text-sm font-bold text-emerald-900 rounded-b-lg">
+                <span>Total Cash Donated</span>
+                <span>10,000</span>
+              </div>
+            </div>
+        
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 flex flex-col justify-between">
+              <div class="p-4">
+                <h3 class="text-sm font-bold text-gray-700 mb-4">In-Kind Donation by Items (This Month)</h3>
+                <div class="relative h-[220px] flex justify-center">
+                  <canvas id="inKindDonationChart"></canvas>
+                </div>
+              </div>
+              <div class="bg-emerald-50 border-t border-gray-200 px-4 py-2 flex justify-between items-center text-sm font-bold text-emerald-900 rounded-b-lg">
+                <span>Total In-Kind Item</span>
+                <span>92</span>
+              </div>
+            </div>
+        
+          </div>
+        
+    </main>
+
 
 <script>
     document.addEventListener("DOMContentLoaded", async () => {
@@ -66,5 +165,6 @@
 
 });
 </script>
+<script src="/assets/js/orgCharts-logic.js"></script>
 </body>
 </html>
