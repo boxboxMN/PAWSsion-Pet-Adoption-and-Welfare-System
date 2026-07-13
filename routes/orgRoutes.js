@@ -1,14 +1,30 @@
-//Routes para sa Organization modules (manage pets, adoption requests, donations, atbp.).
 const express = require("express");
 const path = require("path");
 const pool = require("../config/database");
 
+const upload = require("../config/upload");
+
+const { addPet, getPets } = require("../controllers/orgController");
+
 const router = express.Router();
+
 router.use(checkOrganizationApproval);
+
+
 router.get("/dashboard", (req, res) => {
-    res.sendFile(path.join(__dirname, "../public/organization/dashboard.html"));
+
+    res.sendFile(
+        path.join(__dirname, "../public/organization/dashboard.html")
+    );
+
 });
 
+
+router.post(
+    "/pets/add",
+    upload.single("image"),
+    addPet
+);
 router.get("/pending", (req, res) => {
 
     if (!req.session.accountId) {
@@ -53,6 +69,9 @@ async function checkOrganizationApproval(req, res, next) {
 router.get("/pets", (req, res) => {
     res.sendFile(path.join(__dirname, "../public/organization/pets.html"));
 });
+
+router.get("/pets/list", getPets);
+
 router.get("/adoption", (req, res) => {
     res.sendFile(path.join(__dirname, "../public/organization/adoption.html"));
 });
