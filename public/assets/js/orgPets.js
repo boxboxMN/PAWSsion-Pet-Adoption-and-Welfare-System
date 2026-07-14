@@ -19,19 +19,11 @@ const addPetBtn = document.getElementById("addPetBtn");
 const closePetModal = document.getElementById("closePetModal");
 const cancelPetBtn = document.getElementById("cancelPetBtn");
 const petForm = document.getElementById("petForm");
-
 // OPEN MODAL
 addPetBtn.addEventListener("click", () => {
     modal.classList.remove("hidden");
     modal.classList.add("flex");
 });
-
-// CLOSE MODAL FUNCTION
-function closeModal(){
-    modal.classList.remove("flex");
-    modal.classList.add("hidden");
-    petForm.reset();
-}
 
 // CLOSE BUTTON
 closePetModal.addEventListener("click", closeModal);
@@ -60,8 +52,19 @@ birthDate.max = today;
 petForm.addEventListener("submit", async (e)=>{
 
     e.preventDefault();
-
+    
     const formData = new FormData(petForm);
+    formData.append(
+        "medical_history",
+        JSON.stringify(medicalList)
+    );
+
+    console.log("Hidden field:", personalityTags.value);
+
+    console.log("FormData:");
+    for (const [key, value] of formData.entries()) {
+        console.log(`${key}:`, value);
+    }
 
     try {
 
@@ -181,21 +184,14 @@ function createPetCard(pet) {
     };
 
     const image = pet.image_path ? `/uploads/pets/${pet.image_path}` : "/assets/images/no-image.png";
-    const tags = [];
 
-    if (pet.behavior_description) {
-        const words = pet.behavior_description
-            .split(/[,. ]+/)
-            .filter(w => w.length > 3);
-
-        [...new Set(words)].slice(0, 2).forEach(tag => {
-            tags.push(tag.charAt(0).toUpperCase() + tag.slice(1));
-        });
-    }
-
-    if (tags.length === 0) {
-        tags.push("Friendly");
-    }
+    // Personality Tags
+    const tags = pet.personality_tags
+        ? pet.personality_tags
+            .split(",")
+            .map(tag => tag.trim())
+            .filter(tag => tag.length > 0)
+        : [];
 
     return `
         <div class="bg-white rounded-3xl overflow-hidden shadow-md hover:shadow-xl transition duration-300">
@@ -220,12 +216,16 @@ function createPetCard(pet) {
                         ${pet.gender}
                     </span>
                 </p>
-                <div class="flex flex-wrap gap-2 mt-5">
-                    ${tags.map(tag => `
-                        <span class="bg-slate-100 text-slate-700 text-sm font-medium px-4 py-1 rounded-full">
-                            ${tag}
-                        </span>
-                    `).join("")}
+               <div class="flex flex-wrap gap-2 mt-5">
+                    ${
+                        tags.length
+                            ? tags.map(tag => `
+                                <span class="bg-slate-100 text-slate-700 text-sm font-medium px-4 py-1 rounded-full">
+                                    ${tag}
+                                </span>
+                            `).join("")
+                            : `<span class="text-slate-400 text-sm italic">No personality tags</span>`
+                    }
                 </div>
                 <button
                     class="viewPetBtn mt-5 bg-blue-700 text-white px-4 py-2 rounded-xl"
@@ -321,16 +321,13 @@ function openPetDetailsModal(pet){
     document.getElementById("viewDescription").textContent =
         pet.behavior_description || "No description.";
 
-    document.getElementById("viewCreatedAt").textContent =
-        pet.created_at;
-
+    // Personality Tags
     const tags = document.getElementById("viewTags");
-
     tags.innerHTML = "";
 
-    if(pet.personality_tags){
+    if (pet.personality_tags) {
 
-        pet.personality_tags.split(",").forEach(tag=>{
+        pet.personality_tags.split(",").forEach(tag => {
 
             tags.innerHTML += `
                 <span class="bg-blue-700 text-white px-3 py-1 rounded-full text-sm">
@@ -342,9 +339,56 @@ function openPetDetailsModal(pet){
 
     }
 
-    modal.classList.remove("hidden");
+    // ============================
+    // MEDICAL HISTORY
+    // ============================
 
+    const medical = pet.medical_history || [];
+
+    const tbody = document.getElementById("viewMedicalTable");
+
+    tbody.innerHTML = "";
+
+    if (!medical.length) {
+
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="3"
+                    class="text-center p-5 text-slate-400">
+                    No medical history available.
+                </td>
+            </tr>
+        `;
+
+    } else {
+
+        medical.forEach(record => {
+
+            tbody.innerHTML += `
+                <tr class="border-t">
+
+                    <td class="p-3">
+                        ${record.treatment}
+                    </td>
+
+                    <td class="p-3">
+                        ${record.administered_date}
+                    </td>
+
+                    <td class="p-3">
+                        ${record.administered_by}
+                    </td>
+
+                </tr>
+            `;
+
+        });
+
+    }
+
+    modal.classList.remove("hidden");
     modal.classList.add("flex");
+
 }
 
 function closeViewPetModal(){
@@ -354,5 +398,187 @@ function closeViewPetModal(){
     modal.classList.remove("flex");
 
     modal.classList.add("hidden");
+
+}
+
+// ==========================
+// PERSONALITY TAGS
+// ==========================
+
+const traitInput = document.getElementById("traitInput");
+const addTraitBtn = document.getElementById("addTraitBtn");
+const traitsContainer = document.getElementById("traitsContainer");
+const personalityTags = document.getElementById("personalityTags");
+let medicalList = [];
+
+function updateTraitField() {
+
+    const tags = [...traitsContainer.querySelectorAll(".trait-tag")].map(tag =>
+        tag.dataset.value
+    );
+
+    personalityTags.value = tags.join(",");
+}
+
+function addTrait(value) {
+
+    value = value.trim();
+
+    if (!value) return;
+
+    // prevent duplicates
+    const exists = [...traitsContainer.querySelectorAll(".trait-tag")]
+        .some(tag => tag.dataset.value.toLowerCase() === value.toLowerCase());
+
+    if (exists) {
+        traitInput.value = "";
+        return;
+    }
+
+    const span = document.createElement("span");
+
+    span.className =
+        "trait-tag inline-flex items-center gap-2 bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium";
+
+    span.dataset.value = value;
+
+    span.innerHTML = `
+        ${value}
+        <button
+            type="button"
+            class="text-red-500 hover:text-red-700 font-bold">
+            <i class="fa-solid fa-xmark text-xs"></i>
+        </button>
+    `;
+
+    span.querySelector("button").addEventListener("click", () => {
+
+        span.remove();
+
+        updateTraitField();
+
+    });
+
+    traitsContainer.appendChild(span);
+
+    traitInput.value = "";
+
+    updateTraitField();
+}
+addTraitBtn.addEventListener("click", () => {
+
+    addTrait(traitInput.value);
+
+});
+traitInput.addEventListener("keypress", (e) => {
+
+    if (e.key === "Enter") {
+
+        e.preventDefault();
+
+        addTrait(traitInput.value);
+
+    }
+
+});
+function closeModal(){
+
+    modal.classList.remove("flex");
+    modal.classList.add("hidden");
+    medicalList = [];
+
+    renderMedicalTable();
+    petForm.reset();
+
+    traitsContainer.innerHTML = "";
+    personalityTags.value = "";
+
+}
+function updateTraitField() {
+
+    const tags = [...traitsContainer.querySelectorAll(".trait-tag")]
+        .map(tag => tag.dataset.value);
+
+    personalityTags.value = tags.join(",");
+
+    console.log("Updated tags:", personalityTags.value);
+}
+document.querySelector(".add-med-btn").addEventListener("click", () => {
+
+    const treatment = document.getElementById("m-treatment").value.trim();
+    const date = document.getElementById("m-date").value;
+    const by = document.getElementById("m-by").value.trim();
+
+    if (!treatment || !date || !by) {
+        alert("Please complete all medical history fields.");
+        return;
+    }
+
+    medicalList.push({
+        treatment,
+        administered_date: date,
+        administered_by: by
+    });
+
+    renderMedicalTable();
+
+    document.getElementById("m-treatment").value = "";
+    document.getElementById("m-date").value = "";
+    document.getElementById("m-by").value = "";
+
+});
+function renderMedicalTable() {
+
+    const tbody = document.getElementById("medical-tbody");
+
+    tbody.innerHTML = "";
+
+    if (!medicalList.length) {
+
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="4" class="text-center p-5 text-slate-400">
+                    No medical records yet
+                </td>
+            </tr>
+        `;
+
+        return;
+    }
+
+    medicalList.forEach((m, index) => {
+
+        tbody.innerHTML += `
+            <tr class="border-t">
+
+                <td class="p-3">${m.treatment}</td>
+
+                <td class="p-3">${m.administered_date}</td>
+
+                <td class="p-3">${m.administered_by}</td>
+
+                <td class="text-center">
+
+                    <button
+                        onclick="removeMedical(${index})"
+                        class="text-red-500 hover:text-red-700">
+
+                        <i class="fa-solid fa-trash"></i>
+
+                    </button>
+
+                </td>
+
+            </tr>
+        `;
+
+    });
+
+}
+function removeMedical(index) {
+
+    medicalList.splice(index, 1);
+
+    renderMedicalTable();
 
 }
