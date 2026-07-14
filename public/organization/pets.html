@@ -199,5 +199,124 @@
     </div>
 </div>
 
+<div id="viewPetModal"
+    class="fixed inset-0 hidden bg-black/60 z-[999] items-center justify-center p-5">
+
+    <div class="bg-white rounded-3xl w-full max-w-6xl max-h-[90vh] overflow-hidden shadow-2xl">
+
+        <div class="flex justify-between items-center px-8 py-5 border-b">
+            <h2 class="text-2xl font-bold text-blue-800">
+                Pet Details
+            </h2>
+
+            <button onclick="closeViewPetModal()"
+                class="text-3xl text-slate-500 hover:text-red-500">
+                &times;
+            </button>
+        </div>
+
+        <div class="grid lg:grid-cols-[380px_1fr]">
+            <!-- LEFT -->
+            <div class="bg-slate-50 p-6 border-r">
+
+                <img id="viewPetImage"
+                    src=""
+                    class="w-full h-[350px] object-cover rounded-2xl">
+
+                <div class="mt-4 flex flex-wrap gap-2">
+
+                    <span id="viewSpecies"
+                        class="px-3 py-1 rounded-full bg-blue-100 text-blue-700 font-semibold text-sm">
+                    </span>
+
+                    <span id="viewStatus"
+                        class="px-3 py-1 rounded-full bg-green-100 text-green-700 font-semibold text-sm">
+                    </span>
+
+                    <span id="viewHealth"
+                        class="px-3 py-1 rounded-full bg-orange-100 text-orange-700 font-semibold text-sm">
+                    </span>
+
+                </div>
+            </div>
+
+            <!-- RIGHT -->
+            <div class="p-8 overflow-y-auto">
+
+                <h1 id="viewName"
+                    class="text-5xl font-bold text-blue-800">
+                </h1>
+
+                <p class="text-xl text-slate-500 mt-2">
+                    <span id="viewGender"></span> •
+                    <span id="viewAge"></span>
+                </p>
+
+                <!-- TAGS -->
+                <div class="mt-8">
+                    <h3 class="font-bold text-blue-800 uppercase mb-3">
+                        Personality
+                    </h3>
+
+                    <div id="viewTags"
+                        class="flex flex-wrap gap-2">
+                    </div>
+                </div>
+
+                <!-- DESCRIPTION -->
+                <div class="mt-8">
+                    <h3 class="font-bold text-blue-800 uppercase mb-3">
+                       Behavior Description
+                    </h3>
+
+                    <div class="bg-slate-100 rounded-2xl p-5">
+                        <p id="viewDescription"
+                            class="text-slate-600 italic">
+                        </p>
+                    </div>
+                </div>
+
+                <!-- INFO GRID -->
+                <div class="mt-8">
+
+                    <h3 class="font-bold text-blue-800 uppercase mb-4">
+                        Information
+                    </h3>
+
+                    <div class="grid md:grid-cols-2 gap-4">
+
+                        <div class="bg-slate-50 p-4 rounded-xl">
+                            <div class="text-slate-500 text-sm">Color</div>
+                            <div id="viewColor" class="font-semibold"></div>
+                        </div>
+
+                        <div class="bg-slate-50 p-4 rounded-xl">
+                            <div class="text-slate-500 text-sm">Birth Date</div>
+                            <div id="viewBirthDate" class="font-semibold"></div>
+                        </div>
+
+                        <div class="bg-slate-50 p-4 rounded-xl">
+                            <div class="text-slate-500 text-sm">Vaccination</div>
+                            <div id="viewVaccination" class="font-semibold"></div>
+                        </div>
+
+                        <div class="bg-slate-50 p-4 rounded-xl">
+                            <div class="text-slate-500 text-sm">Health Status</div>
+                            <div id="viewHealthStatus" class="font-semibold"></div>
+                        </div>
+
+                        <div class="bg-slate-50 p-4 rounded-xl md:col-span-2">
+                            <div class="text-slate-500 text-sm">Created</div>
+                            <div id="viewCreatedAt" class="font-semibold"></div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
 </body>
 </html>

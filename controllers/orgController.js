@@ -105,7 +105,6 @@ exports.addPet = async (req, res) => {
 //pets card
 exports.getPets = async (req, res) => {
     try {
-
         const [org] = await pool.query(
             `
             SELECT organization_id
@@ -147,11 +146,9 @@ exports.getPets = async (req, res) => {
             success: false,
             message: "Unable to load pets."
         });
-
     }
 };
 exports.getPetDetails = async (req, res) => {
-
     try{
 
         const [rows] = await pool.query(
@@ -179,7 +176,5 @@ exports.getPetDetails = async (req, res) => {
             success:false,
             message:"Server error"
         });
-
     }
-
 };

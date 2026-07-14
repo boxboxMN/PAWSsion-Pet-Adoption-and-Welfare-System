@@ -4,7 +4,7 @@ const pool = require("../config/database");
 
 const upload = require("../config/upload");
 
-const { addPet, getPets } = require("../controllers/orgController");
+const { addPet, getPets, getPetDetails } = require("../controllers/orgController");
 
 const router = express.Router();
 
@@ -71,6 +71,7 @@ router.get("/pets", (req, res) => {
 });
 
 router.get("/pets/list", getPets);
+router.get("/pets/:id", getPetDetails);
 
 router.get("/adoption", (req, res) => {
     res.sendFile(path.join(__dirname, "../public/organization/adoption.html"));
