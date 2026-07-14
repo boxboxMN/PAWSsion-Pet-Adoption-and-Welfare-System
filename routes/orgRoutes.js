@@ -2,7 +2,7 @@ const express = require("express");
 const path = require("path");
 const pool = require("../config/database");
 
-const upload = require("../config/upload");
+const { uploadPet: upload } = require('../config/upload');
 
 const { addPet, getPets, getPetDetails } = require("../controllers/orgController");
 
@@ -90,6 +90,9 @@ router.get("/settings", (req, res) => {
 });
 router.get("/support", (req, res) => {
     res.sendFile(path.join(__dirname, "../public/organization/support.html"));
+});
+router.get("/profile", (req, res) => {
+    res.sendFile(path.join(__dirname, "../public/organization/profile.html"));
 });
 
 module.exports = router;

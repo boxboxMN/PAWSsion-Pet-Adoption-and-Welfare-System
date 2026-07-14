@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Organization Profile</title>
+    <script src="https://cdn.tailwindcss.com">
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <script src="../assets/js/orgSidebar.js"></script>
+    <script src="../assets/js/orgTopbar.js"></script>
+</head>
+<body class="bg-slate-100 font-['Inter',_sans-serif] min-h-screen">
+
+    <!-- HEADER & SIDEBAR CONTAINERS -->
+    <div id="headerContainer"></div>
+    <div id="sidebarContainer"></div>
+
+    <!-- MAIN CONTENT – intentionally left empty (no cards, no stats, no styling) -->
+    <main id="mainContent"
+        data-sidebar-collapsed="false"
+        class="pt-28 pb-12 px-4 md:px-8 transition-all duration-200 ease-in-out left-0 md:ml-[280px] data-[sidebar-collapsed=true]:md:ml-20">
+        <!-- org profile contents -->
+        <div class="max-w-5xl mx-auto">
+            
+            <h2 class="text-2xl font-bold text-blue-900 tracking-tight mb-6">Organization Profile</h2>
+
+            <div class="bg-white rounded-2xl p-6 md:p-8 border border-gray-200/60 shadow-sm flex flex-col sm:flex-row items-center sm:items-start gap-6 mb-6">
+                <div class="w-24 h-24 rounded-full border border-gray-100 shadow-inner flex items-center justify-center bg-slate-50 overflow-hidden flex-shrink-0 text-blue-900">
+                    <i id="defaultUserIcon" class="fa-regular fa-user text-3xl"></i>
+                    
+                    <img id="orgLogo" src="" alt="Org Logo" class="w-full h-full object-cover hidden">
+                </div>
+
+                <div class="flex-1 text-center sm:text-left">
+                    <div class="flex flex-col sm:flex-row sm:items-center gap-2 mb-4">
+                        <h3 id="profileOrgName" class="text-xl font-bold text-blue-950">
+                            PAWSsion Benevolence Circle Organization
+                        </h3>
+                        <div class="inline-flex items-center justify-center gap-1 bg-amber-50 text-amber-600 text-xs font-semibold px-2.5 py-0.5 rounded-full border border-amber-200/40 w-fit mx-auto sm:mx-0">
+                            <i class="fa-solid fa-circle-check text-[10px]"></i> Verified
+                        </div>
+                    </div>
+
+                    <div class="flex flex-wrap gap-2 justify-center sm:justify-start">
+                        <button id="openEditModalBtn" class="bg-blue-900 hover:bg-indigo-950 text-white text-xs font-semibold px-4 py-2 rounded-xl transition flex items-center gap-1.5 shadow-sm shadow-blue-900/10">
+                            <i class="fa-solid fa-pen text-[10px]"></i> Edit
+                        </button>
+                        <button id="openModalBtn" class="bg-blue-900 hover:bg-indigo-950 text-white text-xs font-semibold px-4 py-2 rounded-xl transition flex items-center gap-1.5 shadow-sm shadow-blue-900/10">
+                            <i class="fa-solid fa-key text-[10px]"></i> Change Password
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                
+                <div class="bg-white rounded-2xl p-6 border border-gray-200/60 shadow-sm">
+                    <h4 class="font-bold text-blue-900 text-base mb-5 tracking-tight flex items-center gap-2">
+                        <i class="fa-solid fa-address-card text-sm"></i> Basic Information
+                    </h4>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <span class="text-xs font-bold text-blue-600 block uppercase tracking-wider">Contact Person</span>
+                            <span id="infoContactPerson" class="text-sm font-semibold text-gray-700 mt-1 block">Loading...</span>
+                        </div>
+                        <div>
+                            <span class="text-xs font-bold text-blue-600 block uppercase tracking-wider">Contact Number</span>
+                            <span id="infoContact" class="text-sm font-semibold text-gray-700 mt-1 block">09924974712</span>
+                        </div>
+                        <div>
+                            <span class="text-xs font-bold text-blue-600 block uppercase tracking-wider">Organization Type</span>
+                            <span id="infoType" class="text-sm font-semibold text-gray-700 mt-1 block">Organization</span>
+                        </div>
+                        <div>
+                            <span class="text-xs font-bold text-blue-600 block uppercase tracking-wider">Location Details</span>
+                            <div>
+                                <span id="infoFullAddress" class="text-sm font-semibold text-gray-700 mt-1 block"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl p-6 border border-gray-200/60 shadow-sm">
+                    <h4 class="font-bold text-blue-900 text-base mb-5 tracking-tight flex items-center gap-2">
+                        <i class="fa-solid fa-bullseye text-sm"></i> Specific Focus
+                    </h4>
+                    
+                    <div>
+                        <span class="text-xs font-bold text-blue-600 block uppercase tracking-wider">Short Description</span>
+                        <p id="infoDescription" class="text-sm font-normal text-gray-600 mt-2 leading-relaxed">
+                            A student-led organization dedicated to fostering technology innovation and providing a foster network for abandoned pets within the CSPC community.
+                        </p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- change password modal-->
+        <div id="passwordModal" class="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
+            <div class="bg-white rounded-2xl p-6 max-w-md w-full mx-4 border border-gray-100 shadow-xl transform scale-95 transition-transform duration-300">
+                
+                <!-- Modal Header -->
+                <div class="flex items-center justify-between mb-5">
+                    <h3 class="text-lg font-bold text-blue-950 flex items-center gap-2">
+                        <i class="fa-solid fa-key text-blue-900"></i> Change Password
+                    </h3>
+                </div>
+        
+                <!-- Progress/Step Indicator -->
+                <div class="flex items-center gap-2 mb-6">
+                    <div id="stepIndicator1" class="h-1.5 flex-1 rounded-full bg-blue-900 transition-colors duration-300"></div>
+                    <div id="stepIndicator2" class="h-1.5 flex-1 rounded-full bg-gray-200 transition-colors duration-300"></div>
+                </div>
+        
+                <form id="changePasswordForm" class="space-y-4">
+                    
+                    <!-- STEP 1: Current Password Verification -->
+                    <div id="step1Container" class="space-y-4 transition-all duration-300">
+                        <p class="text-xs text-gray-500">To secure your account, please enter your current password to verify your identity.</p>
+                        <div>
+                            <label class="text-xs font-bold text-blue-600 block uppercase tracking-wider mb-1">Current Password</label>
+                            <input type="password" id="currentPassword" required class="w-full text-sm font-semibold text-gray-700 px-3 py-2 rounded-xl border border-gray-200 focus:outline-none focus:border-blue-900 transition bg-slate-50/50">
+                        </div>
+                        
+                        <!-- Step 1 Button -->
+                        <div class="flex justify-end gap-2 pt-2">
+                            <button type="button" id="cancelModalBtn" class="bg-gray-100 hover:bg-gray-200 text-gray-600 text-xs font-semibold px-4 py-2 rounded-xl transition">
+                                Cancel
+                            </button>
+                            <button type="button" id="verifyPasswordBtn" class="bg-blue-900 hover:bg-indigo-950 text-white text-xs font-semibold px-4 py-2 rounded-xl transition flex items-center gap-1.5 shadow-sm shadow-blue-900/10">
+                                Verify <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                            </button>
+                        </div>
+                    </div>
+        
+                    <!-- STEP 2: New Password Inputs (Hidden by default) -->
+                    <div id="step2Container" class="space-y-4 hidden transition-all duration-300 opacity-0 transform translate-x-4">
+                        <p class="text-xs text-gray-500">Your identity has been verified. You can now enter your new secure password.</p>
+                        <div>
+                            <label class="text-xs font-bold text-blue-600 block uppercase tracking-wider mb-1">New Password</label>
+                            <input type="password" id="newPassword" class="w-full text-sm font-semibold text-gray-700 px-3 py-2 rounded-xl border border-gray-200 focus:outline-none focus:border-blue-900 transition bg-slate-50/50">
+                        </div>
+        
+                        <div>
+                            <label class="text-xs font-bold text-blue-600 block uppercase tracking-wider mb-1">Confirm New Password</label>
+                            <input type="password" id="confirmPassword" class="w-full text-sm font-semibold text-gray-700 px-3 py-2 rounded-xl border border-gray-200 focus:outline-none focus:border-blue-900 transition bg-slate-50/50">
+                        </div>
+        
+                        <!-- Step 2 Buttons -->
+                        <div class="flex justify-end gap-2 pt-2">
+                            <button type="button" id="backToStep1Btn" class="bg-gray-100 hover:bg-gray-200 text-gray-600 text-xs font-semibold px-4 py-2 rounded-xl transition">
+                                Back
+                            </button>
+                            <button type="submit" id="submitPasswordBtn" class="bg-blue-900 hover:bg-indigo-950 text-white text-xs font-semibold px-4 py-2 rounded-xl transition shadow-sm shadow-blue-900/10">
+                                Update Password
+                            </button>
+                        </div>
+                    </div>
+        
+                    <!-- Error/Success Message Placeholder -->
+                    <p id="modalMessage" class="text-xs font-semibold hidden mt-2"></p>
+                </form>
+            </div>
+        </div>
+
+        <!-- Edit Org Profile-->
+        <div id="editProfileModal" class="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
+            <div class="bg-white rounded-2xl p-6 max-w-lg w-full mx-4 border border-gray-100 shadow-xl transform scale-95 transition-transform duration-300 max-h-[90vh] overflow-y-auto">
+                
+                <div class="flex items-center justify-between mb-5">
+                    <h3 class="text-lg font-bold text-blue-950 flex items-center gap-2">
+                        <i class="fa-solid fa-pen text-blue-900"></i> Edit Organization Profile
+                    </h3>
+                </div>
+        
+                <form id="editProfileForm" class="space-y-4" enctype="multipart/form-data">
+    
+                    <div class="flex flex-col items-center gap-3 bg-slate-50 p-4 rounded-xl border border-gray-100">
+                        <label class="text-xs font-bold text-blue-600 block uppercase tracking-wider">Organization Logo / Photo</label>
+                        
+                        <div class="relative w-20 h-20 rounded-full border border-gray-200 shadow-inner flex items-center justify-center bg-white overflow-hidden group">
+                            <i id="editModalIcon" class="fa-regular fa-user text-2xl text-blue-900"></i>
+                            <img id="editModalPreview" src="" alt="Preview" class="w-full h-full object-cover hidden">
+                            
+                            <label for="imageUploadInput" class="absolute inset-0 bg-black/40 flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition cursor-pointer text-xs font-medium">
+                                <i class="fa-solid fa-camera"></i>
+                            </label>
+                        </div>
+                        
+                        <input type="file" id="imageUploadInput" accept="image/*" class="hidden">
+                        <span class="text-[10px] text-gray-400">Click avatar to upload (.jpg, .png)</span>
+                    </div>
+                
+                    <div>
+                        <label class="text-xs font-bold text-blue-600 block uppercase tracking-wider mb-1">Organization Name</label>
+                        <input type="text" id="editOrgName" required class="w-full text-sm font-semibold text-gray-700 px-3 py-2 rounded-xl border border-gray-200 focus:outline-none focus:border-blue-900 transition bg-slate-50/50">
+                    </div>
+                
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="text-xs font-bold text-blue-600 block uppercase tracking-wider mb-1">Contact Number</label>
+                            <input type="text" id="editContact" required class="w-full text-sm font-semibold text-gray-700 px-3 py-2 rounded-xl border border-gray-200 focus:outline-none focus:border-blue-900 transition bg-slate-50/50">
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-blue-600 block uppercase tracking-wider mb-1">Contact Person</label>
+                            <input type="text" id="editContactPerson" required class="w-full text-sm font-semibold text-gray-700 px-3 py-2 rounded-xl border border-gray-200 focus:outline-none focus:border-blue-900 transition bg-slate-50/50">
+                        </div>
+                    </div>
+                
+                    <div>
+                        <label class="text-xs font-bold text-blue-600 block uppercase tracking-wider mb-1">Street Address / Landmark</label>
+                        <input type="text" id="editAddress" required class="w-full text-sm font-semibold text-gray-700 px-3 py-2 rounded-xl border border-gray-200 focus:outline-none focus:border-blue-900 transition bg-slate-50/50">
+                    </div>
+                
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="text-xs font-bold text-blue-600 block uppercase tracking-wider mb-1">City / Municipality</label>
+                            <input type="text" id="editCity" required class="w-full text-sm font-semibold text-gray-700 px-3 py-2 rounded-xl border border-gray-200 focus:outline-none focus:border-blue-900 transition bg-slate-50/50">
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-blue-600 block uppercase tracking-wider mb-1">Province</label>
+                            <input type="text" id="editProvince" required class="w-full text-sm font-semibold text-gray-700 px-3 py-2 rounded-xl border border-gray-200 focus:outline-none focus:border-blue-900 transition bg-slate-50/50">
+                        </div>
+                    </div>
+                
+                    <div>
+                        <label class="text-xs font-bold text-blue-600 block uppercase tracking-wider mb-1">Short Description</label>
+                        <textarea id="editDescription" rows="3" required class="w-full text-sm font-normal text-gray-700 px-3 py-2 rounded-xl border border-gray-200 focus:outline-none focus:border-blue-900 transition bg-slate-50/50 resize-none"></textarea>
+                    </div>
+                
+                    <p id="editModalMessage" class="text-xs font-semibold hidden"></p>
+                
+                    <div class="flex justify-end gap-2 pt-2">
+                        <button type="button" id="cancelEditBtn" class="bg-gray-100 hover:bg-gray-200 text-gray-600 text-xs font-semibold px-4 py-2 rounded-xl transition">
+                            Cancel
+                        </button>
+                        <button type="submit" id="saveProfileBtn" class="bg-blue-900 hover:bg-indigo-950 text-white text-xs font-semibold px-4 py-2 rounded-xl transition shadow-sm shadow-blue-900/10">
+                            Save Changes
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+
+<script>
+    //hide the org profile data
+    let currentOrgData = null;
+
+    document.addEventListener("DOMContentLoaded", async () => {
+
+    await loadTopbar({
+        title: "Profile"
+    });
+
+    await loadSidebar();
+   // 2. Kuhanin ang kumpletong impormasyon ng Org mula sa bagong API route natin
+   try {
+            const response = await fetch("/api/organization/profile");
+
+            if (response.ok) {
+                const data = await response.json();
+                currentOrgData = data;
+
+                // ----------------------------------------------------
+                // Name & PROFILE PIC/ICON LOGIC
+                // ----------------------------------------------------
+                if (data.organization_name) {
+                    document.getElementById("profileOrgName").textContent = data.organization_name;
+                }
+
+                const defaultIcon = document.getElementById("defaultUserIcon");
+                const orgLogo = document.getElementById("orgLogo");
+
+                if (data.profile_pic) {
+                    orgLogo.src = data.profile_pic;
+                    orgLogo.classList.remove("hidden");
+                    defaultIcon.classList.add("hidden");
+                } else {
+                    defaultIcon.classList.remove("hidden");
+                    orgLogo.classList.add("hidden");
+                }
+
+                // ----------------------------------------------------
+                // BASIC INFO
+                // ----------------------------------------------------
+                if (data.contact_person) {
+                    document.getElementById("infoContactPerson").textContent = data.contact_person;
+                } else {
+                    document.getElementById("infoContactPerson").textContent = "Not Specified";
+                }
+            
+                if (data.contact_number) {
+                    document.getElementById("infoContact").textContent = data.contact_number;
+                }
+                
+                if (data.organization_type) {
+                    document.getElementById("infoType").textContent = data.organization_type;
+                }
+
+                // ----------------------------------------------------
+                // ADDRESS
+                // ----------------------------------------------------
+                const addressParts = [];
+                if (data.address) addressParts.push(data.address);
+                if (data.city) addressParts.push(data.city);
+                if (data.province) addressParts.push(data.province);
+
+                if (addressParts.length > 0) {
+                    // Magiging format: "San Miguel, Nabua, Camarines Sur"
+                    document.getElementById("infoFullAddress").textContent = addressParts.join(", ");
+                } else {
+                    document.getElementById("infoFullAddress").textContent = "No address specified";
+                }
+
+                // ----------------------------------------------------
+                // SHORT DESCRIPTON
+                // ----------------------------------------------------
+                if (data.description) {
+                    document.getElementById("infoDescription").textContent = data.description;
+                }
+            }
+
+        } catch (error) {
+            console.error("Unable to upload the organization's information':", error);
+        }
+
+        // ----------------------------------------------------
+        // CHANGE PASSWORD MODAL OPEN/CLOSE TOGGLE
+        // ----------------------------------------------------
+        const passwordModal = document.getElementById("passwordModal");
+        const openModalBtn = document.getElementById("openModalBtn");
+        const cancelModalBtn = document.getElementById("cancelModalBtn");
+        const changePasswordForm = document.getElementById("changePasswordForm");
+
+        // Step Containers & Controls
+        const step1Container = document.getElementById("step1Container");
+        const step2Container = document.getElementById("step2Container");
+        const verifyPasswordBtn = document.getElementById("verifyPasswordBtn");
+        const backToStep1Btn = document.getElementById("backToStep1Btn");
+        const stepIndicator1 = document.getElementById("stepIndicator1");
+        const stepIndicator2 = document.getElementById("stepIndicator2");
+        const modalMessage = document.getElementById("modalMessage");
+
+        // Input Fields
+        const currentPasswordInput = document.getElementById("currentPassword");
+        const newPasswordInput = document.getElementById("newPassword");
+        const confirmPasswordInput = document.getElementById("confirmPassword");
+
+        // 1. Pagpapakita ng Mensahe sa Modal (Helper function)
+        function showModalMessage(text, isError = true) {
+            modalMessage.textContent = text;
+            modalMessage.classList.remove("hidden", "text-red-500", "text-green-500");
+            modalMessage.classList.add(isError ? "text-red-500" : "text-green-500");
+        }
+
+        function hideModalMessage() {
+            modalMessage.classList.add("hidden");
+        }
+
+        // 2. Pagbukas ng Modal (Laging babalik sa Step 1 kapag binuksan)
+        openModalBtn.addEventListener("click", () => {
+            goToStep1();
+            passwordModal.classList.remove("hidden");
+            setTimeout(() => {
+                passwordModal.classList.remove("opacity-0");
+                passwordModal.querySelector('div').classList.remove("scale-95");
+            }, 10);
+        });
+
+        // 3. Pagtatago ng Modal (Clean reset)
+        const hideModal = () => {
+            passwordModal.classList.add("opacity-0");
+            passwordModal.querySelector('div').classList.add("scale-95");
+            setTimeout(() => {
+                passwordModal.classList.add("hidden");
+                changePasswordForm.reset();
+                hideModalMessage();
+            }, 300);
+        };
+
+        cancelModalBtn.addEventListener("click", hideModal);
+
+        // 4. Function para mag-navigate sa Step 1
+        function goToStep1() {
+            hideModalMessage();
+            
+            // UI states
+            stepIndicator1.classList.replace("bg-gray-200", "bg-blue-900");
+            stepIndicator2.classList.replace("bg-blue-900", "bg-gray-200");
+            
+            // Transition effects
+            step2Container.classList.add("opacity-0", "translate-x-4");
+            setTimeout(() => {
+                step2Container.classList.add("hidden");
+                step1Container.classList.remove("hidden");
+                setTimeout(() => {
+                    step1Container.classList.remove("opacity-0", "-translate-x-4");
+                }, 50);
+            }, 150);
+
+            // Dynamic required fields management
+            currentPasswordInput.required = true;
+            newPasswordInput.required = false;
+            confirmPasswordInput.required = false;
+        }
+
+        // 5. Function para mag-navigate sa Step 2
+        function goToStep2() {
+            hideModalMessage();
+
+            // UI states
+            stepIndicator1.classList.replace("bg-blue-900", "bg-gray-200");
+            stepIndicator2.classList.replace("bg-gray-200", "bg-blue-900");
+
+            // Transition effects
+            step1Container.classList.add("opacity-0", "-translate-x-4");
+            setTimeout(() => {
+                step1Container.classList.add("hidden");
+                step2Container.classList.remove("hidden");
+                setTimeout(() => {
+                    step2Container.classList.remove("opacity-0", "translate-x-4");
+                }, 50);
+            }, 150);
+
+            // Dynamic required fields management
+            currentPasswordInput.required = false;
+            newPasswordInput.required = true;
+            confirmPasswordInput.required = true;
+        }
+
+        // Bumalik sa Step 1 mula sa Step 2
+        backToStep1Btn.addEventListener("click", goToStep1);
+
+        // 6. ACTION: I-verify ang Current Password (STEP 1)
+        verifyPasswordBtn.addEventListener("click", async () => {
+            const currentPassword = currentPasswordInput.value.trim();
+            if (!currentPassword) {
+                showModalMessage("Please enter your current password.");
+                return;
+            }
+
+            verifyPasswordBtn.disabled = true;
+            verifyPasswordBtn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> Verifying...`;
+
+            try {
+                // TATAWAGAN NITO ANG BACKEND API ROUTE MO PARA I-VERIFY ANG CURRENT PASSWORD
+                const response = await fetch("/api/organization/verify-password", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ currentPassword })
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    goToStep2(); // Kapag TAMA ang password, pupunta na sa Step 2!
+                } else {
+                    showModalMessage(result.message || "Incorrect password. Please try again.");
+                }
+            } catch (error) {
+                console.error(error);
+                showModalMessage("An error occurred during verification.");
+            } finally {
+                verifyPasswordBtn.disabled = false;
+                verifyPasswordBtn.innerHTML = `Verify <i class="fa-solid fa-arrow-right text-[10px]"></i>`;
+            }
+        });
+
+        // 7. ACTION: I-update na ang Bagong Password (STEP 2 SUBMIT)
+        changePasswordForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            // I-double check kung nasa Step 2 nga ba talaga ang submit trigger
+            if (step2Container.classList.contains("hidden")) return;
+
+            const newPassword = newPasswordInput.value;
+            const confirmPassword = confirmPasswordInput.value;
+
+            // Simple validation sa frontend
+            if (newPassword !== confirmPassword) {
+                showModalMessage("New passwords do not match.");
+                return;
+            }
+            
+            if (newPassword.length < 6) { // Halimbawang restriction
+                showModalMessage("Password must be at least 6 characters long.");
+                return;
+            }
+
+            const submitBtn = document.getElementById("submitPasswordBtn");
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> Updating...`;
+
+            try {
+                // TATAWAGAN NITO ANG BACKEND API ROUTE MO PARA I-UPDATE ANG PASSWORD
+                const response = await fetch("/api/organization/update-password", {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ 
+                        currentPassword: currentPasswordInput.value, // isasama pa rin para secure sa backend
+                        newPassword 
+                    })
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showModalMessage("Password changed successfully!", false);
+                    setTimeout(() => {
+                        hideModal();
+                    }, 1500); // Isasara ang modal pagkatapos ng 1.5 seconds para mabasa ang success text
+                } else {
+                    showModalMessage(result.message || "Failed to update password.");
+                }
+            } catch (error) {
+                console.error(error);
+                showModalMessage("An error occurred while updating password.");
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = `Update Password`;
+            }
+        });
+
+        // ----------------------------------------------------
+        // EDIT PROFILE MODAL TOGGLE & PRE-FILL
+        // ----------------------------------------------------
+        const editProfileModal = document.getElementById("editProfileModal");
+        const openEditModalBtn = document.getElementById("openEditModalBtn");
+        const cancelEditBtn = document.getElementById("cancelEditBtn");
+        const editProfileForm = document.getElementById("editProfileForm");
+        const editModalMessage = document.getElementById("editModalMessage");
+
+        const imageUploadInput = document.getElementById("imageUploadInput");
+        const editModalPreview = document.getElementById("editModalPreview");
+        const editModalIcon = document.getElementById("editModalIcon");
+
+        // Global variable para hawakan ang napiling file blob kung mayroon man
+        let selectedImageFile = null;
+
+        // Pagbukas at Pag-fill ng Data sa mga Inputs
+        openEditModalBtn.addEventListener("click", () => {
+            if (!currentOrgData) return;
+
+            // I-pre-fill ang text fields
+            document.getElementById("editOrgName").value = currentOrgData.organization_name || "";
+            document.getElementById("editContact").value = currentOrgData.contact_number || "";
+            document.getElementById("editContactPerson").value = currentOrgData.contact_person || "";
+            document.getElementById("editAddress").value = currentOrgData.address || "";
+            document.getElementById("editCity").value = currentOrgData.city || "";
+            document.getElementById("editProvince").value = currentOrgData.province || "";
+            document.getElementById("editDescription").value = currentOrgData.description || "";
+
+            // I-pre-fill ang Image base kung may lumang profile pic
+            if (currentOrgData.profile_pic) {
+                editModalPreview.src = currentOrgData.profile_pic;
+                editModalPreview.classList.remove("hidden");
+                editModalIcon.classList.add("hidden");
+            } else {
+                editModalPreview.classList.add("hidden");
+                editModalIcon.classList.remove("hidden");
+            }
+
+            selectedImageFile = null; // I-reset ang file selector taglay
+            imageUploadInput.value = ""; // Linisin ang input state
+
+            // Buksan ang modal
+            editProfileModal.classList.remove("hidden");
+            setTimeout(() => {
+                editProfileModal.classList.remove("opacity-0");
+                editProfileModal.querySelector('div').classList.remove("scale-95");
+            }, 10);
+        });
+
+        // LIVE PREVIEW: Pag nagpalit ng Image ang User
+        imageUploadInput.addEventListener("change", (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                selectedImageFile = file; // I-save sa state variable natin
+                
+                // Gumawa ng pansamantalang local URL para sa live preview
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    editModalPreview.src = e.target.result;
+                    editModalPreview.classList.remove("hidden");
+                    editModalIcon.classList.add("hidden");
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Pagtatago ng Modal
+        const hideEditModal = () => {
+            editProfileModal.classList.add("opacity-0");
+            editProfileModal.querySelector('div').classList.add("scale-95");
+            setTimeout(() => {
+                editProfileModal.classList.add("hidden");
+                editModalMessage.classList.add("hidden");
+            }, 300);
+        };
+
+        cancelEditBtn.addEventListener("click", hideEditModal);
+
+        // ACTION: I-submit ang mga Binagong Data (Texts + Image)
+        editProfileForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            const saveProfileBtn = document.getElementById("saveProfileBtn");
+            saveProfileBtn.disabled = true;
+            saveProfileBtn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> Saving...`;
+
+            // 1. Gumawa ng FormData Instance
+            const formData = new FormData();
+            formData.append("organization_name", document.getElementById("editOrgName").value.trim());
+            formData.append("contact_number", document.getElementById("editContact").value.trim());
+            formData.append("contact_person", document.getElementById("editContactPerson").value.trim());
+            formData.append("address", document.getElementById("editAddress").value.trim());
+            formData.append("city", document.getElementById("editCity").value.trim());
+            formData.append("province", document.getElementById("editProvince").value.trim());
+            formData.append("description", document.getElementById("editDescription").value.trim());
+            
+            // Isama ang image file kung may piniling bago si user
+            if (selectedImageFile) {
+                formData.append("profile_pic", selectedImageFile);
+            }
+
+            try {
+                // 2. I-fetch papuntang Backend API Route
+                const response = await fetch("/api/organization/update-profile", {
+                    method: "PUT",
+                    body: formData 
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    editModalMessage.textContent = "Profile updated successfully!";
+                    editModalMessage.className = "text-xs font-semibold text-green-500 mt-2 block";
+                    
+                    // 🔥 1. I-save lang sa localStorage ang bagong image path na galing sa backend
+                    if (result.profile_pic) {
+                        localStorage.setItem('userProfilePic', result.profile_pic);
+                    }
+
+                    // I-refresh ang page para makita ang mga bagong pagbabago pagkatapos ng 1 segundo
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                } else {
+                    editModalMessage.textContent = result.message || "Failed to update profile.";
+                    editModalMessage.className = "text-xs font-semibold text-red-500 mt-2 block";
+                    saveProfileBtn.disabled = false;
+                    saveProfileBtn.innerHTML = "Save Changes";
+                }
+            } catch (error) {
+                console.error(error);
+                editModalMessage.textContent = "An error occurred while saving profile.";
+                editModalMessage.className = "text-xs font-semibold text-red-500 mt-2 block";
+                saveProfileBtn.disabled = false;
+                saveProfileBtn.innerHTML = "Save Changes";
+            }
+        }); // Dito nagtatapos ang editProfileForm submit listener
+
+        // 🔥 2. BAGONG DAGDAG: Ito ang tatakbo AWTOMATIKO tuwing magre-refresh o maglo-load ang page!
+        const savedPic = localStorage.getItem('userProfilePic');
+        const imgTag = document.getElementById('headerProfilePic');
+        const iconTag = document.getElementById('headerProfileIcon');
+        
+        if (savedPic && imgTag && iconTag) {
+            imgTag.src = savedPic;
+            imgTag.classList.remove('hidden'); // Ipakita ang larawan
+            iconTag.classList.add('hidden');    // Itago ang default icon
+        }
+        
+        });
+</script>
+</body>
+</html>
