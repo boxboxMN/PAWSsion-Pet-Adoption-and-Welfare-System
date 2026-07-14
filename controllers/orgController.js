@@ -14,8 +14,12 @@ exports.addPet = async (req, res) => {
             behavior_description,
             health_status,
             vaccination_status,
-            adoption_status
+            adoption_status,
+            personality_tags,
+            medical_history
         } = req.body;
+
+        console.log("Received tags:", personality_tags);
 
 
         // get organization using logged account
@@ -27,7 +31,7 @@ exports.addPet = async (req, res) => {
             `,
             [req.session.accountId]
         );
-
+        console.log("Organization Query Result:", org);
 
         if (!org.length) {
             return res.status(404).json({
@@ -42,29 +46,37 @@ exports.addPet = async (req, res) => {
 
         let image_path = null;
 
-        if(req.file){
+        if (req.file) {
             image_path = req.file.filename;
         }
 
+        console.log("===== ADD PET REQUEST =====");
+        console.log("Session:", req.session);
+        console.log("Body:", req.body);
+        console.log("File:", req.file);
+        console.log("Organization ID:", organization_id);
 
-        await pool.query(
+        console.log("INSERTING PET...");
+
+        const [result] = await pool.query(
             `
             INSERT INTO animals
             (
-                organization_id,
-                name,
-                species,
-                gender,
-                age,
-                birth_date,
-                color,
-                behavior_description,
-                health_status,
-                vaccination_status,
-                adoption_status,
-                image_path
+            organization_id,
+            name,
+            species,
+            gender,
+            age,
+            birth_date,
+            color,
+            behavior_description,
+            health_status,
+            vaccination_status,
+            adoption_status,
+            image_path,
+            personality_tags
             )
-            VALUES (?,?,?,?,?,?,?,?,?,?,?,?)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)
             `,
             [
                 organization_id,
@@ -78,33 +90,68 @@ exports.addPet = async (req, res) => {
                 health_status,
                 vaccination_status,
                 adoption_status,
-                image_path
+                image_path,
+                personality_tags || null
             ]
-        );
+            );
 
+            console.log("Insert Result:", result);
 
-        res.json({
-            success:true,
-            message:"Pet added successfully"
-        });
+            // Get the newly inserted pet ID
+            const animal_id = result.insertId;
 
+            // Parse medical history from frontend
+            const medicalHistory = medical_history
+                ? JSON.parse(medical_history)
+                : [];
 
-    } catch(error){
+            // Save each medical record
+            for (const medical of medicalHistory) {
 
-        console.error(error);
+                await pool.query(
+                    `
+                    INSERT INTO animal_medical_history
+                    (
+                        animal_id,
+                        treatment,
+                        administered_date,
+                        administered_by
+                    )
+                    VALUES (?,?,?,?)
+                    `,
+                    [
+                        animal_id,
+                        medical.treatment,
+                        medical.administered_date,
+                        medical.administered_by
+                    ]
+                );
 
-        res.status(500).json({
-            success:false,
-            message:"Something went wrong"
-        });
+            }
 
-    }
+            res.json({
+                success: true,
+                message: "Pet added successfully"
+            });
+
+    }catch (error) {
+
+    console.error("========== PET INSERT ERROR ==========");
+    console.error(error);
+
+    res.status(500).json({
+        success: false,
+        message: error.message
+    });
+
+}
 
 };
-
 //pets card
 exports.getPets = async (req, res) => {
+
     try {
+
         const [org] = await pool.query(
             `
             SELECT organization_id
@@ -115,9 +162,9 @@ exports.getPets = async (req, res) => {
         );
 
         if (!org.length) {
-            return res.status(404).json({
-                success: false,
-                message: "Organization not found"
+            return res.json({
+                success:false,
+                message:"Organization not found"
             });
         }
 
@@ -134,47 +181,69 @@ exports.getPets = async (req, res) => {
         );
 
         res.json({
-            success: true,
+            success:true,
             pets
         });
 
-    } catch (error) {
-
-        console.error(error);
-
-        res.status(500).json({
-            success: false,
-            message: "Unable to load pets."
-        });
-    }
-};
-exports.getPetDetails = async (req, res) => {
-    try{
-
-        const [rows] = await pool.query(
-            "SELECT * FROM animals WHERE animal_id = ?",
-            [req.params.id]
-        );
-
-        if(!rows.length){
-            return res.json({
-                success:false,
-                message:"Pet not found."
-            });
-        }
-
-        res.json({
-            success:true,
-            pet:rows[0]
-        });
-
-    }catch(err){
+    } catch(err){
 
         console.error(err);
 
         res.status(500).json({
             success:false,
-            message:"Server error"
+            message:"Unable to load pets."
         });
+
+    }
+
+};
+exports.getPetDetails = async (req, res) => {
+    try {
+
+        // Get pet information
+        const [rows] = await pool.query(
+            `
+            SELECT *
+            FROM animals
+            WHERE animal_id = ?
+            `,
+            [req.params.id]
+        );
+
+        if (!rows.length) {
+            return res.json({
+                success: false,
+                message: "Pet not found."
+            });
+        }
+
+        // Get medical history
+        const [medical] = await pool.query(
+            `
+            SELECT *
+            FROM animal_medical_history
+            WHERE animal_id = ?
+            ORDER BY administered_date DESC
+            `,
+            [req.params.id]
+        );
+
+        // Attach medical history to the pet object
+        rows[0].medical_history = medical;
+
+        res.json({
+            success: true,
+            pet: rows[0]
+        });
+
+    } catch (err) {
+
+        console.error(err);
+
+        res.status(500).json({
+            success: false,
+            message: "Server error"
+        });
+
     }
 };
