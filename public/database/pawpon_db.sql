@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jul 13, 2026 at 02:56 PM
+-- Generation Time: Jul 15, 2026 at 12:22 AM
 -- Server version: 10.4.32-MariaDB
--- PHP Version: 8.2.12
+-- PHP Version: 8.0.30
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -44,7 +44,7 @@ CREATE TABLE `accounts` (
 
 INSERT INTO `accounts` (`account_id`, `email`, `password_hash`, `role`, `status`, `email_verified`, `created_at`, `updated_at`) VALUES
 (1, 'admin@pawpon.com', '$2b$10$l16R.DYg693wgKJJ20QQYucqrCl8.Zop120.UkdYO7g0TKXTc6vr6', 'admin', 'active', 1, '2026-07-06 14:27:26', '2026-07-06 14:40:55'),
-(2, 'pawssion@gmail.com', '$2b$10$2hXt/yS9bNVHA2d31JWDHuzjfOcyEz5Px8RY3DN3MxhDFApxxCTMe', 'organization', 'active', 1, '2026-07-13 12:51:22', '2026-07-13 12:53:17'),
+(2, 'pawssion@gmail.com', '$2b$10$mCqjYvPjrvf.vp/hVj91l.z4Qq4MQM8A.ziajxTWFPFwwi/8ssMca', 'organization', 'active', 1, '2026-07-13 12:51:22', '2026-07-14 18:01:36'),
 (3, 'shin@gmail.com', '$2b$10$tuu0.7L9PiYpbXeUNdRmw.rerKPVXwUhOuCzh/mgR1LduNDDVL5.q', 'adopter', 'active', 1, '2026-07-13 12:55:42', '2026-07-13 12:55:42');
 
 -- --------------------------------------------------------
@@ -109,6 +109,7 @@ CREATE TABLE `organizations` (
   `organization_id` int(11) NOT NULL,
   `account_id` int(11) NOT NULL,
   `organization_name` varchar(255) DEFAULT NULL,
+  `profile_pic` varchar(255) DEFAULT NULL,
   `organization_type` varchar(100) DEFAULT NULL,
   `contact_person` varchar(150) DEFAULT NULL,
   `contact_number` varchar(20) DEFAULT NULL,
@@ -123,8 +124,8 @@ CREATE TABLE `organizations` (
 -- Dumping data for table `organizations`
 --
 
-INSERT INTO `organizations` (`organization_id`, `account_id`, `organization_name`, `organization_type`, `contact_person`, `contact_number`, `address`, `city`, `province`, `description`, `verification_status`) VALUES
-(1, 2, 'PAWSsion Benevolence Circle', 'Rescue Organization', 'Althea idk ', '09876543212', 'CSPC Nabua', 'idk NABUA', 'CamSur', 'Join our community to support rescued cats and dogs.\r\nCreate an organization account to manage rescued animals,\r\ntrack adoption requests, and coordinate donations\r\nto give them a loving home.', 'Approved');
+INSERT INTO `organizations` (`organization_id`, `account_id`, `organization_name`, `profile_pic`, `organization_type`, `contact_person`, `contact_number`, `address`, `city`, `province`, `description`, `verification_status`) VALUES
+(1, 2, 'PAWSsion Benevolence Circle', '/uploads/orgs/org-2-1784067542354-198998845.jfif', 'Rescue Organization', 'Althea idk', '09876543212', 'CSPC Nabua', 'idk NABUA', 'CamSur', 'Join our community to support rescued cats and dogs.\r\nCreate an organization account to manage rescued animals,\r\ntrack adoption requests, and coordinate donations\r\nto give them a loving home.', 'Approved');
 
 -- --------------------------------------------------------
 
