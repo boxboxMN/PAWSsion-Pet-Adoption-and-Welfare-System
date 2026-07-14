@@ -150,3 +150,36 @@ exports.getPets = async (req, res) => {
 
     }
 };
+exports.getPetDetails = async (req, res) => {
+
+    try{
+
+        const [rows] = await pool.query(
+            "SELECT * FROM animals WHERE animal_id = ?",
+            [req.params.id]
+        );
+
+        if(!rows.length){
+            return res.json({
+                success:false,
+                message:"Pet not found."
+            });
+        }
+
+        res.json({
+            success:true,
+            pet:rows[0]
+        });
+
+    }catch(err){
+
+        console.error(err);
+
+        res.status(500).json({
+            success:false,
+            message:"Server error"
+        });
+
+    }
+
+};

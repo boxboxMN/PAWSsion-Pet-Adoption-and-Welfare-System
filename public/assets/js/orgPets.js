@@ -227,10 +227,132 @@ function createPetCard(pet) {
                         </span>
                     `).join("")}
                 </div>
-                <button class="mt-6 w-full border border-slate-300 rounded-2xl py-3 font-semibold text-slate-700 hover:bg-slate-100 transition">
+                <button
+                    class="viewPetBtn mt-5 bg-blue-700 text-white px-4 py-2 rounded-xl"
+                    data-id="${pet.animal_id}">
                     View Profile
                 </button>
             </div>
         </div>
     `;
+}
+document.addEventListener("click", async (e) => {
+    const btn = e.target.closest(".viewPetBtn");
+    if (!btn) return;
+
+    const id = btn.dataset.id;
+
+    try {
+        const res = await fetch(`/org/pets/${id}`);
+        const data = await res.json();
+
+        if (!data.success) {
+            alert("Unable to load pet details.");
+            return;
+        }
+
+        openPetDetailsModal(data.pet);
+    } catch (err) {
+       try {
+
+    const res = await fetch(`/org/pets/${id}`);
+
+    console.log("Status:", res.status);
+
+    const text = await res.text();
+
+    console.log(text);
+
+    const data = JSON.parse(text);
+
+    console.log(data);
+
+    if(!data.success){
+        alert(data.message);
+        return;
+    }
+
+    openPetDetailsModal(data.pet);
+
+}
+catch(err){
+
+    console.error(err);
+
+}
+    }
+});
+
+function openPetDetailsModal(pet){
+
+    const modal = document.getElementById("viewPetModal");
+
+    document.getElementById("viewPetImage").src =
+        pet.image_path
+            ? `/uploads/pets/${pet.image_path}`
+            : "/assets/images/no-image.png";
+
+    document.getElementById("viewName").textContent = pet.name;
+
+    document.getElementById("viewSpecies").textContent = pet.species;
+
+    document.getElementById("viewGender").textContent = pet.gender;
+
+    document.getElementById("viewAge").textContent = pet.age;
+
+    document.getElementById("viewColor").textContent =
+        pet.color || "Unknown";
+
+    document.getElementById("viewBirthDate").textContent =
+        pet.birth_date || "Unknown";
+
+    document.getElementById("viewVaccination").textContent =
+        pet.vaccination_status;
+
+    document.getElementById("viewHealthStatus").textContent =
+        pet.health_status;
+
+    document.getElementById("viewHealth").textContent =
+        pet.health_status;
+
+    document.getElementById("viewStatus").textContent =
+        pet.adoption_status;
+
+    document.getElementById("viewDescription").textContent =
+        pet.behavior_description || "No description.";
+
+    document.getElementById("viewCreatedAt").textContent =
+        pet.created_at;
+
+    const tags = document.getElementById("viewTags");
+
+    tags.innerHTML = "";
+
+    if(pet.personality_tags){
+
+        pet.personality_tags.split(",").forEach(tag=>{
+
+            tags.innerHTML += `
+                <span class="bg-blue-700 text-white px-3 py-1 rounded-full text-sm">
+                    ${tag.trim()}
+                </span>
+            `;
+
+        });
+
+    }
+
+    modal.classList.remove("hidden");
+
+    modal.classList.add("flex");
+}
+
+function closeViewPetModal(){
+
+    const modal = document.getElementById("viewPetModal");
+
+    modal.classList.remove("flex");
+
+    modal.classList.add("hidden");
+
 }
