@@ -206,14 +206,14 @@ function createPetCard(pet) {
             </div>
             <div class="p-6">
                 <h2 class="text-3xl font-bold text-slate-800">${pet.name}</h2>
-                <p class="mt-1 text-slate-500 flex items-center flex-wrap gap-2">
-                    <span>${pet.species}</span>
+                <p class="mt-1 flex items-center gap-1.5 text-xs font-medium text-slate-500 whitespace-nowrap overflow-hidden">
+                    <span class="truncate">${pet.species}</span>
                     <span>•</span>
-                    <span>${pet.age}</span>
+                    <span class="truncate">${pet.age}</span>
                     <span>•</span>
-                    <span class="${genderColor}">
-                        <i class="fa-solid ${genderIcon}"></i>
-                        ${pet.gender}
+                    <span class="${genderColor} flex items-center gap-1 shrink-0">
+                        <i class="fa-solid ${genderIcon} text-[11px]"></i>
+                        <span>${pet.gender}</span>
                     </span>
                 </p>
                <div class="flex flex-wrap gap-2 mt-5">
@@ -227,11 +227,25 @@ function createPetCard(pet) {
                             : `<span class="text-slate-400 text-sm italic">No personality tags</span>`
                     }
                 </div>
-                <button
-                    class="viewPetBtn mt-5 bg-blue-700 text-white px-4 py-2 rounded-xl"
-                    data-id="${pet.animal_id}">
-                    View Profile
-                </button>
+                <div class="mt-6 flex justify-center">
+                    <button
+                        class="viewPetBtn
+                            w-full
+                            max-w-xs
+                            py-3
+                            rounded-2xl
+                            border border-slate-300
+                            bg-slate-50
+                            text-[#0F4C92]
+                            font-semibold
+                            text-lg
+                            hover:bg-blue-50
+                            hover:border-blue-300
+                            transition-all duration-200"
+                        data-id="${pet.animal_id}">
+                        View Profile
+                    </button>
+                </div>
             </div>
         </div>
     `;
