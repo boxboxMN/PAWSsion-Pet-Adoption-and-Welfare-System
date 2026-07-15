@@ -21,6 +21,27 @@
     data-sidebar-collapsed="false"
     class="pt-28 pb-12 px-4 md:px-8 transition-all duration-200 ease-in-out left-0 md:ml-[280px] data-[sidebar-collapsed=true]:md:ml-20">
     <!-- 👇 Nothing here – just the bare structural container -->
+
+    <!--Logout Modal-->
+    <div id="logoutModal" class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/45 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-200">
+        <div class="bg-white rounded-2xl max-w-sm w-full mx-4 p-6 shadow-2xl scale-95 transition-transform duration-200">
+            <div class="text-center">
+                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-50 mb-4">
+                    <i class="fa-solid fa-right-from-bracket text-red-600 text-lg"></i>
+                </div>
+                <h3 class="text-lg font-bold text-gray-900">Logging Out?</h3>
+                <p class="text-sm text-gray-500 mt-2">Are you sure you want to leave the Pawpon Org Portal?</p>
+            </div>
+            <div class="mt-6 flex gap-3">
+                <button id="cancelLogoutBtn" class="flex-1 px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-xl transition text-sm">
+                    Cancel
+                </button>
+                <button id="confirmLogoutBtn" class="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white font-medium rounded-xl transition shadow-sm shadow-red-200 text-sm">
+                    Yes, Logout
+                </button>
+            </div>
+        </div>
+    </div>
 </main>
 
     <!-- 3. INTERACTION SCRIPT WITH ASYNC FETCH -->
