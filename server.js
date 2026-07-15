@@ -217,41 +217,6 @@ app.post("/api/organization/verify-password", async (req, res) => {
 });
 
 //MODAL NEW PASSWORD UPDATE
-// app.put("/api/organization/update-password", async (req, res) => {
-//   if (!req.session.accountId) {
-//       return res.status(401).json({ message: "Unauthorized" });
-//   }
-
-//   const { currentPassword, newPassword } = req.body;
-
-//   try {
-//       // Double-check security: I-verify ulit ang current password para hindi ma-bypass gamit ang API tools (Postman)
-//       const storedHashedPassword = await Organization.getPasswordById(req.session.accountId);
-//       const isMatch = await bcrypt.compare(currentPassword, storedHashedPassword);
-
-//       if (!isMatch) {
-//           return res.status(400).json({ message: "Verification failed. Action blocked." });
-//       }
-
-//       // 1. I-hash ang bagong password ng user (10 rounds ng salt)
-//       const saltRounds = 10;
-//       const hashedNewPassword = await bcrypt.hash(newPassword, saltRounds);
-
-//       // 2. I-save sa database gamit ang Model natin
-//       const success = await Organization.updatePassword(req.session.accountId, hashedNewPassword);
-
-//       if (success) {
-//           res.status(200).json({ message: "Password updated successfully!" });
-//       } else {
-//           res.status(500).json({ message: "Failed to update database record." });
-//       }
-
-//   } catch (err) {
-//       console.error(err);
-//       res.status(500).json({ message: "Server error while updating password." });
-//   }
-// });
-
 app.put("/api/organization/update-password", async (req, res) => {
     // 1. Check kung naka-login ang user
     if (!req.session.accountId) {
