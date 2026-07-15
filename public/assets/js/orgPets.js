@@ -350,7 +350,6 @@ function openPetDetailsModal(pet){
             `;
 
         });
-
     }
 
     // ============================
