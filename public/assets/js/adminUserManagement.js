@@ -133,7 +133,10 @@
                 timeStr = `${dateStr} ${hour12}:${mins} ${ampm}`;
             }
 
-            const avatarUrl = getAvatarUrl(index);
+            const avatarUrl =
+                    user.profile
+                        ? user.profile
+                        : getAvatarUrl(index);
 
             const card = document.createElement("div");
             card.className = `user-card fadeIn ${selectedUserId === userId ? 'selected' : ''}`;
@@ -248,7 +251,10 @@
                 hour12: true
             }) : "—";
 
-            const avatarUrl = getAvatarUrl(allUsers.indexOf(user));
+            const avatarUrl =
+                user.profile
+                    ? user.profile
+                    : getAvatarUrl(allUsers.indexOf(user));
 
             body.innerHTML = `
                 <img

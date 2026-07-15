@@ -18,3 +18,7 @@ npx tailwindcss init
 3. npm install multer for uploading files
 4. working admin side email: admin@pawpon.com || password: admin@pawpon.com || org and user accounts: use email for password
 5. add sessions for each user (not yet started)
+6. Pa add nalang sa database nito 
+ALTER TABLE accounts
+ADD COLUMN last_login DATETIME NULL
+AFTER updated_at;

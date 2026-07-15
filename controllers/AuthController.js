@@ -111,10 +111,22 @@ exports.login = async (req, res) => {
     }
 
     const isValidPassword = await bcrypt.compare(password, account.password_hash);
+
     if (!isValidPassword) {
-      return res.status(401).send(genericAuthError);
+        return res.status(401).send(genericAuthError);
     }
 
+    // ✅ Update last login
+    await pool.query(
+        `
+        UPDATE accounts
+        SET last_login = NOW()
+        WHERE account_id = ?
+        `,
+        [account.account_id]
+    );
+
+    // Create session
     req.session.accountId = account.account_id;
     req.session.role = account.role;
     if (account.role === "admin") {

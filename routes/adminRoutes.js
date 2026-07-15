@@ -33,6 +33,7 @@ router.get("/notifications", (req, res) => {
     res.sendFile(path.join(__dirname, "../public/admin/notifications.html"));
 });
 
+
 // Logout
 router.get("/logout", (req, res) => {
     req.session.destroy(() => {
@@ -48,35 +49,43 @@ router.get("/users", async (req, res) => {
     try {
 
         const [rows] = await pool.query(`
-            SELECT
+           SELECT
                 a.account_id,
                 a.email,
                 a.role,
                 a.status,
-                a.email_verified,
                 a.created_at,
+                a.last_login,
 
                 CASE
-                    WHEN a.role = 'admin'
-                        THEN 'Administrator'
-
-                    WHEN a.role = 'organization'
-                        THEN o.organization_name
-
-                    WHEN a.role = 'adopter'
+                    WHEN a.role='adopter'
                         THEN CONCAT(ad.first_name,' ',ad.last_name)
+                    WHEN a.role='organization'
+                        THEN o.organization_name
+                    ELSE 'Administrator'
+                END AS name,
 
-                    ELSE '-'
-                END AS name
+                CASE
+                    WHEN a.role='adopter'
+                        THEN ad.phone_number
+                    WHEN a.role='organization'
+                        THEN o.contact_number
+                    ELSE NULL
+                END AS phone,
+
+                CASE
+                    WHEN a.role='adopter'
+                        THEN ad.profile_picture
+                    WHEN a.role='organization'
+                        THEN o.profile_pic
+                    ELSE NULL
+                END AS profile
 
             FROM accounts a
-
-            LEFT JOIN organizations o
-                ON a.account_id = o.account_id
-
             LEFT JOIN adopters ad
                 ON a.account_id = ad.account_id
-
+            LEFT JOIN organizations o
+                ON a.account_id = o.account_id
             ORDER BY a.created_at DESC
         `);
 
