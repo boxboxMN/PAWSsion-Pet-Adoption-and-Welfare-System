@@ -62,6 +62,8 @@ async function loadSidebar(activePage = "") {
 
         initializeSidebar();
 
+        setupLogoutControl();
+
     } catch (error) {
         console.error("Error loading sidebar:", error);
     }
@@ -170,4 +172,38 @@ function initializeSidebar() {
 
     });
 
+}
+
+// NEW FUNCTION AT THE BOTTOM OF ORGSIDEBAR.JS:
+function setupLogoutControl() {
+    const logoutModal = document.getElementById("logoutModal");
+    const openLogoutBtn = document.getElementById("logoutLink"); // Siguraduhing id="logoutLink" ang nasa HTML mo
+    const cancelLogoutBtn = document.getElementById("cancelLogoutBtn");
+    const confirmLogoutBtn = document.getElementById("confirmLogoutBtn");
+
+    // Check muna kung umiiral sila sa na-load na HTML bago lagyan ng listeners
+    if (openLogoutBtn && logoutModal) {
+        
+        // 1. Buksan ang Modal
+        openLogoutBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            logoutModal.classList.remove("pointer-events-none", "opacity-0");
+            logoutModal.querySelector('div').classList.remove("scale-95");
+        });
+
+        // 2. Isara ang Modal (Cancel)
+        if (cancelLogoutBtn) {
+            cancelLogoutBtn.addEventListener("click", () => {
+                logoutModal.classList.add("pointer-events-none", "opacity-0");
+                logoutModal.querySelector('div').classList.add("scale-95");
+            });
+        }
+
+        // 3. Ituloy ang Logout (Confirm)
+        if (confirmLogoutBtn) {
+            confirmLogoutBtn.addEventListener("click", () => {
+                window.location.href = "/auth/login.html";
+            });
+        }
+    }
 }
