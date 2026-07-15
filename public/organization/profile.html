@@ -122,10 +122,14 @@
                         <p class="text-xs text-gray-500">To secure your account, please enter your current password to verify your identity.</p>
                         <div>
                             <label class="text-xs font-bold text-blue-600 block uppercase tracking-wider mb-1">Current Password</label>
-                            <input type="password" id="currentPassword" required class="w-full text-sm font-semibold text-gray-700 px-3 py-2 rounded-xl border border-gray-200 focus:outline-none focus:border-blue-900 transition bg-slate-50/50">
+                            <div class="relative">
+                                <input type="password" id="currentPassword" required class="w-full text-sm font-semibold text-gray-700 pl-3 pr-10 py-2 rounded-xl border border-gray-200 focus:outline-none focus:border-blue-900 transition bg-slate-50/50">
+                                <button type="button" onclick="togglePetPassword('currentPassword', 'currentPassIcon')" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-blue-900 transition">
+                                    <i id="currentPassIcon" class="fa-solid fa-paw text-base"></i>
+                                </button>
+                            </div>
                         </div>
                         
-                        <!-- Step 1 Button -->
                         <div class="flex justify-end gap-2 pt-2">
                             <button type="button" id="cancelModalBtn" class="bg-gray-100 hover:bg-gray-200 text-gray-600 text-xs font-semibold px-4 py-2 rounded-xl transition">
                                 Cancel
@@ -135,21 +139,29 @@
                             </button>
                         </div>
                     </div>
-        
-                    <!-- STEP 2: New Password Inputs (Hidden by default) -->
+                    
                     <div id="step2Container" class="space-y-4 hidden transition-all duration-300 opacity-0 transform translate-x-4">
                         <p class="text-xs text-gray-500">Your identity has been verified. You can now enter your new secure password.</p>
                         <div>
                             <label class="text-xs font-bold text-blue-600 block uppercase tracking-wider mb-1">New Password</label>
-                            <input type="password" id="newPassword" class="w-full text-sm font-semibold text-gray-700 px-3 py-2 rounded-xl border border-gray-200 focus:outline-none focus:border-blue-900 transition bg-slate-50/50">
+                            <div class="relative">
+                                <input type="password" id="newPassword" class="w-full text-sm font-semibold text-gray-700 pl-3 pr-10 py-2 rounded-xl border border-gray-200 focus:outline-none focus:border-blue-900 transition bg-slate-50/50">
+                                <button type="button" onclick="togglePetPassword('newPassword', 'newPassIcon')" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-blue-900 transition">
+                                    <i id="newPassIcon" class="fa-solid fa-paw text-base"></i>
+                                </button>
+                            </div>
                         </div>
-        
+                    
                         <div>
                             <label class="text-xs font-bold text-blue-600 block uppercase tracking-wider mb-1">Confirm New Password</label>
-                            <input type="password" id="confirmPassword" class="w-full text-sm font-semibold text-gray-700 px-3 py-2 rounded-xl border border-gray-200 focus:outline-none focus:border-blue-900 transition bg-slate-50/50">
+                            <div class="relative">
+                                <input type="password" id="confirmPassword" class="w-full text-sm font-semibold text-gray-700 pl-3 pr-10 py-2 rounded-xl border border-gray-200 focus:outline-none focus:border-blue-900 transition bg-slate-50/50">
+                                <button type="button" onclick="togglePetPassword('confirmPassword', 'confirmPassIcon')" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-blue-900 transition">
+                                    <i id="confirmPassIcon" class="fa-solid fa-paw text-base"></i>
+                                </button>
+                            </div>
                         </div>
-        
-                        <!-- Step 2 Buttons -->
+                    
                         <div class="flex justify-end gap-2 pt-2">
                             <button type="button" id="backToStep1Btn" class="bg-gray-100 hover:bg-gray-200 text-gray-600 text-xs font-semibold px-4 py-2 rounded-xl transition">
                                 Back
@@ -179,7 +191,7 @@
                 <form id="editProfileForm" class="space-y-4" enctype="multipart/form-data">
     
                     <div class="flex flex-col items-center gap-3 bg-slate-50 p-4 rounded-xl border border-gray-100">
-                        <label class="text-xs font-bold text-blue-600 block uppercase tracking-wider">Organization Logo / Photo</label>
+                        <label class="text-xs font-bold text-blue-600 block uppercase tracking-wider">Organization Profile Picture</label>
                         
                         <div class="relative w-20 h-20 rounded-full border border-gray-200 shadow-inner flex items-center justify-center bg-white overflow-hidden group">
                             <i id="editModalIcon" class="fa-regular fa-user text-2xl text-blue-900"></i>
@@ -191,7 +203,7 @@
                         </div>
                         
                         <input type="file" id="imageUploadInput" accept="image/*" class="hidden">
-                        <span class="text-[10px] text-gray-400">Click avatar to upload (.jpg, .png)</span>
+                        <span class="text-[10px] text-gray-400">Click avatar to upload photo</span>
                     </div>
                 
                     <div>
@@ -211,7 +223,7 @@
                     </div>
                 
                     <div>
-                        <label class="text-xs font-bold text-blue-600 block uppercase tracking-wider mb-1">Street Address / Landmark</label>
+                        <label class="text-xs font-bold text-blue-600 block uppercase tracking-wider mb-1">Street Address</label>
                         <input type="text" id="editAddress" required class="w-full text-sm font-semibold text-gray-700 px-3 py-2 rounded-xl border border-gray-200 focus:outline-none focus:border-blue-900 transition bg-slate-50/50">
                     </div>
                 
@@ -471,24 +483,36 @@
             }
         });
 
-        // 7. ACTION: I-update na ang Bagong Password (STEP 2 SUBMIT)
-        changePasswordForm.addEventListener("submit", async (e) => {
+      // 7. ACTION: I-update na ang Bagong Password (STEP 2 SUBMIT)
+      changePasswordForm.addEventListener("submit", async (e) => {
             e.preventDefault();
 
             // I-double check kung nasa Step 2 nga ba talaga ang submit trigger
             if (step2Container.classList.contains("hidden")) return;
 
+            const currentPassword = currentPasswordInput.value;
             const newPassword = newPasswordInput.value;
             const confirmPassword = confirmPasswordInput.value;
 
-            // Simple validation sa frontend
-            if (newPassword !== confirmPassword) {
-                showModalMessage("New passwords do not match.");
+            // 1. BAWAL GAMITIN ANG DATING PASSWORD (Basic Frontend Check)
+            if (newPassword === currentPassword) {
+                showModalMessage("New password cannot be the same as your current password.");
                 return;
             }
-            
-            if (newPassword.length < 6) { // Halimbawang restriction
-                showModalMessage("Password must be at least 6 characters long.");
+
+            // 2. PARAMS CHECK: 8+ chars, uppercase, lowercase, number, special char
+            // RegEx pattern para sa requirements
+            // Minimum 8 characters, kahit anong haba, kahit walang special characters
+            const passwordRegex = /^.{8,}$/;
+
+            if (!passwordRegex.test(newPassword)) {
+                showModalMessage("Password must be at least 8 characters long, contain at least one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&).");
+                return;
+            }
+
+            // 3. MATCHING CHECK
+            if (newPassword !== confirmPassword) {
+                showModalMessage("New passwords do not match.");
                 return;
             }
 
@@ -502,7 +526,7 @@
                     method: "PUT",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ 
-                        currentPassword: currentPasswordInput.value, // isasama pa rin para secure sa backend
+                        currentPassword, // Ipadala pa rin para secure sa backend comparison
                         newPassword 
                     })
                 });
@@ -677,6 +701,28 @@
         }
         
         });
+
+        // ----------------------------------------------------
+        // CUTE PET PASSWORD TOGGLE FUNCTION
+        // ----------------------------------------------------
+        function togglePetPassword(inputId, iconId) {
+            const passwordInput = document.getElementById(inputId);
+            const petIcon = document.getElementById(iconId);
+
+            if (passwordInput.type === "password") {
+                // Ipakita ang password (Text mode)
+                passwordInput.type = "text";
+                
+                // Palitan ang paw ng dilat na aso/pusa! (Gagamit tayo ng fa-dog o fa-cat depende sa gusto mo)
+                petIcon.className = "fa-solid fa-dog text-base text-blue-900 scale-110 transition-transform duration-200"; 
+            } else {
+                // Itago ang password
+                passwordInput.type = "password";
+                
+                // Ibalik sa paw/tinatakpan ang mukha
+                petIcon.className = "fa-solid fa-paw text-base text-gray-400 transition-transform duration-200";
+            }
+        }
 </script>
 </body>
 </html>

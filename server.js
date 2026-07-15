@@ -218,38 +218,59 @@ app.post("/api/organization/verify-password", async (req, res) => {
 
 //MODAL NEW PASSWORD UPDATE
 app.put("/api/organization/update-password", async (req, res) => {
-  if (!req.session.accountId) {
-      return res.status(401).json({ message: "Unauthorized" });
-  }
+    // 1. Check kung naka-login ang user
+    if (!req.session.accountId) {
+        return res.status(401).json({ message: "Unauthorized" });
+    }
 
-  const { currentPassword, newPassword } = req.body;
+    const { currentPassword, newPassword } = req.body;
+    const accountId = req.session.accountId;
 
-  try {
-      // Double-check security: I-verify ulit ang current password para hindi ma-bypass gamit ang API tools (Postman)
-      const storedHashedPassword = await Organization.getPasswordById(req.session.accountId);
-      const isMatch = await bcrypt.compare(currentPassword, storedHashedPassword);
+    try {
+        // 2. Kunin ang kasalukuyang password hash ng user mula sa DB
+        const [users] = await pool.query("SELECT password_hash FROM accounts WHERE account_id = ?", [accountId]);
+        
+        if (users.length === 0) {
+            return res.status(404).json({ message: "Account not found." });
+        }
 
-      if (!isMatch) {
-          return res.status(400).json({ message: "Verification failed. Action blocked." });
-      }
+        // --- IPINATAMA DITO (password_hash imbis na password) ---
+        const currentHash = users[0].password_hash; 
 
-      // 1. I-hash ang bagong password ng user (10 rounds ng salt)
-      const saltRounds = 10;
-      const hashedNewPassword = await bcrypt.hash(newPassword, saltRounds);
+        // 3. I-verify muna kung tugma ang isinumiteng Current Password sa DB hash
+        const isCurrentMatch = await bcrypt.compare(currentPassword, currentHash);
+        if (!isCurrentMatch) {
+            return res.status(400).json({ message: "Incorrect current password." });
+        }
 
-      // 2. I-save sa database gamit ang Model natin
-      const success = await Organization.updatePassword(req.session.accountId, hashedNewPassword);
+        // 4. SECURE BACKEND CHECK: I-verify kung ang New Password ay kapareho ng Current Password
+        const isSameAsOld = await bcrypt.compare(newPassword, currentHash);
+        if (isSameAsOld) {
+            return res.status(400).json({ message: "New password cannot be the same as your old password." });
+        }
 
-      if (success) {
-          res.status(200).json({ message: "Password updated successfully!" });
-      } else {
-          res.status(500).json({ message: "Failed to update database record." });
-      }
+        // 5. SECURE BACKEND CHECK: I-verify ang password strength criteria sa backend
+      // Minimum 8 characters, kahit anong haba, kahit walang special characters
+        const passwordRegex = /^.{8,}$/;
+        if (!passwordRegex.test(newPassword)) {
+            return res.status(400).json({ 
+                message: "Password must be at least 8 characters long, contain an uppercase, lowercase, number, and special character." 
+            });
+        }
 
-  } catch (err) {
-      console.error(err);
-      res.status(500).json({ message: "Server error while updating password." });
-  }
+        // 6. I-hash na ang bagong password bago i-save
+        const saltRounds = 10;
+        const newHash = await bcrypt.hash(newPassword, saltRounds);
+
+        // 7. I-update ang password sa DB
+        await pool.query("UPDATE accounts SET password_hash = ? WHERE account_id = ?", [newHash, accountId]);
+
+        res.status(200).json({ message: "Password updated successfully!" });
+
+    } catch (err) {
+        console.error("Error updating password:", err);
+        res.status(500).json({ message: "Server error while changing password." });
+    }
 });
 
 //org edit profile
