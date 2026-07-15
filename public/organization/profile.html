@@ -214,7 +214,12 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label class="text-xs font-bold text-blue-600 block uppercase tracking-wider mb-1">Contact Number</label>
-                            <input type="text" id="editContact" required class="w-full text-sm font-semibold text-gray-700 px-3 py-2 rounded-xl border border-gray-200 focus:outline-none focus:border-blue-900 transition bg-slate-50/50">
+                            <input type="number" 
+                                   id="editContact" 
+                                   required 
+                                   maxlength="13"
+                                   placeholder="Enter contact number"
+                                   class="w-full text-sm font-semibold text-gray-700 px-3 py-2 rounded-xl border border-gray-200 focus:outline-none focus:border-blue-900 transition bg-slate-50/50">
                         </div>
                         <div>
                             <label class="text-xs font-bold text-blue-600 block uppercase tracking-wider mb-1">Contact Person</label>
@@ -628,10 +633,26 @@
         };
 
         cancelEditBtn.addEventListener("click", hideEditModal);
-
+        
         // ACTION: I-submit ang mga Binagong Data (Texts + Image)
         editProfileForm.addEventListener("submit", async (e) => {
             e.preventDefault();
+
+            // 2. VALIDATION NG MOBILE NUMBER
+            const editContactInput = document.getElementById("editContact");
+            const contactValue = editContactInput.value.trim();
+            const phPhoneRegex = /^(09|\+639)\d{9}$/;
+
+            if (!phPhoneRegex.test(contactValue)) {
+                // Kapag may mali, ipapakita ang error
+                editModalMessage.textContent = "Please enter a valid Philippine mobile number (e.g., 09123456789 or +639123456789).";
+                editModalMessage.className = "text-xs font-semibold text-red-500 mt-2 block";
+                
+                editContactInput.focus();
+                return;
+            }
+            
+            editModalMessage.classList.add("hidden");
 
             const saveProfileBtn = document.getElementById("saveProfileBtn");
             saveProfileBtn.disabled = true;
@@ -687,7 +708,7 @@
                 saveProfileBtn.disabled = false;
                 saveProfileBtn.innerHTML = "Save Changes";
             }
-        }); // Dito nagtatapos ang editProfileForm submit listener
+        });
 
         // 🔥 2. BAGONG DAGDAG: Ito ang tatakbo AWTOMATIKO tuwing magre-refresh o maglo-load ang page!
         const savedPic = localStorage.getItem('userProfilePic');
