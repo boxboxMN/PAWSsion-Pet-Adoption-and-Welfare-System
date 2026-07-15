@@ -1,6 +1,8 @@
 const bcrypt = require('bcrypt');
 const validator = require('validator');
 const pool = require('../config/database');
+const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#]).{8,}$/;
+const phoneRegex = /^(09\d{9}|\+639\d{9})$/;
 
 exports.register = async (req, res) => {
   console.log("=== REGISTER START ===");
@@ -14,14 +16,7 @@ exports.register = async (req, res) => {
     const password = req.body.password || '';
     const confirmPassword = req.body.confirmPassword || '';
 
-    if (
-    !firstName ||
-    !lastName ||
-    !phoneNumber ||
-    !email ||
-    !password ||
-    !confirmPassword
-    ) {
+    if (!firstName || !lastName || !phoneNumber || !email || !password || !confirmPassword) {
         return res.status(400).send('All fields are required.');
     }
 
@@ -29,8 +24,11 @@ exports.register = async (req, res) => {
       return res.status(400).send('Please enter a valid email address.');
     }
 
-    if (password.length < 6) {
-      return res.status(400).send('Password must be at least 6 characters long.');
+    if (!phoneRegex.test(phoneNumber)) {
+      return res.status(400).send('Please enter a valid Philippine mobile number.');
+    }
+    if (!passwordRegex.test(password)) {
+      return res.status(400).send('Password does not meet complexity requirements.');
     }
 
     if (password !== confirmPassword) {
@@ -51,46 +49,18 @@ exports.register = async (req, res) => {
 
     try {
       await connection.beginTransaction();
-      console.log("Transaction started");
-
-      console.log("About to insert account...");
       const [accountResult] = await connection.execute(
         'INSERT INTO accounts (email, password_hash, role, status, email_verified) VALUES (?, ?, ?, ?, ?)',
         [email, passwordHash, 'adopter', 'active', 1]
       );
-      const [rows] = await connection.query(
-          "SELECT * FROM adopters WHERE account_id = ?",
-          [accountResult.insertId]
+
+      await connection.execute(
+          `INSERT INTO adopters (account_id, first_name, last_name, phone_number) VALUES (?, ?, ?, ?)`,
+          [accountResult.insertId, firstName, lastName, phoneNumber]
       );
-
-      console.log(rows);
-      console.log("Account inserted!", accountResult);
-
-      const [adopterResult] = await connection.execute(
-          `INSERT INTO adopters
-          (account_id, first_name, last_name, phone_number)
-          VALUES (?, ?, ?, ?)`,
-          [
-              accountResult.insertId,
-              firstName,
-              lastName,
-              phoneNumber
-          ]
-      );
-
-      console.log(adopterResult);
-
-      const [check] = await connection.query(
-          "SELECT * FROM adopters WHERE account_id = ?",
-          [accountResult.insertId]
-      );
-
-      console.log("Inserted adopter:", check);
 
       await connection.commit();
-        // Redirect user back to login page after successful registration
-        return res.redirect('/auth/login.html?success=1');
-        
+      return res.redirect('/auth/login.html?success=1');
     } catch (error) {
       await connection.rollback();
       throw error;
@@ -116,58 +86,40 @@ exports.login = async (req, res) => {
       'SELECT account_id, email, password_hash, status, role FROM accounts WHERE email = ? LIMIT 1',
       [email]
     );
+    const genericAuthError = 'Invalid email or password.';
 
     if (rows.length === 0) {
-      return res.status(401).send('Email does not exist.');
+      return res.status(401).send(genericAuthError);
     }
 
     const account = rows[0];
+    if (account.role === "organization" && account.status === "pending") {
+        req.session.accountId = account.account_id;
+        req.session.role = account.role;
 
-    // Pending organization accounts
-if (
-    account.role === "organization" &&
-    account.status === "pending"
-) {
+        const [orgRows] = await pool.query(
+            `SELECT organization_name FROM organizations WHERE account_id = ? LIMIT 1`,
+            [account.account_id]
+        );
 
-    req.session.accountId = account.account_id;
-    req.session.role = account.role;
+        req.session.displayName = orgRows.length > 0 ? orgRows[0].organization_name : account.email;
+        return res.redirect("/org/pending");
+    }
 
-    const [orgRows] = await pool.query(
-        `SELECT organization_name
-         FROM organizations
-         WHERE account_id = ?
-         LIMIT 1`,
-        [account.account_id]
-    );
-
-    req.session.displayName =
-        orgRows.length > 0
-            ? orgRows[0].organization_name
-            : account.email;
-
-    return res.redirect("/org/pending");
-}
-
-// Rejected / Disabled accounts
-if (account.status !== "active") {
-    return res.status(403).send("This account is not active.");
-}
+    if (account.status !== "active") {
+        return res.status(403).send("This account is currently inactive. Please contact support.");
+    }
 
     const isValidPassword = await bcrypt.compare(password, account.password_hash);
-
     if (!isValidPassword) {
-      return res.status(401).send('Incorrect password.');
+      return res.status(401).send(genericAuthError);
     }
 
     req.session.accountId = account.account_id;
     req.session.role = account.role;
-
-    // Admin
     if (account.role === "admin") {
-    return res.redirect("/admin/dashboard");
+        return res.redirect("/admin/dashboard");
     }
-
-    // Adopter
     if (account.role === "adopter") {
         const [adopterRows] = await pool.query(
             "SELECT first_name, last_name FROM adopters WHERE account_id = ? LIMIT 1",
@@ -180,18 +132,13 @@ if (account.status !== "active") {
 
         return res.redirect("/dashboard");
     }
-
-    // Organization
     if (account.role === "organization") {
         const [orgRows] = await pool.query(
             "SELECT organization_name FROM organizations WHERE account_id = ? LIMIT 1",
             [account.account_id]
         );
 
-        req.session.displayName = orgRows.length
-            ? orgRows[0].organization_name
-            : account.email;
-
+        req.session.displayName = orgRows.length ? orgRows[0].organization_name : account.email;
         return res.redirect("/org/dashboard");
     }
 
@@ -210,181 +157,140 @@ exports.logout = (req, res) => {
 };
 
 exports.registerOrganization = async (req, res) => {
-
     try {
-
-        const {
-            email,
-            password,
-            confirmPassword,
-            organizationName,
-            organizationType,
-            contactPerson,
-            contactNumber,
-            address,
-            city,
-            province,
-            description
-        } = req.body;
+        // Sanitize and validate inputs on the server-side
+        const email = (req.body.email || '').trim().toLowerCase();
+        const password = req.body.password || '';
+        const confirmPassword = req.body.confirmPassword || '';
+        const organizationName = (req.body.organizationName || '').trim();
+        const organizationType = (req.body.organizationType || '').trim();
+        const contactPerson = (req.body.contactPerson || '').trim();
+        const contactNumber = (req.body.contactNumber || '').trim();
+        const address = (req.body.address || '').trim();
+        const city = (req.body.city || '').trim();
+        const province = (req.body.province || '').trim();
+        const description = (req.body.description || '').trim();
 
         if (
-            !email ||
-            !password ||
-            !confirmPassword ||
-            !organizationName ||
-            !organizationType ||
-            !contactPerson ||
-            !contactNumber ||
-            !address ||
-            !city ||
-            !province
+            !email || !password || !confirmPassword || !organizationName || 
+            !organizationType || !contactPerson || !contactNumber || 
+            !address || !city || !province
         ) {
-
             return res.status(400).send("Please complete all required fields.");
-
+        }
+        if (!validator.isEmail(email)) {
+            return res.status(400).send("Please enter a valid email address.");
+        }
+        if (!phoneRegex.test(contactNumber)) {
+            return res.status(400).send("Please enter a valid Philippine mobile number.");
+        }
+        if (!passwordRegex.test(password)) {
+            return res.status(400).send("Password does not meet complexity requirements.");
         }
 
         if (password !== confirmPassword) {
-
             return res.status(400).send("Passwords do not match.");
-
+        }
+        if (!req.file) {
+            return res.status(400).send("Verification document is required.");
         }
 
         const [existing] = await pool.query(
-
             "SELECT account_id FROM accounts WHERE email=?",
-
             [email]
-
         );
 
         if (existing.length > 0) {
-
-            return res.status(400).send("Email already exists.");
-
+            return res.status(400).send("An account with this email already exists.");
         }
 
-        const passwordHash = await bcrypt.hash(password,10);
-
+        const passwordHash = await bcrypt.hash(password, 10);
         const connection = await pool.getConnection();
 
-        try{
-
+        try {
             await connection.beginTransaction();
 
-            // ===========================
-            // accounts table
-            // ===========================
-
             const [accountResult] = await connection.query(
-
-                `INSERT INTO accounts
-                (email,password_hash,role,status,email_verified)
-                VALUES (?,?,?,?,?)`,
-
-                [
-                    email,
-                    passwordHash,
-                    "organization",
-                    "pending",
-                    0
-                ]
-
+                `INSERT INTO accounts (email, password_hash, role, status, email_verified) VALUES (?, ?, ?, ?, ?)`,
+                [email, passwordHash, "organization", "pending", 0]
             );
 
             const accountId = accountResult.insertId;
 
-// ===========================
-// organizations table
-// ===========================
+            const [organizationResult] = await connection.query(
+                `INSERT INTO organizations (
+                    account_id, organization_name, organization_type, contact_person, 
+                    contact_number, address, city, province, description, verification_status
+                ) VALUES (?,?,?,?,?,?,?,?,?,?)`,
+                [
+                    accountId, organizationName, organizationType, contactPerson,
+                    contactNumber, address, city, province, description, "Pending"
+                ]
+            );
+            
+            const organizationId = organizationResult.insertId;
 
-const [organizationResult] = await connection.query(
-
-    `INSERT INTO organizations
-    (
-        account_id,
-        organization_name,
-        organization_type,
-        contact_person,
-        contact_number,
-        address,
-        city,
-        province,
-        description,
-        verification_status
-    )
-    VALUES (?,?,?,?,?,?,?,?,?,?)`,
-
-    [
-        accountId,
-        organizationName,
-        organizationType,
-        contactPerson,
-        contactNumber,
-        address,
-        city,
-        province,
-        description,
-        "Pending"
-    ]
-
-);
-const organizationId = organizationResult.insertId;
-
-// ===========================
-// organization_documents table
-// ===========================
-
-if (req.file) {
-
-    await connection.query(
-
-        `INSERT INTO organization_documents
-        (
-            organization_id,
-            document_name,
-            file_path
-        )
-        VALUES (?, ?, ?)`,
-
-        [
-            organizationId,
-            req.file.originalname,
-            req.file.filename
-        ]
-
-    );
-
-}    
+            await connection.query(
+                `INSERT INTO organization_documents (organization_id, document_name, file_path) VALUES (?, ?, ?)`,
+                [organizationId, req.file.originalname, req.file.filename]
+            );
 
             await connection.commit();
-
             res.send("Organization registered successfully.");
 
-        }
-
-        catch(err){
-
+        } catch(err) {
             await connection.rollback();
-
             throw err;
-
-        }
-
-        finally{
-
+        } finally {
             connection.release();
-
         }
 
-    }
-
-    catch(err){
-
+    } catch(err) {
         console.error(err);
-
-        res.status(500).send("Registration failed.");
-
+        res.status(500).send("Registration failed. Please try again later.");
     }
+};
+exports.checkEmailAvailability = async (req, res) => {
+    try {
+        const email = (req.query.email || '').trim().toLowerCase();
 
+        if (!email) {
+            return res.status(400).send("Email parameter is required.");
+        }
+        const [existingAccounts] = await pool.query(
+            'SELECT account_id FROM accounts WHERE email = ?',
+            [email]
+        );
+
+        if (existingAccounts.length > 0) {
+            return res.status(409).send("Email is already registered.");
+        }
+        return res.status(200).send("Email is available.");
+    } catch (err) {
+        console.error("Error sa checkEmailAvailability:", err);
+        return res.status(500).send("Internal server error.");
+    }
+};
+
+exports.checkOrgNameAvailability = async (req, res) => {
+    try {
+        const orgName = (req.query.orgName || '').trim();
+
+        if (!orgName) {
+            return res.status(400).send("Organization name parameter is required.");
+        }
+        const [existingOrg] = await pool.query(
+            'SELECT organization_id FROM organizations WHERE LOWER(organization_name) = LOWER(?)',
+            [orgName]
+        );
+
+        if (existingOrg.length > 0) {
+            
+            return res.status(409).send("Organization name is already taken.");
+        }
+        return res.status(200).send("Organization name is available.");
+    } catch (err) {
+        console.error("Error sa checkOrgNameAvailability:", err);
+        return res.status(500).send("Internal server error.");
+    }
 };

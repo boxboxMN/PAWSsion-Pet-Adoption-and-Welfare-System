@@ -7,6 +7,144 @@
     <link rel="stylesheet" href="/assets/css/organization_signup.css">
     <link rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <style>
+        .custom-alert-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s ease;
+        }
+
+        .custom-alert-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .custom-alert-box {
+            background-color: #ffffff;
+            padding: 24px 32px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+            max-width: 420px;
+            width: 90%;
+            text-align: center;
+            transform: scale(0.85);
+            transition: transform 0.25s ease;
+        }
+
+        .custom-alert-overlay.active .custom-alert-box {
+            transform: scale(1);
+        }
+
+        .custom-alert-icon {
+            font-size: 40px;
+            color: #e74c3c;
+            margin-bottom: 16px;
+        }
+
+        .custom-alert-icon.success-icon {
+            color: #2ecc71;
+        }
+
+        .custom-alert-message {
+            color: #2c3e50;
+            font-size: 16px;
+            line-height: 1.5;
+            margin-bottom: 24px;
+            white-space: pre-line;
+            text-align: left;
+        }
+
+        .custom-alert-btn {
+            background-color: #3498db;
+            color: #ffffff;
+            border: none;
+            padding: 10px 24px;
+            font-size: 15px;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            width: 100%;
+        }
+
+        .custom-alert-btn:hover {
+            background-color: #2980b9;
+        }
+        .password-requirements {
+            display: none;
+            margin-top: 8px;
+            padding: 10px 12px;
+            background-color: #f9f9f9;
+            border-radius: 6px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .requirement-item {
+            font-size: 13px;
+            margin: 4px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: color 0.2s ease;
+        }
+
+        .requirement-item.invalid {
+            color: #e74c3c;
+        }
+
+        .requirement-item.invalid .status-icon {
+            color: #e74c3c;
+        }
+
+        .requirement-item.valid {
+            color: #2ecc71;
+        }
+
+        .requirement-item.valid .status-icon {
+            color: #2ecc71;
+        }
+        .input-helper-text {
+            font-size: 12px;
+            margin-top: 4px;
+            color: #7f8c8d;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .input-helper-text.error {
+            color: #e74c3c;
+        }
+
+        .input-helper-text.success {
+            color: #2ecc71;
+        }
+        select.dropdown-select {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            font-size: 14px;
+            background-color: #fff;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        select.dropdown-select:focus {
+            border-color: #3498db;
+        }
+    </style>
 </head>
 
 <body>
@@ -15,548 +153,758 @@
     <a href="../index.html">×</a>
 </div>
 
-<!-- LEFT -->
 <div class="left">
     <div class="container">
-<h1>Organization Registration</h1>
+        <h1>Organization Registration</h1>
 
-<p class="subtitle">
-    Complete the registration form to apply as a verified rescue organization.
-</p>
+        <p class="subtitle">
+            Complete the registration form to apply as a verified rescue organization.
+        </p>
 
-<div class="line"></div>
+        <div class="line"></div>
 
-<div class="info-box">
-    <b>Organization Verification:</b>
-    All organization accounts are reviewed before activation.
-</div>
-
-<div class="step" id="stepTitle">
-    Step 1: Account Credentials
-</div>
-
-<form id="organizationSignupForm" enctype="multipart/form-data">
-
-    <!-- ========================= -->
-    <!-- STEP 1 -->
-    <!-- ========================= -->
-
-    <div class="form-step active" id="step1">
-
-        <div class="field">
-            <label>Email Address <span class="required">*</span></label>
-
-            <div class="input-box">
-                <i class="fa-regular fa-envelope icon"></i>
-
-                <input
-                    type="email"
-                    id="email"
-                    name="email"
-                    placeholder="Enter your email"
-                    required>
-            </div>
+        <div class="info-box">
+            <b>Organization Verification:</b>
+            All organization accounts are reviewed before activation.
         </div>
 
-        <div class="field">
-
-            <label>Password <span class="required">*</span></label>
-
-            <div class="input-box">
-
-                <i class="fa-solid fa-lock icon"></i>
-
-                <input
-                    type="password"
-                    id="password"
-                    name="password"
-                    placeholder="Create Password"
-                    required>
-
-                <button
-                    type="button"
-                    class="toggle-password">
-
-                    <i class="fa-solid fa-eye"></i>
-
-                </button>
-
-            </div>
-
+        <div class="step" id="stepTitle">
+            Step 1: Account Credentials
         </div>
 
-        <div class="field">
+        <form id="organizationSignupForm" enctype="multipart/form-data">
 
-            <label>Confirm Password <span class="required">*</span></label>
+            <div class="form-step active" id="step1">
 
-            <div class="input-box">
-
-                <i class="fa-solid fa-lock icon"></i>
-
-                <input
-                    type="password"
-                    id="confirmPassword"
-                    name="confirmPassword"
-                    placeholder="Confirm Password"
-                    required>
-
-                <button
-                    type="button"
-                    class="toggle-password">
-
-                    <i class="fa-solid fa-eye"></i>
-
-                </button>
-
-            </div>
-
-        </div>
-
-        <div class="next-btn">
-
-            <button
-                type="button"
-                id="next1">
-
-                Next →
-
-            </button>
-
-        </div>
-
-    </div>
-
-    <!-- ========================= -->
-    <!-- STEP 2 -->
-    <!-- ========================= -->
-
-    <div class="form-step" id="step2">
-
-    <div class="step2-grid">
-
-        <div class="field">
-            <label>Organization Name *</label>
-            <input type="text" id="organizationName" name="organizationName" required>
-        </div>
-
-        <div class="field">
-            <label>Organization Type *</label>
-            <select id="organizationType" name="organizationType" required>
-                <option value="">Select</option>
-                <option>Animal Shelter</option>
-                <option>Rescue Organization</option>
-                <option>NGO</option>
-                <option>Foundation</option>
-                <option>Others</option>
-            </select>
-        </div>
-
-        <div class="field">
-            <label>Contact Person *</label>
-            <input type="text" id="contactPerson" name="contactPerson" required>
-        </div>
-
-        <div class="field">
-            <label>Contact Number *</label>
-            <input type="text" id="contactNumber" name="contactNumber" required>
-        </div>
-
-        <div class="field full-width">
-            <div class="address-row">
-
-                <div class="field address-field">
-                    <label>Address *</label>
-                    <input
-                        type="text"
-                        id="address"
-                        name="address"
-                        required>
+                <div class="field">
+                    <label>Email Address <span class="required">*</span></label>
+                    <div class="input-box">
+                        <i class="fa-regular fa-envelope icon"></i>
+                        <input
+                            type="email"
+                            id="email"
+                            name="email"
+                            placeholder="Enter your email"
+                            required>
+                    </div>
+                    <div id="emailHelper" class="input-helper-text"></div>
                 </div>
 
-                <div class="field city-field">
-                    <label>City *</label>
-                    <input
-                        type="text"
-                        id="city"
-                        name="city"
-                        required>
+                <div class="field">
+                    <label>Password <span class="required">*</span></label>
+                    <div class="input-box">
+                        <i class="fa-solid fa-lock icon"></i>
+                        <input
+                            type="password"
+                            id="password"
+                            name="password"
+                            placeholder="Create Password"
+                            required>
+                        <button type="button" class="toggle-password">
+                            <i class="fa-solid fa-eye"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="password-requirements" id="passwordRequirements">
+                        <div class="requirement-item invalid" id="reqLength">
+                            <i class="fa-solid fa-circle-xmark status-icon"></i> At least 8 characters
+                        </div>
+                        <div class="requirement-item invalid" id="reqUppercase">
+                            <i class="fa-solid fa-circle-xmark status-icon"></i> One uppercase letter (A-Z)
+                        </div>
+                        <div class="requirement-item invalid" id="reqLowercase">
+                            <i class="fa-solid fa-circle-xmark status-icon"></i> One lowercase letter (a-z)
+                        </div>
+                        <div class="requirement-item invalid" id="reqNumber">
+                            <i class="fa-solid fa-circle-xmark status-icon"></i> One number (0-9)
+                        </div>
+                        <div class="requirement-item invalid" id="reqSpecial">
+                            <i class="fa-solid fa-circle-xmark status-icon"></i> One special character (@$!%*?&#)
+                        </div>
+                    </div>
                 </div>
 
-                <div class="field province-field">
-                    <label>Province *</label>
-                    <input
-                        type="text"
-                        id="province"
-                        name="province"
-                        required>
+                <div class="field">
+                    <label>Confirm Password <span class="required">*</span></label>
+                    <div class="input-box">
+                        <i class="fa-solid fa-lock icon"></i>
+                        <input
+                            type="password"
+                            id="confirmPassword"
+                            name="confirmPassword"
+                            placeholder="Confirm Password"
+                            required>
+                        <button type="button" class="toggle-password">
+                            <i class="fa-solid fa-eye"></i>
+                        </button>
+                    </div>
+                    <div class="requirement-item invalid" id="reqMatch" style="margin-top: 6px; font-size: 13px; display: none;">
+                        <i class="fa-solid fa-circle-xmark status-icon"></i> Passwords do not match
+                    </div>
+                </div>
+
+                <div class="next-btn">
+                    <button type="button" id="next1">Next →</button>
                 </div>
 
             </div>
-        </div>
 
-        <div class="field full-width">
-            <label>Description</label>
-            <textarea id="description" name="description"></textarea>
-        </div>
+            <div class="form-step" id="step2">
 
+                <div class="step2-grid">
+
+                    <div class="field">
+                        <label>Organization Name <span class="required">*</span></label>
+                        <input type="text" id="organizationName" name="organizationName" placeholder="e.g. Hope Rescue Sanctuary" required>
+                        <div id="orgNameHelper" class="input-helper-text">Must be at least 3 characters.</div>
+                    </div>
+
+                    <div class="field">
+                        <label>Organization Type <span class="required">*</span></label>
+                        <select id="organizationType" name="organizationType" class="dropdown-select" required>
+                            <option value="">Select</option>
+                            <option>Animal Shelter</option>
+                            <option>Rescue Organization</option>
+                            <option>NGO</option>
+                            <option>Foundation</option>
+                            <option>Others</option>
+                        </select>
+                    </div>
+
+                    <div class="field">
+                        <label>Contact Person <span class="required">*</span></label>
+                        <input type="text" id="contactPerson" name="contactPerson" placeholder="Full Name" required>
+                    </div>
+
+                    <div class="field">
+                        <label>Contact Number <span class="required">*</span></label>
+                        <input type="text" id="contactNumber" name="contactNumber" placeholder="e.g. 09123456789" maxlength="11" required>
+                        <div id="phoneHelper" class="input-helper-text">Format: 11-digit starting with 09</div>
+                    </div>
+
+                    <div class="field full-width">
+                        <div class="address-row">
+
+                            <div class="field province-field">
+                                <label>Province <span class="required">*</span></label>
+                                <select id="province" name="province" class="dropdown-select" required>
+                                    <option value="">Select Province</option>
+                                </select>
+                            </div>
+
+                            <div class="field city-field">
+                                <label>City/Municipality <span class="required">*</span></label>
+                                <select id="city" name="city" class="dropdown-select" required disabled>
+                                    <option value="">Select Province First</option>
+                                </select>
+                            </div>
+
+                            <div class="field address-field">
+                                <label>Street Address/Brgy <span class="required">*</span></label>
+                                <input
+                                    type="text"
+                                    id="address"
+                                    name="address"
+                                    placeholder="Unit No, Street, Barangay"
+                                    required>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <div class="field full-width">
+                        <label>Description</label>
+                        <textarea id="description" name="description" placeholder="Tell us briefly about your organization..."></textarea>
+                    </div>
+
+                </div>
+
+                <div class="actions">
+                    <button type="button" id="back1">← Back</button>
+                    <button type="button" id="next2">Next →</button>
+                </div>
+
+            </div>
+
+            <div class="form-step" id="step3">
+
+                <div class="field">
+                    <label>Verification Document *</label>
+                    <input
+                        type="file"
+                        id="document"
+                        name="document"
+                        accept=".pdf,.jpg,.jpeg,.png"
+                        required>
+                </div>
+
+                <div class="field">
+                    <label>
+                        <input
+                            type="checkbox"
+                            id="agree"
+                            required>
+                        I certify that all information is correct.
+                    </label>
+                </div>
+
+                <div class="actions">
+                    <button type="button" id="back2">← Back</button>
+                    <button type="submit">Submit for Verification →</button>
+                </div>
+
+            </div>
+
+        </form>
     </div>
-
-    <div class="actions">
-        <button type="button" id="back1">← Back</button>
-        <button type="button" id="next2">Next →</button>
-    </div>
-
 </div>
-
-    <!-- ========================= -->
-    <!-- STEP 3 -->
-    <!-- ========================= -->
-
-    <div class="form-step" id="step3">
-
-        <div class="field">
-
-            <label>Verification Document *</label>
-
-            <input
-                type="file"
-                id="document"
-                name="document"
-                accept=".pdf,.jpg,.jpeg,.png"
-                required>
-
-        </div>
-
-        <div class="field">
-
-            <label>
-
-                <input
-                    type="checkbox"
-                    id="agree"
-                    required>
-
-                I certify that all information is correct.
-
-            </label>
-
-        </div>
-
-        <div class="actions">
-
-            <button
-                type="button"
-                id="back2">
-
-                ← Back
-
-            </button>
-
-            <button
-                type="submit">
-
-                Submit for Verification →
-
-            </button>
-
-        </div>
-
-    </div>
-
-</form>
-    </div>
-</div>
-
-<!-- RIGHT -->
 
 <div class="right">
-
     <img src="../assets/images/Pawpon_logo.png">
-
     <h2>Pawpon</h2>
-
     <h3>Connecting hearts, Saving lives</h3>
-
     <p>
         Join our community to support rescued cats and dogs.<br>
         Create an organization account to manage rescued animals,<br>
         track adoption requests, and coordinate donations<br>
         to give them a loving home.
     </p>
-
 </div>
 
+<div id="customAlertOverlay" class="custom-alert-overlay">
+    <div class="custom-alert-box">
+        <div id="customAlertIcon" class="custom-alert-icon">
+            <i class="fa-solid fa-circle-exclamation"></i>
+        </div>
+        <div id="customAlertMessage" class="custom-alert-message"></div>
+        <button type="button" id="customAlertBtn" class="custom-alert-btn">OK</button>
+    </div>
+</div>
 <script>
 
 // ================================
-// PASSWORD TOGGLE
+// REGEX & PHILIPPINES ADDR DATA
 // ================================
+const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#]).{8,}$/;
+const phoneRegex = /^09\d{9}$/;
+const emailValidatorRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+// Localized geographic data for dropdown cascades
+const locationData = {
+    "Camarines Sur": [
+        "Pili", "Naga City", "Iriga City", "Baao", "Bula", "Calabanga", 
+        "Canaman", "Goa", "Libmanan", "Minalabac", "Nabua", "Ocampo", 
+        "Pasacao", "Sagnay", "San Jose", "Sipocot", "Tigaon"
+    ],
+    "Camarines Norte": [
+        "Daet", "Basud", "Jose Panganiban", "Labo", "Mercedes", "Paracale", "Vinzons"
+    ],
+    "Albay": [
+        "Legazpi City", "Daraga", "Tabaco City", "Ligao City", "Guinobatan", "Camalig", "Polangui"
+    ],
+    "Sorsogon": [
+        "Sorsogon City", "Bulan", "Gubat", "Irosin", "Castilla", "Donsol"
+    ],
+    "Metro Manila": [
+        "Manila", "Quezon City", "Makati", "Taguig", "Pasig", "Mandaluyong", "Parañaque"
+    ]
+};
+
+
+// ================================
+// CUSTOM MODAL ALERT FUNCTION
+// ================================
+const alertOverlay = document.getElementById("customAlertOverlay");
+const alertIcon = document.getElementById("customAlertIcon");
+const alertMessage = document.getElementById("customAlertMessage");
+const alertBtn = document.getElementById("customAlertBtn");
+let currentAlertCallback = null;
+
+function showCustomAlert(message, type = "error", callback = null) {
+    alertMessage.textContent = message;
+    currentAlertCallback = callback;
+
+    if (type === "success") {
+        alertIcon.className = "custom-alert-icon success-icon";
+        alertIcon.innerHTML = '<i class="fa-solid fa-circle-check"></i>';
+    } else {
+        alertIcon.className = "custom-alert-icon";
+        alertIcon.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i>';
+    }
+
+    alertOverlay.classList.add("active");
+    alertBtn.focus();
+}
+
+alertBtn.addEventListener("click", () => {
+    alertOverlay.classList.remove("active");
+    if (currentAlertCallback) {
+        currentAlertCallback();
+        currentAlertCallback = null;
+    }
+});
+
+
+// ================================
+// INITIALIZE DROPDOWNS
+// ================================
+const provinceSelect = document.getElementById("province");
+const citySelect = document.getElementById("city");
+
+Object.keys(locationData).forEach(province => {
+    const opt = document.createElement("option");
+    opt.value = province;
+    opt.textContent = province;
+    provinceSelect.appendChild(opt);
+});
+
+provinceSelect.addEventListener("change", function() {
+    const selectedProvince = this.value;
+    citySelect.innerHTML = '<option value="">Select City/Municipality</option>';
+    
+    if (selectedProvince && locationData[selectedProvince]) {
+        citySelect.disabled = false;
+        locationData[selectedProvince].forEach(city => {
+            const opt = document.createElement("option");
+            opt.value = city;
+            opt.textContent = city;
+            citySelect.appendChild(opt);
+        });
+    } else {
+        citySelect.disabled = true;
+        citySelect.innerHTML = '<option value="">Select Province First</option>';
+    }
+});
+
+
+// ================================
+// LIVE VALIDATIONS (EMAIL, PHONE & NAME)
+// ================================
+const emailInput = document.getElementById("email");
+const emailHelper = document.getElementById("emailHelper");
+const phoneInput = document.getElementById("contactNumber");
+const phoneHelper = document.getElementById("phoneHelper");
+const orgNameInput = document.getElementById("organizationName");
+const orgNameHelper = document.getElementById("orgNameHelper");
+
+let isEmailValidAndAvailable = false; 
+let isOrgNameAvailable = false;
+
+// Async validation for Email Uniqueness
+async function verifyEmailUniqueness() {
+    const emailValue = emailInput.value.trim().toLowerCase();
+
+    if (emailValue === "") {
+        emailHelper.className = "input-helper-text";
+        emailHelper.innerHTML = "";
+        isEmailValidAndAvailable = false;
+        return;
+    }
+
+    if (!emailValidatorRegex.test(emailValue)) {
+        emailHelper.className = "input-helper-text error";
+        emailHelper.innerHTML = "<i class='fa-solid fa-circle-xmark'></i> Please enter a valid email format.";
+        isEmailValidAndAvailable = false;
+        return;
+    }
+
+    emailHelper.className = "input-helper-text";
+    emailHelper.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> Checking availability...";
+
+    try {
+        const response = await fetch(`/auth/check-email?email=${encodeURIComponent(emailValue)}`);
+        
+        if (response.status === 409 || !response.ok) {
+            emailHelper.className = "input-helper-text error";
+            emailHelper.innerHTML = "<i class='fa-solid fa-circle-xmark'></i> Email address is already registered.";
+            isEmailValidAndAvailable = false;
+        } else {
+            emailHelper.className = "input-helper-text success";
+            emailHelper.innerHTML = "<i class='fa-solid fa-circle-check'></i> Email is available.";
+            isEmailValidAndAvailable = true;
+        }
+    } catch (err) {
+        emailHelper.className = "input-helper-text";
+        emailHelper.innerHTML = "";
+        isEmailValidAndAvailable = true; 
+    }
+}
+
+emailInput.addEventListener("blur", verifyEmailUniqueness);
+emailInput.addEventListener("input", () => {
+    isEmailValidAndAvailable = false;
+});
+
+// Async validation for Organization Name Uniqueness
+async function verifyOrgNameUniqueness() {
+    const orgNameValue = orgNameInput.value.trim();
+
+    if (orgNameValue === "") {
+        orgNameHelper.className = "input-helper-text";
+        orgNameHelper.innerHTML = "Must be at least 3 characters.";
+        isOrgNameAvailable = false;
+        return;
+    }
+
+    if (orgNameValue.length < 3) {
+        orgNameHelper.className = "input-helper-text error";
+        orgNameHelper.innerHTML = "<i class='fa-solid fa-circle-xmark'></i> Name is too short (min 3 characters).";
+        isOrgNameAvailable = false;
+        return;
+    }
+
+    orgNameHelper.className = "input-helper-text";
+    orgNameHelper.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> Checking if organization name exists...";
+
+    try {
+        const response = await fetch(`/auth/check-org-name?orgName=${encodeURIComponent(orgNameValue)}`);
+        
+        if (response.status === 409 || !response.ok) {
+            orgNameHelper.className = "input-helper-text error";
+            orgNameHelper.innerHTML = "<i class='fa-solid fa-circle-xmark'></i> This organization name is already registered.";
+            isOrgNameAvailable = false;
+        } else {
+            orgNameHelper.className = "input-helper-text success";
+            orgNameHelper.innerHTML = "<i class='fa-solid fa-circle-check'></i> Organization name is available!";
+            isOrgNameAvailable = true;
+        }
+    } catch (err) {
+        isOrgNameAvailable = true; 
+    }
+}
+
+orgNameInput.addEventListener("blur", verifyOrgNameUniqueness);
+orgNameInput.addEventListener("input", () => {
+    isOrgNameAvailable = false; 
+    
+    // Dynamic styling check habang nagta-type bago mag blur check
+    const val = orgNameInput.value.trim();
+    if(val.length >= 3) {
+        orgNameHelper.className = "input-helper-text";
+        orgNameHelper.innerHTML = "Checking uniqueness when you finish typing...";
+    } else if (val.length > 0) {
+        orgNameHelper.className = "input-helper-text error";
+        orgNameHelper.innerHTML = "<i class='fa-solid fa-circle-xmark'></i> Name is too short (min 3 characters).";
+    }
+});
+
+// Mobile number digits restriction
+phoneInput.addEventListener("input", function() {
+    this.value = this.value.replace(/\D/g, "");
+    if (this.value === "") {
+        phoneHelper.className = "input-helper-text";
+        phoneHelper.innerHTML = "Format: 11-digit starting with 09";
+    } else if (phoneRegex.test(this.value)) {
+        phoneHelper.className = "input-helper-text success";
+        phoneHelper.innerHTML = "<i class='fa-solid fa-circle-check'></i> Valid Philippine mobile number format.";
+    } else {
+        phoneHelper.className = "input-helper-text error";
+        phoneHelper.innerHTML = "<i class='fa-solid fa-circle-xmark'></i> Must be exactly 11 digits starting with 09.";
+    }
+});
+
+
+// ================================
+// LIVE PASSWORD CHECKLIST TRACKER
+// ================================
+const passwordInput = document.getElementById("password");
+const confirmInput = document.getElementById("confirmPassword");
+const passwordRequirements = document.getElementById("passwordRequirements");
+
+const reqLength = document.getElementById("reqLength");
+const reqUppercase = document.getElementById("reqUppercase");
+const reqLowercase = document.getElementById("reqLowercase");
+const reqNumber = document.getElementById("reqNumber");
+const reqSpecial = document.getElementById("reqSpecial");
+const reqMatch = document.getElementById("reqMatch");
+
+function updateRequirementStatus(element, isValid) {
+    const icon = element.querySelector(".status-icon");
+    if (isValid) {
+        element.classList.remove("invalid");
+        element.classList.add("valid");
+        icon.className = "fa-solid fa-circle-check status-icon";
+    } else {
+        element.classList.remove("valid");
+        element.classList.add("invalid");
+        icon.className = "fa-solid fa-circle-xmark status-icon";
+    }
+}
+
+passwordInput.addEventListener("focus", () => {
+    passwordRequirements.style.display = "block";
+});
+
+passwordInput.addEventListener("blur", () => {
+    passwordRequirements.style.display = "none";
+});
+
+passwordInput.addEventListener("input", () => {
+    const value = passwordInput.value;
+
+    updateRequirementStatus(reqLength, value.length >= 8);
+    updateRequirementStatus(reqUppercase, /[A-Z]/.test(value));
+    updateRequirementStatus(reqLowercase, /[a-z]/.test(value));
+    updateRequirementStatus(reqNumber, /\d/.test(value));
+    updateRequirementStatus(reqSpecial, /[@$!%*?&#]/.test(value));
+    
+    checkMatch();
+});
+
+confirmInput.addEventListener("input", checkMatch);
+
+function checkMatch() {
+    if (confirmInput.value === "") {
+        reqMatch.style.display = "none";
+        return;
+    }
+    reqMatch.style.display = "flex";
+    const valuesMatch = (passwordInput.value === confirmInput.value && passwordInput.value !== "");
+    updateRequirementStatus(reqMatch, valuesMatch);
+    if(valuesMatch) {
+        reqMatch.querySelector(".status-icon").nextSibling.textContent = " Passwords match";
+    } else {
+        reqMatch.querySelector(".status-icon").nextSibling.textContent = " Passwords do not match";
+    }
+}
+
+
+// ================================
+// PASSWORD VISIBILITY TOGGLE
+// ================================
 document.querySelectorAll(".toggle-password").forEach(button => {
-
     button.addEventListener("click", () => {
-
         const input = button.parentElement.querySelector("input");
         const icon = button.querySelector("i");
 
         if (input.type === "password") {
-
             input.type = "text";
             icon.classList.replace("fa-eye", "fa-eye-slash");
-
         } else {
-
             input.type = "password";
             icon.classList.replace("fa-eye-slash", "fa-eye");
-
         }
-
     });
-
 });
 
 
 // ================================
 // STEP NAVIGATION
 // ================================
-
 const step1 = document.getElementById("step1");
 const step2 = document.getElementById("step2");
 const step3 = document.getElementById("step3");
 const stepTitle = document.getElementById("stepTitle");
 
-function showStep(step){
+function showStep(step) {
+    step1.style.display = "none";
+    step2.style.display = "none";
+    step3.style.display = "none";
 
-    step1.style.display="none";
-    step2.style.display="none";
-    step3.style.display="none";
+    step.style.display = "block";
 
-    step.style.display="block";
+    if (step === step1)
+        stepTitle.innerHTML = "Step 1: Account Credentials";
 
-    if(step===step1)
-        stepTitle.innerHTML="Step 1: Account Credentials";
+    if (step === step2)
+        stepTitle.innerHTML = "Step 2: Organization Information";
 
-    if(step===step2)
-        stepTitle.innerHTML="Step 2: Organization Information";
-
-    if(step===step3)
-        stepTitle.innerHTML="Step 3: Verification";
-
+    if (step === step3)
+        stepTitle.innerHTML = "Step 3: Verification";
 }
 
 showStep(step1);
 
 
 // ================================
-// NEXT STEP 1
+// NEXT STEP 1 VALIDATION
 // ================================
+document.getElementById("next1").addEventListener("click", async () => {
+    const email = emailInput.value.trim();
+    const password = passwordInput.value;
+    const confirm = confirmInput.value;
 
-document.getElementById("next1").addEventListener("click",()=>{
-
-    const email=document.getElementById("email").value.trim();
-    const password=document.getElementById("password").value;
-    const confirm=document.getElementById("confirmPassword").value;
-
-    if(email===""){
-        alert("Email is required.");
+    if (email === "") {
+        showCustomAlert("Email is required.");
         return;
     }
 
-    if(password.length<6){
-        alert("Password must be at least 6 characters.");
+    if (!isEmailValidAndAvailable) {
+        await verifyEmailUniqueness();
+        if(!isEmailValidAndAvailable) {
+            showCustomAlert("Please use a unique and valid email address to proceed.");
+            return;
+        }
+    }
+
+    if (!passwordRegex.test(password)) {
+        showCustomAlert("Please make sure your password satisfies all requirement items shown below the field.");
         return;
     }
 
-    if(password!==confirm){
-        alert("Passwords do not match.");
+    if (password !== confirm) {
+        showCustomAlert("Passwords do not match.");
         return;
     }
 
     showStep(step2);
-
 });
 
 
 // ================================
 // BACK STEP 2
 // ================================
-
-document.getElementById("back1").addEventListener("click",()=>{
-
+document.getElementById("back1").addEventListener("click", () => {
     showStep(step1);
-
 });
 
 
 // ================================
-// NEXT STEP 2
+// NEXT STEP 2 VALIDATION
 // ================================
+document.getElementById("next2").addEventListener("click", async () => {
+    const contactNumber = phoneInput.value.trim();
+    const organizationName = orgNameInput.value.trim();
 
-document.getElementById("next2").addEventListener("click",()=>{
-
-    if(document.getElementById("organizationName").value===""){
-
-        alert("Organization name is required.");
+    if (organizationName === "" || organizationName.length < 3) {
+        showCustomAlert("A valid organization name (at least 3 characters) is required.");
         return;
-
     }
 
-    if(document.getElementById("organizationType").value===""){
-
-        alert("Please select organization type.");
-        return;
-
+    // Safety guard step blocker for duplicate org names
+    if (!isOrgNameAvailable) {
+        await verifyOrgNameUniqueness();
+        if (!isOrgNameAvailable) {
+            showCustomAlert("The organization name you entered is already taken. Please choose another name.");
+            return;
+        }
     }
 
-    if(document.getElementById("contactPerson").value===""){
-
-        alert("Contact person is required.");
+    if (document.getElementById("organizationType").value === "") {
+        showCustomAlert("Please select organization type.");
         return;
-
     }
-
-    if(document.getElementById("contactNumber").value===""){
-
-        alert("Contact number is required.");
+    if (document.getElementById("contactPerson").value.trim() === "") {
+        showCustomAlert("Contact person is required.");
         return;
-
     }
-
-    if(document.getElementById("address").value===""){
-
-        alert("Address is required.");
+    if (!phoneRegex.test(contactNumber)) {
+        showCustomAlert("Please enter a valid 11-digit mobile number starting with 09.");
         return;
-
     }
-
-    if(document.getElementById("city").value===""){
-
-        alert("City is required.");
+    if (provinceSelect.value === "") {
+        showCustomAlert("Please select your province.");
         return;
-
     }
-
-    if(document.getElementById("province").value===""){
-
-        alert("Province is required.");
+    if (citySelect.value === "") {
+        showCustomAlert("Please select your city or municipality.");
         return;
-
+    }
+    if (document.getElementById("address").value.trim() === "") {
+        showCustomAlert("Street address or Barangay is required.");
+        return;
     }
 
     showStep(step3);
-
 });
 
 
 // ================================
 // BACK STEP 3
 // ================================
-
-document.getElementById("back2").addEventListener("click",()=>{
-
+document.getElementById("back2").addEventListener("click", () => {
     showStep(step2);
-
 });
 
 
 // ================================
 // FINAL SUBMIT
 // ================================
-
-document.getElementById("organizationSignupForm").addEventListener("submit",async function(e){
-
+document.getElementById("organizationSignupForm").addEventListener("submit", async function(e) {
     e.preventDefault();
 
-    if(document.getElementById("document").files.length===0){
+    const password = passwordInput.value;
+    const contactNumber = phoneInput.value.trim();
+    const organizationName = orgNameInput.value.trim();
 
-        alert("Please upload a verification document.");
+    if (!isEmailValidAndAvailable) {
+        showCustomAlert("The email address provided is invalid or already taken.", "error", () => {
+            showStep(step1);
+        });
         return;
-
     }
 
-    if(!document.getElementById("agree").checked){
-
-        alert("Please certify the information.");
+    if (!isOrgNameAvailable) {
+        showCustomAlert("Organization name is already taken or invalid.", "error", () => {
+            showStep(step2);
+        });
         return;
-
     }
 
-    const formData=new FormData();
+    if (!passwordRegex.test(password)) {
+        showCustomAlert("Password does not meet the complexity requirements.", "error", () => {
+            showStep(step1);
+        });
+        return;
+    }
 
-    formData.append("email",
-        document.getElementById("email").value);
+    if (organizationName.length < 3) {
+        showCustomAlert("Organization name is too short.", "error", () => {
+            showStep(step2);
+        });
+        return;
+    }
 
-    formData.append("password",
-        document.getElementById("password").value);
+    if (!phoneRegex.test(contactNumber)) {
+        showCustomAlert("Please enter a valid Philippine mobile number.", "error", () => {
+            showStep(step2);
+        });
+        return;
+    }
 
-    formData.append("confirmPassword",
-        document.getElementById("confirmPassword").value);
+    if (document.getElementById("document").files.length === 0) {
+        showCustomAlert("Please upload a verification document.");
+        return;
+    }
 
-    formData.append("organizationName",
-        document.getElementById("organizationName").value);
+    if (!document.getElementById("agree").checked) {
+        showCustomAlert("Please certify the information.");
+        return;
+    }
 
-    formData.append("organizationType",
-        document.getElementById("organizationType").value);
+    const formData = new FormData();
+    formData.append("email", emailInput.value.trim());
+    formData.append("password", password);
+    formData.append("confirmPassword", confirmInput.value);
+    formData.append("organizationName", organizationName);
+    formData.append("organizationType", document.getElementById("organizationType").value);
+    formData.append("contactPerson", document.getElementById("contactPerson").value.trim());
+    formData.append("contactNumber", contactNumber);
+    formData.append("address", document.getElementById("address").value.trim());
+    formData.append("city", citySelect.value);
+    formData.append("province", provinceSelect.value);
+    formData.append("description", document.getElementById("description").value.trim());
+    formData.append("document", document.getElementById("document").files[0]);
 
-    formData.append("contactPerson",
-        document.getElementById("contactPerson").value);
-
-    formData.append("contactNumber",
-        document.getElementById("contactNumber").value);
-
-    formData.append("address",
-        document.getElementById("address").value);
-
-    formData.append("city",
-        document.getElementById("city").value);
-
-    formData.append("province",
-        document.getElementById("province").value);
-
-    formData.append("description",
-        document.getElementById("description").value);
-
-    formData.append(
-        "document",
-        document.getElementById("document").files[0]
-    );
-
-    try{
-
-        const response=await fetch("/auth/register-organization",{
-
-            method:"POST",
-
-            body:formData
-
+    try {
+        const response = await fetch("/auth/register-organization", {
+            method: "POST",
+            body: formData
         });
 
-        const result=await response.text();
+        const result = await response.text();
 
-        if(response.ok){
-
-            alert("Application submitted successfully!");
-
-            window.location.href="/auth/login.html";
-
+        if (response.ok) {
+            showCustomAlert("Application submitted successfully!", "success", () => {
+                window.location.href = "/auth/login.html";
+            });
+        } else {
+            showCustomAlert(result);
         }
-
-        else{
-
-            alert(result);
-
-        }
-
-    }
-
-    catch(err){
-
+    } catch (err) {
         console.error(err);
-
-        alert("Unable to submit application.");
-
+        showCustomAlert("Unable to submit application.");
     }
-
 });
 
 </script>

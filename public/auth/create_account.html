@@ -6,23 +6,175 @@
     <title>Create Account - Pawpon</title>
     <link rel="stylesheet" href="/assets/css/create_account.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <style>
+        /* ========================================================
+           COMPACT & BALANCED USER-FRIENDLY FORM STYLES
+           ======================================================== */
+        
+        /* I-override o tiyakin ang tamang agwat ng bawat field container */
+        .form-box form .row,
+        .form-box form .full {
+            margin-bottom: 14px !important; /* Binawasan para hindi masyadong malayo ang gap */
+        }
+
+        .form-box form .checkbox {
+            margin-bottom: 16px !important;
+            margin-top: 5px !important;
+        }
+
+        /* Inline helper texts para sa real-time fields */
+        .input-helper-text {
+            font-size: 12px;
+            margin-top: 4px; /* Malapit lang sa ilalim ng input box */
+            margin-bottom: 0px;
+            color: #7f8c8d;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-family: sans-serif;
+            min-height: 16px;
+        }
+
+        .input-helper-text.error {
+            color: #e74c3c;
+        }
+
+        .input-helper-text.success {
+            color: #2ecc71;
+        }
+
+        /* Password live requirements card checklist */
+        .password-requirements {
+            display: none;
+            margin-top: 6px;
+            padding: 8px 12px; /* Mas siksik na padding */
+            background-color: #f8f9fa;
+            border-radius: 6px;
+            border: 1px solid #e9ecef;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.02);
+        }
+
+        .requirement-item {
+            font-size: 12px; /* Bahagyang pinaliit para sa compact layout */
+            margin: 3px 0; /* Mas maliit na agwat sa bawat linya ng checklist */
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #95a5a6;
+            transition: color 0.2s ease;
+        }
+
+        .requirement-item.invalid {
+            color: #e74c3c;
+        }
+
+        .requirement-item.valid {
+            color: #2ecc71;
+        }
+
+        /* Custom Modal Overlay Window Container */
+        .custom-alert-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .custom-alert-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* Modal Box Design Card */
+        .custom-alert-box {
+            background: #ffffff;
+            padding: 25px;
+            border-radius: 14px;
+            width: 90%;
+            max-width: 360px;
+            text-align: center;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+            transform: scale(0.85);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .custom-alert-overlay.active .custom-alert-box {
+            transform: scale(1);
+        }
+
+        /* Icon Wrapper Inside the Modal Window */
+        .custom-alert-icon {
+            font-size: 44px;
+            color: #e74c3c; 
+            margin-bottom: 12px;
+            display: inline-block;
+        }
+
+        .custom-alert-icon.success-icon {
+            color: #2ecc71; 
+        }
+
+        .custom-alert-message {
+            font-size: 14px;
+            color: #2c3e50;
+            margin-bottom: 18px;
+            line-height: 1.4;
+            font-family: sans-serif;
+        }
+
+        /* Custom Modal Interactive Close Button */
+        .custom-alert-btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 9px 22px;
+            font-size: 14px;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+            outline: none;
+            transition: background 0.2s ease;
+        }
+
+        .custom-alert-btn:hover {
+            background: #2980b9;
+        }
+    </style>
 </head>
 
 <body>
-<!-- CLOSE -->
+
+<div class="custom-alert-overlay" id="customAlertOverlay">
+    <div class="custom-alert-box">
+        <div class="custom-alert-icon" id="customAlertIcon">
+            <i class="fa-solid fa-circle-exclamation"></i>
+        </div>
+        <div class="custom-alert-message" id="customAlertMessage">Something went wrong.</div>
+        <button type="button" class="custom-alert-btn" id="customAlertBtn">Continue</button>
+    </div>
+</div>
+
 <div class="close">
     <a href="/">×</a>
 </div>
 
-<!-- LEFT -->
 <div class="left">
     <div class="form-box">
-        <form id="createAccountForm" action="/auth/register" method="POST">
+        <form id="createAccountForm">
             <h1>Create an Account</h1>
             <p class="subtitle">Sign up as an Adopter or Donor to get started.</p>
             <div class="line"></div>
 
-            <!-- NAME -->
             <div class="row">
                 <div class="field">
                     <label>First Name <span class="required">*</span></label>
@@ -34,37 +186,32 @@
                     <input id="lastName" name="lastName" type="text" placeholder="Enter Last Name" required>
                 </div>
             </div>
-            <!-- PHONE NUMBER -->
+            
             <div class="full">
-                <label>
-                    Phone Number
-                    <span class="required">*</span>
-                </label>
-
+                <label>Phone Number <span class="required">*</span></label>
                 <div class="input-box">
                     <i class="fa-solid fa-phone icon"></i>
-
                     <input
                         id="phoneNumber"
                         name="phoneNumber"
                         type="tel"
                         placeholder="09XXXXXXXXX"
                         maxlength="11"
-                        pattern="^09\d{9}$"
                         required
                     >
                 </div>
+                <div id="phoneHelper" class="input-helper-text"></div>
             </div>
-           <!-- EMAIL -->
+
             <div class="full">
                 <label>Email Address <span class="required">*</span></label>
                 <div class="input-box">
                     <i class="fa-regular fa-envelope icon"></i>
                     <input id="email" name="email" type="email" placeholder="Enter Email" required>
                 </div>
+                <div id="emailHelper" class="input-helper-text"></div>
             </div>
 
-            <!-- PASSWORD -->
             <div class="full">
                 <label>Password <span class="required">*</span></label>
                 <div class="input-box">
@@ -74,9 +221,26 @@
                         <i class="fa-solid fa-eye"></i>
                     </button>
                 </div>
+                
+                <div class="password-requirements" id="passwordRequirements">
+                    <div class="requirement-item invalid" id="reqLength">
+                        <i class="fa-solid fa-circle-xmark status-icon"></i> At least 8 characters
+                    </div>
+                    <div class="requirement-item invalid" id="reqUppercase">
+                        <i class="fa-solid fa-circle-xmark status-icon"></i> One uppercase letter (A-Z)
+                    </div>
+                    <div class="requirement-item invalid" id="reqLowercase">
+                        <i class="fa-solid fa-circle-xmark status-icon"></i> One lowercase letter (a-z)
+                    </div>
+                    <div class="requirement-item invalid" id="reqNumber">
+                        <i class="fa-solid fa-circle-xmark status-icon"></i> One number (0-9)
+                    </div>
+                    <div class="requirement-item invalid" id="reqSpecial">
+                        <i class="fa-solid fa-circle-xmark status-icon"></i> One special character (@$!%*?&#)
+                    </div>
+                </div>
             </div>
 
-            <!-- CONFIRM PASSWORD -->
             <div class="full">
                 <label>Confirm Password <span class="required">*</span></label>
                 <div class="input-box">
@@ -86,20 +250,20 @@
                         <i class="fa-solid fa-eye"></i>
                     </button>
                 </div>
+                <div class="requirement-item invalid" id="reqMatch" style="margin-top: 5px; display: none;">
+                    <i class="fa-solid fa-circle-xmark status-icon"></i> Passwords do not match
+                </div>
             </div>
 
-            <!-- TERMS -->
             <div class="checkbox">
-                <input type="checkbox" required>
+                <input type="checkbox" id="termsAgreement" required>
                 <div>
                     I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>
                 </div>
             </div>
 
-            <!-- BUTTON -->
             <button type="submit" class="submit-btn">Sign Up</button>
 
-            <!-- SIGN IN -->
             <div class="signin">
                 Already have an account? <a href="login.html">Sign in</a>
             </div>
@@ -107,7 +271,6 @@
     </div>
 </div>
 
-<!-- RIGHT -->
 <div class="right">
     <img src="/assets/images/Pawpon_logo.png">
     <h2>Pawpon</h2>
@@ -120,11 +283,73 @@
 </div>
 
 <script>
-    const togglePassword = document.getElementById('togglePassword');
-    const passwordInput = document.getElementById('password');
-    const toggleConfirmPassword = document.getElementById('toggleConfirmPassword');
-    const confirmPasswordInput = document.getElementById('confirmPassword');
+    // ===================================
+    // REGEX VALIDATORS
+    // ===================================
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#]).{8,}$/;
+    const phoneRegex = /^09\d{9}$/;
+    const emailValidatorRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+    // ===================================
+    // DOM ELEMENTS
+    // ===================================
+    const form = document.getElementById('createAccountForm');
+    const emailInput = document.getElementById('email');
+    const emailHelper = document.getElementById('emailHelper');
+    const phoneInput = document.getElementById('phoneNumber');
+    const phoneHelper = document.getElementById('phoneHelper');
+    const passwordInput = document.getElementById('password');
+    const confirmPasswordInput = document.getElementById('confirmPassword');
+    
+    const passwordRequirements = document.getElementById('passwordRequirements');
+    const reqLength = document.getElementById('reqLength');
+    const reqUppercase = document.getElementById('reqUppercase');
+    const reqLowercase = document.getElementById('reqLowercase');
+    const reqNumber = document.getElementById('reqNumber');
+    const reqSpecial = document.getElementById('reqSpecial');
+    const reqMatch = document.getElementById('reqMatch');
+
+    // Custom Modal Engine Elements
+    const alertOverlay = document.getElementById("customAlertOverlay");
+    const alertIcon = document.getElementById("customAlertIcon");
+    const alertMessage = document.getElementById("customAlertMessage");
+    const alertBtn = document.getElementById("customAlertBtn");
+    let currentAlertCallback = null;
+
+    let isEmailValidAndAvailable = false;
+
+    // ===================================
+    // CUSTOM ALERT ENGINE FUNCTION
+    // ===================================
+    function showCustomAlert(message, type = "error", callback = null) {
+        alertMessage.textContent = message;
+        currentAlertCallback = callback;
+
+        if (type === "success") {
+            alertIcon.className = "custom-alert-icon success-icon";
+            alertIcon.innerHTML = '<i class="fa-solid fa-circle-check"></i>';
+            alertBtn.style.background = "#2ecc71";
+        } else {
+            alertIcon.className = "custom-alert-icon";
+            alertIcon.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i>';
+            alertBtn.style.background = "#3498db";
+        }
+
+        alertOverlay.classList.add("active");
+        alertBtn.focus();
+    }
+
+    alertBtn.addEventListener("click", () => {
+        alertOverlay.classList.remove("active");
+        if (currentAlertCallback) {
+            currentAlertCallback();
+            currentAlertCallback = null;
+        }
+    });
+
+    // ===================================
+    // PASSWORD VISIBILITY TOGGLE HANDLER
+    // ===================================
     const setupToggle = (button, input) => {
         if (!button || !input) return;
         button.addEventListener('click', () => {
@@ -138,8 +363,182 @@
         });
     };
 
-    setupToggle(togglePassword, passwordInput);
-    setupToggle(toggleConfirmPassword, confirmPasswordInput);
+    setupToggle(document.getElementById('togglePassword'), passwordInput);
+    setupToggle(document.getElementById('toggleConfirmPassword'), confirmPasswordInput);
+
+    // ===================================
+    // LIVE EMAIL AVAILABILITY VERIFICATION
+    // ===================================
+    async function verifyEmailUniqueness() {
+        const emailValue = emailInput.value.trim().toLowerCase();
+
+        if (emailValue === "") {
+            emailHelper.innerHTML = "";
+            isEmailValidAndAvailable = false;
+            return;
+        }
+
+        if (!emailValidatorRegex.test(emailValue)) {
+            emailHelper.className = "input-helper-text error";
+            emailHelper.innerHTML = "<i class='fa-solid fa-circle-xmark'></i> Please enter a valid email format.";
+            isEmailValidAndAvailable = false;
+            return;
+        }
+
+        emailHelper.className = "input-helper-text";
+        emailHelper.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> Checking availability...";
+
+        try {
+            const response = await fetch(`/auth/check-email?email=${encodeURIComponent(emailValue)}`);
+            
+            if (response.status === 409 || !response.ok) {
+                emailHelper.className = "input-helper-text error";
+                emailHelper.innerHTML = "<i class='fa-solid fa-circle-xmark'></i> Email address is already registered.";
+                isEmailValidAndAvailable = false;
+            } else {
+                emailHelper.className = "input-helper-text success";
+                emailHelper.innerHTML = "<i class='fa-solid fa-circle-check'></i> Email is available.";
+                isEmailValidAndAvailable = true;
+            }
+        } catch (err) {
+            emailHelper.innerHTML = "";
+            isEmailValidAndAvailable = true; 
+        }
+    }
+
+    emailInput.addEventListener("blur", verifyEmailUniqueness);
+    emailInput.addEventListener("input", () => {
+        isEmailValidAndAvailable = false; 
+    });
+
+    // ===================================
+    // LIVE MOBILE NUMBER MASK AND FORMAT
+    // ===================================
+    phoneInput.addEventListener("input", function() {
+        this.value = this.value.replace(/\D/g, ""); 
+        if (this.value === "") {
+            phoneHelper.innerHTML = "";
+        } else if (phoneRegex.test(this.value)) {
+            phoneHelper.className = "input-helper-text success";
+            phoneHelper.innerHTML = "<i class='fa-solid fa-circle-check'></i> Valid Philippine mobile number.";
+        } else {
+            phoneHelper.className = "input-helper-text error";
+            phoneHelper.innerHTML = "<i class='fa-solid fa-circle-xmark'></i> Must be exactly 11 digits starting with 09.";
+        }
+    });
+
+    // ===================================
+    // LIVE PASSWORD COMPLEXITY TRACKER
+    // ===================================
+    function updateRequirementStatus(element, isValid) {
+        const icon = element.querySelector(".status-icon");
+        if (isValid) {
+            element.classList.remove("invalid");
+            element.classList.add("valid");
+            icon.className = "fa-solid fa-circle-check status-icon";
+        } else {
+            element.classList.remove("valid");
+            element.classList.add("invalid");
+            icon.className = "fa-solid fa-circle-xmark status-icon";
+        }
+    }
+
+    passwordInput.addEventListener("focus", () => { passwordRequirements.style.display = "block"; });
+    passwordInput.addEventListener("blur", () => { passwordRequirements.style.display = "none"; });
+
+    passwordInput.addEventListener("input", () => {
+        const value = passwordInput.value;
+        updateRequirementStatus(reqLength, value.length >= 8);
+        updateRequirementStatus(reqUppercase, /[A-Z]/.test(value));
+        updateRequirementStatus(reqLowercase, /[a-z]/.test(value));
+        updateRequirementStatus(reqNumber, /\d/.test(value));
+        updateRequirementStatus(reqSpecial, /[@$!%*?&#]/.test(value));
+        checkMatch();
+    });
+
+    confirmPasswordInput.addEventListener("input", checkMatch);
+
+    function checkMatch() {
+        if (confirmPasswordInput.value === "") {
+            reqMatch.style.display = "none";
+            return;
+        }
+        reqMatch.style.display = "flex";
+        const valuesMatch = (passwordInput.value === confirmPasswordInput.value && passwordInput.value !== "");
+        updateRequirementStatus(reqMatch, valuesMatch);
+        if(valuesMatch) {
+            reqMatch.querySelector(".status-icon").nextSibling.textContent = " Passwords match";
+        } else {
+            reqMatch.querySelector(".status-icon").nextSibling.textContent = " Passwords do not match";
+        }
+    }
+
+    // ===================================
+    // SECURE SUBMIT HANDLER WITH AJAX POST
+    // ===================================
+    form.addEventListener("submit", async function(e) {
+        e.preventDefault();
+
+        const email = emailInput.value.trim();
+        const password = passwordInput.value;
+        const confirmPassword = confirmPasswordInput.value;
+        const phoneNumber = phoneInput.value.trim();
+
+        if (!isEmailValidAndAvailable) {
+            await verifyEmailUniqueness();
+            if (!isEmailValidAndAvailable) {
+                showCustomAlert("The email address provided is invalid or already taken.", "error");
+                return;
+            }
+        }
+
+        if (!phoneRegex.test(phoneNumber)) {
+            showCustomAlert("Please enter a valid 11-digit Philippine mobile number starting with 09.", "error");
+            return;
+        }
+
+        if (!passwordRegex.test(password)) {
+            showCustomAlert("Password does not meet the security complexity requirements.", "error");
+            return;
+        }
+
+        if (password !== confirmPassword) {
+            showCustomAlert("Passwords do not match.", "error");
+            return;
+        }
+
+        const payload = {
+            firstName: document.getElementById("firstName").value.trim(),
+            lastName: document.getElementById("lastName").value.trim(),
+            phoneNumber: phoneNumber,
+            email: email,
+            password: password,
+            confirmPassword: confirmPassword
+        };
+
+        try {
+            const response = await fetch("/auth/register", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(payload)
+            });
+
+            const result = await response.text();
+
+            if (response.ok) {
+                showCustomAlert("Account created successfully! Welcome to Pawpon.", "success", () => {
+                    window.location.href = "login.html";
+                });
+            } else {
+                showCustomAlert(result, "error");
+            }
+        } catch (err) {
+            console.error(err);
+            showCustomAlert("Unable to process your registration request. Please try again later.", "error");
+        }
+    });
 </script>
 </body>
 </html>
