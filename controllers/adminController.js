@@ -152,3 +152,71 @@ exports.getDashboardStats = async (req, res) => {
         res.status(500).json({ message: err.message });
     }
 };
+exports.getUsers = async (req, res) => {
+
+    try {
+
+        const [rows] = await pool.query(`
+            SELECT
+
+                a.account_id,
+                a.email,
+                a.role,
+                a.status,
+                a.created_at,
+                a.last_login,
+
+                CASE
+                    WHEN a.role='adopter'
+                        THEN CONCAT(ad.first_name,' ',ad.last_name)
+
+                    WHEN a.role='organization'
+                        THEN o.organization_name
+
+                    ELSE 'Administrator'
+                END AS name,
+
+                CASE
+                    WHEN a.role='adopter'
+                        THEN ad.phone_number
+
+                    WHEN a.role='organization'
+                        THEN o.contact_number
+
+                    ELSE NULL
+                END AS phone,
+
+                CASE
+                    WHEN a.role='adopter'
+                        THEN ad.profile_picture
+
+                    WHEN a.role='organization'
+                        THEN o.profile_pic
+
+                    ELSE NULL
+                END AS profile
+
+            FROM accounts a
+
+            LEFT JOIN adopters ad
+                ON a.account_id = ad.account_id
+
+            LEFT JOIN organizations o
+                ON a.account_id = o.account_id
+
+            ORDER BY a.created_at DESC
+        `);
+
+        res.json(rows);
+
+    } catch(err){
+
+        console.error(err);
+
+        res.status(500).json({
+            message:"Unable to load users."
+        });
+
+    }
+
+};
