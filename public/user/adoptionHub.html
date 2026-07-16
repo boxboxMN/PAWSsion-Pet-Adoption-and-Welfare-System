@@ -7,8 +7,7 @@
     <title>Adoption Hub</title>
 
     <!-- Tailwind via CDN -->
-    <script src="https://cdn.tailwindcss.com">
-    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
 
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
@@ -16,9 +15,11 @@
     <!-- Google Font: Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap"
-    rel="stylesheet" />
-
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet" />
+    <script src="../assets/js/userSidebar.js" ></script>
+    <script src="../assets/js/userAdoptionHub.js" defer></script>
+    
+    
     <style>
         body {
             visibility: hidden;
@@ -28,6 +29,7 @@
         #header {
             visibility: hidden;
         }
+
         .stepper-line {
             position: absolute;
             top: 1.15rem;
@@ -37,727 +39,170 @@
             background: #e2e8f0;
             z-index: 0;
         }
+
         .step-circle {
             transition: all 0.3s ease;
         }
+
         .upload-box-hover:hover {
             border-color: #94a3b8;
         }
+
         .btn-back-hover:hover {
             transform: translateX(-3px);
         }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
     </style>
 </head>
 
 <body class="bg-gray-100 h-full overflow-hidden">
 
     <!-- ===== SIDEBAR ===== -->
-    <div id="sidebar" class="fixed left-0 top-0 w-64 h-screen bg-white border-r border-gray-200 z-50">
-    </div>
+    <div id="sidebar" class="fixed left-0 top-0 w-64 h-screen bg-white border-r border-gray-200 z-50"></div>
 
     <!-- ===== MAIN CONTENT ===== -->
     <main class="ml-64 pt-24 h-screen overflow-hidden bg-gray-50">
 
         <!-- ===== HEADER ===== -->
-        <div id="header" class="fixed top-0 left-64 right-0 h-24 bg-white border-b border-gray-200 z-40">
-        </div>
+        <div id="header" class="fixed top-0 left-64 right-0 h-24 bg-white border-b border-gray-200 z-40"></div>
 
         <!-- ===== ADOPTION HUB ===== -->
         <div class="h-[calc(100vh-6rem)] overflow-y-auto p-6 lg:p-8">
-
             <div class="max-w-7xl mx-auto">
-
-                <!-- HEADER -->
-                <div class="mb-8">
-                    <h1 class="text-3xl font-bold text-gray-800">Adoption Hub</h1>
-                    <p class="text-gray-500 mt-2">Find your perfect furry companion 🐾</p>
-                </div>
-
+                
                 <!-- SEARCH & FILTER -->
-                <div class="bg-white rounded-2xl shadow-sm p-4 mb-8 flex flex-col md:flex-row gap-4">
-                    <input type="text" id="search-input" placeholder="Search pet name or species..."
-                    class="flex-1 border border-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-400" />
-                    <select id="type-filter"
-                    class="border border-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-400">
-                    <option value="All">All Types</option>
-                    <option value="Dog">Dog</option>
-                    <option value="Cat">Cat</option>
-                </select>
-            </div>
-
-            <!-- ===== LIST VIEW (Grid) ===== -->
-            <div id="list-view">
-                <div id="pet-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <!-- Cards rendered by JS -->
+                <div class="bg-white rounded-2xl shadow-sm p-3 mb-6 -mt-4 flex flex-col md:flex-row gap-4">
+                    <input type="text" id="search-input" placeholder="Search pet name or breed..." class="flex-1 border border-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-400" />
+                    <select id="type-filter" class="border border-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-400">
+                        <option value="All">All Types</option>
+                        <option value="Dog">Dog</option>
+                        <option value="Cat">Cat</option>
+                    </select>
                 </div>
-            </div>
 
-            <!-- ===== DETAILS VIEW ===== -->
-            <div id="details-view" style="display:none;">
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+                <!-- LIST VIEW -->
+                <div id="list-view">
+                    <div id="pet-grid" class="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-5"></div>
+                </div>
 
-                    <!-- Left: Image -->
-                    <div class="bg-white rounded-3xl shadow-sm overflow-hidden">
-                        <div class="relative">
-                            <img id="detail-image" src="" alt="" class="w-full h-[500px] object-cover" />
-                            <span id="detail-status-badge"
-                            class="absolute top-5 right-5 bg-green-400 text-white text-sm font-semibold px-4 py-2 rounded-full shadow-lg"></span>
-                        </div>
-                    </div>
+                <!-- MODAL VIEW -->
+                <div id="viewPetModal" class="fixed inset-0 hidden z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-6">
+                    <div class="bg-white rounded-3xl w-full max-w-6xl max-h-[90vh] overflow-hidden flex">
+                        
+                        <!-- LEFT -->
+                        <div class="w-1/3 bg-gray-50 border-r p-6">
+                            <img id="modalImage" class="w-full rounded-2xl aspect-square object-cover mb-4" alt="Pet Image">
 
-                    <!-- Right: Details -->
-                    <div class="bg-white rounded-3xl shadow-sm p-8">
-
-                        <!-- Back button -->
-                        <button id="back-btn" class="flex items-center gap-2 text-blue-600 font-medium hover:text-blue-700 mb-6 transition btn-back-hover">
-                            <i class="fas fa-arrow-left"></i> Back to Pets
-                        </button>
-
-                        <!-- Title -->
-                        <div class="mb-6">
-                            <h1 id="detail-name" class="text-3xl font-bold text-gray-800 uppercase"></h1>
-                            <p id="detail-species" class="text-gray-500 mt-2 text-lg"></p>
-                        </div>
-
-                        <!-- Details -->
-                        <div class="space-y-5">
-                            <div class="flex gap-4">
-                                <i class="fas fa-paw text-blue-600 mt-1"></i>
-                                <div>
-                                    <p class="font-semibold text-gray-800">Type of Animal</p>
-                                    <p id="detail-type" class="text-gray-500"></p>
+                            <div class="space-y-3">
+                                <div class="bg-white rounded-xl border p-3">
+                                    <p class="text-[11px] font-bold text-blue-700 mb-2">Species</p>
+                                    <p id="modalSpecies" class="font-semibold text-slate-800 mt-1"></p>
                                 </div>
-                            </div>
-                            <div class="flex gap-4">
-                                <i class="fas fa-birthday-cake text-blue-600 mt-1"></i>
-                                <div>
-                                    <p class="font-semibold text-gray-800">Age</p>
-                                    <p id="detail-age" class="text-gray-500"></p>
+
+                                <div class="bg-white rounded-xl border p-3">
+                                    <p class="text-[11px] font-bold text-blue-700 mb-2">Gender</p>
+                                    <p id="modalGender" class="font-semibold mt-1"></p>
                                 </div>
-                            </div>
-                            <div class="flex gap-4">
-                                <i id="detail-gender-icon" class="fas fa-mars text-blue-600 mt-1"></i>
-                                <div>
-                                    <p class="font-semibold text-gray-800">Gender</p>
-                                    <p id="detail-gender" class="text-gray-500"></p>
-                                </div>
-                            </div>
-                            <div class="flex gap-4">
-                                <i class="fas fa-heart text-blue-600 mt-1"></i>
-                                <div>
-                                    <p class="font-semibold text-gray-800">Color & Marking</p>
-                                    <p id="detail-color" class="text-gray-500"></p>
-                                </div>
-                            </div>
-                            <div class="flex gap-4">
-                                <i class="fas fa-shield-alt text-blue-600 mt-1"></i>
-                                <div>
-                                    <p class="font-semibold text-gray-800">Behavior</p>
-                                    <p id="detail-behavior" class="text-gray-500 leading-relaxed"></p>
+
+                                <div class="bg-white rounded-xl border p-3">
+                                    <p class="text-[11px] font-bold text-blue-700 mb-2">Age</p>
+                                    <p id="modalAge" class="font-semibold mt-1"></p>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Organization -->
-                        <div class="bg-gray-50 rounded-2xl p-5 mt-8 border border-gray-100">
-                            <p class="text-sm text-gray-400 mb-2">Organization</p>
-                            <div class="flex items-center justify-between">
+                        <!-- RIGHT -->
+                        <div class="flex-1 overflow-y-auto hide-scrollbar p-5">
+                            <div class="flex justify-between items-start">
                                 <div>
-                                    <h3 class="font-bold text-gray-800">PAWSsion Benevolence Circle</h3>
-                                    <p class="text-gray-500 text-sm">Since 2022</p>
+                                    <h1 id="modalName" class="text-4xl font-bold"></h1>
+                                   <div class="flex flex-wrap gap-3 mt-4">
+                                        <!-- Adoption Status -->
+                                        <span id="modalStatus" class="px-4 py-2 rounded-full text-sm font-medium"></span>
+
+                                        <!-- Health -->
+                                        <span id="modalHealth" class="px-4 py-2 rounded-full text-sm font-medium"></span>
+
+                                        <!-- Vaccination -->
+                                        <span id="modalVaccination" class="px-4 py-2 rounded-full text-sm font-medium"></span>
+                                    </div>
                                 </div>
-                                <span class="bg-green-100 text-green-700 text-xs font-semibold px-3 py-1 rounded-full">Verified</span>
+                                <button onclick="closePetModal()" class="text-gray-400 hover:text-gray-600 transition-colors">
+                                    <i class="fa-solid fa-xmark text-3xl"></i>
+                                </button>
                             </div>
+
+                            <div class="mt-5">
+                                <h3 class="font-bold text-blue-700 mb-2">Personality</h3>
+                                <div id="modalTags" class="flex flex-wrap gap-2"></div>
+                            </div>
+
+                            <div class="mt-5">
+                                <h3 class="font-bold text-blue-700 mb-2">Pet Description</h3>
+                                <p id="modalBehavior" class="text-gray-600 leading-relaxed text-justify"></p>
+                            </div>
+
+                            <!-- Medical History -->
+                            <div class="mt-5">
+                                <h3 class="font-bold text-blue-700 mb-2">Medical History</h3>
+
+                                <div class="overflow-x-auto border rounded-2xl">
+                                    <table class="w-full">
+                                        <thead class="bg-blue-700 text-white">
+                                            <tr>
+                                                <th class="text-left p-3">Treatment</th>
+                                                <th class="text-left p-3">Date</th>
+                                                <th class="text-left p-3">Administered By</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="modalMedicalBody">
+                                            <tr>
+                                                <td colspan="3" class="text-center p-6 text-gray-400">
+                                                    No medical records.
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <button class="mt-8 w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl transition-colors">
+                                Apply for Adoption
+                            </button>
                         </div>
 
-                        <!-- Start Adoption Button -->
-                        <button id="adopt-btn" class="w-full bg-blue-600 hover:bg-blue-700 transition text-white font-semibold py-4 rounded-2xl mt-8 shadow-lg">
-                            Start Adoption Process
-                        </button>
                     </div>
                 </div>
+
             </div>
-
-            <!-- ===== APPLICATION VIEW (Formal Form) ===== -->
-            <div id="application-view" style="display:none;">
-
-                <div class="max-w-4xl mx-auto bg-white rounded-xl shadow-md border border-gray-200 p-6 lg:p-8">
-
-                    <!-- Back button -->
-                    <div class="flex items-center justify-between mb-4">
-                        <button id="app-back-btn" class="inline-flex items-center gap-2 text-blue-600 font-medium hover:text-blue-700 transition btn-back-hover">
-                            <i class="fas fa-arrow-left text-sm"></i> Back to Pet Details
-                        </button>
-                        <span id="app-pet-name" class="text-sm font-medium text-gray-600 bg-gray-100 px-4 py-1.5 rounded-full">
-                            Applying for: <span class="text-blue-600 font-bold"></span>
-                        </span>
-                    </div>
-
-                    <!-- Document Header -->
-                    <div class="border-b border-gray-100 pb-4 mb-6 flex flex-wrap items-center justify-between gap-3">
-                        <div>
-                            <h1 class="text-2xl font-bold text-gray-800">Adoption Application Form</h1>
-                            <div class="text-sm text-gray-500">Reference: <span id="app-ref-number" class="bg-gray-100 px-3 py-0.5 rounded-full font-mono">APP-2026-001</span></div>
-                        </div>
-                        <div>
-                            <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold border bg-yellow-50 text-yellow-700 border-yellow-300">
-                                <span class="w-1.5 h-1.5 rounded-full bg-yellow-500 inline-block"></span> Pending
-                            </span>
-                        </div>
-                    </div>
-
-                    <!-- Status Row -->
-                    <div class="flex flex-wrap items-center gap-4 mb-4">
-                        <span class="text-sm text-gray-500">Submitted: <strong id="app-submitted-date" class="text-gray-800 font-semibold">Today</strong></span>
-                        <span class="text-gray-300">|</span>
-                        <span class="text-sm text-gray-500">Organization: <strong id="app-org-name" class="text-gray-800 font-semibold">PAWSsion Benevolence Circle</strong></span>
-                    </div>
-
-                    <!-- Stepper -->
-                    <div class="bg-white border border-gray-100 rounded-lg p-6 mb-6 relative">
-                        <div class="flex items-center justify-between relative">
-                            <!-- Line behind steps -->
-                            <div class="stepper-line"></div>
-
-                            <!-- Step 1 -->
-                            <div class="flex flex-col items-center gap-1 flex-1 relative z-10 step-item active" data-step="1">
-                                <div class="w-9 h-9 rounded-full border-2 border-gray-200 bg-white text-gray-400 font-bold text-xs flex items-center justify-center step-circle active:border-blue-600 active:bg-blue-600 active:text-white active:shadow-md completed:border-green-500 completed:bg-green-500 completed:text-white">
-                                    1
-                                </div>
-                                <span class="text-[10px] font-semibold uppercase tracking-wider text-gray-400 text-center max-w-[4.5rem] leading-tight step-label active:text-gray-800 completed:text-gray-800">Applicant</span>
-                            </div>
-                            <!-- Step 2 -->
-                            <div class="flex flex-col items-center gap-1 flex-1 relative z-10 step-item" data-step="2">
-                                <div class="w-9 h-9 rounded-full border-2 border-gray-200 bg-white text-gray-400 font-bold text-xs flex items-center justify-center step-circle active:border-blue-600 active:bg-blue-600 active:text-white active:shadow-md completed:border-green-500 completed:bg-green-500 completed:text-white">
-                                    2
-                                </div>
-                                <span class="text-[10px] font-semibold uppercase tracking-wider text-gray-400 text-center max-w-[4.5rem] leading-tight step-label active:text-gray-800 completed:text-gray-800">Lifestyle</span>
-                            </div>
-                            <!-- Step 3 -->
-                            <div class="flex flex-col items-center gap-1 flex-1 relative z-10 step-item" data-step="3">
-                                <div class="w-9 h-9 rounded-full border-2 border-gray-200 bg-white text-gray-400 font-bold text-xs flex items-center justify-center step-circle active:border-blue-600 active:bg-blue-600 active:text-white active:shadow-md completed:border-green-500 completed:bg-green-500 completed:text-white">
-                                    3
-                                </div>
-                                <span class="text-[10px] font-semibold uppercase tracking-wider text-gray-400 text-center max-w-[4.5rem] leading-tight step-label active:text-gray-800 completed:text-gray-800">Intent</span>
-                            </div>
-                            <!-- Step 4 -->
-                            <div class="flex flex-col items-center gap-1 flex-1 relative z-10 step-item" data-step="4">
-                                <div class="w-9 h-9 rounded-full border-2 border-gray-200 bg-white text-gray-400 font-bold text-xs flex items-center justify-center step-circle active:border-blue-600 active:bg-blue-600 active:text-white active:shadow-md completed:border-green-500 completed:bg-green-500 completed:text-white">
-                                    4
-                                </div>
-                                <span class="text-[10px] font-semibold uppercase tracking-wider text-gray-400 text-center max-w-[4.5rem] leading-tight step-label active:text-gray-800 completed:text-gray-800">Emergency</span>
-                            </div>
-                            <!-- Step 5 -->
-                            <div class="flex flex-col items-center gap-1 flex-1 relative z-10 step-item" data-step="5">
-                                <div class="w-9 h-9 rounded-full border-2 border-gray-200 bg-white text-gray-400 font-bold text-xs flex items-center justify-center step-circle active:border-blue-600 active:bg-blue-600 active:text-white active:shadow-md completed:border-green-500 completed:bg-green-500 completed:text-white">
-                                    5
-                                </div>
-                                <span class="text-[10px] font-semibold uppercase tracking-wider text-gray-400 text-center max-w-[4.5rem] leading-tight step-label active:text-gray-800 completed:text-gray-800">Requirement</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- ===== FORM FIELDS ===== -->
-
-                    <!-- Applicant Information -->
-                    <div class="bg-white border border-gray-100 rounded-lg p-6 mb-6">
-                        <div class="flex items-center gap-2 font-semibold text-sm text-gray-800 border-b border-gray-100 pb-3 mb-4">
-                            <i class="fas fa-user w-8 h-8 flex items-center justify-center bg-blue-50 text-blue-600 rounded-lg"></i>
-                            Applicant Information
-                        </div>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div class="mb-2">
-                                <label class="block text-xs font-semibold uppercase tracking-wider text-gray-500">Full Name</label>
-                                <input type="text" id="app-fullname" placeholder="Juan Dela Cruz" class="w-full text-gray-800 border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none" />
-                            </div>
-                            <div class="mb-2">
-                                <label class="block text-xs font-semibold uppercase tracking-wider text-gray-500">Phone</label>
-                                <input type="text" id="app-phone" placeholder="09123456789" class="w-full text-gray-800 border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none" />
-                            </div>
-                            <div class="mb-2">
-                                <label class="block text-xs font-semibold uppercase tracking-wider text-gray-500">Email</label>
-                                <input type="email" id="app-email" placeholder="juan@gmail.com" class="w-full text-gray-800 border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none" />
-                            </div>
-                            <div class="mb-2 md:col-span-3">
-                                <label class="block text-xs font-semibold uppercase tracking-wider text-gray-500">Address</label>
-                                <input type="text" id="app-address" placeholder="Legazpi City, Albay" class="w-full text-gray-800 border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none" />
-                            </div>
-                            <div class="mb-2">
-                                <label class="block text-xs font-semibold uppercase tracking-wider text-gray-500">Civil Status</label>
-                                <select id="app-civil-status" class="w-full text-gray-800 border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none">
-                                    <option value="Single">Single</option>
-                                    <option value="Married">Married</option>
-                                    <option value="Divorced">Divorced</option>
-                                    <option value="Widowed">Widowed</option>
-                                </select>
-                            </div>
-                            <div class="mb-2">
-                                <label class="block text-xs font-semibold uppercase tracking-wider text-gray-500">Age</label>
-                                <input type="number" id="app-age" placeholder="22" class="w-full text-gray-800 border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none" />
-                            </div>
-                            <div class="mb-2">
-                                <label class="block text-xs font-semibold uppercase tracking-wider text-gray-500">Occupation</label>
-                                <input type="text" id="app-occupation" placeholder="Student" class="w-full text-gray-800 border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none" />
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Lifestyle -->
-                    <div class="bg-white border border-gray-100 rounded-lg p-6 mb-6">
-                        <div class="flex items-center gap-2 font-semibold text-sm text-gray-800 border-b border-gray-100 pb-3 mb-4">
-                            <i class="fas fa-home w-8 h-8 flex items-center justify-center bg-blue-50 text-blue-600 rounded-lg"></i>
-                            Lifestyle &amp; Home Assessment
-                        </div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div class="mb-2">
-                                <label class="block text-xs font-semibold uppercase tracking-wider text-gray-500">Work Hours</label>
-                                <input type="text" id="app-work-hours" placeholder="8AM – 5PM" class="w-full text-gray-800 border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none" />
-                            </div>
-                            <div class="mb-2">
-                                <label class="block text-xs font-semibold uppercase tracking-wider text-gray-500">Time Available with Pet (daily)</label>
-                                <input type="text" id="app-time-with-pet" placeholder="6 hours" class="w-full text-gray-800 border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none" />
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Adoption Intent -->
-                    <div class="bg-white border border-gray-100 rounded-lg p-6 mb-6">
-                        <div class="flex items-center gap-2 font-semibold text-sm text-gray-800 border-b border-gray-100 pb-3 mb-4">
-                            <i class="fas fa-heart w-8 h-8 flex items-center justify-center bg-blue-50 text-blue-600 rounded-lg"></i>
-                            Adoption Intent
-                        </div>
-                        <textarea id="app-intent" class="w-full border border-gray-200 rounded-lg p-3 bg-gray-50 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none min-h-[100px] resize-y" placeholder="Tell us why you want to adopt this pet..."></textarea>
-                    </div>
-
-                    <!-- Emergency Contact -->
-                    <div class="bg-white border border-gray-100 rounded-lg p-6 mb-6">
-                        <div class="flex items-center gap-2 font-semibold text-sm text-gray-800 border-b border-gray-100 pb-3 mb-4">
-                            <i class="fas fa-phone-alt w-8 h-8 flex items-center justify-center bg-blue-50 text-blue-600 rounded-lg"></i>
-                            Emergency Contact
-                        </div>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div class="mb-2">
-                                <label class="block text-xs font-semibold uppercase tracking-wider text-gray-500">Contact Name</label>
-                                <input type="text" id="app-emergency-name" placeholder="Maria Cruz" class="w-full text-gray-800 border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none" />
-                            </div>
-                            <div class="mb-2">
-                                <label class="block text-xs font-semibold uppercase tracking-wider text-gray-500">Phone</label>
-                                <input type="text" id="app-emergency-phone" placeholder="09999999999" class="w-full text-gray-800 border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none" />
-                            </div>
-                            <div class="mb-2">
-                                <label class="block text-xs font-semibold uppercase tracking-wider text-gray-500">Relation</label>
-                                <input type="text" id="app-emergency-relation" placeholder="Mother" class="w-full text-gray-800 border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none" />
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Uploaded Requirement -->
-                    <div class="bg-white border border-gray-100 rounded-lg p-6 mb-6">
-                        <div class="flex items-center gap-2 font-semibold text-sm text-gray-800 border-b border-gray-100 pb-3 mb-4">
-                            <i class="fas fa-upload w-8 h-8 flex items-center justify-center bg-blue-50 text-blue-600 rounded-lg"></i>
-                            Uploaded Requirement
-                        </div>
-                        <div id="upload-box" class="border-2 border-dashed border-gray-200 rounded-xl p-6 text-center bg-gray-50 hover:border-gray-400 cursor-pointer transition">
-                            <i class="fas fa-cloud-upload-alt text-4xl text-red-500 block mb-2"></i>
-                            <div class="file-name font-medium text-gray-800">Click to upload requirement</div>
-                            <div class="file-date text-xs text-gray-400 mt-1">Accepted: JPG, PNG, PDF (max 5MB)</div>
-                            <input type="file" id="file-input" class="hidden" accept=".jpg,.jpeg,.png,.pdf" />
-                        </div>
-                        <div id="upload-status" class="text-sm text-green-600 mt-2 hidden">
-                            <i class="fas fa-check-circle"></i> File uploaded successfully
-                        </div>
-                    </div>
-
-                    <!-- Submit -->
-                    <div class="flex flex-wrap items-center justify-between gap-3 mt-6 pt-4 border-t border-gray-200">
-                        <button id="app-back-btn-bottom" class="inline-flex items-center gap-2 text-blue-600 font-medium hover:text-blue-700 transition btn-back-hover">
-                            <i class="fas fa-arrow-left text-sm"></i> Back
-                        </button>
-                        <button id="app-submit-btn" class="bg-blue-600 hover:bg-blue-700 transition text-white font-semibold px-8 py-3 rounded-xl shadow-lg">
-                            <i class="fas fa-paper-plane mr-2"></i> Submit Application
-                        </button>
-                    </div>
-
-                </div>
-            </div>
-
         </div>
-    </div>
-
-</main>
-
-<!-- ===== LOAD SIDEBAR & HEADER ===== -->
+    </main>
 <script>
-    async function loadComponent(id, file) {
-        try {
-            const response = await fetch(file);
-            if (!response.ok) {
-                throw new Error(`Cannot load ${file}`);
-            }
-            document.getElementById(id).innerHTML = await response.text();
-        } catch (error) {
-            console.error(error);
-        }
-    }
+document.addEventListener("DOMContentLoaded", async () => {
 
-    Promise.all([
-            loadComponent("sidebar", "/user/userSidebar.html"),
-            loadComponent("header", "/user/userHeader.html")
-        ])
-        .then(() => {
+    // Wait until sidebar + header are loaded
+    await loadSidebar();
 
-            document.getElementById("sidebar").style.visibility = "visible";
-            document.getElementById("header").style.visibility = "visible";
+    // Wait one tick so the header HTML exists
+    requestAnimationFrame(() => {
 
-            const currentPath = window.location.pathname;
-            const pageTitle = document.getElementById("pageTitle");
-
-            const links = document.querySelectorAll("#sidebar .nav-link");
-
-            links.forEach(link => {
-
-                const href = link.getAttribute("href");
-
-                const isActive =
-                    href === currentPath ||
-                    (href !== "/dashboard" && currentPath.startsWith(href));
-
-                if (isActive) {
-
-                    link.className =
-                        "nav-link flex items-center gap-4 px-5 py-4 rounded-2xl bg-blue-600 text-white shadow";
-
-                    if (pageTitle) {
-                        pageTitle.textContent = link.dataset.title;
-                    }
-
-                } else {
-
-                    link.className =
-                        "nav-link flex items-center gap-4 px-5 py-4 rounded-2xl text-gray-800 hover:bg-blue-50 hover:text-blue-600 transition";
-
-                }
-
-            });
-
-            document.body.style.visibility = "visible";
-
-        })
-        .catch(error => console.error(error));
-</script>
-
-<!-- ===== ADOPTION HUB SCRIPT ===== -->
-<script>
-    // ===== STATE =====
-    let allPets = []; // Dito itatabi ang orihinal na listahan ng pets mula sa API
-let currentSearch = "";
-let currentType = "All";
-let selectedPet = null;
-
-// ===== DOM REFS =====
-const grid = document.getElementById('pet-grid');
-const listView = document.getElementById('list-view');
-const detailsView = document.getElementById('details-view');
-const applicationView = document.getElementById('application-view');
-const searchInput = document.getElementById('search-input');
-const typeFilter = document.getElementById('type-filter');
-const backBtn = document.getElementById('back-btn');
-const adoptBtn = document.getElementById('adopt-btn');
-
-const detailImage = document.getElementById('detail-image');
-const detailStatusBadge = document.getElementById('detail-status-badge');
-const detailName = document.getElementById('detail-name');
-const detailSpecies = document.getElementById('detail-species');
-const detailType = document.getElementById('detail-type');
-const detailAge = document.getElementById('detail-age');
-const detailGender = document.getElementById('detail-gender');
-const detailGenderIcon = document.getElementById('detail-gender-icon');
-const detailColor = document.getElementById('detail-color');
-const detailBehavior = document.getElementById('detail-behavior');
-
-// Application form refs
-const appBackBtn = document.getElementById('app-back-btn');
-const appBackBtnBottom = document.getElementById('app-back-btn-bottom');
-const appPetName = document.getElementById('app-pet-name');
-const appRefNumber = document.getElementById('app-ref-number');
-const appSubmittedDate = document.getElementById('app-submitted-date');
-const appOrgName = document.getElementById('app-org-name');
-const appSubmitBtn = document.getElementById('app-submit-btn');
-const fileInput = document.getElementById('file-input');
-const uploadBox = document.getElementById('upload-box');
-const uploadStatus = document.getElementById('upload-status');
-
-// ===== GENERATE REFERENCE =====
-function generateRef() {
-    const now = new Date();
-    const year = now.getFullYear();
-    const random = String(Math.floor(100 + Math.random() * 900));
-    return `APP-${year}-${random}`;
-}
-
-// ===== FORMAT DATE =====
-function formatDate(date) {
-    const d = new Date(date);
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    return `${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
-}
-
-// ===== FETCH PETS FROM API =====
-async function fetchPets() {
-    try {
-        const response = await fetch("/api/pets");
-        if (!response.ok) {
-            throw new Error("Failed to fetch pets.");
-        }
-        allPets = await response.json(); // I-save sa global state
-        renderGrid(); // I-render gamit ang naka-save na global state
-    } catch (error) {
-        console.error("Error fetching pets:", error);
-        grid.innerHTML = `<div class="col-span-full text-center text-gray-500 py-12">Failed to load pets. Please try again later.</div>`;
-    }
-}
-
-// ===== RENDER GRID =====
-function renderGrid() {
-    if (!allPets || !Array.isArray(allPets)) {
-        grid.innerHTML = `<div class="col-span-full text-center text-gray-500 py-12">No pets available.</div>`;
-        return;
-    }
-
-    const filtered = allPets.filter(pet => {
-        const searchMatch = pet.name.toLowerCase().includes(currentSearch.toLowerCase()) ||
-            pet.species.toLowerCase().includes(currentSearch.toLowerCase());
-        const typeMatch = currentType === "All" || pet.type === currentType;
-        return searchMatch && typeMatch;
-    });
-
-    if (filtered.length === 0) {
-        grid.innerHTML = `<div class="col-span-full text-center text-gray-500 py-12">No pets found matching your criteria.</div>`;
-        return;
-    }
-
-    let html = '';
-    filtered.forEach(pet => {
-        const genderIcon = pet.gender === "Male" ? "fa-mars text-blue-600" : "fa-venus text-pink-500";
-        
-        // Linisin ang image path kung galing sa Windows backend at gawing slash static route
-        let imagePath = pet.image_path ? pet.image_path.replace(/\\/g, '/') : "/assets/images/no-image.png";
-        
-        // Siguraduhing nagsisimula sa slash para mahanap mula sa root domain
-        if (imagePath && !imagePath.startsWith('/') && !imagePath.startsWith('http')) {
-            imagePath = '/' + imagePath;
-        }
-
-        html += `
-            <div class="pet-card bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer group" data-id="${pet.id}">
-                <div class="relative overflow-hidden h-64">
-                    <img src="${imagePath}" alt="${pet.name}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                    <span class="absolute top-3 right-3 bg-green-400 text-white text-xs font-semibold px-3 py-1 rounded-full shadow">${pet.adoption_status}</span>
-                </div>
-                <div class="p-4">
-                    <div class="flex justify-between items-center">
-                        <div>
-                            <h2 class="text-xl font-bold text-gray-800">${pet.name}</h2>
-                            <p class="text-gray-500 text-sm mt-1">${pet.species}</p>
-                        </div>
-                        <div>
-                            <i class="fas ${genderIcon} text-lg"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
-    });
-
-    grid.innerHTML = html;
-
-    // Magkabit ng click event sa bawat bagong render na card
-    const cards = grid.querySelectorAll('.pet-card');
-    cards.forEach(card => {
-        card.addEventListener('click', () => {
-            const petId = card.getAttribute('data-id');
-            const pet = allPets.find(p => p.id == petId); 
-            if (pet) {
-                showDetails(pet);
-            }
+        // Set page title
+        loadTopbar({
+            title: "Adoption Hub",
+            subtitle: "Browse available pets, view their profiles, and begin your adoption journey."
         });
-    });
-}
 
-// ===== SHOW DETAILS =====
-function showDetails(pet) {
-    selectedPet = pet; 
-
-    // Linisin ang path at ilapat ang tamang slashes para mabasa ng browser
-    let cleanPath = pet.image_path ? pet.image_path.replace(/\\/g, '/') : "/assets/images/no-image.png";
-    if (cleanPath && !cleanPath.startsWith('/') && !cleanPath.startsWith('http')) {
-        cleanPath = '/' + cleanPath;
-    }
-
-    // Isaksak ang nalinis na path sa Detail Image Element
-    detailImage.src = cleanPath;
-    detailImage.alt = pet.name;
-
-    // I-populate ang iba pang detalye
-    detailName.textContent = pet.name;
-    detailSpecies.textContent = pet.species;
-    detailType.textContent = pet.type;
-    detailAge.textContent = pet.age || "N/A"; 
-    detailGender.textContent = pet.gender;
-    detailColor.textContent = pet.color || "N/A";
-    detailBehavior.textContent = pet.behavior || "No behavioral notes.";
-    detailStatusBadge.textContent = pet.adoption_status;
-
-    // Ayusin ang gender icon class
-    if (pet.gender === "Male") {
-        detailGenderIcon.className = "fas fa-mars text-blue-600 mt-1";
-    } else {
-        detailGenderIcon.className = "fas fa-venus text-pink-500 mt-1";
-    }
-
-    // Lumipat ng Screen View
-    listView.style.display = 'none';
-    applicationView.style.display = 'none';
-    detailsView.style.display = 'block';
-}
-
-// ===== SHOW APPLICATION FORM =====
-function showApplication(pet) {
-    selectedPet = pet;
-    detailsView.style.display = 'none';
-    listView.style.display = 'none';
-    applicationView.style.display = 'block';
-
-    // Update application header
-    const nameSpan = appPetName.querySelector('span');
-    if (nameSpan) nameSpan.textContent = pet.name;
-    appRefNumber.textContent = generateRef();
-    appSubmittedDate.textContent = formatDate(new Date());
-    appOrgName.textContent = "PAWSsion Benevolence Circle";
-
-    // Reset stepper to first step
-    document.querySelectorAll('.step-item').forEach((el, idx) => {
-        el.classList.remove('active', 'completed');
-        if (idx === 0) el.classList.add('active');
+        document.body.style.visibility = "visible";
     });
 
-    // Scroll back to top
-    const container = document.querySelector('.overflow-y-auto');
-    if (container) container.scrollTop = 0;
-}
-
-// ===== NAVIGATION FUNCTIONS =====
-function goBackToDetails() {
-    applicationView.style.display = 'none';
-    listView.style.display = 'none';
-    detailsView.style.display = 'block';
-}
-
-function goBackToList() {
-    detailsView.style.display = 'none';
-    applicationView.style.display = 'none';
-    listView.style.display = 'block';
-    selectedPet = null;
-}
-
-// ===== EVENT LISTENERS =====
-searchInput.addEventListener('input', function() {
-    currentSearch = this.value;
-    renderGrid();
 });
-
-typeFilter.addEventListener('change', function() {
-    currentType = this.value;
-    renderGrid();
-});
-
-backBtn.addEventListener('click', goBackToList);
-
-adoptBtn.addEventListener('click', function() {
-    if (selectedPet) {
-        showApplication(selectedPet);
-    }
-});
-
-// Application back buttons
-appBackBtn.addEventListener('click', goBackToDetails);
-appBackBtnBottom.addEventListener('click', goBackToDetails);
-
-// File upload mechanics
-uploadBox.addEventListener('click', function() {
-    fileInput.click();
-});
-
-fileInput.addEventListener('change', function(e) {
-    if (this.files && this.files[0]) {
-        const file = this.files[0];
-        const sizeMB = (file.size / 1024 / 1024).toFixed(2);
-        
-        // Pinalitan ang class selector ng direct ID query dahil walang `.upload-box` class sa HTML mo
-        const fileNameEl = uploadBox.querySelector('.file-name');
-        if (fileNameEl) {
-            fileNameEl.textContent = `${file.name} (${sizeMB} MB)`;
-        }
-        
-        uploadStatus.classList.remove('hidden');
-        uploadStatus.innerHTML = `<i class="fas fa-check-circle"></i> File "${file.name}" uploaded successfully`;
-    }
-});
-
-// Submit application
-appSubmitBtn.addEventListener('click', function() {
-    const fields = [
-        'app-fullname', 'app-phone', 'app-email', 'app-address', 'app-age', 'app-occupation',
-        'app-work-hours', 'app-time-with-pet', 'app-intent', 'app-emergency-name', 'app-emergency-phone',
-        'app-emergency-relation'
-    ];
-    let missing = [];
-    fields.forEach(id => {
-        const el = document.getElementById(id);
-        if (el && !el.value.trim()) {
-            missing.push(el.placeholder || id);
-        }
-    });
-
-    if (missing.length > 0) {
-        alert(`Please fill in all required fields:\n- ${missing.join('\n- ')}`);
-        return;
-    }
-
-    if (!fileInput.files || !fileInput.files[0]) {
-        alert('Please upload a requirement document.');
-        return;
-    }
-
-    alert(`🎉 Application for ${selectedPet.name} submitted successfully!\n\nReference: ${appRefNumber.textContent}\nWe will notify you via email.`);
-
-    // Reset form fields
-    document.querySelectorAll('#application-view input, #application-view textarea, #application-view select')
-        .forEach(el => {
-            if (el.type !== 'file' && el.type !== 'checkbox' && el.type !== 'radio') {
-                el.value = '';
-            }
-        });
-    
-    const fileNameEl = uploadBox.querySelector('.file-name');
-    if (fileNameEl) {
-        fileNameEl.textContent = 'Click to upload requirement';
-    }
-    uploadStatus.classList.add('hidden');
-    fileInput.value = '';
-
-    goBackToDetails();
-});
-
-// ===== INITIALIZATION ON PAGE LOAD =====
-// Siguraduhing naka-set nang tama ang views sa simula
-listView.style.display = 'block';
-detailsView.style.display = 'none';
-applicationView.style.display = 'none';
-
-fetchPets();
 </script>
-
 </body>
-
 </html>

@@ -47,6 +47,8 @@
             display: none;
         }
     </style>
+    <script src="../assets/js/userSidebar.js"></script>
+
 </head>
 
 <body class="bg-gray-100 h-full overflow-hidden">
@@ -308,79 +310,44 @@
 </main>
 
 <script>
-    async function loadComponent(id, file) {
-        try {
-            const response = await fetch(file);
-            if (!response.ok) {
-                throw new Error(`Cannot load ${file}`);
-            }
-            document.getElementById(id).innerHTML = await response.text();
-        } catch (error) {
-            console.error(error);
-        }
+document.addEventListener("DOMContentLoaded", async () => {
+
+    // Wait until sidebar + header are loaded
+    await loadSidebar("dashboard");
+
+    // Wait one tick so the header HTML exists
+    requestAnimationFrame(async () => {
+
+        // Set dashboard title
+        loadTopbar({
+            title: "Dashboard",
+            subtitle: "View your adoption progress, upcoming schedules, recent activities, and quick access to important features."
+        });
+
+        // Load user's name
+        await loadUserName();
+
+        document.body.style.visibility = "visible";
+    });
+
+});
+
+async function loadUserName() {
+    try {
+
+        const response = await fetch("/api/current-user");
+        const data = await response.json();
+
+        document.getElementById("welcomeUserName").textContent =
+            data.name || "User";
+
+    } catch (err) {
+
+        console.error(err);
+
+        document.getElementById("welcomeUserName").textContent = "User";
     }
-
-    async function loadUserName() {
-        try {
-            const response = await fetch('/api/current-user');
-            const data = await response.json();
-            const userNameElement = document.getElementById('welcomeUserName');
-
-            if (userNameElement) {
-                userNameElement.textContent = data.name || 'User';
-            }
-        } catch (error) {
-            console.error(error);
-            const userNameElement = document.getElementById('welcomeUserName');
-            if (userNameElement) {
-                userNameElement.textContent = 'User';
-            }
-        }
-    }
-    loadUserName();
-
-    Promise.all([
-            loadComponent("sidebar", "/user/userSidebar.html"),
-            loadComponent("header", "/user/userHeader.html")
-        ])
-        .then(() => {
-
-            document.getElementById("sidebar").style.visibility = "visible";
-            document.getElementById("header").style.visibility = "visible";
-
-            const currentPath = window.location.pathname;
-            const pageTitle = document.getElementById("pageTitle");
-
-            const links = document.querySelectorAll("#sidebar .nav-link");
-
-            links.forEach(link => {
-
-                const href = link.getAttribute("href");
-
-                const isActive =
-                    href === currentPath ||
-                    (href !== "/dashboard" && currentPath.startsWith(href));
-
-                if (isActive) {
-
-                    link.className =
-                        "nav-link flex items-center gap-4 px-5 py-4 rounded-2xl bg-blue-600 text-white shadow";
-
-                    if (pageTitle) {
-                        pageTitle.textContent = link.dataset.title;
-                    }
-
-                } else {
-
-                    link.className =
-                        "nav-link flex items-center gap-4 px-5 py-4 rounded-2xl text-gray-800 hover:bg-blue-50 hover:text-blue-600 transition";
-                }
-
-            });
-
-            document.body.style.visibility = "visible";
-        })
-        .catch(error => console.error(error));
+}
 </script>
 
 </body>

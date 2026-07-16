@@ -17,7 +17,6 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet" />
-
     <style>
         *{
           box-sizing:border-box;
@@ -63,8 +62,6 @@
             transition: all 0.2s ease;
             cursor: pointer;
         }
-
-        /* Modal overlay */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -102,16 +99,13 @@
         }
     </style>
 </head>
-
 <body class="bg-gray-100 h-full overflow-hidden">
-
     <!-- ===== SIDEBAR ===== -->
     <div
         id="sidebar"
         class="fixed left-0 top-0 w-64 h-screen bg-white border-r border-gray-200 z-50">
     </div>
     <!-- ===== MAIN CONTENT ===== -->
-   
     <main class="ml-64 pt-24 h-screen overflow-hidden bg-gray-50">
         <div
             id="header"
@@ -119,7 +113,6 @@
         </div>
         <!-- ===== CASH DONATION PAGE ===== -->
         <div class="h-[calc(100vh-6rem)] overflow-y-auto p-8">
-
             <!-- HEADER SECTION -->
             <div class="text-center mb-8">
                 <h1 class="text-4xl font-bold text-blue-700">
@@ -128,7 +121,6 @@
                 <p class="text-gray-600 mt-2">
                     Help us continue our mission to care for and rehome animals in need
                 </p>
-
                 <!-- Buttons -->
                 <div class="flex justify-center gap-4 mt-6">
                     <a href="/cash-donation" id="cashBtn" class="donation-btn bg-blue-700 text-white px-8 py-3 rounded-lg font-medium inline-block">
@@ -139,73 +131,35 @@
                     </a>
                 </div>
             </div>
-
             <!-- MAIN CONTENT: 3 columns (left 2, right 1) -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
                 <!-- LEFT SIDE (2 cols) -->
                 <div class="lg:col-span-2 bg-white rounded-2xl shadow p-6">
-
                     <!-- STEP 1: Select Organization -->
                     <h2 class="text-xl font-bold mb-4">Step 1: Select Organization</h2>
+                    <div
+                        id="orgContainer"
+                        class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
 
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8" id="orgContainer">
-                        <!-- Card 1 -->
-                        <div class="org-card selected border rounded-xl p-4 relative" data-org="1">
-                            <div class="checkmark absolute top-0 right-0 bg-blue-600 text-white text-xs px-2 py-1 rounded-bl-lg">✓</div>
-                            <div class="flex justify-center mb-4">
-                                <img src="https://cdn-icons-png.flaticon.com/512/616/616408.png" alt="org" class="w-16 h-16" />
-                            </div>
-                            <h3 class="font-bold text-center text-sm">PAWssion Benevolence Circle</h3>
-                            <p class="text-gray-500 text-xs text-center mt-2">Nabua, Camarines Sur</p>
-                            <p class="text-blue-600 text-xs text-center mt-4 view-profile-btn cursor-pointer" data-org="1">View Organization Profile →</p>
-                        </div>
-
-                        <!-- Card 2 -->
-                        <div class="org-card border rounded-xl p-4 relative" data-org="2">
-                            <div class="checkmark absolute top-0 right-0 bg-blue-600 text-white text-xs px-2 py-1 rounded-bl-lg">✓</div>
-                            <div class="flex justify-center mb-4">
-                                <img src="https://cdn-icons-png.flaticon.com/512/616/616430.png" alt="org" class="w-16 h-16" />
-                            </div>
-                            <h3 class="font-bold text-center text-sm">PUP Sintang Pusa</h3>
-                            <p class="text-gray-500 text-xs text-center mt-2">Anonas Street, Sta Mesa Manila</p>
-                            <p class="text-blue-600 text-xs text-center mt-4 view-profile-btn cursor-pointer" data-org="2">View Organization Profile →</p>
-                        </div>
-
-                        <!-- Card 3 -->
-                        <div class="org-card border rounded-xl p-4 relative" data-org="3">
-                            <div class="checkmark absolute top-0 right-0 bg-blue-600 text-white text-xs px-2 py-1 rounded-bl-lg">✓</div>
-                            <div class="flex justify-center mb-4">
-                                <img src="https://cdn-icons-png.flaticon.com/512/616/616430.png" alt="org" class="w-16 h-16" />
-                            </div>
-                            <h3 class="font-bold text-center text-sm">PUP Sintang Pusa</h3>
-                            <p class="text-gray-500 text-xs text-center mt-2">Youth Organization</p>
-                            <p class="text-blue-600 text-xs text-center mt-4 view-profile-btn cursor-pointer" data-org="3">View Organization Profile →</p>
-                        </div>
                     </div>
-
                     <!-- STEP 2: Donation Details -->
                     <h2 class="text-xl font-bold mb-4">Step 2: Donations Details</h2>
-
                     <!-- General Information -->
                     <h3 class="font-semibold mb-3">General Information</h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                         <input type="text" placeholder="Name" class="border rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500" />
                         <input type="email" placeholder="Email Address" class="border rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500" />
                     </div>
-
                     <!-- Payment-Specific Details -->
                     <h3 class="font-semibold mb-3">Payment-Specific Details</h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                         <input type="text" placeholder="GCASH account name" class="border rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500" />
                         <input type="text" placeholder="Reference Number" class="border rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500" />
                     </div>
-
                     <!-- Donation Amount -->
                     <div class="mb-6">
                         <input type="number" placeholder="Enter custom amount" class="w-full md:w-[300px] border rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500" />
                     </div>
-
                     <!-- Checkbox -->
                     <div class="flex items-start gap-2 mb-6">
                         <input type="checkbox" class="mt-1" />
@@ -214,45 +168,46 @@
                             information in accordance with Privacy Policy
                         </p>
                     </div>
-
                     <!-- Submit Button -->
                     <button class="w-full bg-blue-700 hover:bg-blue-800 text-white py-3 rounded-lg font-semibold transition">
                         Complete Donation
                     </button>
-
                     <p class="text-xs text-gray-400 mt-4">
                         Note: Payment details, purposes and requirements are dynamically
                         configured by the organization
                     </p>
                 </div>
-
                 <!-- RIGHT SIDE (1 col) -->
                 <div class="bg-white rounded-2xl shadow p-6 h-fit">
-
                     <h2 class="text-xl font-bold text-center text-blue-700 mb-2">
                         Scan to QR code to Donate
                     </h2>
                     <p class="text-sm text-gray-500 text-center mb-5">
                         Used your app to scan this QR code
                     </p>
-
                     <!-- QR Code -->
                     <div class="flex justify-center mb-6">
-                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=GCASHDONATION" alt="QR Code" class="rounded-lg border" />
+                        <img
+                            id="qrImage"
+                            class="rounded-lg border">
                     </div>
-
                     <!-- GCash Details -->
                     <div class="space-y-4 text-sm">
                         <div>
                             <p class="text-gray-500">GCASH Account Name:</p>
-                            <p class="font-semibold">PAWSsion Benevolence Circle</p>
+                            <p
+                                id="gcashName"
+                                class="font-semibold">
+                            </p>
                         </div>
                         <div>
                             <p class="text-gray-500">GCASH Number</p>
-                            <p class="font-semibold">0992 737 4747</p>
+                            <p
+                                id="gcashNumber"
+                                class="font-semibold">
+                                </p>
                         </div>
                     </div>
-
                     <!-- Upload Receipt -->
                     <div class="mt-6">
                         <label class="border-2 border-dashed border-blue-400 rounded-xl p-5 flex flex-col items-center justify-center cursor-pointer hover:bg-blue-50 transition">
@@ -261,7 +216,6 @@
                             <input type="file" class="hidden" />
                         </label>
                     </div>
-
                     <!-- Important Notes -->
                     <div class="mt-5 border rounded-xl p-4 bg-blue-50">
                         <h3 class="font-semibold text-blue-700 mb-2">Important Notes</h3>
@@ -269,14 +223,12 @@
                             <li>All donations will be verified by the organization.</li>
                         </ul>
                     </div>
-
                 </div>
             </div>
-
         </div>
-
+    <!-- Notification Toast Container -->
+    <div id="toastContainer" class="fixed bottom-5 right-5 z-[10000] flex flex-col gap-3 pointer-events-none"></div>
     </main>
-
     <!-- ===== ORGANIZATION PROFILE MODAL ===== -->
     <div id="orgModal" class="modal-overlay">
         <div class="modal-box">
@@ -300,164 +252,7 @@
             <button id="modalCloseBtn" class="mt-6 w-full bg-blue-700 hover:bg-blue-800 text-white py-2 rounded-lg transition">Close</button>
         </div>
     </div>
-
-    <!-- ===== LOAD SIDEBAR & HEADER ===== -->
-    <script>
-        async function loadComponent(id, file) {
-            try {
-                const response = await fetch(file);
-                if (!response.ok) {
-                    throw new Error(`Cannot load ${file}`);
-                }
-                document.getElementById(id).innerHTML = await response.text();
-            } catch (error) {
-                console.error(error);
-            }
-        }
-    Promise.all([
-    loadComponent("sidebar", "/user/userSidebar.html"),
-    loadComponent("header", "/user/userHeader.html")
-])
-.then(() => {
-
-    // Show components
-    document.getElementById("sidebar").style.visibility = "visible";
-    document.getElementById("header").style.visibility = "visible";
-
-    const currentPath = window.location.pathname;
-    const pageTitle = document.getElementById("pageTitle");
-
-    // Pages na wala sa sidebar
-    const customTitles = {
-        "/profile": "Profile",
-        "/cash-donation": "Donation",
-        "/inkind-donation": "Donation"
-    };
-    if (pageTitle && customTitles[currentPath]) {
-        pageTitle.textContent = customTitles[currentPath];
-    }
-
-    const links = document.querySelectorAll("#sidebar .nav-link");
-
-    links.forEach(link => {
-
-        const href = link.getAttribute("href");
-
-        const isActive =
-            href === currentPath ||
-            (href !== "/dashboard" && currentPath.startsWith(href));
-
-        if (isActive) {
-
-            link.className =
-                "nav-link flex items-center gap-4 px-5 py-4 rounded-2xl bg-blue-600 text-white shadow";
-
-            // Update title para sa mga nasa sidebar
-            if (pageTitle && !customTitles[currentPath]) {
-                pageTitle.textContent = link.dataset.title;
-            }
-
-        } else {
-
-            link.className =
-                "nav-link flex items-center gap-4 px-5 py-4 rounded-2xl text-gray-800 hover:bg-blue-50 hover:text-blue-600 transition";
-        }
-    });
-    document.body.style.visibility = "visible";
-
-})
-.catch(error => console.error(error));
-    </script>
-
-    <!-- ===== SCRIPTS FOR ORGANIZATION SELECTION & MODAL ===== -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // ----- Organization selection -----
-            const cards = document.querySelectorAll('.org-card');
-            cards.forEach(card => {
-                card.addEventListener('click', function(e) {
-                    if (e.target.closest('.view-profile-btn')) return;
-                    cards.forEach(c => c.classList.remove('selected'));
-                    this.classList.add('selected');
-                });
-            });
-
-            // ----- Organization data (for modal) -----
-            const orgData = {
-                1: {
-                    name: "PAWssion Benevolence Circle",
-                    address: "Nabua, Camarines Sur",
-                    phone: "0992 737 4747",
-                    email: "pawssion@example.com",
-                    mission: "To rescue, rehabilitate, and rehome animals in need, and to promote responsible pet ownership and animal welfare in the community."
-                },
-                2: {
-                    name: "PUP Sintang Pusa",
-                    address: "Anonas Street, Sta Mesa Manila",
-                    phone: "0917 123 4567",
-                    email: "pupsintangpusa@example.com",
-                    mission: "To provide a safe haven for stray cats and advocate for their welfare through education and community engagement."
-                },
-                3: {
-                    name: "PUP Sintang Pusa",
-                    address: "Youth Organization - Manila",
-                    phone: "0917 123 4567",
-                    email: "pupsintangpusa.youth@example.com",
-                    mission: "To empower the youth to participate in animal rescue and care, fostering compassion and responsibility."
-                }
-            };
-
-            // ----- Modal elements -----
-            const modal = document.getElementById('orgModal');
-            const closeBtn = document.getElementById('modalClose');
-            const closeBtn2 = document.getElementById('modalCloseBtn');
-            const orgName = document.getElementById('modalOrgName');
-            const orgAddress = document.getElementById('modalOrgAddress');
-            const orgPhone = document.getElementById('modalOrgPhone');
-            const orgEmail = document.getElementById('modalOrgEmail');
-            const orgMission = document.getElementById('modalOrgMission');
-
-            function openModal(orgId) {
-                const data = orgData[orgId];
-                if (!data) return;
-                orgName.textContent = data.name;
-                orgAddress.textContent = data.address;
-                orgPhone.textContent = data.phone;
-                orgEmail.textContent = data.email;
-                orgMission.textContent = data.mission;
-                modal.classList.add('active');
-                document.body.style.overflow = 'hidden';
-            }
-
-            function closeModal() {
-                modal.classList.remove('active');
-                document.body.style.overflow = '';
-            }
-
-            // Event listeners for "View Organization Profile" links
-            document.querySelectorAll('.view-profile-btn').forEach(btn => {
-                btn.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    const orgId = this.dataset.org;
-                    openModal(orgId);
-                });
-            });
-
-            // Close modal events
-            closeBtn.addEventListener('click', closeModal);
-            closeBtn2.addEventListener('click', closeModal);
-            modal.addEventListener('click', function(e) {
-                if (e.target === this) closeModal();
-            });
-
-            // Close on ESC key
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape' && modal.classList.contains('active')) {
-                    closeModal();
-                }
-            });
-        });
-    </script>
-
+<script src="/assets/js/userCash-donation.js"></script>
+</body>
 </body>
 </html>

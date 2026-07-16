@@ -18,42 +18,85 @@
         data-sidebar-collapsed="false"
         class="pt-28 pb-12 px-4 md:px-8 transition-all duration-200 ease-in-out left-0 md:ml-[280px] data-[sidebar-collapsed=true]:md:ml-20">
 
+        <!-- METRICS / STATS -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+            <!-- Total Donation Metric -->
             <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex items-center gap-5">
                 <div class="w-14 h-14 bg-indigo-50/60 text-indigo-800 rounded-xl flex items-center justify-center text-2xl">
                     <i class="fa-solid fa-coins"></i>
                 </div>
                 <div>
-                    <span class="text-sm font-semibold text-gray-500 block">Total Donation</span>
-                    <span class="text-2xl font-bold text-gray-900 block mt-1">₱430.00</span>
+                    <span class="text-sm font-semibold text-gray-500 block">Total Cash Donation</span>
+                    <span id="displayTotalDonation" class="text-2xl font-bold text-gray-900 block mt-1">₱0.00</span>
                 </div>
             </div>
 
+            <!-- In-Kind Donation Metric -->
             <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex items-center gap-5">
                 <div class="w-14 h-14 bg-indigo-50/60 text-indigo-800 rounded-xl flex items-center justify-center text-xl">
                     <i class="fa-solid fa-box-archive"></i>
                 </div>
                 <div>
                     <span class="text-sm font-semibold text-gray-500 block">In-Kind Donation</span>
-                    <span class="text-2xl font-bold text-gray-900 block mt-1">1</span>
+                    <span id="displayInKindTotal" class="text-2xl font-bold text-gray-900 block mt-1">0</span>
                 </div>
+            </div>
+
+            <!-- Donation Settings Quick Card -->
+            <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between col-span-1 sm:col-span-2 lg:col-span-1">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center text-xl">
+                        <i class="fa-solid fa-sliders"></i>
+                    </div>
+                    <div>
+                        <span class="text-xs font-semibold text-gray-400 block uppercase tracking-wider">Donation Info</span>
+                        <span id="displayAccountName" class="text-sm font-bold text-gray-800 block">Loading...</span>
+                        <span id="displayAccountNum" class="text-xs text-gray-500">Loading...</span>
+                    </div>
+                </div>
+                <button onclick="openConfigModal()" class="px-3.5 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-medium text-xs rounded-xl transition flex items-center gap-2">
+                    <i class="fa-solid fa-pen-to-square"></i> Manage
+                </button>
             </div>
         </div>
 
-        <div class="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
-            <div class="relative w-full sm:max-w-xl">
-                <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                <input type="text" placeholder="Search" 
-                    class="w-full pl-11 pr-4 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:border-indigo-500" />
-            </div>
-            
-            <button class="w-full sm:w-auto bg-white border border-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium inline-flex items-center justify-center gap-2 hover:bg-gray-50">
-                <i class="fa-solid fa-sliders text-gray-400"></i> All Status <i class="fa-solid fa-chevron-down text-xs text-gray-400 ml-1"></i>
+        <!-- DONATION TYPE TABS -->
+        <div class="flex border-b border-gray-200 mb-6 bg-white rounded-xl p-1 shadow-sm">
+            <button id="tabCash" onclick="switchDonationTab('cash')" 
+                class="flex-1 py-3 px-6 text-sm font-bold rounded-lg border-b-2 border-indigo-600 text-indigo-600 flex items-center justify-center gap-2 transition-all">
+                <i class="fa-solid fa-coins"></i> Cash Donations
+            </button>
+            <button id="tabInKind" onclick="switchDonationTab('inkind')" 
+                class="flex-1 py-3 px-6 text-sm font-bold rounded-lg border-b-2 border-transparent text-gray-500 hover:text-gray-700 flex items-center justify-center gap-2 transition-all">
+                <i class="fa-solid fa-box-archive"></i> In-Kind Donations
             </button>
         </div>
 
-        <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-            <div class="overflow-x-auto">
+        <!-- SEARCH AND FILTER BAR -->
+        <div class="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
+            <div class="relative w-full sm:max-w-xl">
+                <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                <input type="text" id="searchInput" onkeyup="filterDonations()" placeholder="Search donor, reference no, item name, etc." 
+                    class="w-full pl-11 pr-4 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:border-indigo-500 shadow-sm" />
+            </div>
+            
+            <div class="flex items-center gap-3 w-full sm:w-auto">
+                <button onclick="openConfigModal()" class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium inline-flex items-center justify-center gap-2 transition shadow-sm">
+                    <i class="fa-solid fa-gear"></i> Donation Settings
+                </button>
+
+                <select id="statusFilter" onchange="filterDonations()" class="w-full sm:w-auto bg-white border border-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium shadow-sm focus:outline-none focus:border-indigo-500">
+                    <option value="ALL">All Status</option>
+                    <option value="Approved">Verified / Approved</option>
+                    <option value="Pending">Pending</option>
+                    <option value="Rejected">Rejected</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- CASH DONATIONS TABLE CONTAINER -->
+        <div id="cashTableContainer" class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+            <div class="overflow-x-auto overflow-y-visible">
                 <table class="w-full text-left border-collapse">
                     <thead>
                         <tr class="bg-gray-50/70 border-b border-gray-100 text-xs font-semibold text-gray-600 uppercase tracking-wider">
@@ -65,175 +108,394 @@
                             <th class="py-4 px-6 text-center">Action</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-100 text-sm text-gray-700">
-                        <tr class="hover:bg-gray-50/30 transition-colors">
-                            <td class="py-4 px-6">
-                                <span class="font-semibold text-gray-900 block">Feb 11, 2026</span>
-                                <span class="text-xs text-gray-400 block mt-0.5">9:30 A.M</span>
-                            </td>
-                            <td class="py-4 px-6 font-medium text-gray-900">Kaye Ubaldo</td>
-                            <td class="py-4 px-6 font-semibold text-gray-900">₱ 300.00</td>
-                            <td class="py-4 px-6">
-                                <span class="font-semibold text-gray-900 block">GCASH</span>
-                                <span class="text-xs text-gray-400 block mt-0.5">ref no: 4726263636464</span>
-                            </td>
-                            <td class="py-4 px-6">
-                                <span class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-medium bg-emerald-100/70 text-emerald-600 rounded-full">
-                                    <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>Verified
-                                </span>
-                            </td>
-                            <td class="py-4 px-6 text-center">
-                                <button class="text-gray-400 hover:text-indigo-600 transition-colors"><i class="fa-regular fa-eye text-lg"></i></button>
-                            </td>
-                        </tr>
-
-                        <tr class="hover:bg-gray-50/30 transition-colors">
-                            <td class="py-4 px-6">
-                                <span class="font-semibold text-gray-900 block">Feb 11, 2026</span>
-                                <span class="text-xs text-gray-400 block mt-0.5">9:30 A.M</span>
-                            </td>
-                            <td class="py-4 px-6 font-medium text-gray-900">Carla Karura</td>
-                            <td class="py-4 px-6 font-semibold text-gray-900">₱ 100.00</td>
-                            <td class="py-4 px-6">
-                                <span class="font-semibold text-gray-900 block">GCASH</span>
-                                <span class="text-xs text-gray-400 block mt-0.5">ref no: 36463662</span>
-                            </td>
-                            <td class="py-4 px-6">
-                                <span class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-medium bg-amber-100/70 text-amber-600 rounded-full">
-                                    <span class="w-1.5 h-1.5 bg-amber-500 rounded-full"></span>pending
-                                </span>
-                            </td>
-                            <td class="py-4 px-6 text-center">
-                                <button class="text-gray-400 hover:text-indigo-600 transition-colors"><i class="fa-regular fa-eye text-lg"></i></button>
-                            </td>
-                        </tr>
-
-                        <tr class="hover:bg-gray-50/30 transition-colors">
-                            <td class="py-4 px-6">
-                                <span class="font-semibold text-gray-900 block">Feb 11, 2026</span>
-                                <span class="text-xs text-gray-400 block mt-0.5">9:30 A.M</span>
-                            </td>
-                            <td class="py-4 px-6 font-medium text-gray-900">Magie San</td>
-                            <td class="py-4 px-6 font-semibold text-gray-900">₱ 30.00</td>
-                            <td class="py-4 px-6">
-                                <span class="font-semibold text-gray-900 block">GCASH</span>
-                                <span class="text-xs text-gray-400 block mt-0.5">ref no: 3646369887622</span>
-                            </td>
-                            <td class="py-4 px-6">
-                                <span class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-medium bg-amber-100/70 text-amber-600 rounded-full">
-                                    <span class="w-1.5 h-1.5 bg-amber-500 rounded-full"></span>pending
-                                </span>
-                            </td>
-                            <td class="py-4 px-6 text-center">
-                                <button class="text-gray-400 hover:text-indigo-600 transition-colors"><i class="fa-regular fa-eye text-lg"></i></button>
-                            </td>
-                        </tr>
-
-                        <tr class="hover:bg-gray-50/30 transition-colors">
-                            <td class="py-4 px-6">
-                                <span class="font-semibold text-gray-900 block">March 30, 2026</span>
-                                <span class="text-xs text-gray-400 block mt-0.5">9:30 A.M</span>
-                            </td>
-                            <td class="py-4 px-6 font-medium text-gray-900">Jhyzzeel Dianela</td>
-                            <td class="py-4 px-6">
-                                <span class="text-gray-500 block">Dog Food (2kg)</span>
-                                <span class="text-gray-500 block">+ Blankets</span>
-                            </td>
-                            <td class="py-4 px-6 font-semibold text-gray-900">In-Kind</td>
-                            <td class="py-4 px-6">
-                                <span class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-medium bg-amber-100/70 text-amber-600 rounded-full">
-                                    <span class="w-1.5 h-1.5 bg-amber-500 rounded-full"></span>pending
-                                </span>
-                            </td>
-                            <td class="py-4 px-6 text-center">
-                                <button class="text-gray-400 hover:text-indigo-600 transition-colors"><i class="fa-regular fa-eye text-lg"></i></button>
-                            </td>
+                    <tbody id="donationsTableBody" class="divide-y divide-gray-100 text-sm text-gray-700">
+                        <tr>
+                            <td colspan="6" class="py-8 text-center text-gray-400">Loading cash donations...</td>
                         </tr>
                     </tbody>
                 </table>
             </div>
 
             <div class="bg-white border-t border-gray-100 px-6 py-4 flex items-center justify-between">
-                <span class="text-sm text-gray-500">Showing 1 to 4 of 4 results</span>
-                <div class="flex items-center gap-2">
-                    <button class="w-8 h-8 flex items-center justify-center text-gray-400 hover:bg-gray-100 rounded-lg transition-colors">
-                        <i class="fa-solid fa-chevron-left text-xs"></i>
-                    </button>
-                    <button class="w-8 h-8 flex items-center justify-center bg-blue-50 text-blue-600 font-semibold border border-blue-100 text-sm rounded-lg">
-                        1
-                    </button>
-                    <button class="w-8 h-8 flex items-center justify-center text-gray-400 hover:bg-gray-100 rounded-lg transition-colors">
-                        <i class="fa-solid fa-chevron-right text-xs"></i>
-                    </button>
-                </div>
+                <span id="paginationInfo" class="text-sm text-gray-500">Showing 0 results</span>
+                <div id="paginationButtons" class="flex items-center gap-2"></div>
             </div>
         </div>
 
-        <!--Logout Modal-->
-        <div id="logoutModal" class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/45 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-200">
-            <div class="bg-white rounded-2xl max-w-sm w-full mx-4 p-6 shadow-2xl scale-95 transition-transform duration-200">
-                <div class="text-center">
-                    <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-50 mb-4">
-                        <i class="fa-solid fa-right-from-bracket text-red-600 text-lg"></i>
+        <!-- IN-KIND DONATIONS TABLE CONTAINER -->
+        <div id="inkindTableContainer" class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden hidden">
+            <div class="overflow-x-auto overflow-y-visible">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-gray-50/70 border-b border-gray-100 text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                            <th class="py-4 px-6">Date</th>
+                            <th class="py-4 px-6">Donor</th>
+                            <th class="py-4 px-6">Item Name</th>
+                            <th class="py-4 px-6">Quantity</th>
+                            <th class="py-4 px-6">Status</th>
+                            <th class="py-4 px-6 text-center">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="inkindTableBody" class="divide-y divide-gray-100 text-sm text-gray-700">
+                        <tr>
+                            <td colspan="6" class="py-8 text-center text-gray-400">Loading in-kind donations...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="bg-white border-t border-gray-100 px-6 py-4 flex items-center justify-between">
+                <span id="inkindPaginationInfo" class="text-sm text-gray-500">Showing 0 results</span>
+            </div>
+        </div>
+
+        <!-- EXPANDED DONATION SETTINGS MODAL (CASH QR & IN-KIND DROP-OFF) -->
+        <div id="paymentConfigModal" class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/45 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-200">
+            <div class="bg-white rounded-2xl max-w-2xl w-full mx-4 p-6 shadow-2xl scale-95 transition-transform duration-200 overflow-hidden max-h-[90vh] flex flex-col">
+                <div class="flex items-center justify-between pb-4 border-b border-gray-100">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-lg">
+                            <i class="fa-solid fa-gear"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold text-gray-900">Donation Settings & Information</h3>
+                            <p class="text-xs text-gray-500">Manage payment details and drop-off locations for donors</p>
+                        </div>
                     </div>
-                    <h3 class="text-lg font-bold text-gray-900">Logging Out?</h3>
-                    <p class="text-sm text-gray-500 mt-2">Are you sure you want to leave the Pawpon Org Portal?</p>
+                    <button onclick="closeConfigModal()" class="text-gray-400 hover:text-gray-600 p-1 rounded-lg">
+                        <i class="fa-solid fa-xmark text-lg"></i>
+                    </button>
                 </div>
-                <div class="mt-6 flex gap-3">
-                    <button id="cancelLogoutBtn" class="flex-1 px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-xl transition text-sm">
+
+                <!-- SUB TABS INSIDE MODAL -->
+                <div class="flex border-b border-gray-200 my-4 bg-gray-50 p-1 rounded-xl">
+                    <button type="button" id="modalTabCash" onclick="switchModalConfigTab('cash')" class="flex-1 py-2 text-xs font-bold rounded-lg text-indigo-600 bg-white shadow-sm transition-all">
+                        <i class="fa-solid fa-qrcode mr-1.5"></i> Cash & QR Settings
+                    </button>
+                    <button type="button" id="modalTabInKind" onclick="switchModalConfigTab('inkind')" class="flex-1 py-2 text-xs font-bold rounded-lg text-gray-500 transition-all">
+                        <i class="fa-solid fa-map-location-dot mr-1.5"></i> In-Kind Drop-Off Info
+                    </button>
+                </div>
+
+                <form id="paymentConfigForm" onsubmit="savePaymentDetails(event)" class="space-y-4 overflow-y-auto pr-1 flex-1">
+                    
+                    <!-- FORM SECTION 1: CASH & QR SETTINGS -->
+                    <div id="modalCashSection" class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">QR Code Image</label>
+                            <div class="flex items-center gap-4">
+                                <div class="w-28 h-28 border-2 border-dashed border-gray-200 rounded-xl flex flex-col items-center justify-center bg-gray-50 overflow-hidden relative group">
+                                    <img id="qrPreview" src="https://via.placeholder.com/150?text=No+QR" alt="QR Code Preview" class="w-full h-full object-cover" />
+                                    <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-medium cursor-pointer" onclick="document.getElementById('qrInput').click()">
+                                        Change
+                                    </div>
+                                </div>
+                                <div class="flex-1">
+                                    <input type="file" id="qrInput" name="qr_code" accept="image/*" class="hidden" onchange="previewImage(event, 'qrPreview')" />
+                                    <button type="button" onclick="document.getElementById('qrInput').click()" class="px-4 py-2 border border-gray-200 rounded-xl text-xs font-semibold text-gray-700 hover:bg-gray-50 transition shadow-sm">
+                                        <i class="fa-solid fa-upload mr-1.5 text-gray-400"></i> Upload New QR
+                                    </button>
+                                    <p class="text-[11px] text-gray-400 mt-2">Recommended: Square PNG/JPG (Max 2MB)</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">Account Name</label>
+                            <input type="text" id="inputAccountName" name="gcash_name" placeholder="e.g., Camarines Sur Polytechnic Colleges" 
+                                class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium text-gray-800 focus:outline-none focus:bg-white focus:border-indigo-500 transition" />
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">Account Number (GCash/Maya)</label>
+                            <input type="text" id="inputAccountNum" name="gcash_number" placeholder="e.g., 09123456789" 
+                                class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium text-gray-800 focus:outline-none focus:bg-white focus:border-indigo-500 transition" />
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">Contact Phone</label>
+                            <input type="text" id="inputPhone" name="contact_number" placeholder="e.g., 09123456789" 
+                                class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium text-gray-800 focus:outline-none focus:bg-white focus:border-indigo-500 transition" />
+                        </div>
+                    </div>
+
+                    <!-- FORM SECTION 2: IN-KIND DROP-OFF INFO -->
+                    <div id="modalInKindSection" class="space-y-4 hidden">
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">Drop-Off Location Photo / Landmark Image</label>
+                            <div class="flex items-center gap-4">
+                                <div class="w-36 h-24 border-2 border-dashed border-gray-200 rounded-xl flex flex-col items-center justify-center bg-gray-50 overflow-hidden relative group">
+                                    <img id="locationPreview" src="https://via.placeholder.com/200x120?text=No+Photo" alt="Location Preview" class="w-full h-full object-cover" />
+                                    <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-medium cursor-pointer" onclick="document.getElementById('locationImgInput').click()">
+                                        Change
+                                    </div>
+                                </div>
+                                <div class="flex-1">
+                                    <input type="file" id="locationImgInput" name="location_image" accept="image/*" class="hidden" onchange="previewImage(event, 'locationPreview')" />
+                                    <button type="button" onclick="document.getElementById('locationImgInput').click()" class="px-4 py-2 border border-gray-200 rounded-xl text-xs font-semibold text-gray-700 hover:bg-gray-50 transition shadow-sm">
+                                        <i class="fa-solid fa-upload mr-1.5 text-gray-400"></i> Upload Location Image
+                                    </button>
+                                    <p class="text-[11px] text-gray-400 mt-2">Upload a photo of the building, gate, or landmark.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">Location Name</label>
+                            <input type="text" id="inputLocationName" name="dropoff_location_name" placeholder="e.g., Camarines Sur Polytechnic Colleges" 
+                                class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium text-gray-800 focus:outline-none focus:bg-white focus:border-indigo-500 transition" />
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">Complete Address</label>
+                            <input type="text" id="inputLocationAddress" name="dropoff_address" placeholder="e.g., San Miguel, Nabua, Camarines Sur 4434 Philippines" 
+                                class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium text-gray-800 focus:outline-none focus:bg-white focus:border-indigo-500 transition" />
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">Drop-Off Days & Hours</label>
+                            <input type="text" id="inputOperatingHours" name="dropoff_hours" placeholder="e.g., Tuesday - Sunday 8:00 AM - 6:00 PM" 
+                                class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium text-gray-800 focus:outline-none focus:bg-white focus:border-indigo-500 transition" />
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">Important Notes / Guidelines for Donors</label>
+                            <textarea id="inputImportantNotes" name="dropoff_notes" rows="3" placeholder="e.g., Accepted items are subject to approval. Ensure that donations are clean, safe and in good condition." 
+                                class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium text-gray-800 focus:outline-none focus:bg-white focus:border-indigo-500 transition"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="pt-4 border-t border-gray-100 flex gap-3">
+                        <button type="button" onclick="closeConfigModal()" class="flex-1 px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-xl transition text-sm">
+                            Cancel
+                        </button>
+                        <button type="submit" id="saveBtn" class="flex-1 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-xl transition shadow-sm text-sm">
+                            Save All Changes
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- REVIEW MONETARY DETAILS MODAL -->
+        <div id="reviewDonationModal" class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-200">
+            <div class="bg-white rounded-2xl max-w-xl w-full mx-4 p-6 shadow-2xl scale-95 transition-transform duration-200 max-h-[90vh] overflow-y-auto">
+                
+                <div class="flex items-start justify-between pb-4 border-b border-gray-100">
+                    <div class="flex items-start gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-base mt-0.5">
+                            <i class="fa-regular fa-pen-to-square"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-base font-bold text-gray-900">Review Monetary Details</h3>
+                            <p class="text-xs text-gray-500">Update Details and Reprocess this donation for verification</p>
+                        </div>
+                    </div>
+                    <button onclick="closeReviewModal()" class="text-gray-400 hover:text-gray-600 p-1 rounded-lg">
+                        <i class="fa-solid fa-xmark text-lg"></i>
+                    </button>
+                </div>
+
+                <div id="statusVerificationBanner" class="mt-4 hidden"></div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 mt-4">
+                    <div class="space-y-3">
+                        <h4 class="text-xs font-bold text-gray-800">1. Donation Info</h4>
+                        <div>
+                            <label class="block text-[11px] font-medium text-gray-500 mb-1">Donor Name</label>
+                            <input type="text" id="reviewDonorName" readonly class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs font-semibold text-gray-800 focus:outline-none" />
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-[11px] font-medium text-gray-500 mb-1">Amount</label>
+                                <input type="text" id="reviewAmount" readonly class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs font-semibold text-gray-800 focus:outline-none" />
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-medium text-gray-500 mb-1">Method</label>
+                                <input type="text" id="reviewMethod" value="GCASH" readonly class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs font-semibold text-gray-800 focus:outline-none" />
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-medium text-gray-500 mb-1">Reference Number</label>
+                            <input type="text" id="reviewRefNo" readonly class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs font-semibold text-gray-800 focus:outline-none" />
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4 class="text-xs font-bold text-gray-800 mb-3">2. Proof of Donation</h4>
+                        <!-- Naka-set sa h-52 at bg-slate-900 para mas malinaw ang contrast -->
+                        <div class="w-full h-52 bg-slate-900 border border-gray-200 rounded-xl overflow-hidden flex items-center justify-center relative group cursor-pointer" onclick="triggerViewReceiptFromReview()">
+                            <img id="reviewReceiptImg" src="" alt="Proof of Donation" class="max-h-full w-auto object-contain p-1 transition-transform duration-200 group-hover:scale-105" />
+                            <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-semibold gap-2">
+                                <i class="fa-solid fa-magnifying-glass-plus text-base"></i> Click to View Full Size
+                            </div>
+                        </div>
+                    </div>
+
+                <div id="rejectionSection" class="hidden mt-6 pt-4 border-t border-gray-100 space-y-4">
+                    <div>
+                        <h4 class="text-xs font-bold text-gray-800 mb-2">2. Select Reason</h4>
+                        <div class="space-y-1.5 text-xs text-gray-700">
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="radio" name="rejectReason" value="Blurry/Unreadable Screenshot" onchange="updateRejectionText()" class="text-blue-600 focus:ring-blue-500" />
+                                <span>Blurry/Unreadable Screenshot</span>
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="radio" name="rejectReason" value="Transaction not found in GCash Records." onchange="updateRejectionText()" class="text-blue-600 focus:ring-blue-500" />
+                                <span>Transaction not found in GCash Records.</span>
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="radio" name="rejectReason" value="Amount Mismatch" checked onchange="updateRejectionText()" class="text-blue-600 focus:ring-blue-500" />
+                                <span>Amount Mismatch</span>
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="radio" name="rejectReason" value="Duplicate Entry" onchange="updateRejectionText()" class="text-blue-600 focus:ring-blue-500" />
+                                <span>Duplicate Entry</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4 class="text-xs font-bold text-gray-800 mb-1.5">3. Rejection Reason</h4>
+                        <div class="p-3 bg-red-100/70 border border-red-200 rounded-lg text-red-600 text-[11px] leading-relaxed" id="rejectionReasonText">
+                            Verification failed. There is a mismatch in the reference numbers and a significant discrepancy in the total.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-6 flex justify-end gap-2" id="initialActionButtons">
+                    <button onclick="closeReviewModal()" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold rounded-lg transition">Cancel</button>
+                    <button onclick="showRejectionFlow()" id="rejectBtnInModal" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold rounded-lg transition">Reject</button>
+                    <button onclick="approveDonation()" id="confirmVerifyBtn" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg transition">Confirm & Verify</button>
+                </div>
+
+                <div class="mt-6 flex justify-end gap-2 hidden" id="rejectionActionButtons">
+                    <button onclick="hideRejectionFlow()" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold rounded-lg transition">Cancel</button>
+                    <button onclick="rejectDonation()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg transition">Done</button>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- REVIEW IN-KIND DETAILS MODAL -->
+        <div id="reviewInKindModal" class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-200">
+            <div class="bg-white rounded-2xl max-w-lg w-full mx-4 p-6 shadow-2xl scale-95 transition-transform duration-200 max-h-[90vh] overflow-y-auto">
+                <div class="flex items-center justify-between pb-4 border-b border-gray-100">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-lg">
+                            <i class="fa-solid fa-box-archive"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-base font-bold text-gray-900">Review In-Kind Donation</h3>
+                            <p class="text-xs text-gray-500">Verify details for physical items donated</p>
+                        </div>
+                    </div>
+                    <button onclick="closeInKindModal()" class="text-gray-400 hover:text-gray-600 p-1 rounded-lg">
+                        <i class="fa-solid fa-xmark text-lg"></i>
+                    </button>
+                </div>
+
+                <div id="inkindStatusBanner" class="mt-4 hidden"></div>
+
+                <div class="space-y-3 mt-4">
+                    <div>
+                        <label class="block text-[11px] font-medium text-gray-500 mb-1">Donor Name</label>
+                        <input type="text" id="inkindDonorName" readonly class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs font-semibold text-gray-800 focus:outline-none" />
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-medium text-gray-500 mb-1">Item Name / Description</label>
+                        <input type="text" id="inkindItemName" readonly class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs font-semibold text-gray-800 focus:outline-none" />
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-medium text-gray-500 mb-1">Quantity</label>
+                        <input type="text" id="inkindQuantity" readonly class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs font-semibold text-gray-800 focus:outline-none" />
+                    </div>
+                </div>
+
+                <!-- IN-KIND REJECTION SECTION -->
+                <div id="inkindRejectionSection" class="hidden mt-6 pt-4 border-t border-gray-100 space-y-4">
+                    <div>
+                        <h4 class="text-xs font-bold text-gray-800 mb-2">Select Rejection Reason</h4>
+                        <div class="space-y-1.5 text-xs text-gray-700">
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="radio" name="inkindRejectReason" value="Damaged or Unusable Condition" checked onchange="updateInKindRejectionText()" class="text-blue-600 focus:ring-blue-500" />
+                                <span>Damaged or Unusable Condition</span>
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="radio" name="inkindRejectReason" value="Inappropriate / Unaccepted Item Category" onchange="updateInKindRejectionText()" class="text-blue-600 focus:ring-blue-500" />
+                                <span>Inappropriate / Unaccepted Item Category</span>
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="radio" name="inkindRejectReason" value="Item Not Received at Drop-off" onchange="updateInKindRejectionText()" class="text-blue-600 focus:ring-blue-500" />
+                                <span>Item Not Received at Drop-off</span>
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="radio" name="inkindRejectReason" value="Duplicate Request" onchange="updateInKindRejectionText()" class="text-blue-600 focus:ring-blue-500" />
+                                <span>Duplicate Request</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4 class="text-xs font-bold text-gray-800 mb-1.5">Rejection Reason Summary</h4>
+                        <div class="p-3 bg-red-100/70 border border-red-200 rounded-lg text-red-600 text-[11px] leading-relaxed" id="inkindRejectionReasonText">
+                            Verification failed. The donated items are damaged or unusable upon physical inspection.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- INITIAL BUTTONS -->
+                <div class="mt-6 flex justify-end gap-2" id="inkindInitialActionButtons">
+                    <button onclick="closeInKindModal()" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold rounded-lg transition">
                         Cancel
                     </button>
-                    <button id="confirmLogoutBtn" class="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white font-medium rounded-xl transition shadow-sm shadow-red-200 text-sm">
-                        Yes, Logout
+                    <button onclick="showInKindRejectionFlow()" id="inkindRejectBtn" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold rounded-lg transition">
+                        Reject
                     </button>
+                    <button onclick="updateInKindStatus('Approved')" id="inkindApproveBtn" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg transition">
+                        Approve / Received
+                    </button>
+                </div>
+
+                <!-- REJECTION CONFIRMATION BUTTONS -->
+                <div class="mt-6 flex justify-end gap-2 hidden" id="inkindRejectionActionButtons">
+                    <button onclick="hideInKindRejectionFlow()" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold rounded-lg transition">Cancel</button>
+                    <button onclick="submitInKindRejection()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg transition">Confirm Rejection</button>
                 </div>
             </div>
         </div>
+
+        <!-- DEDICATED VIEW RECEIPT MODAL / LIGHTBOX -->
+        <div id="receiptModal" class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/75 backdrop-blur-md opacity-0 pointer-events-none transition-opacity duration-200">
+            <div class="bg-white rounded-2xl max-w-lg w-full mx-4 shadow-2xl overflow-hidden scale-95 transition-transform duration-200">
+                <div class="flex items-center justify-between p-4 border-b border-gray-100 bg-gray-50/50">
+                    <div class="flex items-center gap-2 text-indigo-600 font-bold text-sm">
+                        <i class="fa-solid fa-receipt text-base"></i>
+                        <span>Proof of Payment Receipt</span>
+                    </div>
+                    <button onclick="closeReceiptModal()" class="text-gray-400 hover:text-gray-600 p-1 rounded-lg">
+                        <i class="fa-solid fa-xmark text-lg"></i>
+                    </button>
+                </div>
+                <div class="p-4 bg-slate-900 flex items-center justify-center min-h-[350px] max-h-[70vh]">
+                    <img id="modalReceiptImg" src="" alt="Full Receipt" class="max-h-[65vh] w-auto object-contain rounded-lg shadow-md" />
+                </div>
+                <div class="p-4 border-t border-gray-100 flex items-center justify-between bg-white">
+                    <a id="downloadReceiptBtn" href="#" download="receipt.png" class="px-4 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-semibold rounded-xl transition flex items-center gap-2">
+                        <i class="fa-solid fa-download"></i> Download Image
+                    </a>
+                    <a id="openReceiptExternal" href="#" target="_blank" class="px-4 py-2 border border-gray-200 text-gray-600 hover:bg-gray-50 text-xs font-semibold rounded-xl transition flex items-center gap-2">
+                        <i class="fa-solid fa-arrow-up-right-from-square"></i> Open Original
+                    </a>
+                </div>
+            </div>
+        </div>
+        <!-- UI Toast Notification Container -->
+        <div id="toastContainer" class="fixed bottom-5 right-5 z-[100000] flex flex-col gap-2 pointer-events-none"></div>
     </main>
 
-<script>
-    document.addEventListener("DOMContentLoaded", async () => {
 
-    // ==========================
-    // Load Shared Components
-    // =========================
-
-    await loadTopbar({
-        title: "Donations Overview",
-        subtitle: "Track funds and in-kind resources submitted by sponsors"
-    });
-
-    await loadSidebar("dashboard");
-
-    // ==========================
-    // Load Organization Name
-    // ==========================
-    try {
-        const response = await fetch("/api/organization/profile");
-
-        if (response.ok) {
-            const organization = await response.json();
-
-            const organizationName = document.getElementById("organizationName");
-
-            if (organizationName) {
-                organizationName.textContent =
-                    organization.organization_name;
-            }
-        }
-    } catch (error) {
-        console.error("Unable to load organization:", error);
-    }
-
-    // ==========================
-    // Load Dashboard Statistics
-    // ==========================
-    if (typeof loadDashboardStats === "function") {
-        loadDashboardStats();
-    }
-
-});
-</script>
 <script src="/assets/js/orgProfile.js"></script> 
+<script src="/assets/js/org-donation.js"></script>
 </body>
 </html>

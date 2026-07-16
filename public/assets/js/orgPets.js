@@ -1,3 +1,4 @@
+let allPets = [];
 document.addEventListener("DOMContentLoaded", async () => {
     // Load shared dashboard components
     await loadSidebar("pets");
@@ -166,6 +167,8 @@ async function loadPets() {
     const res = await fetch("/org/pets/list");
     const data = await res.json();
 
+    allPets = data.pets || [];
+
     if (!data.success) {
         container.innerHTML = `
             <div class="text-red-600">
@@ -185,9 +188,24 @@ async function loadPets() {
         return;
     }
 
+renderPets(allPets);
+}
+
+function renderPets(pets) {
+    const container = document.getElementById("petsContainer");
+
+    if (!pets.length) {
+        container.innerHTML = `
+            <div class="bg-white rounded-xl p-10 text-center shadow">
+                No pets found.
+            </div>
+        `;
+        return;
+    }
+
     container.innerHTML = `
         <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            ${data.pets.map(createPetCard).join("")}
+            ${pets.map(createPetCard).join("")}
         </div>
     `;
 }
@@ -323,7 +341,7 @@ function openPetDetailsModal(pet){
     petForm.health_status.value = pet.health_status;
     petForm.vaccination_status.value = pet.vaccination_status;
     petForm.adoption_status.value = pet.adoption_status;
-    petForm.behavior_description.value = pet.behavior_description || "";
+    petForm.pet_description.value = pet.pet_description || "";
     traitsContainer.innerHTML = "";
 
     if (pet.personality_tags) {
@@ -404,7 +422,7 @@ document.getElementById("deletePetBtn").onclick = async () => {
         pet.adoption_status;
 
     document.getElementById("viewDescription").textContent =
-        pet.behavior_description || "No description.";
+        pet.pet_description || "No description.";
 
     // Personality Tags
     const tags = document.getElementById("viewTags");
@@ -661,3 +679,53 @@ function removeMedical(index) {
     renderMedicalTable();
 
 }
+const searchInput = document.getElementById("searchPet");
+
+searchInput.addEventListener("input", filterPets);
+function filterPets() {
+
+    const keyword = document
+        .getElementById("searchPet")
+        .value
+        .toLowerCase()
+        .trim();
+
+    const status = document
+        .getElementById("statusFilter")
+        .value;
+
+    const species = document
+        .getElementById("typeFilter")
+        .value;
+
+    const filtered = allPets.filter(pet => {
+
+        const matchesSearch =
+            pet.name.toLowerCase().includes(keyword) ||
+            pet.species.toLowerCase().includes(keyword) ||
+            pet.gender.toLowerCase().includes(keyword) ||
+            pet.age.toLowerCase().includes(keyword) ||
+            (pet.personality_tags || "")
+                .toLowerCase()
+                .includes(keyword);
+
+        const matchesStatus =
+            !status || pet.adoption_status === status;
+
+        const matchesSpecies =
+            !species || pet.species === species;
+
+        return matchesSearch &&
+               matchesStatus &&
+               matchesSpecies;
+    });
+
+    renderPets(filtered);
+}
+document
+    .getElementById("statusFilter")
+    .addEventListener("change", filterPets);
+
+document
+    .getElementById("typeFilter")
+    .addEventListener("change", filterPets);
