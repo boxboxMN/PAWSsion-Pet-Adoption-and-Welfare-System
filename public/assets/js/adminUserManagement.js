@@ -342,30 +342,55 @@
             }
         }
 
-        // ─── Actions ───────────────────────────────────────────
-        function handleAction(action, id, user) {
-            const name = user.name || "User";
+       async function handleAction(action, id, user) {
 
-            switch (action) {
-                case "toggle":
-                    const isActive = user.status === "active" || user.status === "Active";
-                    console.log(`[${action}] ${name} (${id}) → ${isActive ? 'inactive' : 'active'}`);
-                    alert(`${isActive ? 'Deactivating' : 'Activating'} ${name}... (API not implemented)`);
-                    break;
+    try {
 
-                case "suspend":
-                    console.log(`[${action}] ${name} (${id})`);
-                    alert(`Suspending ${name}... (API not implemented)`);
-                    break;
+        let url = "";
 
-                case "ban":
-                    console.log(`[${action}] ${name} (${id})`);
-                    if (confirm(`Permanently ban ${name}? This action cannot be undone.`)) {
-                        alert(`Permanently banning ${name}... (API not implemented)`);
-                    }
-                    break;
+        switch (action) {
 
-                default:
-                    console.warn("Unknown action:", action);
-            }
+            case "toggle":
+                url = `/admin/users/${id}/status`;
+                break;
+
+            case "suspend":
+                url = `/admin/users/${id}/suspend`;
+                break;
+
+            case "ban":
+                url = `/admin/users/${id}/ban`;
+                break;
+
+            default:
+                return;
         }
+
+        const confirmed = confirm(`Are you sure you want to ${action} this account?`);
+
+        if (!confirmed) return;
+
+        const response = await fetch(url, {
+            method: "PUT"
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.message || "Request failed");
+        }
+
+        alert("Action completed successfully.");
+
+        closePanel();
+
+        await loadUsers();
+
+    } catch (err) {
+
+        console.error(err);
+        alert(err.message);
+
+    }
+
+}

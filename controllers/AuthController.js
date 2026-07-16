@@ -93,28 +93,45 @@ exports.login = async (req, res) => {
     }
 
     const account = rows[0];
-    if (account.role === "organization" && account.status === "pending") {
-        req.session.accountId = account.account_id;
-        req.session.role = account.role;
 
-        const [orgRows] = await pool.query(
-            `SELECT organization_name FROM organizations WHERE account_id = ? LIMIT 1`,
-            [account.account_id]
-        );
+if (account.role === "organization" && account.status === "pending") {
+    req.session.accountId = account.account_id;
+    req.session.role = account.role;
 
-        req.session.displayName = orgRows.length > 0 ? orgRows[0].organization_name : account.email;
-        return res.redirect("/org/pending");
+    const [orgRows] = await pool.query(
+        `SELECT organization_name FROM organizations WHERE account_id = ? LIMIT 1`,
+        [account.account_id]
+    );
+
+    req.session.displayName = orgRows.length > 0
+        ? orgRows[0].organization_name
+        : account.email;
+
+    return res.redirect("/org/pending");
     }
 
-    if (account.status !== "active") {
-        return res.status(403).send("This account is currently inactive. Please contact support.");
+
+    if (account.status === "disabled") {
+        return res.status(403).send("This account has been disabled.");
     }
 
+    if (account.status === "suspended") {
+        return res.status(403).send("This account has been suspended.");
+    }
+
+    if (account.status === "banned") {
+        return res.status(403).send("This account has been permanently banned.");
+    }
+
+    if (account.status === "rejected") {
+        return res.status(403).send("Your account has been rejected.");
+    }
+
+    // Password check
     const isValidPassword = await bcrypt.compare(password, account.password_hash);
-
-    if (!isValidPassword) {
-        return res.status(401).send(genericAuthError);
-    }
+        if (!isValidPassword) {
+            return res.status(401).send(genericAuthError);
+        }
 
     // ✅ Update last login
     await pool.query(

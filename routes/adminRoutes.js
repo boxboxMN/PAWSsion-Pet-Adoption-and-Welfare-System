@@ -582,7 +582,7 @@ router.put("/users/:id/suspend", async(req,res)=>{
         await pool.query(
 
             `UPDATE accounts
-             SET status='disabled'
+             SET status='suspended'
              WHERE account_id=?`,
 
             [id]
@@ -641,4 +641,34 @@ router.get("/dashboard/stats", async (req, res) => {
     }
 });
 
+router.put("/users/:id/ban", async (req, res) => {
+
+    try {
+
+        const id = req.params.id;
+
+        await pool.query(
+            `
+            UPDATE accounts
+            SET status='banned'
+            WHERE account_id=?
+            `,
+            [id]
+        );
+
+        res.json({
+            success: true
+        });
+
+    } catch (err) {
+
+        console.error(err);
+
+        res.status(500).json({
+            message: "Database Error"
+        });
+
+    }
+
+});
 module.exports = router;
