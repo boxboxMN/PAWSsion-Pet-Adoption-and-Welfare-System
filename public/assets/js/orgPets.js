@@ -206,7 +206,7 @@ function createPetCard(pet) {
             </div>
             <div class="p-6">
                 <h2 class="text-3xl font-bold text-slate-800">${pet.name}</h2>
-                <p class="mt-1 text-slate-500 flex items-center flex-wrap gap-2">
+                <p class="mt-1 text-slate-500 flex items-center flex-wrap gap-2 text-sm font-bold">
                     <span>${pet.species}</span>
                     <span>•</span>
                     <span>${pet.age}</span>

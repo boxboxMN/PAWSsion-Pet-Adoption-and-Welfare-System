@@ -49,8 +49,7 @@
         </div>
     </div>
 
-
-    <!-- PETS -->
+    <!-- PETS CONTAINER-->
     <div id="petsContainer" class="mt-6"></div>
 
 </main>
@@ -58,19 +57,53 @@
 <!-- ADD PET MODAL -->
 <!-- ========================= -->
 <div id="petModal" class="fixed inset-0 hidden items-center justify-center bg-black/50 z-50 p-5">
-    <div class="bg-white rounded-2xl shadow-xl w-full max-w-5xl max-h-[95vh] overflow-y-auto">
-        <div class="border-b px-8 py-5 flex items-center justify-between">
-            <h2 class="text-2xl font-bold text-slate-800">
-                <i class="fa-solid fa-paw text-blue-700 mr-2"></i>
-                Add New Pet
-            </h2>
-            <button id="closePetModal" class="text-2xl text-slate-500 hover:text-red-600">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
-        </div>
+    <div class="bg-white rounded-[30px] shadow-2xl w-full max-w-7xl max-h-[94vh] overflow-hidden flex">
 
-        <form id="petForm" enctype="multipart/form-data" class="p-8">
+        <form id="petForm" enctype="multipart/form-data" class="flex w-full">
             <input type="hidden" name="organization_id" id="organization_id">
+
+        <!-- ========================= -->
+        <!-- LEFT PANEL -->
+        <!-- ========================= -->
+        <aside class="w-[320px] bg-slate-50 border-r p-7 overflow-y-auto">
+
+            <h3 class="text-xs font-bold uppercase tracking-wide text-blue-900 mb-4">
+                Profile Photo
+            </h3>
+
+            <label class="relative block aspect-square rounded-2xl border-2 border-dashed border-slate-300 bg-white overflow-hidden cursor-pointer hover:border-blue-700 transition">
+                <input type="file" name="image" accept=".jpg,.jpeg,.png,.webp" class="hidden">
+
+                <div class="flex h-full items-center justify-center text-slate-400">
+                    <div class="text-center">
+                        <i class="fa-solid fa-camera text-5xl mb-4"></i>
+                        <p class="font-semibold">
+                            Upload Pet Photo
+                        </p>
+
+                        <p class="text-xs mt-1">
+                            JPG, PNG or WEBP
+                        </p>
+                    </div>
+                </div>
+            </label>
+        </aside>
+
+        <!-- ========================= -->
+        <!-- RIGHT PANEL -->
+        <!-- ========================= -->
+        <section class="flex-1 overflow-y-auto p-5">
+
+            <!--HEADER TAG-->
+            <div class="border-b px-4 py-2 flex items-center justify-between">
+                <h2 class="text-2xl font-bold text-slate-800">
+                    <i class="fa-solid fa-paw text-blue-700 mr-2"></i>
+                    Add New Pet
+                </h2>
+                <button id="closePetModal" class="text-2xl text-slate-500 hover:text-red-600">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
 
             <!-- BASIC INFORMATION -->
             <div class="mb-8">
@@ -163,33 +196,19 @@
 
             <!-- MEDICAL HISTORY -->
             <div class="mb-8">
-
                 <h3 class="text-lg font-semibold text-blue-700 mb-4">
                     Medical History
                 </h3>
 
                 <div class="grid md:grid-cols-[2fr_1fr_1fr_auto] gap-3">
 
-                    <input
-                        id="m-treatment"
-                        type="text"
-                        placeholder="Treatment / Vaccine"
-                        class="rounded-lg border p-2.5">
+                    <input id="m-treatment" type="text" placeholder="Treatment / Vaccine" class="rounded-lg border p-2.5">
 
-                    <input
-                        id="m-date"
-                        type="date"
-                        class="rounded-lg border p-2.5">
+                    <input id="m-date" type="date" class="rounded-lg border p-2.5">
 
-                    <input
-                        id="m-by"
-                        type="text"
-                        placeholder="Administered By"
-                        class="rounded-lg border p-2.5">
+                    <input id="m-by" type="text" placeholder="Administered By" class="rounded-lg border p-2.5">
 
-                    <button
-                        type="button"
-                        class="add-med-btn bg-blue-700 text-white rounded-lg px-4">
+                    <button type="button" class="add-med-btn bg-blue-700 text-white rounded-lg px-4">
                         <i class="fa-solid fa-plus"></i>
                     </button>
 
@@ -207,9 +226,7 @@
                         </thead>
                         <tbody id="medical-tbody">
                             <tr>
-                                <td colspan="4" class="text-center p-5 text-slate-400">
-                                    No medical records yet
-                                </td>
+                                <td colspan="4" class="text-center p-5 text-slate-400">No medical records yet</td>
                             </tr>
                         </tbody>
                     </table>
@@ -227,11 +244,6 @@
                             <option value="Adopted">Adopted</option>
                             <option value="Archived">Archived</option>
                         </select>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium mb-1">Pet Image</label>
-                        <input type="file" name="image" accept=".jpg,.jpeg,.png,.webp" class="w-full rounded-lg border p-2.5">
                     </div>
                 </div>
             </div>
@@ -284,6 +296,7 @@
                     Save Pet
                 </button>
             </div>
+        </section>    
         </form>
     </div>
 </div>
@@ -304,42 +317,30 @@
 
                 <div class="mt-2">
                     <div class="bg-slate-100 rounded-2xl p-4 shadow-sm ">
-                        <h3 class="text-base font-bold text-blue-900 uppercase tracking-wide mb-3">
-                            Basic Information
-                        </h3>
+                        <h3 class="text-base font-bold text-blue-900 uppercase tracking-wide mb-3">Basic Information</h3>
                         <div class="space-y-3 pl-1">
                             <div>
-                                <p class="text-[10px] uppercase tracking-wide text-slate-400">
-                                    Species
-                                </p>
+                                <p class="text-[10px] uppercase tracking-wide text-slate-400">Species</p>
                                 <p id="viewSpecies" class="font-semibold text-xs text-slate-800 mt-1"></p>
                             </div>
 
                             <div>
-                                <p class="text-[10px] uppercase tracking-wide text-slate-400">
-                                    Gender
-                                </p>
+                                <p class="text-[10px] uppercase tracking-wide text-slate-400">Gender</p>
                                 <p id="viewGender" class="font-semibold text-xs text-slate-800 mt-1"></p>
                             </div>
 
                             <div>
-                                <p class="text-[10px] uppercase tracking-wide text-slate-400">
-                                    Age
-                                </p>
+                                <p class="text-[10px] uppercase tracking-wide text-slate-400">Age</p>
                                 <p id="viewAge" class="font-semibold text-xs text-slate-800 mt-1"></p>
                             </div>
 
                             <div>
-                                <p class="text-[10px] uppercase tracking-wide text-slate-400">
-                                    Birth Date
-                                </p>
+                                <p class="text-[10px] uppercase tracking-wide text-slate-400">Birth Date</p>
                                 <p id="viewBirthDate" class="font-semibold text-xs text-slate-800 mt-1"></p>
                             </div>
 
                             <div>
-                                <p class="text-[10px] uppercase tracking-wide text-slate-400">
-                                    Color
-                                </p>
+                                <p class="text-[10px] uppercase tracking-wide text-slate-400">Color</p>
                                 <p id="viewColor" class="font-semibold text-xs text-slate-800 mt-1"></p>
                             </div>
 
@@ -351,9 +352,9 @@
         </aside>
 
         <!-- RIGHT PANEL -->
-        <section class="flex-1 overflow-y-auto">
+        <section class="flex-1 overflow-hidden">
 
-            <div class="p-5">
+            <div class="p-3">
 
                 <!--  -->
                 <div class="flex justify-end">
