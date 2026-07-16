@@ -19,12 +19,51 @@ const addPetBtn = document.getElementById("addPetBtn");
 const closePetModal = document.getElementById("closePetModal");
 const cancelPetBtn = document.getElementById("cancelPetBtn");
 const petForm = document.getElementById("petForm");
+const petImageInput = document.getElementById("petImageInput");
+const petImagePreview = document.getElementById("petImagePreview");
+const uploadPlaceholder = document.getElementById("uploadPlaceholder");
+const selectedFileName = document.getElementById("selectedFileName");
+petImageInput.addEventListener("change", () => {
+    const file = petImageInput.files[0];
+    if (!file) return;
+        selectedFileName.textContent = "✔ " + file.name;
+    const reader = new FileReader();
+    reader.onload = function(e){
+        petImagePreview.src = e.target.result;
+        petImagePreview.classList.remove("hidden");
+        uploadPlaceholder.classList.add("hidden");
+    };
+    reader.readAsDataURL(file);
+});
+let editingPetId = null;
+
+const modalTitle = document.querySelector("#petModal h2");
+const submitButton = petForm.querySelector('button[type="submit"]');
+
 // OPEN MODAL
 addPetBtn.addEventListener("click", () => {
+
+    editingPetId = null;
+    petForm.reset();
+    medicalList = [];
+    renderMedicalTable();
+    traitsContainer.innerHTML = "";
+    personalityTags.value = "";
+
+    modalTitle.innerHTML = `
+        <i class="fa-solid fa-paw text-blue-700 mr-2"></i>
+        Add New Pet
+    `;
+
+    submitButton.innerHTML = `
+        <i class="fa-solid fa-floppy-disk mr-2"></i>
+        Save Pet
+    `;
+
     modal.classList.remove("hidden");
     modal.classList.add("flex");
-});
 
+});
 // CLOSE BUTTON
 closePetModal.addEventListener("click", closeModal);
 
@@ -68,60 +107,48 @@ petForm.addEventListener("submit", async (e)=>{
 
     try {
 
-        const response = await fetch("/org/pets/add", {
+    const url = editingPetId
+        ? `/org/pets/update/${editingPetId}`
+        : "/org/pets/add";
 
-            method:"POST",
+    const method = editingPetId
+        ? "PUT"
+        : "POST";
 
-            body:formData
-
-        });
+    const response = await fetch(url, {
+        method,
+        body: formData
+    });
 
         console.log("STATUS:", response.status);
 
         const text = await response.text();
 
-
         console.log("SERVER RESPONSE:", text);
-
         let data;
-
         try {
-
             data = JSON.parse(text);
-
         }
 
         catch(err){
-
             alert("Server returned invalid response. Check terminal.");
-
             return;
-
         }
 
         if(data.success){
-
             alert(data.message);
-
             closeModal();
-
             petForm.reset();
-
              await loadPets();
         }
 
         else{
-
             alert(data.message);
-
         }
-
     }
 
     catch(error){
-
         console.error("FETCH ERROR:", error);
-
         alert(
             "Request failed. Check browser console and server terminal."
         );
@@ -129,9 +156,7 @@ petForm.addEventListener("submit", async (e)=>{
 });
 // PETS CARD
 async function loadPets() {
-
     const container = document.getElementById("petsContainer");
-
     container.innerHTML = `
         <div class="text-center py-10">
             Loading pets...
@@ -151,7 +176,6 @@ async function loadPets() {
     }
 
     if (data.pets.length === 0) {
-
         container.innerHTML = `
             <div class="bg-white rounded-xl p-10 text-center shadow">
                 No pets added yet.
@@ -228,7 +252,7 @@ function createPetCard(pet) {
                     }
                 </div>
                 <button
-                    class="viewPetBtn mt-5 bg-blue-700 text-white px-4 py-2 rounded-xl"
+                    class="viewPetBtn mt-5 w-full rounded-2xl border border-slate-200 bg-white py-3 text-base font-semibold text-blue-900 transition-all duration-200 hover:border-blue-600 hover:bg-blue-50 hover:text-blue-700"
                     data-id="${pet.animal_id}">
                     View Profile
                 </button>
@@ -284,8 +308,69 @@ catch(err){
 });
 
 function openPetDetailsModal(pet){
+    document.getElementById("editPetBtn").onclick = () => {
 
-    const modal = document.getElementById("viewPetModal");
+    editingPetId = pet.animal_id;
+    document.getElementById("animal_id").value = pet.animal_id;
+    petForm.name.value = pet.name;
+    petForm.species.value = pet.species;
+    petForm.gender.value = pet.gender;
+    petForm.age.value = pet.age;
+    petForm.birth_date.value = pet.birth_date
+        ? pet.birth_date.split("T")[0]
+        : "";
+    petForm.color.value = pet.color || "";
+    petForm.health_status.value = pet.health_status;
+    petForm.vaccination_status.value = pet.vaccination_status;
+    petForm.adoption_status.value = pet.adoption_status;
+    petForm.behavior_description.value = pet.behavior_description || "";
+    traitsContainer.innerHTML = "";
+
+    if (pet.personality_tags) {
+        pet.personality_tags
+            .split(",")
+            .forEach(tag => addTrait(tag.trim()));
+    }
+
+    medicalList = pet.medical_history ? [...pet.medical_history] : [];
+    renderMedicalTable();
+
+    modalTitle.innerHTML = `
+        <i class="fa-solid fa-pen text-amber-500 mr-2"></i>
+        Edit Pet
+    `;
+    submitButton.innerHTML = `
+        <i class="fa-solid fa-floppy-disk mr-2"></i>
+        Save Changes
+    `;
+    closeViewPetModal();
+    modal.classList.remove("hidden");
+    modal.classList.add("flex");
+};
+document.getElementById("deletePetBtn").onclick = async () => {
+    const confirmed = confirm(
+        `Are you sure you want to delete ${pet.name}?`
+    );
+    if (!confirmed) return;
+    try {
+        const res = await fetch(`/org/pets/delete/${pet.animal_id}`, {
+            method: "DELETE"
+        });
+        const data = await res.json();
+        if (data.success) {
+            alert(data.message);
+            closeViewPetModal();
+            await loadPets();
+        } else {
+            alert(data.message);
+        }
+    } catch (err) {
+        console.error("DELETE ERROR:", err);
+        alert(err.message);
+    }
+
+};
+    const viewModal = document.getElementById("viewPetModal");
 
     document.getElementById("viewPetImage").src =
         pet.image_path
@@ -386,18 +471,17 @@ function openPetDetailsModal(pet){
 
     }
 
-    modal.classList.remove("hidden");
-    modal.classList.add("flex");
+    viewModal.classList.remove("hidden");
+    viewModal.classList.add("flex");
 
 }
 
 function closeViewPetModal(){
 
-    const modal = document.getElementById("viewPetModal");
+    const viewModal = document.getElementById("viewPetModal");
 
-    modal.classList.remove("flex");
-
-    modal.classList.add("hidden");
+    viewModal.classList.remove("flex");
+    viewModal.classList.add("hidden");
 
 }
 
@@ -410,15 +494,6 @@ const addTraitBtn = document.getElementById("addTraitBtn");
 const traitsContainer = document.getElementById("traitsContainer");
 const personalityTags = document.getElementById("personalityTags");
 let medicalList = [];
-
-function updateTraitField() {
-
-    const tags = [...traitsContainer.querySelectorAll(".trait-tag")].map(tag =>
-        tag.dataset.value
-    );
-
-    personalityTags.value = tags.join(",");
-}
 
 function addTrait(value) {
 
@@ -489,6 +564,10 @@ function closeModal(){
 
     renderMedicalTable();
     petForm.reset();
+    petImagePreview.src = "";
+    petImagePreview.classList.add("hidden");
+    uploadPlaceholder.classList.remove("hidden");
+    selectedFileName.textContent = "";
 
     traitsContainer.innerHTML = "";
     personalityTags.value = "";

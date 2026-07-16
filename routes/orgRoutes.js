@@ -1,36 +1,36 @@
 const express = require("express");
 const path = require("path");
 const pool = require("../config/database");
-
 const { uploadPet: upload } = require('../config/upload');
-
-const { addPet, getPets, getPetDetails } = require("../controllers/orgController");
-
+const { addPet, updatePet, deletePet, getPets, getPetDetails } = require("../controllers/orgController");
 const router = express.Router();
 
 router.use(checkOrganizationApproval);
 
-
 router.get("/dashboard", (req, res) => {
-
     res.sendFile(
         path.join(__dirname, "../public/organization/dashboard.html")
     );
-
 });
-
-
 router.post(
     "/pets/add",
     upload.single("image"),
     addPet
+);
+router.put(
+    "/pets/update/:id",
+    upload.single("image"),
+    updatePet
+);
+router.delete(
+    "/pets/delete/:id",
+    deletePet
 );
 router.get("/pending", (req, res) => {
 
     if (!req.session.accountId) {
         return res.redirect("/auth/login.html");
     }
-
     res.sendFile(
         path.join(__dirname, "../public/organization/orgPending.html")
     );
@@ -41,7 +41,6 @@ async function checkOrganizationApproval(req, res, next) {
     if (!req.session.accountId) {
         return res.redirect("/auth/login.html");
     }
-
     const [rows] = await pool.query(
         `SELECT status
          FROM accounts
@@ -59,9 +58,7 @@ async function checkOrganizationApproval(req, res, next) {
         if (req.path !== "/pending") {
             return res.redirect("/org/pending");
         }
-
     }
-
     next();
 
 }

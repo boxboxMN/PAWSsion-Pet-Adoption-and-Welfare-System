@@ -247,3 +247,155 @@ exports.getPetDetails = async (req, res) => {
 
     }
 };
+exports.updatePet = async (req, res) => {
+    try {
+        const id = req.params.id;
+        const {
+            name,
+            species,
+            gender,
+            age,
+            birth_date,
+            color,
+            behavior_description,
+            health_status,
+            vaccination_status,
+            adoption_status,
+            personality_tags,
+            medical_history
+        } = req.body;
+
+        let imageSQL = "";
+        let values = [
+            name,
+            species,
+            gender,
+            age,
+            birth_date || null,
+            color || null,
+            behavior_description || null,
+            health_status,
+            vaccination_status,
+            adoption_status,
+            personality_tags || null
+        ];
+
+        if (req.file) {
+
+            imageSQL = ", image_path=?";
+            values.push(req.file.filename);
+
+        }
+
+        values.push(id);
+
+        await pool.query(
+            `
+            UPDATE animals
+            SET
+                name=?,
+                species=?,
+                gender=?,
+                age=?,
+                birth_date=?,
+                color=?,
+                behavior_description=?,
+                health_status=?,
+                vaccination_status=?,
+                adoption_status=?,
+                personality_tags=?
+                ${imageSQL}
+            WHERE animal_id=?
+            `,
+            values
+        );
+
+        await pool.query(
+            `
+            DELETE FROM animal_medical_history
+            WHERE animal_id=?
+            `,
+            [id]
+        );
+
+        const medical = medical_history
+            ? JSON.parse(medical_history)
+            : [];
+
+        for (const m of medical) {
+
+            await pool.query(
+                `
+                INSERT INTO animal_medical_history
+                (
+                    animal_id,
+                    treatment,
+                    administered_date,
+                    administered_by
+                )
+                VALUES (?,?,?,?)
+                `,
+                [
+                    id,
+                    m.treatment,
+                    m.administered_date,
+                    m.administered_by
+                ]
+            );
+        }
+
+        res.json({
+            success: true,
+            message: "Pet updated successfully."
+        });
+
+    } catch (err) {
+
+        console.error(err);
+
+        res.status(500).json({
+            success: false,
+            message: err.message
+        });
+    }
+};
+exports.deletePet = async (req, res) => {
+    try {
+        const id = req.params.id;
+        // Delete medical history first
+        await pool.query(
+            `
+            DELETE FROM animal_medical_history
+            WHERE animal_id = ?
+            `,
+            [id]
+        );
+
+        // Delete pet
+        const [result] = await pool.query(
+            `
+            DELETE FROM animals
+            WHERE animal_id = ?
+            `,
+            [id]
+        );
+
+        if (result.affectedRows === 0) {
+            return res.json({
+                success: false,
+                message: "Pet not found."
+            });
+        }
+        res.json({
+            success: true,
+            message: "Pet deleted successfully."
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({
+            success: false,
+            message: err.message
+        });
+    }
+
+};
