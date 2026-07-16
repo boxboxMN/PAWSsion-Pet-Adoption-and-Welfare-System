@@ -32,7 +32,8 @@ MODIFY COLUMN status ENUM(
     'banned',
     'rejected'
 ) DEFAULT 'active';
-8. kapag may bagong page sa org na need iclick yung logout, iadd na lang to sa dulo ng html bago mag </body> tag:
+8. Import nyo na lang yung bagong database, may nabago doon
+9. kapag may bagong page sa org na need iclick yung logout, iadd na lang to sa dulo ng html bago mag </body> tag:
 
 <!--Logout Modal-->
         <div id="logoutModal" class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/45 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-200">

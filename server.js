@@ -340,6 +340,17 @@ app.get("/api/organization/session-data", async (req, res) => {
   }
 });
 
+// API to fetch all pets
+app.get("/api/pets", async (req, res) => {
+    try {
+        const [rows] = await pool.query("SELECT * FROM animals WHERE adoption_status = 'Available'");
+        res.status(200).json(rows); // Send the pet data as JSON
+    } catch (err) {
+        console.error("Error fetching pets:", err);
+        res.status(500).json({ message: "Failed to fetch pets." });
+    }
+});
+
 const PORT = 3000;
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
