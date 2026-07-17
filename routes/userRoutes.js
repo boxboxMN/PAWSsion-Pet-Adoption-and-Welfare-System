@@ -32,7 +32,7 @@ const upload = multer({
         cb(null, true);
     }
 });
-
+router.get("/api/pets", userController.getAvailablePets);
 // ==========================================
 // USER PAGE VIEW ROUTES (HTML Files)
 // ==========================================

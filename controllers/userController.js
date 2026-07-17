@@ -159,3 +159,33 @@ exports.updateAvatar = async (req, res) => {
         });
     }
 };
+exports.getAvailablePets = async (req, res) => {
+    try {
+
+        const [pets] = await pool.query(`
+            SELECT
+                a.*,
+                o.organization_name
+            FROM animals a
+            INNER JOIN organizations o
+                ON a.organization_id = o.organization_id
+            WHERE a.adoption_status = 'Available'
+            ORDER BY a.created_at DESC
+        `);
+
+        res.json({
+            success: true,
+            pets
+        });
+
+    } catch (err) {
+
+        console.error(err);
+
+        res.status(500).json({
+            success: false,
+            message: "Failed to load pets."
+        });
+
+    }
+};
