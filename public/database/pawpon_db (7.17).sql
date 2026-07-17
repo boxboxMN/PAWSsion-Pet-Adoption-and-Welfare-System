@@ -3,13 +3,14 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jul 15, 2026 at 04:14 PM
+-- Generation Time: Jul 17, 2026 at 03:49 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
 SET time_zone = "+00:00";
+
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -19,6 +20,7 @@ SET time_zone = "+00:00";
 --
 -- Database: `pawpon_db`
 --
+
 -- --------------------------------------------------------
 
 --
@@ -34,17 +36,18 @@ CREATE TABLE `accounts` (
   `email_verified` tinyint(1) DEFAULT 0,
   `profile_pic` varchar(255) DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `last_login` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `accounts`
 --
 
-INSERT INTO `accounts` (`account_id`, `email`, `password_hash`, `role`, `status`, `email_verified`, `profile_pic`, `created_at`, `updated_at`) VALUES
-(1, 'admin@pawpon.com', '$2b$10$l16R.DYg693wgKJJ20QQYucqrCl8.Zop120.UkdYO7g0TKXTc6vr6', 'admin', 'active', 1, NULL, '2026-07-06 14:27:26', '2026-07-06 14:40:55'),
-(2, 'pawssion@gmail.com', '$2b$10$2hXt/yS9bNVHA2d31JWDHuzjfOcyEz5Px8RY3DN3MxhDFApxxCTMe', 'organization', 'active', 1, NULL, '2026-07-13 12:51:22', '2026-07-13 12:53:17'),
-(3, 'shin@gmail.com', '$2b$10$tuu0.7L9PiYpbXeUNdRmw.rerKPVXwUhOuCzh/mgR1LduNDDVL5.q', 'adopter', 'active', 1, NULL, '2026-07-13 12:55:42', '2026-07-13 12:55:42');
+INSERT INTO `accounts` (`account_id`, `email`, `password_hash`, `role`, `status`, `email_verified`, `profile_pic`, `created_at`, `updated_at`, `last_login`) VALUES
+(1, 'admin@pawpon.com', '$2b$10$l16R.DYg693wgKJJ20QQYucqrCl8.Zop120.UkdYO7g0TKXTc6vr6', 'admin', 'active', 1, NULL, '2026-07-06 14:27:26', '2026-07-06 14:40:55', NULL),
+(2, 'pawssion@gmail.com', '$2b$10$2hXt/yS9bNVHA2d31JWDHuzjfOcyEz5Px8RY3DN3MxhDFApxxCTMe', 'organization', 'active', 1, NULL, '2026-07-13 12:51:22', '2026-07-16 15:07:54', '2026-07-16 23:07:54'),
+(3, 'shin@gmail.com', '$2b$10$tuu0.7L9PiYpbXeUNdRmw.rerKPVXwUhOuCzh/mgR1LduNDDVL5.q', 'adopter', 'active', 1, NULL, '2026-07-13 12:55:42', '2026-07-16 15:23:18', '2026-07-16 23:23:18');
 
 -- --------------------------------------------------------
 
@@ -97,16 +100,9 @@ CREATE TABLE `animals` (
 --
 
 INSERT INTO `animals` (`animal_id`, `organization_id`, `name`, `species`, `gender`, `age`, `birth_date`, `color`, `behavior_description`, `health_status`, `vaccination_status`, `adoption_status`, `image_path`, `created_at`, `personality_tags`) VALUES
-(1, 1, 'Adobo', 'Dog', 'Female', 'Adult (4-7 yrs old)', '2026-07-01', 'brown and white on extremities & end of tail', 'Very friendly, active, allows human interaction and petting', 'Healthy', 'Vaccinated', 'Available', '1783947283842-144609.webp', '2026-07-13 12:54:43', NULL),
-(2, 1, 'Tata', 'Dog', 'Male', 'Puppy/Kitten (0-1 yr old)', '2026-07-01', 'Black and White', 'Kind and friendly', 'Healthy', 'Vaccinated', 'Available', '1784034813727-535776.jpg', '2026-07-14 13:13:33', NULL),
-(3, 1, 'chaii', 'Cat', 'Female', 'Adolescence (2-3 yrs old)', '2026-07-14', 'blue', 'kind. friendly, kind', 'Healthy', 'Vaccinated', 'Available', '1784035739782-158074.jpg', '2026-07-14 13:28:59', NULL),
-(4, 1, 'Luca', 'Cat', 'Female', 'Adolescence (2-3 yrs old)', '2026-07-14', 'White', 'idk h', 'Healthy', 'Vaccinated', 'Available', '1784036153187-370476.jpg', '2026-07-14 13:35:53', NULL),
-(5, 1, 'Mayeee', 'Dog', 'Female', 'Adolescence (2-3 yrs old)', '2026-07-14', 'Black', 'idkkk am ded', 'Healthy', 'Vaccinated', 'Available', '1784036600457-928340.jpg', '2026-07-14 13:43:20', 'Kind,Cutr,Funny'),
-(6, 1, 'Shin', 'Dog', 'Female', 'Adolescence (2-3 yrs old)', '2026-07-14', 'White', 'IDK HE SBUTE', 'Healthy', 'Vaccinated', 'Available', '1784042995248-790113.jpg', '2026-07-14 15:29:55', 'Kind,Funny,Tried af'),
-(7, 1, 'SHEEEE', 'Dog', 'Female', 'Adolescence (2-3 yrs old)', '2026-07-14', 'MLAWN', 'DED', 'Healthy', 'Vaccinated', 'Available', '1784043699866-409101.jpg', '2026-07-14 15:41:39', 'KIND'),
-(8, 1, 'She', 'Dog', 'Male', 'Adolescence (2-3 yrs old)', '2026-07-10', 'fdfsf', 'fsfsdfdsfsf', 'Healthy', 'Vaccinated', 'Pending', '1784044060035-338096.png', '2026-07-14 15:47:40', 'fsdfsdf'),
-(9, 1, 'dadddfsdf', 'Cat', 'Male', 'Puppy/Kitten (0-1 yr old)', '2026-07-10', 'fsdfsff', 'fsfsdffsf', 'Healthy', 'Vaccinated', 'Available', '1784044160834-285534.png', '2026-07-14 15:49:20', 'fsdfdsf'),
-(10, 1, 'MAYEN', 'Dog', 'Female', 'Adolescence (2-3 yrs old)', '2026-07-01', 'WHITE', 'This sweet animal is looking for a forever home. They have been socialized with humans and are ready to be part of a loving family. Great with kids and always eager to greet you at the door', 'Healthy', 'Vaccinated', 'Available', '1784046462243-214982.jpg', '2026-07-14 16:27:42', 'Kind,Cool,Friendly,Cute');
+(10, 1, 'MAYEN', 'Dog', 'Female', 'Adolescence (2-3 yrs old)', '2026-07-01', 'WHITE', 'This sweet animal is looking for a forever home. They have been socialized with humans and are ready to be part of a loving family. Great with kids and always eager to greet you at the door', 'Healthy', 'Vaccinated', 'Available', '1784046462243-214982.jpg', '2026-07-14 16:27:42', 'Kind,Cool,Friendly,Cute'),
+(12, 1, 'Shina', 'Cat', 'Female', 'Adolescence (2-3 yrs old)', '2026-07-16', 'dbvnlyrr', 'idk he gaeee mawajajajaj', 'Healthy', 'Vaccinated', 'Available', '1784201568373-969696.png', '2026-07-16 11:32:48', 'kind,cute,friendly'),
+(13, 1, 'Fudgee', 'Dog', 'Male', 'Adolescence (2-3 yrs old)', '2026-06-29', 'BROWN', 'Fudgeee is actually kind111If it still doesn\'t open after this change, then the issue is no longer the variable names. In that case, I\'ll help you trace it further—it\'s likely one more small issue in the modal logic rather than the edit functionality itself.If it still doesn\'t open after this change, then the issue is no longer the variable names. In that case, ', 'Healthy', 'Vaccinated', 'Available', '1784212753969-679275.png', '2026-07-16 11:56:33', 'Friendly,Kind,Kyut');
 
 -- --------------------------------------------------------
 
@@ -129,8 +125,10 @@ CREATE TABLE `animal_medical_history` (
 --
 
 INSERT INTO `animal_medical_history` (`medical_id`, `animal_id`, `treatment`, `administered_date`, `administered_by`, `notes`, `created_at`) VALUES
-(1, 9, 'fsdfsdf', '2026-07-03', 'dsfdfsd', NULL, '2026-07-14 15:49:20'),
-(2, 10, 'Deworm', '2026-07-02', 'Dr. Shin Nouzen', NULL, '2026-07-14 16:27:42');
+(2, 10, 'Deworm', '2026-07-02', 'Dr. Shin Nouzen', NULL, '2026-07-14 16:27:42'),
+(4, 12, 'MEW', '2026-07-16', 'BRUHH', NULL, '2026-07-16 11:32:48'),
+(10, 13, 'Anti-Rabies', '2026-06-30', 'Dr. Maui', NULL, '2026-07-16 14:44:56'),
+(11, 13, 'Deworm', '2026-06-29', 'Dr. Mayen', NULL, '2026-07-16 14:44:56');
 
 -- --------------------------------------------------------
 
@@ -149,6 +147,7 @@ CREATE TABLE `organizations` (
   `city` varchar(100) DEFAULT NULL,
   `province` varchar(100) DEFAULT NULL,
   `description` text DEFAULT NULL,
+  `profile_pic` varchar(255) DEFAULT NULL,
   `verification_status` enum('Pending','Approved','Rejected') DEFAULT 'Pending'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -156,8 +155,8 @@ CREATE TABLE `organizations` (
 -- Dumping data for table `organizations`
 --
 
-INSERT INTO `organizations` (`organization_id`, `account_id`, `organization_name`, `organization_type`, `contact_person`, `contact_number`, `address`, `city`, `province`, `description`, `verification_status`) VALUES
-(1, 2, 'PAWSsion Benevolence Circle', 'Rescue Organization', 'Althea idk ', '09876543212', 'CSPC Nabua', 'idk NABUA', 'CamSur', 'Join our community to support rescued cats and dogs.\r\nCreate an organization account to manage rescued animals,\r\ntrack adoption requests, and coordinate donations\r\nto give them a loving home.', 'Approved');
+INSERT INTO `organizations` (`organization_id`, `account_id`, `organization_name`, `organization_type`, `contact_person`, `contact_number`, `address`, `city`, `province`, `description`, `profile_pic`, `verification_status`) VALUES
+(1, 2, 'PAWSsion Benevolence Circle', 'Rescue Organization', 'Althea idk ', '09876543212', 'CSPC Nabua', 'idk NABUA', 'CamSur', 'Join our community to support rescued cats and dogs.\r\nCreate an organization account to manage rescued animals,\r\ntrack adoption requests, and coordinate donations\r\nto give them a loving home.', NULL, 'Approved');
 
 -- --------------------------------------------------------
 
@@ -246,13 +245,13 @@ ALTER TABLE `adopters`
 -- AUTO_INCREMENT for table `animals`
 --
 ALTER TABLE `animals`
-  MODIFY `animal_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `animal_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT for table `animal_medical_history`
 --
 ALTER TABLE `animal_medical_history`
-  MODIFY `medical_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `medical_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT for table `organizations`
