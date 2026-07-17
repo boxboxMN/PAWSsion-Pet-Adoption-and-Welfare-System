@@ -22,7 +22,17 @@ npx tailwindcss init
 ALTER TABLE accounts
 ADD COLUMN last_login DATETIME NULL
 AFTER updated_at;
-7. kapag may bagong page sa org na need iclick yung logout, iadd na lang to sa dulo ng html bago mag </body> tag:
+7. pa add nalang sa database nito for modify nung action sa status ng mga user 
+ALTER TABLE accounts
+MODIFY COLUMN status ENUM(
+    'pending',
+    'active',
+    'disabled',
+    'suspended',
+    'banned',
+    'rejected'
+) DEFAULT 'active';
+8. kapag may bagong page sa org na need iclick yung logout, iadd na lang to sa dulo ng html bago mag </body> tag:
 
 <!--Logout Modal-->
         <div id="logoutModal" class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/45 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-200">
