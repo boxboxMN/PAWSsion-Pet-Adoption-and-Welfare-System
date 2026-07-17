@@ -32,22 +32,23 @@ CREATE TABLE `accounts` (
   `email` varchar(255) NOT NULL,
   `password_hash` varchar(255) NOT NULL,
   `role` enum('adopter','organization','admin') NOT NULL,
-  `status` enum('pending','active','rejected','disabled') DEFAULT 'active',
+  `status` enum('pending','active','disabled','suspended','banned','rejected') DEFAULT 'active',
   `email_verified` tinyint(1) DEFAULT 0,
-  `profile_pic` varchar(255) DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  `last_login` datetime DEFAULT NULL
+  `last_login` datetime DEFAULT NULL,
+  `profile_pic` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
 
 --
 -- Dumping data for table `accounts`
 --
 
-INSERT INTO `accounts` (`account_id`, `email`, `password_hash`, `role`, `status`, `email_verified`, `profile_pic`, `created_at`, `updated_at`, `last_login`) VALUES
-(1, 'admin@pawpon.com', '$2b$10$l16R.DYg693wgKJJ20QQYucqrCl8.Zop120.UkdYO7g0TKXTc6vr6', 'admin', 'active', 1, NULL, '2026-07-06 14:27:26', '2026-07-06 14:40:55', NULL),
-(2, 'pawssion@gmail.com', '$2b$10$2hXt/yS9bNVHA2d31JWDHuzjfOcyEz5Px8RY3DN3MxhDFApxxCTMe', 'organization', 'active', 1, NULL, '2026-07-13 12:51:22', '2026-07-16 15:07:54', '2026-07-16 23:07:54'),
-(3, 'shin@gmail.com', '$2b$10$tuu0.7L9PiYpbXeUNdRmw.rerKPVXwUhOuCzh/mgR1LduNDDVL5.q', 'adopter', 'active', 1, NULL, '2026-07-13 12:55:42', '2026-07-16 15:23:18', '2026-07-16 23:23:18');
+INSERT INTO `accounts` (`account_id`, `email`, `password_hash`, `role`, `status`, `email_verified`, `created_at`, `updated_at`, `last_login`, `profile_pic`) VALUES
+(1, 'admin@pawpon.com', '$2b$10$l16R.DYg693wgKJJ20QQYucqrCl8.Zop120.UkdYO7g0TKXTc6vr6', 'admin', 'active', 1, '2026-07-06 14:27:26', '2026-07-06 14:40:55', NULL, NULL),
+(2, 'pawssion@gmail.com', '$2b$10$mrdaORtyns9LzF20Wz1qyerTBXXTtIC8h/BGR4wvO6/2IW9Zx.bb2', 'organization', 'active', 1, '2026-07-13 12:51:22', '2026-07-16 16:10:15', '2026-07-17 00:10:15', NULL),
+(3, 'shin@gmail.com', '$2b$10$tuu0.7L9PiYpbXeUNdRmw.rerKPVXwUhOuCzh/mgR1LduNDDVL5.q', 'adopter', 'active', 1, '2026-07-13 12:55:42', '2026-07-16 16:08:29', '2026-07-17 00:08:29', NULL);
 
 -- --------------------------------------------------------
 
@@ -69,7 +70,7 @@ CREATE TABLE `adopters` (
 --
 
 INSERT INTO `adopters` (`adopter_id`, `account_id`, `first_name`, `last_name`, `phone_number`, `profile_picture`) VALUES
-(1, 3, 'Shinrei', 'Nouzen', '09876543211', NULL);
+(1, 3, 'Shinrei', 'Nouzen', '09876543211', '/uploads/avatars/avatar-3-1784218156986.png');
 
 -- --------------------------------------------------------
 
@@ -155,8 +156,8 @@ CREATE TABLE `organizations` (
 -- Dumping data for table `organizations`
 --
 
-INSERT INTO `organizations` (`organization_id`, `account_id`, `organization_name`, `organization_type`, `contact_person`, `contact_number`, `address`, `city`, `province`, `description`, `profile_pic`, `verification_status`) VALUES
-(1, 2, 'PAWSsion Benevolence Circle', 'Rescue Organization', 'Althea idk ', '09876543212', 'CSPC Nabua', 'idk NABUA', 'CamSur', 'Join our community to support rescued cats and dogs.\r\nCreate an organization account to manage rescued animals,\r\ntrack adoption requests, and coordinate donations\r\nto give them a loving home.', NULL, 'Approved');
+INSERT INTO `organizations` (`organization_id`, `account_id`, `organization_name`, `profile_pic`, `organization_type`, `contact_person`, `contact_number`, `address`, `city`, `province`, `description`, `verification_status`) VALUES
+(1, 2, 'PAWSsion Benevolence Circle', '/uploads/orgs/org-2-1784067542354-198998845.jfif', 'Rescue Organization', 'Althea Marie Vasquez', '09876543212', 'CSPC Nabua', 'idk NABUA', 'CamSur', 'Join our community to support rescued cats and dogs.\r\nCreate an organization account to manage rescued animals,\r\ntrack adoption requests, and coordinate donations\r\nto give them a loving home.', 'Approved');
 
 -- --------------------------------------------------------
 
