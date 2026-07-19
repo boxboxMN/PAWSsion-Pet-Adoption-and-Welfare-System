@@ -159,36 +159,7 @@ exports.updateAvatar = async (req, res) => {
         });
     }
 };
-exports.getAvailablePets = async (req, res) => {
-    try {
 
-        const [pets] = await pool.query(`
-            SELECT
-                a.*,
-                o.organization_name
-            FROM animals a
-            INNER JOIN organizations o
-                ON a.organization_id = o.organization_id
-            WHERE a.adoption_status = 'Available'
-            ORDER BY a.created_at DESC
-        `);
-
-        res.json({
-            success: true,
-            pets
-        });
-
-    } catch (err) {
-
-        console.error(err);
-
-        res.status(500).json({
-            success: false,
-            message: "Failed to load pets."
-        });
-
-    }
-};
 // VIEW PET CARD
 exports.getAvailablePets = async (req, res) => {
     try {
@@ -196,25 +167,44 @@ exports.getAvailablePets = async (req, res) => {
         const [pets] = await pool.query(`
             SELECT
                 a.*,
-                o.organization_name
+                o.organization_name,
+                o.profile_pic
             FROM animals a
-            INNER JOIN organizations o
+            JOIN organizations o
                 ON a.organization_id = o.organization_id
-            WHERE a.adoption_status = 'Available'
+            WHERE a.adoption_status='Available'
             ORDER BY a.created_at DESC
         `);
 
+        for (const pet of pets) {
+
+            const [medical] = await pool.query(`
+                SELECT
+                    treatment,
+                    administered_date,
+                    administered_by
+                FROM animal_medical_history
+                WHERE animal_id = ?
+                ORDER BY administered_date DESC
+            `,[pet.animal_id]);
+
+            pet.medical_history = medical;
+
+        }
+
         res.json({
-            success: true,
+            success:true,
             pets
         });
 
-    } catch (err) {
+    } catch(err){
+
         console.error(err);
 
         res.status(500).json({
             success:false,
             message:"Failed to load pets."
         });
+
     }
 };
