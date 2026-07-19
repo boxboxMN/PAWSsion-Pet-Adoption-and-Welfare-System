@@ -54,3 +54,40 @@ MODIFY COLUMN status ENUM(
                 </div>
             </div>
         </div>
+
+9. TO DO (07.19.26)
+    - ALL MODULES
+    (
+    - session handling 
+    - Prevent unauthorized access to protected pages
+    - Redirect unauthenticated users to login
+    - Destroy session on logout
+    - make pages resonsive
+    )
+
+    - USERSIDE MODULES
+    ( 
+        - use title and subtitle for headers/topbar
+        - notification
+        - connect dashboard, matchmaking, my application, donation, kamustahan to db
+        - improve css
+    )
+
+    - ORG MODULES
+    ( 
+        - use title and subtitle for headers/topbar
+        - notification
+        - search, CRUD
+        - connect dashboard, application, kamustahan, analytics, organization profile to db
+        - settings & support 
+        - improve css
+    )
+
+    - ADMIN MODULES
+    ( 
+        - notification
+        - search, CRUD
+        - connect dashboard, feedback to db
+        - settings
+        - improve css
+    )
