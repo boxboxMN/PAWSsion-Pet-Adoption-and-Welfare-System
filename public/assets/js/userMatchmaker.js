@@ -141,43 +141,104 @@ function showIntroScreen() {
     showScreen(introScreen);
 }
 function renderMatches(matches) {
-
-    const container = document.querySelector(
-        "#compatibilityScreen .grid"
-    );
-
+    const container = document.querySelector("#compatibilityScreen .grid");
     container.innerHTML = "";
 
     if (!matches.length) {
-        container.innerHTML =
-            "<p>No matching pets found.</p>";
+        container.innerHTML = `
+            <div class="col-span-full bg-white rounded-3xl shadow-sm border border-gray-200 py-16 text-center">
+                <i class="fa-solid fa-heart-crack text-6xl text-gray-300 mb-5"></i>
+                <h2 class="text-2xl font-bold text-gray-700">
+                    No Compatible Pets Found
+                </h2>
+                <p class="text-gray-500 mt-3 max-w-lg mx-auto">
+                    We couldn't find pets matching your preferences.
+                    Try adjusting your criteria or writing a broader behavior description.
+                </p>
+            </div>
+        `;
         return;
     }
 
-    matches.forEach(pet => {
+    matches.forEach((pet, index) => {
+        let badgeColor = "bg-red-500";
+
+        if (pet.score >= 90) badgeColor = "bg-emerald-500";
+        else if (pet.score >= 75) badgeColor = "bg-blue-600";
+        else if (pet.score >= 60) badgeColor = "bg-yellow-500";
 
         container.innerHTML += `
-        <div class="bg-white rounded-xl shadow-md p-5">
+        <div class="group bg-white rounded-3xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border border-gray-100">
+            <!-- IMAGE -->
+            <div class="relative">
+                <img src="/uploads/pets/${pet.image_path}" class="w-full h-64 object-cover">
 
-            <img
-                src="/uploads/pets/${pet.image_path}"
-                class="w-full h-48 object-cover rounded-lg">
+                <!-- Rank -->
+                <div class="absolute top-4 left-4 bg-white rounded-full shadow px-4 py-1 text-sm font-semibold">
+                    #${index + 1}
+                </div>
 
-            <h2 class="text-xl font-bold mt-4">
-                ${pet.name}
-            </h2>
+                <!-- Match Badge -->
+                <div class="absolute top-4 right-4 ${badgeColor} text-white rounded-full px-4 py-1 font-bold shadow">
+                    ${pet.score}% Match
+                </div>
+            </div>
 
-            <p class="text-blue-600 font-semibold">
-                ${pet.score}% Match
-            </p>
+            <!-- BODY -->
+            <div class="p-6">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-800">
+                            ${pet.name}
+                        </h2>
+                        <p class="text-gray-500 mt-1">
+                            ${pet.species} • ${pet.gender} • ${pet.age}
+                        </p>
+                    </div>
+                </div>
 
-            <p class="text-gray-600 mt-2">
-                ${pet.behavior_description}
-            </p>
+                <!-- Personality Tags -->
+                <div class="flex flex-wrap gap-2 mt-5">
+                    ${
+                        pet.personality_tags
+                        ? pet.personality_tags
+                            .split(",")
+                            .map(tag => `
+                                <span class="bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-sm font-medium">
+                                    ${tag.trim()}
+                                </span>
+                            `).join("")
+                        : ""
+                    }
+                </div>
 
+                <!-- Description -->
+                <p class="text-gray-600 leading-7 mt-5 line-clamp-4">
+                    ${pet.behavior_description}
+                </p>
+
+                <!-- Scores -->
+                <div class="mt-6 space-y-3">
+                    <div>
+                        <div class="flex justify-between text-sm mb-1">
+                            <span>Behavior Similarity</span>
+                            <span class="font-semibold">
+                                ${pet.behaviorSimilarity}%
+                            </span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div class="bg-blue-600 h-2 rounded-full" style="width:${pet.behaviorSimilarity}%">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Button -->
+                <button class="w-full mt-7 bg-blue-600 hover:bg-blue-700 transition text-white py-3 rounded-xl font-semibold">
+                    View Pet Profile
+                </button>
+            </div>
         </div>
         `;
-
     });
-
 }
