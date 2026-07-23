@@ -103,3 +103,21 @@ MODIFY COLUMN status ENUM(
 # 10. TARGET DEPLOYMENT??
 
 > *pa add kung ano pa gagawin dito*
+bry naniya
+
+
+HOW TO RUN IT
+- import new db (7.23)
+- create .venv first inside flask-api
+    *terminal: cd flask-api then python -m venv .venv
+             : .venv\Scripts\activate
+             :.venv\Scripts\Activate.ps1
+- install requrements
+    *terminal: pip install -r requirements.txt
+             : pip install -r requirements.txt
+             : python -m pip install flask sentence-transformers torch scikit-learn python-dotenv
+             : python download_model.py
+- run Flask API
+    *terminal: python app.py (keep this running)
+- run Node.js
+    *terminal: node server.js (this should be in new terminal)
