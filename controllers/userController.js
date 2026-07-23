@@ -2,6 +2,7 @@
 const pool = require("../config/database"); 
 const bcrypt = require("bcrypt");
 
+
 exports.getProfile = async (req, res) => {
     const accountId = req.session?.accountId;
     if (!accountId) return res.status(401).json({ error: "Unauthorized" });
@@ -208,3 +209,4 @@ exports.getAvailablePets = async (req, res) => {
 
     }
 };
+// controllers/userController.js

@@ -1,4 +1,5 @@
 const pool = require("../config/database");
+const { generateEmbedding } = require("../services/embeddingService");
 
 exports.addPet = async (req, res) => {
 
@@ -99,6 +100,23 @@ exports.addPet = async (req, res) => {
 
             // Get the newly inserted pet ID
             const animal_id = result.insertId;
+            const embedding = await generateEmbedding(
+                behavior_description || ""
+            );
+            await pool.query(
+                `
+                INSERT INTO animal_embeddings
+                (
+                    animal_id,
+                    embedding
+                )
+                VALUES (?, ?)
+                `,
+                [
+                    animal_id,
+                    JSON.stringify(embedding)
+                ]
+                );
 
             // Parse medical history from frontend
             const medicalHistory = medical_history
@@ -309,13 +327,25 @@ exports.updatePet = async (req, res) => {
             `,
             values
         );
-
+        const embedding = await generateEmbedding(
+            behavior_description || ""
+        );
         await pool.query(
             `
-            DELETE FROM animal_medical_history
-            WHERE animal_id=?
+            INSERT INTO animal_embeddings
+            (
+                animal_id,
+                embedding
+            )
+            VALUES (?, ?)
+            ON DUPLICATE KEY UPDATE
+            embedding = VALUES(embedding),
+            updated_at = CURRENT_TIMESTAMP
             `,
-            [id]
+            [
+                id,
+                JSON.stringify(embedding)
+            ]
         );
 
         const medical = medical_history
