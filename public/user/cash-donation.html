@@ -149,40 +149,12 @@
                     <!-- STEP 1: Select Organization -->
                     <h2 class="text-xl font-bold mb-4">Step 1: Select Organization</h2>
 
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8" id="orgContainer">
-                        <!-- Card 1 -->
-                        <div class="org-card selected border rounded-xl p-4 relative" data-org="1">
-                            <div class="checkmark absolute top-0 right-0 bg-blue-600 text-white text-xs px-2 py-1 rounded-bl-lg">✓</div>
-                            <div class="flex justify-center mb-4">
-                                <img src="https://cdn-icons-png.flaticon.com/512/616/616408.png" alt="org" class="w-16 h-16" />
-                            </div>
-                            <h3 class="font-bold text-center text-sm">PAWssion Benevolence Circle</h3>
-                            <p class="text-gray-500 text-xs text-center mt-2">Nabua, Camarines Sur</p>
-                            <p class="text-blue-600 text-xs text-center mt-4 view-profile-btn cursor-pointer" data-org="1">View Organization Profile →</p>
-                        </div>
+                    <div
+                        id="orgContainer"
+                        class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
 
-                        <!-- Card 2 -->
-                        <div class="org-card border rounded-xl p-4 relative" data-org="2">
-                            <div class="checkmark absolute top-0 right-0 bg-blue-600 text-white text-xs px-2 py-1 rounded-bl-lg">✓</div>
-                            <div class="flex justify-center mb-4">
-                                <img src="https://cdn-icons-png.flaticon.com/512/616/616430.png" alt="org" class="w-16 h-16" />
-                            </div>
-                            <h3 class="font-bold text-center text-sm">PUP Sintang Pusa</h3>
-                            <p class="text-gray-500 text-xs text-center mt-2">Anonas Street, Sta Mesa Manila</p>
-                            <p class="text-blue-600 text-xs text-center mt-4 view-profile-btn cursor-pointer" data-org="2">View Organization Profile →</p>
-                        </div>
-
-                        <!-- Card 3 -->
-                        <div class="org-card border rounded-xl p-4 relative" data-org="3">
-                            <div class="checkmark absolute top-0 right-0 bg-blue-600 text-white text-xs px-2 py-1 rounded-bl-lg">✓</div>
-                            <div class="flex justify-center mb-4">
-                                <img src="https://cdn-icons-png.flaticon.com/512/616/616430.png" alt="org" class="w-16 h-16" />
-                            </div>
-                            <h3 class="font-bold text-center text-sm">PUP Sintang Pusa</h3>
-                            <p class="text-gray-500 text-xs text-center mt-2">Youth Organization</p>
-                            <p class="text-blue-600 text-xs text-center mt-4 view-profile-btn cursor-pointer" data-org="3">View Organization Profile →</p>
-                        </div>
                     </div>
+
 
                     <!-- STEP 2: Donation Details -->
                     <h2 class="text-xl font-bold mb-4">Step 2: Donations Details</h2>
@@ -238,18 +210,26 @@
 
                     <!-- QR Code -->
                     <div class="flex justify-center mb-6">
-                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=GCASHDONATION" alt="QR Code" class="rounded-lg border" />
+                        <img
+                            id="qrImage"
+                            class="rounded-lg border">
                     </div>
 
                     <!-- GCash Details -->
                     <div class="space-y-4 text-sm">
                         <div>
                             <p class="text-gray-500">GCASH Account Name:</p>
-                            <p class="font-semibold">PAWSsion Benevolence Circle</p>
+                            <p
+                                id="gcashName"
+                                class="font-semibold">
+                            </p>
                         </div>
                         <div>
                             <p class="text-gray-500">GCASH Number</p>
-                            <p class="font-semibold">0992 737 4747</p>
+                            <p
+                                id="gcashNumber"
+                                class="font-semibold">
+                                </p>
                         </div>
                     </div>
 
@@ -274,7 +254,8 @@
             </div>
 
         </div>
-
+<!-- Notification Toast Container -->
+<div id="toastContainer" class="fixed bottom-5 right-5 z-[10000] flex flex-col gap-3 pointer-events-none"></div>
     </main>
 
     <!-- ===== ORGANIZATION PROFILE MODAL ===== -->
@@ -300,164 +281,7 @@
             <button id="modalCloseBtn" class="mt-6 w-full bg-blue-700 hover:bg-blue-800 text-white py-2 rounded-lg transition">Close</button>
         </div>
     </div>
-
-    <!-- ===== LOAD SIDEBAR & HEADER ===== -->
-    <script>
-        async function loadComponent(id, file) {
-            try {
-                const response = await fetch(file);
-                if (!response.ok) {
-                    throw new Error(`Cannot load ${file}`);
-                }
-                document.getElementById(id).innerHTML = await response.text();
-            } catch (error) {
-                console.error(error);
-            }
-        }
-    Promise.all([
-    loadComponent("sidebar", "/user/userSidebar.html"),
-    loadComponent("header", "/user/userHeader.html")
-])
-.then(() => {
-
-    // Show components
-    document.getElementById("sidebar").style.visibility = "visible";
-    document.getElementById("header").style.visibility = "visible";
-
-    const currentPath = window.location.pathname;
-    const pageTitle = document.getElementById("pageTitle");
-
-    // Pages na wala sa sidebar
-    const customTitles = {
-        "/profile": "Profile",
-        "/cash-donation": "Donation",
-        "/inkind-donation": "Donation"
-    };
-    if (pageTitle && customTitles[currentPath]) {
-        pageTitle.textContent = customTitles[currentPath];
-    }
-
-    const links = document.querySelectorAll("#sidebar .nav-link");
-
-    links.forEach(link => {
-
-        const href = link.getAttribute("href");
-
-        const isActive =
-            href === currentPath ||
-            (href !== "/dashboard" && currentPath.startsWith(href));
-
-        if (isActive) {
-
-            link.className =
-                "nav-link flex items-center gap-4 px-5 py-4 rounded-2xl bg-blue-600 text-white shadow";
-
-            // Update title para sa mga nasa sidebar
-            if (pageTitle && !customTitles[currentPath]) {
-                pageTitle.textContent = link.dataset.title;
-            }
-
-        } else {
-
-            link.className =
-                "nav-link flex items-center gap-4 px-5 py-4 rounded-2xl text-gray-800 hover:bg-blue-50 hover:text-blue-600 transition";
-        }
-    });
-    document.body.style.visibility = "visible";
-
-})
-.catch(error => console.error(error));
-    </script>
-
-    <!-- ===== SCRIPTS FOR ORGANIZATION SELECTION & MODAL ===== -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // ----- Organization selection -----
-            const cards = document.querySelectorAll('.org-card');
-            cards.forEach(card => {
-                card.addEventListener('click', function(e) {
-                    if (e.target.closest('.view-profile-btn')) return;
-                    cards.forEach(c => c.classList.remove('selected'));
-                    this.classList.add('selected');
-                });
-            });
-
-            // ----- Organization data (for modal) -----
-            const orgData = {
-                1: {
-                    name: "PAWssion Benevolence Circle",
-                    address: "Nabua, Camarines Sur",
-                    phone: "0992 737 4747",
-                    email: "pawssion@example.com",
-                    mission: "To rescue, rehabilitate, and rehome animals in need, and to promote responsible pet ownership and animal welfare in the community."
-                },
-                2: {
-                    name: "PUP Sintang Pusa",
-                    address: "Anonas Street, Sta Mesa Manila",
-                    phone: "0917 123 4567",
-                    email: "pupsintangpusa@example.com",
-                    mission: "To provide a safe haven for stray cats and advocate for their welfare through education and community engagement."
-                },
-                3: {
-                    name: "PUP Sintang Pusa",
-                    address: "Youth Organization - Manila",
-                    phone: "0917 123 4567",
-                    email: "pupsintangpusa.youth@example.com",
-                    mission: "To empower the youth to participate in animal rescue and care, fostering compassion and responsibility."
-                }
-            };
-
-            // ----- Modal elements -----
-            const modal = document.getElementById('orgModal');
-            const closeBtn = document.getElementById('modalClose');
-            const closeBtn2 = document.getElementById('modalCloseBtn');
-            const orgName = document.getElementById('modalOrgName');
-            const orgAddress = document.getElementById('modalOrgAddress');
-            const orgPhone = document.getElementById('modalOrgPhone');
-            const orgEmail = document.getElementById('modalOrgEmail');
-            const orgMission = document.getElementById('modalOrgMission');
-
-            function openModal(orgId) {
-                const data = orgData[orgId];
-                if (!data) return;
-                orgName.textContent = data.name;
-                orgAddress.textContent = data.address;
-                orgPhone.textContent = data.phone;
-                orgEmail.textContent = data.email;
-                orgMission.textContent = data.mission;
-                modal.classList.add('active');
-                document.body.style.overflow = 'hidden';
-            }
-
-            function closeModal() {
-                modal.classList.remove('active');
-                document.body.style.overflow = '';
-            }
-
-            // Event listeners for "View Organization Profile" links
-            document.querySelectorAll('.view-profile-btn').forEach(btn => {
-                btn.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    const orgId = this.dataset.org;
-                    openModal(orgId);
-                });
-            });
-
-            // Close modal events
-            closeBtn.addEventListener('click', closeModal);
-            closeBtn2.addEventListener('click', closeModal);
-            modal.addEventListener('click', function(e) {
-                if (e.target === this) closeModal();
-            });
-
-            // Close on ESC key
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape' && modal.classList.contains('active')) {
-                    closeModal();
-                }
-            });
-        });
-    </script>
-
+<script src="/assets/js/cash-donation.js"></script>
+</body>
 </body>
 </html>
