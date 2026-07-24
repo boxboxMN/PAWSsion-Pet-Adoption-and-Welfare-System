@@ -352,6 +352,16 @@ exports.updatePet = async (req, res) => {
             ? JSON.parse(medical_history)
             : [];
 
+        // Delete old records
+        await pool.query(
+            `
+            DELETE FROM animal_medical_history
+            WHERE animal_id = ?
+            `,
+            [id]
+        );
+
+        // Insert new records
         for (const m of medical) {
 
             await pool.query(
@@ -372,6 +382,7 @@ exports.updatePet = async (req, res) => {
                     m.administered_by
                 ]
             );
+
         }
 
         res.json({
