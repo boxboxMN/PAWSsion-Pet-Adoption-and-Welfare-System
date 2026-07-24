@@ -158,7 +158,8 @@ exports.updateAvatar = async (req, res) => {
             error: "Internal Server Database Error: " + error.message 
         });
     }
-};// ==========================================
+};
+// ==========================================
 // PET & ORGANIZATION FEEDS
 // ==========================================
 
@@ -178,10 +179,8 @@ exports.getAvailablePets = async (req, res) => {
         res.status(500).json({ success: false, message: "Failed to load pets." });
     }
 };
-
 exports.getOrganizations = async (req, res) => {
     try {
-        // Naka-LEFT JOIN na sa organization_payment_details para hindi mag-error sa missing column
         const [organizations] = await pool.query(`
             SELECT
                 o.organization_id,
@@ -193,9 +192,14 @@ exports.getOrganizations = async (req, res) => {
                 o.profile_pic,
                 p.gcash_name,
                 p.gcash_number,
-                p.qr_code
+                p.qr_code,
+                d.dropoff_address,
+                d.dropoff_hours,
+                d.dropoff_notes,
+                d.dropoff_image
             FROM organizations o
             LEFT JOIN organization_payment_details p ON o.organization_id = p.organization_id
+            LEFT JOIN organization_dropoff_details d ON o.organization_id = d.organization_id
             WHERE o.verification_status = 'Approved'
         `);
 
@@ -208,10 +212,23 @@ exports.getOrganizations = async (req, res) => {
                 ? (org.qr_code.startsWith('/') ? org.qr_code : `/uploads/qr/${org.qr_code}`)
                 : '';
 
+            // --- PERPEKTONG FIX PARA SA DROPOFF IMAGE ---
+            let dropoffImg = (org.dropoff_image && org.dropoff_image.trim() !== '') ? org.dropoff_image.trim() : '';
+
+            if (dropoffImg && !dropoffImg.startsWith('/') && !dropoffImg.startsWith('http')) {
+                // Kung ang filename ay may pamagat na "qr-", ilagay sa /uploads/qr/ folder
+                if (dropoffImg.startsWith('qr-')) {
+                    dropoffImg = `/uploads/qr/${dropoffImg}`;
+                } else {
+                    dropoffImg = `/uploads/${dropoffImg}`;
+                }
+            }
+
             return {
                 ...org,
                 profile_pic: profilePic,
-                qr_code: qrCode
+                qr_code: qrCode,
+                dropoff_image: dropoffImg
             };
         });
 
@@ -221,11 +238,9 @@ exports.getOrganizations = async (req, res) => {
         res.status(500).json({ success: false, message: "Failed to load organizations." });
     }
 };
-
 // ==========================================
 // DONATION SUBMISSIONS (USER SIDE)
 // ==========================================
-
 exports.submitCashDonation = async (req, res) => {
     const accountId = req.session?.accountId;
     if (!accountId) {
@@ -249,9 +264,22 @@ exports.submitCashDonation = async (req, res) => {
         return res.status(400).json({ success: false, error: "Please upload your proof of payment (Receipt)." });
     }
 
-    const receipt_path = `/uploads/receipts/${req.file.filename}`;
-
     try {
+        // --- ADDED CONDITION: Check if GCash details exist for the org ---
+        const [paymentRows] = await pool.query(
+            `SELECT gcash_number, gcash_name FROM organization_payment_details WHERE organization_id = ?`,
+            [organization_id]
+        );
+
+        if (!paymentRows.length || !paymentRows[0].gcash_number) {
+            return res.status(400).json({ 
+                success: false, 
+                error: "This organization has not provided GCash payment details yet. Cash donations are currently disabled for this organization." 
+            });
+        }
+
+        const receipt_path = `/uploads/receipts/${req.file.filename}`;
+
         const [adopterRows] = await pool.query(
             `SELECT adopter_id FROM adopters WHERE account_id = ?`,
             [accountId]
@@ -286,8 +314,6 @@ exports.submitCashDonation = async (req, res) => {
         return res.status(500).json({ success: false, error: "Database error while processing donation: " + error.message });
     }
 };
-
-
 
 // ==========================================
 // GET USER DONATIONS & HISTORY
@@ -362,5 +388,98 @@ exports.getUserDonations = async (req, res) => {
     } catch (error) {
         console.error("Get User Donations Error:", error);
         return res.status(500).json({ success: false, error: "Database error while fetching donation history: " + error.message });
+    }
+};
+exports.submitInKindDonation = async (req, res) => {
+    const accountId = req.session?.accountId;
+    if (!accountId) {
+        return res.status(401).json({ success: false, error: "Unauthorized access. Please login." });
+    }
+
+    const { organization_id, item_name, quantity } = req.body;
+
+    if (!organization_id || !item_name || !quantity) {
+        return res.status(400).json({ success: false, error: "Please fill in all required fields." });
+    }
+
+    try {
+        // --- ADDED CONDITION: Check if Drop-off details exist for the org ---
+        const [dropoffRows] = await pool.query(
+            `SELECT dropoff_address FROM organization_dropoff_details WHERE organization_id = ?`,
+            [organization_id]
+        );
+
+        if (!dropoffRows.length || !dropoffRows[0].dropoff_address) {
+            return res.status(400).json({ 
+                success: false, 
+                error: "This organization has not set up drop-off location details yet. In-kind donations are currently disabled for this organization." 
+            });
+        }
+
+        const [adopterRows] = await pool.query(
+            `SELECT a.adopter_id, a.first_name, a.last_name, acc.email 
+             FROM adopters a 
+             JOIN accounts acc ON a.account_id = acc.account_id 
+             WHERE a.account_id = ?`,
+            [accountId]
+        );
+
+        if (!adopterRows.length) {
+            return res.status(404).json({ success: false, error: "Adopter record not found." });
+        }
+
+        const adopter = adopterRows[0];
+        const donorName = `${adopter.first_name} ${adopter.last_name}`.trim();
+
+        const [result] = await pool.query(
+            `INSERT INTO inkind_donations 
+            (adopter_id, organization_id, donor_name, donor_email, item_name, quantity, status, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, 'Pending', NOW())`,
+            [
+                adopter.adopter_id,
+                organization_id,
+                donorName,
+                adopter.email,
+                item_name,
+                quantity
+            ]
+        );
+
+        return res.json({
+            success: true,
+            message: "In-kind donation request submitted successfully!",
+            inkindDonationId: result.insertId
+        });
+
+    } catch (error) {
+        console.error("Submit In-Kind Donation Error:", error);
+        return res.status(500).json({ success: false, error: "Database error while submitting in-kind donation: " + error.message });
+    }
+};
+// Idagdag ito sa userController.js kung wala pa:
+exports.getOrgDropoffDetails = async (req, res) => {
+    try {
+        const { org_id } = req.params;
+        const [rows] = await pool.query(
+            `SELECT 
+                o.organization_name, 
+                d.dropoff_address, 
+                d.dropoff_hours, 
+                d.dropoff_notes, 
+                d.dropoff_image 
+             FROM organizations o
+             LEFT JOIN organization_dropoff_details d ON o.organization_id = d.organization_id
+             WHERE o.organization_id = ?`,
+            [org_id]
+        );
+
+        if (!rows.length) {
+            return res.status(404).json({ success: false, message: "Organization dropoff details not found." });
+        }
+
+        res.json({ success: true, dropoff: rows[0] });
+    } catch (error) {
+        console.error("Error fetching dropoff details:", error);
+        res.status(500).json({ success: false, message: "Server Error" });
     }
 };
