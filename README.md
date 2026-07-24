@@ -118,6 +118,6 @@ HOW TO RUN IT
              : python -m pip install flask sentence-transformers torch scikit-learn python-dotenv
              : python download_model.py
 - run Flask API
-    *terminal: python app.py (keep this running)
+    *terminal: python app.py (keep this running on venv)
 - run Node.js
     *terminal: node server.js (this should be in new terminal)
