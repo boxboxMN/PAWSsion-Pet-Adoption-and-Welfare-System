@@ -102,11 +102,10 @@
                         <label class="font-medium">Age <span class="text-red-500">*</span></label>
                         <select class="w-full border rounded-lg px-4 py-3 mt-2" id="age">
                             <option>Select Age</option>
-                            <option>Puppy/Kitten</option>
-                            <option>Adolescent</option>
-                            <option>Adult</option>
-                            <option>Senior</option>
-                            <option>Super Senior</option>
+                            <option value="Puppy/Kitten (0-1 yr old)"> Puppy/Kitten</option>
+                            <option value="Adolescence (2-3 yrs old)">Adolescence</option>
+                            <option value="Adult (4-7 yrs old)">Adult</option>
+                            <option value="Senior (8-10 yrs old)"> Senior</option>
                         </select>
                     </div>
                 </form>
@@ -115,10 +114,12 @@
                     <p class="font-medium mb-4">Tell us about your ideal pet. The more details you provide about their behavior and traits, the better we can match you.</p>
                     <textarea rows="5" id="behavior" class="w-full border rounded-xl p-4" placeholder="Describe your ideal pet...&#10;&#10;e.g., I would like a friendly, playful, and affectionate young cat that enjoys being around people. It should be comfortable living indoors, get along with other pets, and not require too much grooming."></textarea>
                     
-                    <p class="text-sm text-gray-500 mt-3">
-                        Notes: 100-word limit. Languages: English/Tagalog. Please use standard spelling and avoid slang or informal language. For the best matching results, provide a detailed description of your ideal pet, including the personality, behavior, and traits you are looking for.
+                    <p class="text-sm text-gray-500 mt-3 text-justify ">
+                        Notes: Maximum of 100 words. You may write in English or Tagalog. 
+                        Please use standard spelling and avoid slang, abbreviations, or emojis. 
+                        To receive more accurate matches,describe your ideal pet using at least 3–5 meaningful words or a complete sentence that explains its <strong> personality, behavior, and traits <i>(e.g., friendly, playful, affectionate, gentle, and good with children).</i></strong>
+                        Very short descriptions or single-word inputs may result in less accurate recommendations.
                     </p>
-
                     <div class="mt-10 flex justify-center gap-6">
                         <button
                             type="button"
@@ -146,7 +147,7 @@
                 <h1 class="text-3xl font-bold text-blue-700">Compatibility Results</h1>
                 <p class="text-gray-600 mt-2">Based on your preferences, here are the pets that best match your criteria.</p>
 
-                <div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="mt-10 grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
                     <!-- Example pet card -->
                     <div class="bg-white rounded-xl shadow-md p-5">
                         <img src="/assets/images/dog_example.jpg" alt="Pet Image" class="w-full h-48 object-cover rounded-lg">

@@ -69,22 +69,51 @@ async function matchPets(preferences) {
         const similarity =
             cosineSimilarity(userEmbedding, petEmbedding);
 
-        // Convert to 0-100
-        const behaviorScore =
-            ((similarity + 1) / 2) * 100;
+        // Convert to 0-1
+        let behaviorSimilarity =
+            (similarity + 1) / 2;
+        
+            console.log("====================================");
+            console.log("Pet:", pet.name);
+            console.log("Raw Cosine Similarity:", similarity.toFixed(4));
+            console.log("Behavior Similarity BEFORE Boost:", (behaviorSimilarity * 100).toFixed(2) + "%");
 
+        // -----------------------------------
+        // Smooth Boost
+        // -----------------------------------
+        // Only boost if already a decent match.
+        if (behaviorSimilarity >= 0.40) {
+
+            // Increase by up to 25% of the remaining distance to 1.0
+            behaviorSimilarity =
+                behaviorSimilarity +
+                ((1 - behaviorSimilarity) * 0.25);
+        }
+            console.log("Behavior Similarity AFTER Boost :", (behaviorSimilarity * 100).toFixed(2) + "%");
+
+        // Binary indicator scores
         const sexScore =
-            pet.gender === sex ? 100 : 0;
+            pet.gender === sex ? 1 : 0;
 
         const ageScore =
-            pet.age === age ? 100 : 0;
+            pet.age === age ? 1 : 0;
+            
+            console.log("Sex Match :", sexScore === 1 ? "YES" : "NO");
+            console.log("Age Match :", ageScore === 1 ? "YES" : "NO");
 
-        // Final weighted score
+        // Weighted Sum Model
         const finalScore =
-            (behaviorScore * 0.70) +
+            (behaviorSimilarity * 0.70) +
             (ageScore * 0.20) +
             (sexScore * 0.10);
 
+            console.log("Behavior Contribution :", (behaviorSimilarity * 0.70 * 100).toFixed(2) + "%");
+            console.log("Age Contribution      :", (ageScore * 0.20 * 100).toFixed(2) + "%");
+            console.log("Sex Contribution      :", (sexScore * 0.10 * 100).toFixed(2) + "%");
+            console.log("------------------------------------");
+            console.log("FINAL MATCH SCORE     :", (finalScore * 100).toFixed(2) + "%");
+            console.log("====================================\n");
+            
         matches.push({
 
             animal_id: pet.animal_id,
@@ -106,14 +135,16 @@ async function matchPets(preferences) {
             behavior_description: pet.behavior_description,
 
             behaviorSimilarity:
-                Number(behaviorScore.toFixed(2)),
+                Number((behaviorSimilarity * 100).toFixed(2)),
 
-            ageScore,
+            ageScore:
+                ageScore * 100,
 
-            sexScore,
+            sexScore:
+                sexScore * 100,
 
             score:
-                Number(finalScore.toFixed(2))
+                Number((finalScore * 100).toFixed(2))
 
         });
 
