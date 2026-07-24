@@ -82,7 +82,7 @@
                 <form class="grid grid-cols-1 md:grid-cols-3 gap-8 mt-5">
                     <div>
                         <label class="font-medium">Type <span class="text-red-500">*</span></label>
-                        <select class="w-full border rounded-lg px-4 py-3 mt-2">
+                        <select class="w-full border rounded-lg px-4 py-3 mt-2" id="type">
                             <option>Select Type</option>
                             <option>Dog</option>
                             <option>Cat</option>
@@ -91,7 +91,7 @@
 
                     <div>
                         <label class="font-medium">Sex <span class="text-red-500">*</span></label>
-                        <select class="w-full border rounded-lg px-4 py-3 mt-2">
+                        <select class="w-full border rounded-lg px-4 py-3 mt-2" id="sex">
                             <option>Select Sex</option>
                             <option>Male</option>
                             <option>Female</option>
@@ -100,25 +100,26 @@
 
                     <div>
                         <label class="font-medium">Age <span class="text-red-500">*</span></label>
-                        <select class="w-full border rounded-lg px-4 py-3 mt-2">
+                        <select class="w-full border rounded-lg px-4 py-3 mt-2" id="age">
                             <option>Select Age</option>
-                            <option>Puppy/Kitten</option>
-                            <option>Adolescent</option>
-                            <option>Adult</option>
-                            <option>Senior</option>
-                            <option>Super Senior</option>
+                            <option value="Puppy/Kitten (0-1 yr old)"> Puppy/Kitten</option>
+                            <option value="Adolescence (2-3 yrs old)">Adolescence</option>
+                            <option value="Adult (4-7 yrs old)">Adult</option>
+                            <option value="Senior (8-10 yrs old)"> Senior</option>
                         </select>
                     </div>
                 </form>
 
                 <div class="mt-10">
                     <p class="font-medium mb-4">Tell us about your ideal pet. The more details you provide about their behavior and traits, the better we can match you.</p>
-                    <textarea rows="5" class="w-full border rounded-xl p-4" placeholder="Describe your ideal pet...&#10;&#10;e.g., I would like a friendly, playful, and affectionate young cat that enjoys being around people. It should be comfortable living indoors, get along with other pets, and not require too much grooming."></textarea>
+                    <textarea rows="5" id="behavior" class="w-full border rounded-xl p-4" placeholder="Describe your ideal pet...&#10;&#10;e.g., I would like a friendly, playful, and affectionate young cat that enjoys being around people. It should be comfortable living indoors, get along with other pets, and not require too much grooming."></textarea>
                     
-                    <p class="text-sm text-gray-500 mt-3">
-                        Notes: 100-word limit. Languages: English/Tagalog. Please use standard spelling and avoid slang or informal language. For the best matching results, provide a detailed description of your ideal pet, including the personality, behavior, and traits you are looking for.
+                    <p class="text-sm text-gray-500 mt-3 text-justify ">
+                        Notes: Maximum of 100 words. You may write in English or Tagalog. 
+                        Please use standard spelling and avoid slang, abbreviations, or emojis. 
+                        To receive more accurate matches,describe your ideal pet using at least 3–5 meaningful words or a complete sentence that explains its <strong> personality, behavior, and traits <i>(e.g., friendly, playful, affectionate, gentle, and good with children).</i></strong>
+                        Very short descriptions or single-word inputs may result in less accurate recommendations.
                     </p>
-
                     <div class="mt-10 flex justify-center gap-6">
                         <button
                             type="button"
@@ -146,7 +147,7 @@
                 <h1 class="text-3xl font-bold text-blue-700">Compatibility Results</h1>
                 <p class="text-gray-600 mt-2">Based on your preferences, here are the pets that best match your criteria.</p>
 
-                <div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="mt-10 grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
                     <!-- Example pet card -->
                     <div class="bg-white rounded-xl shadow-md p-5">
                         <img src="/assets/images/dog_example.jpg" alt="Pet Image" class="w-full h-48 object-cover rounded-lg">
@@ -174,99 +175,7 @@
         </div>
     </main>
 
-    <!-- Script to load sidebar and header -->
-    <script>
-        async function loadComponent(id, file) {
-        try {
-            const response = await fetch(file);
-            if (!response.ok) {
-                throw new Error(`Cannot load ${file}`);
-            }
-
-            document.getElementById(id).innerHTML =
-                await response.text();
-
-        } catch (error) {
-            console.error(error);
-        }
-    }
-    Promise.all([
-        loadComponent("sidebar", "/user/userSidebar.html"),
-        loadComponent("header", "/user/userHeader.html")
-    ])
-    .then(() => {
-
-        document.getElementById("sidebar").style.visibility = "visible";
-        document.getElementById("header").style.visibility = "visible";
-
-        const currentPath = window.location.pathname;
-        const pageTitle = document.getElementById("pageTitle");
-
-        const links = document.querySelectorAll("#sidebar .nav-link");
-
-        links.forEach(link => {
-
-            const href = link.getAttribute("href");
-
-            const isActive =
-                href === currentPath ||
-                (href !== "/dashboard" && currentPath.startsWith(href));
-
-            if (isActive) {
-
-                link.className =
-                    "nav-link flex items-center gap-4 px-5 py-4 rounded-2xl bg-blue-600 text-white shadow";
-
-                if (pageTitle) {
-                    pageTitle.textContent = link.dataset.title;
-                }
-
-            } else {
-
-                link.className =
-                    "nav-link flex items-center gap-4 px-5 py-4 rounded-2xl text-gray-800 hover:bg-blue-50 hover:text-blue-600 transition";
-
-            }
-
-        });
-
+    <script src="../assets/js/userMatchmaker.js"></script>
     
-        document.body.style.visibility = "visible";
-
-    })
-    .catch(error => console.error(error));
-
-        const introScreen = document.getElementById("introScreen");
-        const preferenceScreen = document.getElementById("preferenceScreen");
-        const compatibilityScreen = document.getElementById("compatibilityScreen");
-
-        function showScreen(screenToShow) {
-            [introScreen, preferenceScreen, compatibilityScreen].forEach((screen) => {
-                screen.classList.toggle("hidden", screen !== screenToShow);
-            });
-
-            window.scrollTo({
-                top: 0,
-                behavior: "smooth"
-            });
-        }
-
-        function showPreferenceScreen() {
-            showScreen(preferenceScreen);
-        }
-
-        function showCompatibilityScreen() {
-            showScreen(compatibilityScreen);
-        }
-
-        function showIntroScreen() {
-            showScreen(introScreen);
-        }
-
-        document.getElementById("introNextBtn").addEventListener("click", showPreferenceScreen);
-        document.getElementById("preferenceBackBtn").addEventListener("click", showIntroScreen);
-        document.getElementById("preferenceNextBtn").addEventListener("click", showCompatibilityScreen);
-        document.getElementById("compatibilityRestartBtn").addEventListener("click", showIntroScreen);
-    </script>
 </body>
 </html>

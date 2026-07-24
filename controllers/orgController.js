@@ -1,4 +1,5 @@
 const pool = require("../config/database");
+const { generateEmbedding } = require("../services/embeddingService");
 
 // ==========================================
 // PET MANAGEMENT CONTROLLERS
@@ -95,8 +96,8 @@ exports.addPet = async (req, res) => {
 
         console.log("Insert Result:", result);
 
-        // Get the newly inserted pet ID
-        const animal_id = result.insertId;
+            // Get the newly inserted pet ID
+            const animal_id = result.insertId;
 
         // Parse medical history from frontend
         const medicalHistory = medical_history
@@ -292,19 +293,41 @@ exports.updatePet = async (req, res) => {
             `,
             values
         );
-
+        const embedding = await generateEmbedding(
+            behavior_description || ""
+        );
         await pool.query(
             `
-            DELETE FROM animal_medical_history
-            WHERE animal_id=?
+            INSERT INTO animal_embeddings
+            (
+                animal_id,
+                embedding
+            )
+            VALUES (?, ?)
+            ON DUPLICATE KEY UPDATE
+            embedding = VALUES(embedding),
+            updated_at = CURRENT_TIMESTAMP
             `,
-            [id]
+            [
+                id,
+                JSON.stringify(embedding)
+            ]
         );
 
         const medical = medical_history
             ? JSON.parse(medical_history)
             : [];
 
+        // Delete old records
+        await pool.query(
+            `
+            DELETE FROM animal_medical_history
+            WHERE animal_id = ?
+            `,
+            [id]
+        );
+
+        // Insert new records
         for (const m of medical) {
             await pool.query(
                 `
@@ -324,6 +347,7 @@ exports.updatePet = async (req, res) => {
                     m.administered_by
                 ]
             );
+
         }
 
         res.json({

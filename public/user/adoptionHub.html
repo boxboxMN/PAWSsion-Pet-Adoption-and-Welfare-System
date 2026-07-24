@@ -7,8 +7,7 @@
     <title>Adoption Hub</title>
 
     <!-- Tailwind via CDN -->
-    <script src="https://cdn.tailwindcss.com">
-    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
 
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
@@ -16,9 +15,11 @@
     <!-- Google Font: Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap"
-    rel="stylesheet" />
-
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet" />
+    
+    <script src="../assets/js/userSidebar.js"></script>
+    <script src="../assets/js/userAdoptionHub.js"></script>
+    
     <style>
         body {
             visibility: hidden;
@@ -28,6 +29,7 @@
         #header {
             visibility: hidden;
         }
+
         .stepper-line {
             position: absolute;
             top: 1.15rem;
@@ -37,261 +39,151 @@
             background: #e2e8f0;
             z-index: 0;
         }
+
         .step-circle {
             transition: all 0.3s ease;
         }
+
         .upload-box-hover:hover {
             border-color: #94a3b8;
         }
+
         .btn-back-hover:hover {
             transform: translateX(-3px);
         }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
     </style>
 </head>
 
 <body class="bg-gray-100 h-full overflow-hidden">
 
     <!-- ===== SIDEBAR ===== -->
-    <div id="sidebar" class="fixed left-0 top-0 w-64 h-screen bg-white border-r border-gray-200 z-50">
-    </div>
+    <div id="sidebar" class="fixed left-0 top-0 w-64 h-screen bg-white border-r border-gray-200 z-50"></div>
 
     <!-- ===== MAIN CONTENT ===== -->
     <main class="ml-64 pt-24 h-screen overflow-hidden bg-gray-50">
 
         <!-- ===== HEADER ===== -->
-        <div id="header" class="fixed top-0 left-64 right-0 h-24 bg-white border-b border-gray-200 z-40">
-        </div>
+        <div id="header" class="fixed top-0 left-64 right-0 h-24 bg-white border-b border-gray-200 z-40"></div>
 
         <!-- ===== ADOPTION HUB ===== -->
         <div class="h-[calc(100vh-6rem)] overflow-y-auto p-6 lg:p-8">
-
             <div class="max-w-7xl mx-auto">
+                
                 <!-- SEARCH & FILTER -->
-                <div class="bg-white rounded-2xl shadow-sm p-3 mb-8 flex flex-col md:flex-row gap-4 -mt-4">
-                    <input type="text" id="search-input" placeholder="Search pet name or breed..."
-                    class="flex-1 border border-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-400" />
-                    <select id="type-filter"
-                    class="border border-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-400">
-                    <option value="All">All Types</option>
-                    <option value="Dog">Dog</option>
-                    <option value="Cat">Cat</option>
-                </select>
-        </div>
-
-        <!-- LIST VIEW -->
-        <div id="list-view">
-
-            <div
-                id="pet-grid"
-                class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            </div>
-
-        </div>
-    </div>
-</div>
-</main>
-
-<script>
-    async function loadComponent(id, file) {
-        try {
-            const response = await fetch(file);
-
-            if (!response.ok) {
-                throw new Error(`Cannot load ${file}`);
-            }
-
-            document.getElementById(id).innerHTML = await response.text();
-
-        } catch (error) {
-            console.error(error);
-        }
-    }
-
-    function loadTopbar({ title = "", subtitle = "" }) {
-        const titleEl = document.getElementById("pageTitle");
-        const subtitleEl = document.getElementById("pageSubtitle");
-
-        if (titleEl) {
-            titleEl.textContent = title;
-        }
-
-        if (subtitleEl) {
-            subtitleEl.textContent = subtitle;
-        }
-    }
-
-    Promise.all([
-        loadComponent("sidebar", "/user/userSidebar.html"),
-        loadComponent("header", "/user/userHeader.html")
-    ])
-    .then(() => {
-
-        // Show loaded components
-        document.getElementById("sidebar").style.visibility = "visible";
-        document.getElementById("header").style.visibility = "visible";
-
-        // Wait until the header HTML is inserted
-        setTimeout(() => {
-
-            loadTopbar({
-                title: "Adoption Hub",
-                subtitle: "Browse available pets and submit adoption applications."
-            });
-
-        }, 0);
-
-        // Highlight active sidebar link
-        const currentPath = window.location.pathname;
-
-        document.querySelectorAll("#sidebar .nav-link").forEach(link => {
-
-            const href = link.getAttribute("href");
-
-            const active =
-                href === currentPath ||
-                (href !== "/dashboard" && currentPath.startsWith(href));
-
-            if (active) {
-                link.className =
-                    "nav-link flex items-center gap-4 px-5 py-4 rounded-2xl bg-blue-600 text-white shadow";
-            } else {
-                link.className =
-                    "nav-link flex items-center gap-4 px-5 py-4 rounded-2xl text-gray-800 hover:bg-blue-50 hover:text-blue-600 transition";
-            }
-        });
-
-        document.body.style.visibility = "visible";
-
-    })
-    .catch(console.error);
-</script>
-
-<!-- ===== ADOPTION HUB SCRIPT ===== -->
-<script>
-let petsData = [];
-
-async function loadPets() {
-    try {
-
-        const response = await fetch("/api/pets");
-        const data = await response.json();
-
-        if (!data.success) {
-            alert("Unable to load pets.");
-            return;
-        }
-
-        petsData = data.pets.map(pet => ({
-            animal_id: pet.animal_id,
-            name: pet.name,
-            breed: pet.personality_tags || "No tags",
-            type: pet.species,
-            species: pet.species,
-            gender: pet.gender,
-            age: pet.age,
-            color: pet.color,
-            behavior: pet.behavior_description,
-            status: pet.adoption_status,
-            organization: pet.organization_name,
-            img: pet.image_path
-                ? `/uploads/pets/${pet.image_path}`
-                : "/assets/images/no-image.png"
-        }));
-
-        renderGrid();
-
-    } catch (err) {
-
-        console.error(err);
-
-    }
-}
-function renderGrid() {
-
-    const grid = document.getElementById("pet-grid");
-
-    if (!petsData.length) {
-        grid.innerHTML = `
-            <div class="col-span-full text-center py-10 text-gray-500">
-                No pets available for adoption.
-            </div>
-        `;
-        return;
-    }
-
-    grid.innerHTML = petsData.map(pet => `
-
-        <div class="bg-white rounded-2xl shadow hover:shadow-lg transition overflow-hidden">
-
-            <img
-                src="${pet.img}"
-                alt="${pet.name}"
-                class="w-full h-56 object-cover"
-            >
-
-            <div class="p-5">
-
-                <div class="flex justify-between items-center">
-
-                    <span class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-semibold">
-                        ${pet.species}
-                    </span>
-
-                    <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-semibold">
-                        ${pet.status}
-                    </span>
-
+                <div class="bg-white rounded-2xl shadow-sm p-3 mb-6 -mt-4 flex flex-col md:flex-row gap-4">
+                    <input type="text" id="search-input" placeholder="Search pet name or breed..." class="flex-1 border border-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-400" />
+                    <select id="type-filter" class="border border-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-400">
+                        <option value="All">All Types</option>
+                        <option value="Dog">Dog</option>
+                        <option value="Cat">Cat</option>
+                    </select>
                 </div>
 
-                <h2 class="text-xl font-bold mt-4">
-                    ${pet.name}
-                </h2>
-
-                <p class="text-gray-500 mt-1">
-                    ${pet.breed}
-                </p>
-
-                <div class="mt-4 space-y-2 text-sm text-gray-600">
-
-                    <p>
-                        <i class="fas fa-venus-mars mr-2"></i>
-                        ${pet.gender}
-                    </p>
-
-                    <p>
-                        <i class="fas fa-cake-candles mr-2"></i>
-                        ${pet.age}
-                    </p>
-
-                    <p>
-                        <i class="fas fa-palette mr-2"></i>
-                        ${pet.color}
-                    </p>
-
-                    <p>
-                        <i class="fas fa-building mr-2"></i>
-                        ${pet.organization}
-                    </p>
-
+                <!-- LIST VIEW -->
+                <div id="list-view">
+                    <div id="pet-grid" class="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-5"></div>
                 </div>
 
-                <button
-                    class="view-btn w-full mt-5 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl"
-                    data-id="${pet.animal_id}"
-                >
-                    View Profile
-                </button>
+                <!-- MODAL VIEW -->
+                <div id="viewPetModal" class="fixed inset-0 hidden z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-6">
+                    <div class="bg-white rounded-3xl w-full max-w-6xl max-h-[90vh] overflow-hidden flex">
+                        
+                        <!-- LEFT -->
+                        <div class="w-1/3 bg-gray-50 border-r p-6">
+                            <img id="modalImage" class="w-full rounded-2xl aspect-square object-cover mb-4" alt="Pet Image">
+
+                            <div class="space-y-3">
+                                <div class="bg-white rounded-xl border p-3">
+                                    <p class="text-[11px] font-bold text-blue-700 mb-2">Species</p>
+                                    <p id="modalSpecies" class="font-semibold text-slate-800 mt-1"></p>
+                                </div>
+
+                                <div class="bg-white rounded-xl border p-3">
+                                    <p class="text-[11px] font-bold text-blue-700 mb-2">Gender</p>
+                                    <p id="modalGender" class="font-semibold mt-1"></p>
+                                </div>
+
+                                <div class="bg-white rounded-xl border p-3">
+                                    <p class="text-[11px] font-bold text-blue-700 mb-2">Age</p>
+                                    <p id="modalAge" class="font-semibold mt-1"></p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- RIGHT -->
+                        <div class="flex-1 overflow-y-auto hide-scrollbar p-5">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h1 id="modalName" class="text-4xl font-bold"></h1>
+                                   <div class="flex flex-wrap gap-3 mt-4">
+                                        <!-- Adoption Status -->
+                                        <span id="modalStatus" class="px-4 py-2 rounded-full text-sm font-medium"></span>
+
+                                        <!-- Health -->
+                                        <span id="modalHealth" class="px-4 py-2 rounded-full text-sm font-medium"></span>
+
+                                        <!-- Vaccination -->
+                                        <span id="modalVaccination" class="px-4 py-2 rounded-full text-sm font-medium"></span>
+                                    </div>
+                                </div>
+                                <button onclick="closePetModal()" class="text-gray-400 hover:text-gray-600 transition-colors">
+                                    <i class="fa-solid fa-xmark text-3xl"></i>
+                                </button>
+                            </div>
+
+                            <div class="mt-5">
+                                <h3 class="font-bold text-blue-700 mb-2">Personality</h3>
+                                <div id="modalTags" class="flex flex-wrap gap-2"></div>
+                            </div>
+
+                            <div class="mt-5">
+                                <h3 class="font-bold text-blue-700 mb-2">Behavior</h3>
+                                <p id="modalBehavior" class="text-gray-600 leading-relaxed text-justify"></p>
+                            </div>
+
+                            <!-- Medical History -->
+                            <div class="mt-5">
+                                <h3 class="font-bold text-blue-700 mb-2">Medical History</h3>
+
+                                <div class="overflow-x-auto border rounded-2xl">
+                                    <table class="w-full">
+                                        <thead class="bg-blue-700 text-white">
+                                            <tr>
+                                                <th class="text-left p-3">Treatment</th>
+                                                <th class="text-left p-3">Date</th>
+                                                <th class="text-left p-3">Administered By</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="modalMedicalBody">
+                                            <tr>
+                                                <td colspan="3" class="text-center p-6 text-gray-400">
+                                                    No medical records.
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <button class="mt-8 w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl transition-colors">
+                                Apply for Adoption
+                            </button>
+                        </div>
+
+                    </div>
+                </div>
 
             </div>
-
         </div>
-
-    `).join("");
-
-}
-loadPets();
-</script>
+    </main>
 
 </body>
-
 </html>

@@ -54,3 +54,70 @@ MODIFY COLUMN status ENUM(
                 </div>
             </div>
         </div>
+
+# **9. TO DO (07.19.26)**
+
+## **ALL MODULES**
+- **Session handling**
+  - Prevent unauthorized access to protected pages
+  - Redirect unauthenticated users to login
+  - Destroy session on logout
+- **Make pages responsive**
+
+---
+
+## **USERSIDE MODULES**
+- Use **Title** and **Subtitle** for headers/topbar
+- Notification
+- Connect **Dashboard**, **Matchmaking**, **My Application**, **Donation**, and **Kamustahan** to DB
+- Improve CSS
+
+---
+
+## **ORG MODULES**
+- Use **Title** and **Subtitle** for headers/topbar
+- Notification
+- Search, CRUD
+- Connect **Dashboard**, **Application**, **Kamustahan**, **Analytics**, and **Organization Profile** to DB
+- Settings & Support
+- Improve CSS
+
+---
+
+## **ADMIN MODULES**
+- Notification
+- Search, CRUD
+- Connect **Dashboard** and **Feedback** to DB
+- Settings
+- Improve CSS
+
+---
+
+## **CODE**
+- Clean unnecessary whitespaces, redundant/unused codes
+- Separate HTML, CSS, and JavaScript properly
+- Check for hard-coded lines
+- Add comments where necessary *(for easy debugging)*
+
+---
+# 10. TARGET DEPLOYMENT??
+
+> *pa add kung ano pa gagawin dito*
+bry naniya
+
+
+HOW TO RUN IT
+- import new db (7.23)
+- create .venv first inside flask-api
+    *terminal: cd flask-api then python -m venv .venv
+             : .venv\Scripts\activate
+             :.venv\Scripts\Activate.ps1
+- install requrements
+    *terminal: pip install -r requirements.txt
+             : pip install -r requirements.txt
+             : python -m pip install flask sentence-transformers torch scikit-learn python-dotenv
+             : python download_model.py
+- run Flask API
+    *terminal: python app.py (keep this running on venv)
+- run Node.js
+    *terminal: node server.js (this should be in new terminal)

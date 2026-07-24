@@ -3,7 +3,10 @@ const path = require("path");
 const multer = require("multer");
 const fs = require("fs");
 const router = express.Router();
-const userController = require("../controllers/userController"); 
+const userController = require("../controllers/userController");
+const matchmakerController = require("../controllers/matchmakerController");
+const { matchPets } = require("../controllers/matchmakerController");
+
 
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
@@ -65,6 +68,11 @@ router.get("/api/pets", userController.getAvailablePets);
 // ==========================================
 // USER PAGE VIEW ROUTES (HTML Files)
 // ==========================================
+router.post(
+    "/api/matchmaking",
+    matchmakerController.matchPets
+);
+
 router.get("/dashboard", (req, res) => {
   res.sendFile(path.join(__dirname, "../public/user/userDashboard.html"));
 });
