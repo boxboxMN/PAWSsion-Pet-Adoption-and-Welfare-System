@@ -175,7 +175,28 @@
         </div>
     </main>
 
-    <script src="../assets/js/userMatchmaker.js"></script>
+<script src="../assets/js/userSidebar.js"></script>
+<script src="../assets/js/userMatchmaker.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", async () => {
+
+    // Wait until sidebar + header are loaded
+    await loadSidebar();
+
+    // Wait one tick so the header HTML exists
+    requestAnimationFrame(() => {
+
+        // Set page title
+        loadTopbar({
+            title: "Pet Matchmaker",
+            subtitle: "Find pets that best match your lifestyle, preferences, and personality using our AI-powered matching system."
+        });
+
+        document.body.style.visibility = "visible";
+    });
+
+});
+</script>
     
 </body>
 </html>

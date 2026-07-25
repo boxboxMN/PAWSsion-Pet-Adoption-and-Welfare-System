@@ -16,8 +16,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet" />
-    <script src="../assets/js/userSidebar.js" defer></script>
-<script src="../assets/js/userAdoptionHub.js" defer></script>
+    <script src="../assets/js/userSidebar.js" ></script>
+    <script src="../assets/js/userAdoptionHub.js" defer></script>
     
     
     <style>
@@ -184,6 +184,25 @@
             </div>
         </div>
     </main>
+<script>
+document.addEventListener("DOMContentLoaded", async () => {
 
+    // Wait until sidebar + header are loaded
+    await loadSidebar();
+
+    // Wait one tick so the header HTML exists
+    requestAnimationFrame(() => {
+
+        // Set page title
+        loadTopbar({
+            title: "Adoption Hub",
+            subtitle: "Browse available pets, view their profiles, and begin your adoption journey."
+        });
+
+        document.body.style.visibility = "visible";
+    });
+
+});
+</script>
 </body>
 </html>

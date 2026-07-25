@@ -66,7 +66,7 @@
                 <!-- HEADER -->
                 <div class="text-center border-b border-gray-200 pb-8">
                     <h1 class="text-4xl font-bold text-gray-800">
-                        Your Donation Makes a Difference
+                        Choose Where to Donate
                     </h1>
                     <p class="text-gray-500 mt-3">
                         Help us continue our mission to care for and rehome animals in need.
@@ -254,5 +254,26 @@
     </div>
 
 <script src="/assets/js/donation.js"></script>
+<script src="/assets/js/userSidebar.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", async () => {
+
+    // Wait until sidebar + header are loaded
+    await loadSidebar();
+
+    // Wait one tick so the header HTML exists
+    requestAnimationFrame(() => {
+
+        // Set page title
+        loadTopbar({
+            title: "Donation",
+            subtitle: "Make a difference by supporting rescue organizations and the pets in their care."
+        });
+
+        document.body.style.visibility = "visible";
+    });
+
+});
+</script>
 </body>
 </html>
