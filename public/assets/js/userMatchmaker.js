@@ -214,7 +214,7 @@ function renderMatches(matches) {
 
                 <!-- Description -->
                 <p class="text-gray-600 leading-7 mt-5 line-clamp-4">
-                    ${pet.behavior_description}
+                    ${pet.pet_description}
                 </p>
 
                 <!-- Scores -->

@@ -323,7 +323,7 @@ function openPetDetailsModal(pet){
     petForm.health_status.value = pet.health_status;
     petForm.vaccination_status.value = pet.vaccination_status;
     petForm.adoption_status.value = pet.adoption_status;
-    petForm.behavior_description.value = pet.behavior_description || "";
+    petForm.pet_description.value = pet.pet_description || "";
     traitsContainer.innerHTML = "";
 
     if (pet.personality_tags) {
@@ -404,7 +404,7 @@ document.getElementById("deletePetBtn").onclick = async () => {
         pet.adoption_status;
 
     document.getElementById("viewDescription").textContent =
-        pet.behavior_description || "No description.";
+        pet.pet_description || "No description.";
 
     // Personality Tags
     const tags = document.getElementById("viewTags");

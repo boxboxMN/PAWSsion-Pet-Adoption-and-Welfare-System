@@ -24,7 +24,7 @@ async function loadPets() {
         personality: pet.personality_tags || "",
         breed: pet.personality_tags || "",
 
-        behavior: pet.behavior_description,
+        behavior: pet.pet_description,
 
         status: pet.adoption_status,
 

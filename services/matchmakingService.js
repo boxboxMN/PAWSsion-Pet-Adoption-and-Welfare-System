@@ -43,7 +43,7 @@ async function matchPets(preferences) {
             a.gender,
             a.age,
             a.color,
-            a.behavior_description,
+            a.pet_description,
             a.personality_tags,
             a.image_path,
             ae.embedding
@@ -132,7 +132,7 @@ async function matchPets(preferences) {
 
             personality_tags: pet.personality_tags,
 
-            behavior_description: pet.behavior_description,
+            pet_description: pet.pet_description,
 
             behaviorSimilarity:
                 Number((behaviorSimilarity * 100).toFixed(2)),

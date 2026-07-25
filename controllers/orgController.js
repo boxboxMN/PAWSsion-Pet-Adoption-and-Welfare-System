@@ -14,7 +14,7 @@ exports.addPet = async (req, res) => {
             age,
             birth_date,
             color,
-            behavior_description,
+            pet_description,
             health_status,
             vaccination_status,
             adoption_status,
@@ -68,7 +68,7 @@ exports.addPet = async (req, res) => {
                 age,
                 birth_date,
                 color,
-                behavior_description,
+                pet_description,
                 health_status,
                 vaccination_status,
                 adoption_status,
@@ -85,7 +85,7 @@ exports.addPet = async (req, res) => {
                 age,
                 birth_date || null,
                 color || null,
-                behavior_description || null,
+                pet_description || null,
                 health_status,
                 vaccination_status,
                 adoption_status,
@@ -243,7 +243,7 @@ exports.updatePet = async (req, res) => {
             age,
             birth_date,
             color,
-            behavior_description,
+            pet_description,
             health_status,
             vaccination_status,
             adoption_status,
@@ -259,7 +259,7 @@ exports.updatePet = async (req, res) => {
             age,
             birth_date || null,
             color || null,
-            behavior_description || null,
+            pet_description || null,
             health_status,
             vaccination_status,
             adoption_status,
@@ -283,7 +283,7 @@ exports.updatePet = async (req, res) => {
                 age=?,
                 birth_date=?,
                 color=?,
-                behavior_description=?,
+                pet_description=?,
                 health_status=?,
                 vaccination_status=?,
                 adoption_status=?,
@@ -294,7 +294,7 @@ exports.updatePet = async (req, res) => {
             values
         );
         const embedding = await generateEmbedding(
-            behavior_description || ""
+            pet_description || ""
         );
         await pool.query(
             `
