@@ -165,18 +165,51 @@ exports.updateAvatar = async (req, res) => {
 
 exports.getAvailablePets = async (req, res) => {
     try {
+
         const [pets] = await pool.query(`
-            SELECT a.*, o.organization_name
+            SELECT
+                a.*,
+                o.organization_name,
+                o.profile_pic
             FROM animals a
-            INNER JOIN organizations o ON a.organization_id = o.organization_id
-            WHERE a.adoption_status = 'Available'
+            INNER JOIN organizations o
+                ON a.organization_id = o.organization_id
+            WHERE a.adoption_status='Available'
             ORDER BY a.created_at DESC
         `);
 
-        res.json({ success: true, pets });
+        // Attach medical history
+        for (const pet of pets) {
+
+            const [medical] = await pool.query(`
+                SELECT
+                    medical_id,
+                    treatment,
+                    administered_date,
+                    administered_by,
+                    notes
+                FROM animal_medical_history
+                WHERE animal_id = ?
+                ORDER BY administered_date DESC
+            `, [pet.animal_id]);
+
+            pet.medical_history = medical;
+        }
+
+        res.json({
+            success: true,
+            pets
+        });
+
     } catch (err) {
-        console.error("Get Available Pets Error:", err);
-        res.status(500).json({ success: false, message: "Failed to load pets." });
+
+        console.error(err);
+
+        res.status(500).json({
+            success: false,
+            message: "Failed to load pets."
+        });
+
     }
 };
 exports.getOrganizations = async (req, res) => {
