@@ -1,6 +1,6 @@
 // <!-- ===== ADOPTION HUB SCRIPT ===== -->
 let petsData = [];
-
+let filteredPets = [];
 async function loadPets() {
     try {
 
@@ -14,38 +14,29 @@ async function loadPets() {
 
        petsData = data.pets.map(pet => ({
         animal_id: pet.animal_id,
-
         name: pet.name,
-
         species: pet.species,
         gender: pet.gender,
         age: pet.age,
         color: pet.color,
         personality: pet.personality_tags || "",
         breed: pet.personality_tags || "",
-
         behavior: pet.pet_description,
-
         status: pet.adoption_status,
-
         birth_date: pet.birth_date,
-
         health: pet.health_status,
-
         vaccination: pet.vaccination_status,
-
         organization: pet.organization_name,
-
         organization_logo: pet.profile_pic,
-
         medical_history: pet.medical_history || [],
-
         img: pet.image_path
             ? `/uploads/pets/${pet.image_path}`
             : "/assets/images/no-image.png"
     }));
 
-        renderGrid();
+    filteredPets = [...petsData];
+
+    renderGrid(filteredPets);
 
     } catch (err) {
 
@@ -53,11 +44,11 @@ async function loadPets() {
 
     }
 }
-function renderGrid() {
+function renderGrid(pets = filteredPets) {
 
     const grid = document.getElementById("pet-grid");
 
-    if (!petsData.length) {
+    if (!pets.length) {
         grid.innerHTML = `
             <div class="col-span-full text-center py-10 text-gray-500">
                 No pets available for adoption.
@@ -66,7 +57,7 @@ function renderGrid() {
         return;
     }
 
-    grid.innerHTML = petsData.map(pet => `
+    grid.innerHTML = pets.map(pet =>`
 <div class="bg-white rounded-3xl overflow-hidden border border-gray-200 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
 
     <!-- Image -->
@@ -208,7 +199,41 @@ function renderGrid() {
     `).join("");
 
 }
+function filterPets() {
+
+    const search = document
+        .getElementById("search-input")
+        .value
+        .toLowerCase()
+        .trim();
+
+    const type = document
+        .getElementById("type-filter")
+        .value;
+
+    filteredPets = petsData.filter(pet => {
+
+        const matchesSearch =
+            pet.name.toLowerCase().includes(search) ||
+            pet.species.toLowerCase().includes(search) ||
+            pet.personality.toLowerCase().includes(search) ||
+            pet.organization.toLowerCase().includes(search);
+
+        const matchesType =
+            type === "All" ||
+            pet.species === type;
+
+        return matchesSearch && matchesType;
+    });
+
+    renderGrid(filteredPets);
+}
 loadPets();
+document.getElementById("search-input")
+    .addEventListener("input", filterPets);
+
+document.getElementById("type-filter")
+    .addEventListener("change", filterPets);
 document.addEventListener("click", e => {
 
     const btn = e.target.closest(".view-btn");
