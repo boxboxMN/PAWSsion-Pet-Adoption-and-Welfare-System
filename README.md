@@ -69,7 +69,7 @@ MODIFY COLUMN status ENUM(
 ## **USERSIDE MODULES**
 - Use **Title** and **Subtitle** for headers/topbar
 - Notification
-- Connect **Dashboard**, **Matchmaking**, **My Application**, **Donation**, and **Kamustahan** to DB
+- Connect **Dashboard**, **My Application**, and **Kamustahan** to DB
 - Improve CSS
 
 ---
@@ -106,18 +106,23 @@ MODIFY COLUMN status ENUM(
 bry naniya
 
 
-HOW TO RUN IT
+HOW TO RUN IT W/ MATCHMAKING
 - import new db (7.23)
 - create .venv first inside flask-api
     *terminal: cd flask-api then python -m venv .venv
              : .venv\Scripts\activate
              :.venv\Scripts\Activate.ps1
 - install requrements
-    *terminal: pip install -r requirements.txt
-             : pip install -r requirements.txt
+    *terminal: pip install -r requirements.txt 
+                    or
              : python -m pip install flask sentence-transformers torch scikit-learn python-dotenv
              : python download_model.py
 - run Flask API
     *terminal: python app.py (keep this running on venv)
 - run Node.js
     *terminal: node server.js (this should be in new terminal)
+
+07.25.26
+    - use this syntax in phpmyadmin console
+        ALTER TABLE animals
+        CHANGE COLUMN behavior_description pet_description TEXT; 

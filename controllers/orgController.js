@@ -405,6 +405,7 @@ exports.deletePet = async (req, res) => {
         });
     }
 };
+
 // ==========================================
 // PAYMENT & QR DETAILS CONTROLLERS
 // ==========================================
@@ -1010,7 +1011,11 @@ exports.updateDropoffInfo = async (req, res) => {
         res.status(500).json({ success: false, message: "Failed to update dropoff details." });
     }
 };
+
+
+// ==========================================
 // DASHBOARD STATS
+// ==========================================
 exports.getDashboardStats = async (req, res) => {
     try {
 
