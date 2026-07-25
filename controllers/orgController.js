@@ -1010,3 +1010,87 @@ exports.updateDropoffInfo = async (req, res) => {
         res.status(500).json({ success: false, message: "Failed to update dropoff details." });
     }
 };
+// DASHBOARD STATS
+exports.getDashboardStats = async (req, res) => {
+    try {
+
+        // Logged-in organization
+        const [org] = await pool.query(
+            `
+            SELECT organization_id
+            FROM organizations
+            WHERE account_id = ?
+            `,
+            [req.session.accountId]
+        );
+
+        if (!org.length) {
+            return res.json({
+                success: false,
+                message: "Organization not found."
+            });
+        }
+
+        const organization_id = org[0].organization_id;
+
+        // Total pets
+        const [[petStats]] = await pool.query(
+            `
+            SELECT
+                COUNT(*) AS totalPets,
+                SUM(CASE WHEN adoption_status='Pending' THEN 1 ELSE 0 END) AS pendingAdoptions,
+                SUM(CASE WHEN adoption_status='Adopted' THEN 1 ELSE 0 END) AS adoptedPets
+            FROM animals
+            WHERE organization_id = ?
+            `,
+            [organization_id]
+        );
+
+        // Cash donations (Approved only)
+        const [[cash]] = await pool.query(
+            `
+            SELECT
+                IFNULL(SUM(amount),0) AS cashTotal
+            FROM cash_donations
+            WHERE
+                organization_id = ?
+                AND status='Approved'
+            `,
+            [organization_id]
+        );
+
+        // In-kind donations (Approved only)
+        const [[inkind]] = await pool.query(
+            `
+            SELECT
+                IFNULL(COUNT(*),0) AS inkindTotal
+            FROM inkind_donations
+            WHERE
+                organization_id = ?
+                AND status='Approved'
+            `,
+            [organization_id]
+        );
+
+        res.json({
+            success: true,
+            stats: {
+                totalPets: petStats.totalPets || 0,
+                pendingAdoptions: petStats.pendingAdoptions || 0,
+                adoptedPets: petStats.adoptedPets || 0,
+                cashDonations: Number(cash.cashTotal || 0),
+                inkindDonations: inkind.inkindTotal || 0
+            }
+        });
+
+    } catch (err) {
+
+        console.error(err);
+
+        res.status(500).json({
+            success: false,
+            message: err.message
+        });
+
+    }
+};

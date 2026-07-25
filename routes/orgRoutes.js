@@ -13,6 +13,7 @@ const {
     getPets, 
     getPetDetails,
     getDonations, 
+    getDashboardStats,
     getPaymentInfo,
     updateDonationStatus, 
     updatePaymentInfo,
@@ -63,7 +64,7 @@ async function checkOrganizationApproval(req, res, next) {
 }
 
 router.use(checkOrganizationApproval);
-
+router.get("/dashboard/stats", getDashboardStats);
 // 3. PAGES ROUTES
 router.get("/dashboard", (req, res) => {
     res.sendFile(path.join(__dirname, "../public/organization/dashboard.html"));
