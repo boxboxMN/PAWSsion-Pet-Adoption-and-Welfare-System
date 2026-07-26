@@ -83,13 +83,25 @@ function showPreferenceScreen() {
 // =========================
 async function showCompatibilityScreen() {
 
-    console.log("Next button clicked!");
-
     const type = document.getElementById("type").value;
     const sex = document.getElementById("sex").value;
     const age = document.getElementById("age").value;
-    const behavior = document.getElementById("behavior").value;
+    const behavior = document.getElementById("behavior").value.trim();
 
+    const message = document.getElementById("validationMessage");
+
+    // Hide previous message
+    message.classList.add("hidden");
+
+    if (
+        type === "Select Type" ||
+        sex === "Select Sex" ||
+        age === "Select Age" ||
+        behavior === ""
+    ) {
+        message.classList.remove("hidden");
+        return;
+    }
     console.log(type, sex, age, behavior);
 
     try {
@@ -167,78 +179,83 @@ function renderMatches(matches) {
         else if (pet.score >= 75) badgeColor = "bg-blue-600";
         else if (pet.score >= 60) badgeColor = "bg-yellow-500";
 
-        container.innerHTML += `
-        <div class="group bg-white rounded-3xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border border-gray-100">
-            <!-- IMAGE -->
-            <div class="relative">
-                <img src="/uploads/pets/${pet.image_path}" class="w-full h-64 object-cover">
+      container.innerHTML += `
+<div class="group bg-white rounded-3xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-gray-100 max-w-[420px]">
 
-                <!-- Rank -->
-                <div class="absolute top-4 left-4 bg-white rounded-full shadow px-4 py-1 text-sm font-semibold">
-                    #${index + 1}
-                </div>
+    <!-- IMAGE -->
+    <div class="relative">
+        <img src="/uploads/pets/${pet.image_path}" class="w-full h-56 object-cover">
 
-                <!-- Match Badge -->
-                <div class="absolute top-4 right-4 ${badgeColor} text-white rounded-full px-4 py-1 font-bold shadow">
-                    ${pet.score}% Match
-                </div>
+        <!-- Rank -->
+        <div class="absolute top-3 left-3 bg-white rounded-full shadow px-3 py-1 text-xs font-semibold">
+            #${index + 1}
+        </div>
+
+        <!-- Match Badge -->
+        <div class="absolute top-3 right-3 ${badgeColor} text-white rounded-full px-3 py-1 text-sm font-bold shadow">
+            ${pet.score}% Match
+        </div>
+    </div>
+
+    <!-- BODY -->
+    <div class="p-5">
+
+        <!-- Name -->
+        <h2 class="text-xl font-bold text-gray-800">
+            ${pet.name}
+        </h2>
+
+        <!-- Basic Info -->
+        <p class="text-sm text-gray-500 mt-1">
+            ${pet.species} • ${pet.gender} • ${pet.age}
+        </p>
+
+        <!-- Personality Tags -->
+        <div class="flex flex-wrap gap-2 mt-4">
+            ${
+                pet.personality_tags
+                ? pet.personality_tags
+                    .split(",")
+                    .map(tag => `
+                        <span class="bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-xs font-medium">
+                            ${tag.trim()}
+                        </span>
+                    `).join("")
+                : ""
+            }
+        </div>
+
+        <!-- Description -->
+        <p class="text-sm text-gray-600 leading-6 text-justify mt-4 line-clamp-4">
+            ${pet.pet_description}
+        </p>
+
+        <!-- Similarity -->
+        <div class="mt-5">
+            <div class="flex justify-between items-center text-sm mb-2">
+                <span class="text-gray-600 font-medium">
+                    Behavior Similarity
+                </span>
+                <span class="font-semibold text-blue-700">
+                    ${pet.behaviorSimilarity}%
+                </span>
             </div>
 
-            <!-- BODY -->
-            <div class="p-6">
-                <div class="flex justify-between items-start">
-                    <div>
-                        <h2 class="text-2xl font-bold text-gray-800">
-                            ${pet.name}
-                        </h2>
-                        <p class="text-gray-500 mt-1">
-                            ${pet.species} • ${pet.gender} • ${pet.age}
-                        </p>
-                    </div>
+            <div class="w-full bg-gray-200 rounded-full h-2">
+                <div
+                    class="bg-blue-600 h-2 rounded-full"
+                    style="width:${pet.behaviorSimilarity}%">
                 </div>
-
-                <!-- Personality Tags -->
-                <div class="flex flex-wrap gap-2 mt-5">
-                    ${
-                        pet.personality_tags
-                        ? pet.personality_tags
-                            .split(",")
-                            .map(tag => `
-                                <span class="bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-sm font-medium">
-                                    ${tag.trim()}
-                                </span>
-                            `).join("")
-                        : ""
-                    }
-                </div>
-
-                <!-- Description -->
-                <p class="text-gray-600 leading-7 mt-5 line-clamp-4">
-                    ${pet.pet_description}
-                </p>
-
-                <!-- Scores -->
-                <div class="mt-6 space-y-3">
-                    <div>
-                        <div class="flex justify-between text-sm mb-1">
-                            <span>Behavior Similarity</span>
-                            <span class="font-semibold">
-                                ${pet.behaviorSimilarity}%
-                            </span>
-                        </div>
-                        <div class="w-full bg-gray-200 rounded-full h-2">
-                            <div class="bg-blue-600 h-2 rounded-full" style="width:${pet.behaviorSimilarity}%">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Button -->
-                <button class="w-full mt-7 bg-blue-600 hover:bg-blue-700 transition text-white py-3 rounded-xl font-semibold">
-                    View Pet Profile
-                </button>
             </div>
         </div>
-        `;
+
+        <!-- Button -->
+        <button class="w-full mt-5 bg-blue-600 hover:bg-blue-700 transition text-white py-2.5 rounded-xl font-semibold">
+            View Pet Profile
+        </button>
+
+    </div>
+</div>
+`;
     });
 }
