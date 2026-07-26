@@ -1,3 +1,6 @@
+/**
+ * Loads an HTML component (e.g., sidebar or header)
+ */
  async function loadComponent(id, file) {
         try {
             const response = await fetch(file);
@@ -71,7 +74,11 @@
         const orgPhone = document.getElementById("modalOrgPhone");
         const orgEmail = document.getElementById("modalOrgEmail");
         const orgMission = document.getElementById("modalOrgMission");
-
+        /**
+         * Returns a valid image URL.
+         * Uses the fallback image if the given path is empty,
+         * null, undefined, or invalid.
+         */
         function getValidImageUrl(imagePath, fallbackUrl) {
             if (!imagePath || imagePath.trim() === "" || imagePath === "null" || imagePath === "undefined") {
                 return fallbackUrl;
@@ -81,6 +88,10 @@
             }
             return imagePath;
         }
+        /**
+         * Retrieves all verified organizations from the server
+         * and displays them as selectable cards.
+         */
         async function loadOrganizations() {
             try {
                 const response = await fetch("/api/organizations");
@@ -124,6 +135,10 @@
             }
         }
 
+        /**
+         * Adds click events to each organization card.
+         * Handles organization selection and profile viewing.
+         */
         function initializeCards() {
             document.querySelectorAll(".org-card").forEach(card => {
                 card.addEventListener("click", function (e) {
@@ -145,7 +160,10 @@
                 }
             });
         }
-
+        /**
+         * Updates the drop-off location details based on
+         * the selected organization.
+         */
         function updateDropoffInfo(id) {
             const org = organizations.find(o => o.organization_id == id);
             if (!org) return;
@@ -174,6 +192,11 @@
                 };
             }
         }
+
+        /**
+         * Opens the organization profile modal
+         * and displays its complete information.
+         */
         function openModal(id) {
             const org = organizations.find(o => o.organization_id == id);
             if (!org || !modal) return;
@@ -188,6 +211,10 @@
             document.body.style.overflow = "hidden";
         }
 
+        /**
+         * Closes the organization profile modal
+         * and restores page scrolling.
+         */
         function closeModal() {
             if (!modal) return;
             modal.classList.remove("active");
@@ -272,6 +299,13 @@
         }
     });
 }
+
+/**
+ * Displays a toast notification.
+ *
+ * @param {string} message - Message to display.
+ * @param {string} type - "success" or "error".
+ */
 function showToast(message, type = "error") {
     const container = document.getElementById("toastContainer");
     if (!container) return;
