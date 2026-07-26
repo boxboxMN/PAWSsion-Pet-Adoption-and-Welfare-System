@@ -1,4 +1,8 @@
-  async function loadComponent(id, file) {
+ /**
+ * Loads an HTML component (sidebar or header)
+ * into the specified container element.
+ */
+ async function loadComponent(id, file) {
             try {
                 const response = await fetch(file);
                 if (!response.ok) {
@@ -51,7 +55,11 @@
             document.body.style.visibility = "visible";
         })
         .catch(error => console.error("Component loading error:", error));
-    document.addEventListener("DOMContentLoaded", async function () {
+   /**
+     * Executes after the HTML document is fully loaded.
+     * Initializes page components, events, and donation data.
+     */
+        document.addEventListener("DOMContentLoaded", async function () {
         let organizations = [];
         let selectedOrganization = null;
         // Modal elements
@@ -75,7 +83,10 @@
         const receiptFileInput = document.querySelector('input[type="file"]');
         const submitBtn = document.getElementById("submitDonationBtn") || document.querySelector('button[type="submit"]') || document.querySelector('main button:last-of-type');
 
-        // Auto-fill logged-in user details if available
+        /**
+         * Retrieves the logged-in user's profile information
+         * and automatically fills in the donation form.
+         */
         async function fetchUserProfile() {
             try {
                 const res = await fetch("/api/user/profile");
@@ -93,7 +104,10 @@
             }
         }
 
-        // Load organizations from API
+        /**
+         * Retrieves all verified organizations from the server
+         * and displays them as selectable donation cards.
+         */
         async function loadOrganizations() {
             try {
                 const response = await fetch("/api/organizations");
@@ -137,7 +151,10 @@
                 console.error("Error loading organizations:", err);
             }
         }
-
+        /**
+         * Adds click events to each organization card.
+         * Allows users to select an organization or view its profile.
+         */
         function initializeCards() {
             document.querySelectorAll(".org-card").forEach(card => {
                 card.addEventListener("click", function (e) {
@@ -159,7 +176,10 @@
                 }
             });
         }
-
+    /**
+     * Updates the selected organization's
+     * GCash account information and QR code.
+     */
     function updateDonationInfo(id) {
     const org = organizations.find(o => o.organization_id == id);
     if (!org) return;
@@ -190,6 +210,11 @@
         }
     }
 }
+
+/**
+ * Opens the organization profile modal
+ * and displays its complete details.
+ */
         function openModal(id) {
             const org = organizations.find(o => o.organization_id == id);
             if (!org || !modal) return;
@@ -299,6 +324,10 @@
         }
     });
 }
+/**
+ * Updates the selected receipt file name
+ * after the user uploads a payment receipt.
+ */
         if (receiptFileInput) {
             receiptFileInput.addEventListener("change", function() {
                 if (this.files.length > 0) {
@@ -307,7 +336,7 @@
                 }
             });
         }
-
+        // Initialize page data after loading.
         await fetchUserProfile();
         await loadOrganizations();
 
@@ -324,6 +353,13 @@
             }
         }
             });
+
+            /**
+             * Displays a toast notification message.
+             *
+             * @param {string} message - Message to display.
+             * @param {string} type - Notification type ("success" or "error").
+             */
             function showToast(message, type = "error") {
             const container = document.getElementById("toastContainer");
             if (!container) return;

@@ -1,6 +1,12 @@
+    // Stores all donation records fetched from the server
     let rawDonationsData = [];
+    // Stores the currently selected receipt path for zoom/view actions
     let currentActiveReceiptPath = "";
 
+    /**
+     * Fetches all donation records of the logged-in user
+     * from the server and updates the table and statistics.
+     */
     async function fetchUserDonations() {
         try {
             const response = await fetch('/api/user/donations');
@@ -18,7 +24,11 @@
             showEmptyTable("No donations found or error connecting to server.");
         }
     }
-    // 2. Render Donations Table
+    /**
+     * Renders donation records into the donation table.
+     * Displays donation details, amount/items, status,
+     * and action buttons.
+     */
     function renderDonations(data) {
         const tbody = document.getElementById("donationTableBody");
         tbody.innerHTML = "";
@@ -93,7 +103,11 @@
         });
     }
 
-    // 3. Compute Card Stats Dynamic Total
+    /**
+     * Calculates and updates dashboard statistics,
+     * including total verified cash donations and
+     * total verified in-kind donations.
+     */
     function calculateStats(data) {
         let totalCash = 0;
         let totalInKindCount = 0;
@@ -113,7 +127,10 @@
         document.getElementById("totalInKind").textContent = `${totalInKindCount} Donation${totalInKindCount === 1 ? '' : 's'}`;
     }
 
-    // 4. Filter Function
+    /**
+     * Filters donation records based on the selected
+     * donation type (All, Cash, or In-Kind).
+     */
     function filterDonations() {
         const filterValue = document.getElementById("typeFilter").value;
         if (filterValue === "All") {
@@ -123,7 +140,10 @@
             renderDonations(filtered);
         }
     }
-
+    /**
+     * Displays an empty-state message when no
+     * donation records are available.
+     */
     function showEmptyTable(message) {
         document.getElementById("donationTableBody").innerHTML = `
             <tr>
@@ -131,7 +151,10 @@
             </tr>`;
     }
 
-    // 5. VIEW DETAILS MODAL LOGIC
+    /**
+     * Opens the donation details modal and displays
+     * complete information about the selected donation.
+     */
     function viewDetails(type, id) {
         const donation = rawDonationsData.find(d => d.id == id && d.type === type);
         if (!donation) return;
@@ -222,7 +245,10 @@
         modal.querySelector("div").classList.add("scale-95");
     }
 
-    // 6. RECEIPT LIGHTBOX LOGIC
+    /**
+     * Opens the receipt image in a lightbox modal
+     * for viewing, downloading, or opening externally.
+     */
     function viewReceiptDirect(receiptPathRaw) {
         let fullPath = "https://via.placeholder.com/400x600?text=No+Receipt+Uploaded";
         if (receiptPathRaw) {
@@ -243,19 +269,27 @@
         modal.classList.remove("opacity-0", "pointer-events-none");
         modal.querySelector("div").classList.remove("scale-95");
     }
-
+    /**
+     * Closes the receipt preview modal.
+     */
     function closeReceiptModal() {
         const modal = document.getElementById("receiptModal");
         modal.classList.add("opacity-0", "pointer-events-none");
         modal.querySelector("div").classList.add("scale-95");
     }
-
+    /**
+     * Opens the currently selected receipt image
+     * in the receipt viewer modal.
+     */
     function triggerZoomReceipt() {
         if (currentActiveReceiptPath) {
             viewReceiptDirect(currentActiveReceiptPath);
         }
     }
-    // Sidebar/Header Component Load Script
+    /**
+     * Dynamically loads reusable page components
+     * such as the sidebar and header.
+     */
     async function loadComponent(id, file) {
         try {
             const response = await fetch(file);
