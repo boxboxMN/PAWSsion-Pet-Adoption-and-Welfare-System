@@ -67,18 +67,20 @@ MODIFY COLUMN status ENUM(
 ---
 
 ## **USERSIDE MODULES**
-- Use **Title** and **Subtitle** for headers/topbar
+✓ Use **Title** and **Subtitle** for headers/topbar
 - Notification
-- Connect **Dashboard**, **Matchmaking**, **My Application**, **Donation**, and **Kamustahan** to DB
+- Connect **Dashboard**,**My Application** and **Kamustahan** to DB
+✓ Connect **Matchmaking**, **Donation**
 - Improve CSS
 
 ---
 
 ## **ORG MODULES**
-- Use **Title** and **Subtitle** for headers/topbar
+✓ Use **Title** and **Subtitle** for headers/topbar
 - Notification
-- Search, CRUD
-- Connect **Dashboard**, **Application**, **Kamustahan**, **Analytics**, and **Organization Profile** to DB
+✓ Search, CRUD
+✓ Connect **Dashboard**, **Application**,**Donation** 
+- Connect **Kamustahan**, **Analytics**, and **Organization Profile** to DB
 - Settings & Support
 - Improve CSS
 
@@ -87,7 +89,8 @@ MODIFY COLUMN status ENUM(
 ## **ADMIN MODULES**
 - Notification
 - Search, CRUD
-- Connect **Dashboard** and **Feedback** to DB
+- Connect **Dashboard**,  **Feedback**, **Account Actions** to DB
+- Connect Org Details to db
 - Settings
 - Improve CSS
 
