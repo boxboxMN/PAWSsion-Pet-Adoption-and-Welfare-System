@@ -9,7 +9,6 @@
                 console.error(error);
             }
         }
-
         Promise.all([
             loadComponent("sidebar", "/user/userSidebar.html"),
             loadComponent("header", "/user/userHeader.html")
@@ -40,7 +39,6 @@
             links.forEach(link => {
                 const href = link.getAttribute("href");
                 const isActive = href === currentPath || (href !== "/dashboard" && currentPath.startsWith(href));
-
                 if (isActive) {
                     link.className = "nav-link flex items-center gap-4 px-5 py-4 rounded-2xl bg-blue-600 text-white shadow";
                     if (pageTitle && !customTitles[currentPath]) {
@@ -50,16 +48,12 @@
                     link.className = "nav-link flex items-center gap-4 px-5 py-4 rounded-2xl text-gray-800 hover:bg-blue-50 hover:text-blue-600 transition";
                 }
             });
-
             document.body.style.visibility = "visible";
         })
         .catch(error => console.error("Component loading error:", error));
-
     document.addEventListener("DOMContentLoaded", async function () {
-
         let organizations = [];
         let selectedOrganization = null;
-
         // Modal elements
         const modal = document.getElementById("orgModal");
         const closeBtn = document.getElementById("modalClose");
@@ -166,7 +160,7 @@
             });
         }
 
-       function updateDonationInfo(id) {
+    function updateDonationInfo(id) {
     const org = organizations.find(o => o.organization_id == id);
     if (!org) return;
 
@@ -196,7 +190,6 @@
         }
     }
 }
-
         function openModal(id) {
             const org = organizations.find(o => o.organization_id == id);
             if (!org || !modal) return;
@@ -210,7 +203,6 @@
             modal.classList.add("active");
             document.body.style.overflow = "hidden";
         }
-
         function closeModal() {
             if (!modal) return;
             modal.classList.remove("active");
@@ -225,11 +217,9 @@
                 if (e.target === modal) closeModal();
             });
         }
-
         document.addEventListener("keydown", function (e) {
             if (e.key === "Escape") closeModal();
         });
-
         // ==========================================
         // SUBMIT CASH DONATION HANDLER
         // ==========================================
@@ -241,14 +231,12 @@
             showToast("Please select an organization to donate to.", "error");
             return;
         }
-
         // --- CHECK IF ORG HAS VALID GCASH DETAILS ---
         const org = organizations.find(o => o.organization_id == selectedOrganization);
         if (!org || !org.gcash_number || org.gcash_number.trim() === "") {
             showToast("This organization hasn't provided GCash details yet. Donation is temporarily unavailable.", "error");
             return;
         }
-
         if (!donorNameInput || !donorNameInput.value.trim()) {
             showToast("Please enter your full name.", "error");
             return;
@@ -320,49 +308,49 @@
             });
         }
 
-await fetchUserProfile();
-await loadOrganizations();
+        await fetchUserProfile();
+        await loadOrganizations();
 
-if (organizations.length > 0) {
-    // Hanapin ang unang org na may valid QR code, kung wala, fallback sa index 0
-    const targetOrg = organizations.find(o => o.qr_code && o.qr_code.trim() !== "") || organizations[0];
-    
-    selectedOrganization = targetOrg.organization_id;
-    updateDonationInfo(selectedOrganization);
+        if (organizations.length > 0) {
+            // Hanapin ang unang org na may valid QR code, kung wala, fallback sa index 0
+            const targetOrg = organizations.find(o => o.qr_code && o.qr_code.trim() !== "") || organizations[0];
+            
+            selectedOrganization = targetOrg.organization_id;
+            updateDonationInfo(selectedOrganization);
 
-    const targetCard = document.querySelector(`.org-card[data-id="${selectedOrganization}"]`);
-    if (targetCard) {
-        targetCard.classList.add("selected");
-    }
-}
-    });
-    function showToast(message, type = "error") {
-    const container = document.getElementById("toastContainer");
-    if (!container) return;
+            const targetCard = document.querySelector(`.org-card[data-id="${selectedOrganization}"]`);
+            if (targetCard) {
+                targetCard.classList.add("selected");
+            }
+        }
+            });
+            function showToast(message, type = "error") {
+            const container = document.getElementById("toastContainer");
+            if (!container) return;
 
-    const isSuccess = type === "success";
-    const bgColor = isSuccess ? "bg-emerald-600" : "bg-rose-600";
-    const iconClass = isSuccess ? "fa-circle-check" : "fa-circle-exclamation";
+            const isSuccess = type === "success";
+            const bgColor = isSuccess ? "bg-emerald-600" : "bg-rose-600";
+            const iconClass = isSuccess ? "fa-circle-check" : "fa-circle-exclamation";
 
-    const toast = document.createElement("div");
-    toast.className = `${bgColor} text-white px-5 py-3.5 rounded-xl shadow-xl flex items-center gap-3 transition-all duration-300 transform translate-y-5 opacity-0 pointer-events-auto max-w-md`;
-    
-    toast.innerHTML = `
-        <i class="fa-solid ${iconClass} text-lg"></i>
-        <span class="text-sm font-medium leading-snug">${message}</span>
-        <button onclick="this.parentElement.remove()" class="ml-auto text-white/70 hover:text-white p-1">
-            <i class="fa-solid fa-xmark"></i>
-        </button>
-    `;
+            const toast = document.createElement("div");
+            toast.className = `${bgColor} text-white px-5 py-3.5 rounded-xl shadow-xl flex items-center gap-3 transition-all duration-300 transform translate-y-5 opacity-0 pointer-events-auto max-w-md`;
+            
+            toast.innerHTML = `
+                <i class="fa-solid ${iconClass} text-lg"></i>
+                <span class="text-sm font-medium leading-snug">${message}</span>
+                <button onclick="this.parentElement.remove()" class="ml-auto text-white/70 hover:text-white p-1">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            `;
 
-    container.appendChild(toast);
+            container.appendChild(toast);
 
-    setTimeout(() => {
-        toast.classList.remove("translate-y-5", "opacity-0");
-    }, 10);
+            setTimeout(() => {
+                toast.classList.remove("translate-y-5", "opacity-0");
+            }, 10);
 
-    setTimeout(() => {
-        toast.classList.add("translate-y-5", "opacity-0");
-        setTimeout(() => toast.remove(), 300);
-    }, 4000);
-}
+            setTimeout(() => {
+                toast.classList.add("translate-y-5", "opacity-0");
+                setTimeout(() => toast.remove(), 300);
+            }, 4000);
+        }

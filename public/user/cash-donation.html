@@ -17,7 +17,6 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet" />
-
     <style>
         *{
           box-sizing:border-box;
@@ -63,8 +62,6 @@
             transition: all 0.2s ease;
             cursor: pointer;
         }
-
-        /* Modal overlay */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -102,16 +99,13 @@
         }
     </style>
 </head>
-
 <body class="bg-gray-100 h-full overflow-hidden">
-
     <!-- ===== SIDEBAR ===== -->
     <div
         id="sidebar"
         class="fixed left-0 top-0 w-64 h-screen bg-white border-r border-gray-200 z-50">
     </div>
     <!-- ===== MAIN CONTENT ===== -->
-   
     <main class="ml-64 pt-24 h-screen overflow-hidden bg-gray-50">
         <div
             id="header"
@@ -119,7 +113,6 @@
         </div>
         <!-- ===== CASH DONATION PAGE ===== -->
         <div class="h-[calc(100vh-6rem)] overflow-y-auto p-8">
-
             <!-- HEADER SECTION -->
             <div class="text-center mb-8">
                 <h1 class="text-4xl font-bold text-blue-700">
@@ -128,7 +121,6 @@
                 <p class="text-gray-600 mt-2">
                     Help us continue our mission to care for and rehome animals in need
                 </p>
-
                 <!-- Buttons -->
                 <div class="flex justify-center gap-4 mt-6">
                     <a href="/cash-donation" id="cashBtn" class="donation-btn bg-blue-700 text-white px-8 py-3 rounded-lg font-medium inline-block">
@@ -139,45 +131,35 @@
                     </a>
                 </div>
             </div>
-
             <!-- MAIN CONTENT: 3 columns (left 2, right 1) -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
                 <!-- LEFT SIDE (2 cols) -->
                 <div class="lg:col-span-2 bg-white rounded-2xl shadow p-6">
-
                     <!-- STEP 1: Select Organization -->
                     <h2 class="text-xl font-bold mb-4">Step 1: Select Organization</h2>
-
                     <div
                         id="orgContainer"
                         class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
 
                     </div>
-
-
                     <!-- STEP 2: Donation Details -->
                     <h2 class="text-xl font-bold mb-4">Step 2: Donations Details</h2>
-
                     <!-- General Information -->
                     <h3 class="font-semibold mb-3">General Information</h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                         <input type="text" placeholder="Name" class="border rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500" />
                         <input type="email" placeholder="Email Address" class="border rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500" />
                     </div>
-
                     <!-- Payment-Specific Details -->
                     <h3 class="font-semibold mb-3">Payment-Specific Details</h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                         <input type="text" placeholder="GCASH account name" class="border rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500" />
                         <input type="text" placeholder="Reference Number" class="border rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500" />
                     </div>
-
                     <!-- Donation Amount -->
                     <div class="mb-6">
                         <input type="number" placeholder="Enter custom amount" class="w-full md:w-[300px] border rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500" />
                     </div>
-
                     <!-- Checkbox -->
                     <div class="flex items-start gap-2 mb-6">
                         <input type="checkbox" class="mt-1" />
@@ -186,35 +168,29 @@
                             information in accordance with Privacy Policy
                         </p>
                     </div>
-
                     <!-- Submit Button -->
                     <button class="w-full bg-blue-700 hover:bg-blue-800 text-white py-3 rounded-lg font-semibold transition">
                         Complete Donation
                     </button>
-
                     <p class="text-xs text-gray-400 mt-4">
                         Note: Payment details, purposes and requirements are dynamically
                         configured by the organization
                     </p>
                 </div>
-
                 <!-- RIGHT SIDE (1 col) -->
                 <div class="bg-white rounded-2xl shadow p-6 h-fit">
-
                     <h2 class="text-xl font-bold text-center text-blue-700 mb-2">
                         Scan to QR code to Donate
                     </h2>
                     <p class="text-sm text-gray-500 text-center mb-5">
                         Used your app to scan this QR code
                     </p>
-
                     <!-- QR Code -->
                     <div class="flex justify-center mb-6">
                         <img
                             id="qrImage"
                             class="rounded-lg border">
                     </div>
-
                     <!-- GCash Details -->
                     <div class="space-y-4 text-sm">
                         <div>
@@ -232,7 +208,6 @@
                                 </p>
                         </div>
                     </div>
-
                     <!-- Upload Receipt -->
                     <div class="mt-6">
                         <label class="border-2 border-dashed border-blue-400 rounded-xl p-5 flex flex-col items-center justify-center cursor-pointer hover:bg-blue-50 transition">
@@ -241,7 +216,6 @@
                             <input type="file" class="hidden" />
                         </label>
                     </div>
-
                     <!-- Important Notes -->
                     <div class="mt-5 border rounded-xl p-4 bg-blue-50">
                         <h3 class="font-semibold text-blue-700 mb-2">Important Notes</h3>
@@ -249,15 +223,12 @@
                             <li>All donations will be verified by the organization.</li>
                         </ul>
                     </div>
-
                 </div>
             </div>
-
         </div>
-<!-- Notification Toast Container -->
-<div id="toastContainer" class="fixed bottom-5 right-5 z-[10000] flex flex-col gap-3 pointer-events-none"></div>
+    <!-- Notification Toast Container -->
+    <div id="toastContainer" class="fixed bottom-5 right-5 z-[10000] flex flex-col gap-3 pointer-events-none"></div>
     </main>
-
     <!-- ===== ORGANIZATION PROFILE MODAL ===== -->
     <div id="orgModal" class="modal-overlay">
         <div class="modal-box">
@@ -281,7 +252,7 @@
             <button id="modalCloseBtn" class="mt-6 w-full bg-blue-700 hover:bg-blue-800 text-white py-2 rounded-lg transition">Close</button>
         </div>
     </div>
-<script src="/assets/js/cash-donation.js"></script>
+<script src="/assets/js/userCash-donation.js"></script>
 </body>
 </body>
 </html>

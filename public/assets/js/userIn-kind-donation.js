@@ -7,7 +7,6 @@
             console.error(error);
         }
     }
-
     Promise.all([
         loadComponent("sidebar", "/user/userSidebar.html"),
         loadComponent("header", "/user/userHeader.html")
@@ -49,7 +48,6 @@
         document.body.style.visibility = "visible";
     })
     .catch(error => console.error("Component load error:", error));
-
     document.addEventListener('DOMContentLoaded', async function() {
         let organizations = [];
         let selectedOrganization = null;
@@ -148,35 +146,34 @@
             });
         }
 
-function updateDropoffInfo(id) {
-    const org = organizations.find(o => o.organization_id == id);
-    if (!org) return;
-    if (dropoffTitle) {
-        dropoffTitle.textContent = org.dropoff_location_name || org.organization_name || "Camarines Sur Polytechnic Colleges";
-    }
+        function updateDropoffInfo(id) {
+            const org = organizations.find(o => o.organization_id == id);
+            if (!org) return;
+            if (dropoffTitle) {
+                dropoffTitle.textContent = org.dropoff_location_name || org.organization_name || "Camarines Sur Polytechnic Colleges";
+            }
 
-    if (dropoffAddress) {
-        dropoffAddress.textContent = org.dropoff_address || `${org.city || ''}, ${org.province || ''}`;
-    }
+            if (dropoffAddress) {
+                dropoffAddress.textContent = org.dropoff_address || `${org.city || ''}, ${org.province || ''}`;
+            }
 
-    if (dropoffHours) {
-        dropoffHours.textContent = org.dropoff_hours || "Tuesday - Sunday 8:00 AM - 6:00 PM";
-    }
+            if (dropoffHours) {
+                dropoffHours.textContent = org.dropoff_hours || "Tuesday - Sunday 8:00 AM - 6:00 PM";
+            }
 
-    if (dropoffNotes) {
-        dropoffNotes.textContent = org.dropoff_notes || "Accepted items are subject to approval by the organization. Ensure that donations are clean, safe and in good condition.";
-    }
+            if (dropoffNotes) {
+                dropoffNotes.textContent = org.dropoff_notes || "Accepted items are subject to approval by the organization. Ensure that donations are clean, safe and in good condition.";
+            }
 
-    if (dropoffImg) {
-        const dropoffImgUrl = getValidImageUrl(org.dropoff_image || org.location_image, "/assets/images/cspc.png");
-        dropoffImg.src = dropoffImgUrl;
-        dropoffImg.onerror = function() {
-            this.onerror = null;
-            this.src = "/assets/images/cspc.png";
-        };
-    }
-}
-
+            if (dropoffImg) {
+                const dropoffImgUrl = getValidImageUrl(org.dropoff_image || org.location_image, "/assets/images/cspc.png");
+                dropoffImg.src = dropoffImgUrl;
+                dropoffImg.onerror = function() {
+                    this.onerror = null;
+                    this.src = "/assets/images/cspc.png";
+                };
+            }
+        }
         function openModal(id) {
             const org = organizations.find(o => o.organization_id == id);
             if (!org || !modal) return;
@@ -295,7 +292,6 @@ function showToast(message, type = "error") {
     `;
 
     container.appendChild(toast);
-
     // Trigger entrance animation
     setTimeout(() => {
         toast.classList.remove("translate-y-5", "opacity-0");
@@ -307,10 +303,8 @@ function showToast(message, type = "error") {
         setTimeout(() => toast.remove(), 300);
     }, 4000);
 }
-
         // Initialization
         await loadOrganizations();
-
         if (organizations.length > 0) {
             selectedOrganization = organizations[0].organization_id;
             updateDropoffInfo(selectedOrganization);

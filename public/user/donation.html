@@ -253,26 +253,20 @@
         </div>
     </div>
 
-<script src="/assets/js/donation.js"></script>
+<script src="/assets/js/userDonation.js"></script>
 <script src="/assets/js/userSidebar.js"></script>
 <script>
 document.addEventListener("DOMContentLoaded", async () => {
-
-    // Wait until sidebar + header are loaded
     await loadSidebar();
-
     // Wait one tick so the header HTML exists
     requestAnimationFrame(() => {
-
         // Set page title
         loadTopbar({
             title: "Donation",
             subtitle: "Make a difference by supporting rescue organizations and the pets in their care."
         });
-
         document.body.style.visibility = "visible";
     });
-
 });
 </script>
 </body>

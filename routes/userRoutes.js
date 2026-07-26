@@ -7,16 +7,12 @@ const userController = require("../controllers/userController");
 const matchmakerController = require("../controllers/matchmakerController");
 const { matchPets } = require("../controllers/matchmakerController");
 
-
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
         const dir = "uploads/avatars/"; 
-        
-    
         if (!fs.existsSync(dir)) {
             fs.mkdirSync(dir, { recursive: true });
         }
-        
         cb(null, dir); 
     },
     filename: function (req, file, cb) {
@@ -65,14 +61,7 @@ const uploadReceipt = multer({
     }
 });
 router.get("/api/pets", userController.getAvailablePets);
-// ==========================================
-// USER PAGE VIEW ROUTES (HTML Files)
-// ==========================================
-router.post(
-    "/api/matchmaking",
-    matchmakerController.matchPets
-);
-
+router.post( "/api/matchmaking", matchmakerController.matchPets);
 router.get("/dashboard", (req, res) => {
   res.sendFile(path.join(__dirname, "../public/user/userDashboard.html"));
 });
@@ -106,23 +95,12 @@ router.get("/kamustahan", (req, res) => {
 router.get("/profile", (req, res) => {
   res.sendFile(path.join(__dirname, "../public/user/userProfile.html"));
 }); 
-
-// ==========================================
-// DYNAMIC PROFILE DATA API ENDPOINTS
-// ==========================================
-// Add this line with your existing dynamic profile/donation routes
 router.get("/api/user/donations", userController.getUserDonations);
 router.get("/api/user/profile", userController.getProfile);
 router.post("/api/user/profile/update", userController.updateProfile);
 router.post("/api/user/profile/password", userController.updatePassword);
 router.post("/api/user/profile/avatar", upload.single("avatar"), userController.updateAvatar);
 router.get("/api/organizations", userController.getOrganizations);
-// Route para sa Submission ng Cash Donation
-router.post(
-    "/api/user/donation/cash", 
-    uploadReceipt.single("receipt"), 
-    userController.submitCashDonation
-);
-// TAMA (May /api na):
+router.post( "/api/user/donation/cash", uploadReceipt.single("receipt"), userController.submitCashDonation);
 router.post('/api/user/donation/in-kind', userController.submitInKindDonation);
 module.exports = router;

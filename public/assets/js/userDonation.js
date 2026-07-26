@@ -1,4 +1,4 @@
- let rawDonationsData = [];
+    let rawDonationsData = [];
     let currentActiveReceiptPath = "";
 
     async function fetchUserDonations() {
@@ -18,7 +18,6 @@
             showEmptyTable("No donations found or error connecting to server.");
         }
     }
-
     // 2. Render Donations Table
     function renderDonations(data) {
         const tbody = document.getElementById("donationTableBody");
@@ -28,7 +27,6 @@
             showEmptyTable("No donation records found.");
             return;
         }
-
         data.forEach(item => {
             const formattedDate = new Date(item.date).toLocaleDateString("en-US", {
                 year: 'numeric',
@@ -44,7 +42,6 @@
             if (isCash && item.reference_number) {
                 detailsHtml += `<p class="text-xs text-gray-400 mt-0.5">Ref No: ${item.reference_number}</p>`;
             }
-
             // Amount / items content
             const amountOrItems = isCash 
                 ? `₱ ${parseFloat(item.amount).toLocaleString('en-US', {minimumFractionDigits: 2})}`
@@ -258,7 +255,6 @@
             viewReceiptDirect(currentActiveReceiptPath);
         }
     }
-
     // Sidebar/Header Component Load Script
     async function loadComponent(id, file) {
         try {
@@ -269,7 +265,6 @@
             console.error(error);
         }
     }
-
     Promise.all([
         loadComponent("sidebar", "/user/userSidebar.html"),
         loadComponent("header", "/user/userHeader.html")
@@ -304,7 +299,6 @@
                 link.className = "nav-link flex items-center gap-4 px-5 py-4 rounded-2xl text-gray-800 hover:bg-blue-50 hover:text-blue-600 transition";
             }
         });
-
         fetchUserDonations();
         document.body.style.visibility = "visible";
     })

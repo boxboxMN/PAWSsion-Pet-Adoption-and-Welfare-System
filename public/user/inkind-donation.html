@@ -116,23 +116,18 @@
 </head>
 
 <body class="bg-gray-100 h-full overflow-hidden">
-
     <!-- ===== SIDEBAR ===== -->
     <div id="sidebar" class="fixed left-0 top-0 w-64 h-screen bg-white border-r border-gray-200 z-50"></div>
-
     <!-- ===== MAIN CONTENT ===== -->
     <main class="ml-64 pt-24 h-screen overflow-hidden bg-gray-50">
         <!-- ===== HEADER ===== -->
         <div id="header" class="fixed top-0 left-64 right-0 h-24 bg-white border-b border-gray-200 z-40"></div>
-
         <!-- ===== IN-KIND DONATION PAGE ===== -->
         <div class="h-[calc(100vh-6rem)] overflow-y-auto p-8">
-
             <!-- HEADER SECTION -->
             <div class="text-center mb-8">
                 <h1 class="text-4xl font-bold text-blue-700">Your Donation Makes a Difference</h1>
                 <p class="text-gray-600 mt-2">Help us continue our mission to care for and rehome animals in need</p>
-
                 <!-- Buttons -->
                 <div class="flex justify-center gap-4 mt-6">
                     <a href="/cash-donation" id="cashBtn" class="donation-btn border border-blue-700 text-blue-700 hover:bg-blue-700 hover:text-white px-8 py-3 rounded-lg font-medium inline-block">
@@ -143,23 +138,17 @@
                     </a>
                 </div>
             </div>
-
             <!-- MAIN CONTENT: 3 columns (left 2, right 1) -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
                 <!-- LEFT SIDE (2 cols) -->
                 <div class="lg:col-span-2 bg-white rounded-2xl shadow p-6">
-
                     <!-- ORGANIZATION SELECTION -->
                     <h2 class="text-xl font-bold mb-5">Step 1: Select Organization</h2>
-
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8" id="orgContainer">
                         <p class="text-gray-500 text-center col-span-3">Loading organizations...</p>
                     </div>
-
                     <!-- DONATIONS FORM -->
                     <h2 class="text-xl font-bold mb-5">Step 2: Donation Details</h2>
-
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
                         <div>
                             <label class="block text-sm font-semibold mb-2">
@@ -174,7 +163,6 @@
                             <input type="text" id="quantityInput" placeholder="e.g 5kg / 3 packs" class="w-full border rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500" />
                         </div>
                     </div>
-
                     <!-- Checkbox -->
                     <div class="flex items-start gap-3 mb-8">
                         <input type="checkbox" id="termsCheckbox" class="mt-1" />
@@ -182,23 +170,17 @@
                             By submitting this form, I agree to the organization in-kind donation guidelines and confirm that the information provided is accurate.
                         </p>
                     </div>
-
                     <!-- Submit Button -->
                     <button id="submitInKindBtn" class="w-full bg-blue-700 hover:bg-blue-800 text-white py-3 rounded-lg font-semibold transition">
                         Complete Donation
                     </button>
                 </div>
-
                 <!-- RIGHT SIDE (1 col) -->
                 <div class="bg-white rounded-2xl shadow p-6 h-fit">
-
                     <h2 class="text-xl font-bold text-blue-700 mb-4">Drop Off Location</h2>
-
                     <!-- Map / Image -->
                     <img id="dropoffImg" src="/assets/images/cspc.png" alt="location" class="w-full h-[180px] object-cover rounded-xl mb-5" />
-
                     <h3 id="dropoffTitle" class="text-lg font-semibold mb-4">Camarines Sur Polytechnic Colleges</h3>
-
                     <div class="space-y-4 text-sm text-gray-700">
                         <div class="flex items-start gap-3">
                             <span class="text-blue-700 text-lg">📍</span>
@@ -209,7 +191,6 @@
                             <p id="dropoffHours">Tuesday - Sunday 8:00 AM - 6:00 PM</p>
                         </div>
                     </div>
-
                     <!-- Important Notes -->
                     <div class="mt-8 border border-blue-300 rounded-xl p-4 bg-blue-50">
                         <h3 class="font-semibold text-blue-700 mb-2">Important Notes</h3>
@@ -217,16 +198,11 @@
                             Accepted items are subject to approval by the organization. Ensure that donations are clean, safe and in good condition.
                         </p>
                     </div>
-
                 </div>
             </div>
-
         </div>
-     
-        <div id="toastContainer" class="fixed bottom-5 right-5 z-[10000] flex flex-col gap-3 pointer-events-none"></div>
-
+    <div id="toastContainer" class="fixed bottom-5 right-5 z-[10000] flex flex-col gap-3 pointer-events-none"></div>
     </main>
-
     <!-- ===== ORGANIZATION PROFILE MODAL ===== -->
     <div id="orgModal" class="modal-overlay">
         <div class="modal-box">
@@ -248,7 +224,6 @@
             <button id="modalCloseBtn" class="mt-6 w-full bg-blue-700 hover:bg-blue-800 text-white py-2 rounded-lg transition">Close</button>
         </div>
     </div>
-<script src="/assets/js/in-kind-donation.js"></script>
+<script src="/assets/js/userIn-kind-donation.js"></script>
 </body>
-
 </html>

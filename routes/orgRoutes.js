@@ -1,8 +1,6 @@
 const express = require("express");
 const path = require("path");
 const pool = require("../config/database");
-
-// 1. IMPORT UPLOAD MIDDLEWARE (Dagdagan ng uploadDropoff)
 const { uploadPet, uploadQR, uploadDropoff } = require('../config/upload');
 
 // Controller functions
@@ -20,8 +18,8 @@ const {
     addInKindDonation, 
     getInKindDonations,
     updateInKindDonationStatus,
-    getDropoffInfo,    // <--- DAGDAG PARA SA DROPOFF
-    updateDropoffInfo  // <--- DAGDAG PARA SA DROPOFF
+    getDropoffInfo,   
+    updateDropoffInfo  
 } = require("../controllers/orgController");
 
 const router = express.Router();
@@ -108,30 +106,22 @@ router.put("/pets/update/:id", uploadPet.single("image"), updatePet);
 router.delete("/pets/delete/:id", deletePet);
 router.get("/pets/list", getPets);
 router.get("/pets/:id", getPetDetails);
-
 // Corrected donations route (serves GET /org/donations)
 router.get("/donations", getDonations);
-
 // 5. PAYMENT & QR ROUTES
 router.get("/payment-info", getPaymentInfo);
-router.post(
-    "/payment-info", 
-    uploadQR.fields([
+router.post( "/payment-info", uploadQR.fields
+    ([
         { name: "qr_code", maxCount: 1 },
         { name: "location_image", maxCount: 1 }
     ]), 
     updatePaymentInfo
 );
 router.put("/donations/:id/status", updateDonationStatus);
-
 // In-Kind Donations Routes
 router.get("/donations/in-kind", getInKindDonations);
 router.post("/donations/in-kind", uploadQR.single("proof"), addInKindDonation);
 router.put("/donations/in-kind/:id/status", updateInKindDonationStatus);
-
-// ==========================================
-// 6. DROPOFF DETAILS ROUTES (IDINAGDAG DITO)
-// ==========================================
 router.get("/dropoff-info", getDropoffInfo);
 router.post("/dropoff-info", uploadDropoff.single("dropoff_image"), updateDropoffInfo);
 
