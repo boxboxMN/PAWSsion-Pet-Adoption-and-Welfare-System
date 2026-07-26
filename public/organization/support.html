@@ -4,8 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Organization Dashboard</title>
-    <script src="https://cdn.tailwindcss.com">
-    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <script src="../assets/js/orgSidebar.js"></script>
     <script src="../assets/js/orgTopbar.js"></script>
@@ -20,7 +19,250 @@
     <main id="mainContent"
     data-sidebar-collapsed="false"
     class="pt-28 pb-12 px-4 md:px-8 transition-all duration-200 ease-in-out left-0 md:ml-[280px] data-[sidebar-collapsed=true]:md:ml-20">
-    <!-- 👇 Nothing here – just the bare structural container -->
+    
+
+    <div class="max-w-7xl mx-auto">
+        <!-- Hero -->
+        <div class="bg-gradient-to-r from-blue-900 to-indigo-900 rounded-3xl p-8 text-white shadow-lg">
+            <div class="flex items-center gap-5">
+                <div class="w-20 h-20 rounded-2xl bg-white/10 flex items-center justify-center text-4xl">
+                    <i class="fa-solid fa-headset"></i>
+                </div>
+
+                <div>
+                    <h1 class="text-3xl font-bold"> Organization Support Center </h1>
+                    <p class="text-blue-100 mt-2 max-w-3xl leading-relaxed"> Need assistance? Browse frequently asked questions, find our contact information, or send us a message. We're here to help you manage your organization efficiently.</p>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Quick Help -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-5">
+            <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+                <div class="flex items-center gap-4 mb-5">
+                    <div class="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center text-blue-700 text-xl">
+                        <i class="fa-solid fa-book-open"></i>
+                    </div>
+                    <h3 class="font-bold text-lg text-gray-800"> User Guide </h3>
+                </div>
+                    <p class="text-gray-500 text-sm mt-2 leading-6">Learn how to manage pets, donations, and adoption requests using Pawpon. </p>
+            </div>
+
+            <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+                <div class="flex items-center gap-4 mb-5">
+                    <div class="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center text-green-700 text-xl">
+                        <i class="fa-solid fa-phone"></i>
+                    </div>
+                    <h3 class="font-bold text-lg text-gray-800"> Contact Us </h3>
+                </div>
+                    <p class="text-gray-500 text-sm leading-6"> Reach our support team through email or phone whenever you need assistance.  </p>
+            </div>
+
+            <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+
+            <div class="flex items-center gap-4 mb-5">
+                <div class="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center text-amber-700 text-xl">
+                    <i class="fa-solid fa-comments"></i>
+                </div>
+                    <h3 class="font-bold text-lg text-gray-800"> Send Feedback </h3>
+                </div>
+                <p class="text-gray-500 text-sm leading-6"> Help us improve Pawpon by reporting issues or suggesting new features. </p>
+            </div>
+
+        </div> 
+
+        <!-- FAQ + Contact -->
+        <div class="grid grid-cols-1 xl:grid-cols-2 gap-6 mt-5">
+            <!-- Frequently Asked Questions -->
+            <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-7">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center text-blue-700 text-xl">
+                        <i class="fa-solid fa-circle-question"></i>
+                    </div>
+
+                    <div>
+                        <h2 class="text-xl font-bold text-gray-800">Frequently Asked Questions</h2>
+                        <p class="text-sm text-gray-500">Common questions from organizations.</p>
+                    </div>
+                </div>
+
+                <div class="space-y-3">
+                    <!-- FAQ 1 -->
+                    <div class="border border-gray-200 rounded-xl overflow-hidden">
+                        <button class="faq-btn w-full flex justify-between items-center px-5 py-4 text-left hover:bg-gray-50 transition">
+                            <span class="font-semibold text-gray-800">How do I add a new pet?</span>
+                            <i class="fa-solid fa-chevron-down transition-transform duration-300"></i>
+                        </button>
+                        <div class="faq-content hidden px-5 pb-5 text-sm text-gray-500 leading-6">
+                            Go to the <strong>Pets</strong> module and click <strong>Add Pet</strong>. Complete all required information and save the pet profile.
+                        </div>
+                    </div>
+
+                    <!-- FAQ 2 -->
+                    <div class="border border-gray-200 rounded-xl overflow-hidden">
+                        <button class="faq-btn w-full flex justify-between items-center px-5 py-4 text-left hover:bg-gray-50 transition">
+                            <span class="font-semibold text-gray-800">Why isn't my pet visible to adopters?</span>
+                            <i class="fa-solid fa-chevron-down transition-transform duration-300"></i>
+                        </button>
+                        <div class="faq-content hidden px-5 pb-5 text-sm text-gray-500 leading-6">
+                            Make sure the pet profile is complete, has an uploaded image, and its status is marked as <strong>Available</strong>.
+                        </div>
+                    </div>
+
+                    <!-- FAQ 3 -->
+                    <div class="border border-gray-200 rounded-xl overflow-hidden">
+                        <button class="faq-btn w-full flex justify-between items-center px-5 py-4 text-left hover:bg-gray-50 transition">
+                            <span class="font-semibold text-gray-800">How can I receive donations?</span>
+                            <i class="fa-solid fa-chevron-down transition-transform duration-300"></i>
+                        </button>
+                        <div class="faq-content hidden px-5 pb-5 text-sm text-gray-500 leading-6">
+                            Configure your organization's donation information in the <strong>Donation</strong> module, including payment methods and QR codes.
+                        </div>
+                    </div>
+
+                    <!-- FAQ 4 -->
+                    <div class="border border-gray-200 rounded-xl overflow-hidden">
+                        <button class="faq-btn w-full flex justify-between items-center px-5 py-4 text-left hover:bg-gray-50 transition">
+                            <span class="font-semibold text-gray-800">How does the pet matching feature work?</span>
+                            <i class="fa-solid fa-chevron-down transition-transform duration-300"></i>
+                        </button>
+                        <div class="faq-content hidden px-5 pb-5 text-sm text-gray-500 leading-6">
+                            Pawpon compares adopter preferences with your pet's profile and personality information to recommend suitable matches.
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+           
+            <!-- Contact Support -->
+            <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-7">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center text-green-700 text-xl">
+                        <i class="fa-solid fa-headset"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-bold text-gray-800">Contact Support</h2>
+                        <p class="text-sm text-gray-500">Reach our support team using the information below.</p>
+                    </div>
+                </div>
+
+                <div class="space-y-6">
+                    <div class="flex gap-4">
+                        <div class="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center text-blue-700">
+                            <i class="fa-solid fa-envelope"></i>
+                        </div>
+                        <div>
+                            <p class="font-semibold text-gray-800">Email Address</p>
+                            <p class="text-sm text-gray-500 mt-1">support@pawpon.com</p>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-4">
+                        <div class="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-700">
+                            <i class="fa-solid fa-phone"></i>
+                        </div>
+                        <div>
+                            <p class="font-semibold text-gray-800">Contact Number</p>
+                            <p class="text-sm text-gray-500 mt-1">(+63) 912 345 6789</p>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-4">
+                        <div class="w-12 h-12 rounded-xl bg-orange-50 flex items-center justify-center text-orange-600">
+                            <i class="fa-solid fa-clock"></i>
+                        </div>
+                        <div>
+                            <p class="font-semibold text-gray-800">Support Hours</p>
+                            <p class="text-sm text-gray-500 mt-1">Monday – Friday<br>8:00 AM – 5:00 PM</p>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-4">
+                        <div class="w-12 h-12 rounded-xl bg-purple-50 flex items-center justify-center text-purple-600">
+                            <i class="fa-solid fa-location-dot"></i>
+                        </div>
+                        <div>
+                            <p class="font-semibold text-gray-800">Office</p>
+                            <p class="text-sm text-gray-500 mt-1">Pawpon Support Center<br>Philippines</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+
+        <!-- Send Message -->
+        <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 mt-6">
+
+            <!-- Header -->
+            <div class="flex items-center gap-3 mb-5">
+                <div class="w-11 h-11 rounded-xl bg-blue-100 flex items-center justify-center text-blue-700">
+                    <i class="fa-solid fa-paper-plane text-lg"></i>
+                </div>
+
+                <div>
+                    <h2 class="text-lg font-bold text-gray-800">Send Us a Message</h2>
+                    <p class="text-sm text-gray-500">Can't find what you're looking for? Send us your concern and we'll respond as soon as possible.</p>
+                </div>
+            </div>
+
+            <form class="space-y-5">
+
+                <!-- Subject + Category -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Subject</label>
+                        <input type="text" placeholder="Enter subject" class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Category</label>
+                        <select class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option>General Inquiry</option>
+                            <option>Technical Issue</option>
+                            <option>Pet Management</option>
+                            <option>Donations</option>
+                            <option>Adoption Requests</option>
+                            <option>Other</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Message -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Message</label>
+                    <textarea rows="5" placeholder="Describe your concern or question..." class="w-full border border-gray-300 rounded-lg px-3 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                </div>
+
+                <!-- Button -->
+                <div class="flex justify-end">
+                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 transition text-white px-6 py-2.5 rounded-lg font-semibold text-sm shadow-sm">
+                        <i class="fa-solid fa-paper-plane mr-2"></i>Send Message
+                    </button>
+                </div>
+
+            </form>
+
+        </div>
+
+        <!-- Bottom Note -->
+        <div class="mt-5 bg-blue-50 border border-blue-200 rounded-xl p-5">
+
+            <div class="flex items-start gap-3">
+                <div class="w-10 h-10 rounded-lg bg-blue-600 text-white flex items-center justify-center flex-shrink-0">
+                    <i class="fa-solid fa-lightbulb text-sm"></i>
+                </div>
+
+                <div>
+                    <h3 class="text-base font-bold text-blue-900">Need Immediate Assistance?</h3>
+                    <p class="text-sm text-gray-600 mt-1 leading-6">Before contacting support, check the <strong>Frequently Asked Questions</strong> above. They cover the most common concerns about managing pets, adoption requests, and donations. If you still need assistance, feel free to send us a message or contact our support team.</p>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
 
     <!--Logout Modal-->
     <div id="logoutModal" class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/45 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-200">
@@ -57,7 +299,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         subtitle: "Get help and support for your organization"
     });
 
-    await loadSidebar("dashboard");
+   await loadSidebar("support");
 
     // ==========================
     // Load Organization Name
@@ -87,6 +329,15 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
 });
+document.querySelectorAll(".faq-btn").forEach(button => {
+    button.addEventListener("click", () => {
+        const content = button.nextElementSibling;
+        const icon = button.querySelector("i");
+        content.classList.toggle("hidden");
+        icon.classList.toggle("rotate-180");
+    });
+});
+
 </script>
 <script src="/assets/js/orgProfile.js"></script> 
 </body>
