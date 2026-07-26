@@ -17,81 +17,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet" />
-
-    <style>
-         *{
-    box-sizing:border-box;
-}
-
-html{
-    scroll-behavior:smooth;
-}
-
-body{
-    margin:0;
-    overscroll-behavior:none;
-    visibility: hidden;
-
-}
-#sidebar,
-#header{
-    visibility:hidden;
-}
-
-        input:focus {
-            outline: none;
-            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
-        }
-        .field-disabled {
-            background-color: #f9fafb;
-            color: #374151;
-        }
-        .transition-custom {
-            transition: all 0.2s;
-        }
-
-        /* Avatar edit overlay */
-        .avatar-container {
-            position: relative;
-            cursor: default;
-        }
-        .avatar-container .avatar-overlay {
-            position: absolute;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.5);
-            border-radius: 50%;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 24px;
-            transition: all 0.3s;
-        }
-        .avatar-container.editable .avatar-overlay {
-            display: flex;
-            cursor: pointer;
-        }
-        .avatar-container.editable .avatar-overlay:hover {
-            background: rgba(0, 0, 0, 0.65);
-        }
-        .avatar-container img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            border-radius: 50%;
-        }
-        .avatar-container .avatar-placeholder {
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            background: #dbeafe;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #2563eb;
-            font-size: 44px;
-        }
-    </style>
+    <link rel="stylesheet" href="/assets/css/userProfile.css">
 </head>
 
 <body class="bg-gray-100 h-full overflow-hidden">
@@ -102,202 +28,186 @@ body{
         class="fixed left-0 top-0 w-64 h-screen bg-white border-r border-gray-200 z-50">
     </div>
     <!-- ===== MAIN CONTENT ===== -->
-    <main class="ml-64 pt-24 h-screen overflow-hidden bg-gray-50">
+    <main class="ml-64 pt-24 h-screen overflow-hidden bg-slate-100">
 
         <!-- ===== HEADER ===== -->
-        <div
-            id="header"
-            class="fixed top-0 left-64 right-0 h-24 bg-white border-b border-gray-200 z-40">
-        </div>
+        <div id="header" class="fixed top-0 left-64 right-0 h-24 bg-white border-b border-slate-200 z-40"></div>
 
         <!-- ===== PROFILE PAGE ===== -->
-         <div class="h-[calc(100vh-6rem)] overflow-y-auto p-8">
+        <div class="h-[calc(100vh-6rem)] overflow-y-auto p-6">
 
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 max-w-5xl mx-auto">
-                <!-- ===== TOP PROFILE ===== -->
-                <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-6">
+            <div class="max-w-6xl mx-auto space-y-5">
 
-                    <!-- LEFT: Avatar & Name -->
-                    <div class="flex items-center gap-5">
-                        <!-- Avatar container -->
-                        <div class="avatar-container w-24 h-24 flex-shrink-0" id="avatarContainer">
-                            <div id="avatarDisplay" class="avatar-placeholder">
-                                <i class="fas fa-user"></i>
-                            </div>
-                            <div class="avatar-overlay" id="avatarOverlay">
-                                <i class="fas fa-camera"></i>
-                            </div>
-                            <input type="file" id="avatarInput" accept="image/*" class="hidden" />
-                        </div>
+                <!-- ================= PROFILE HEADER ================= -->
+                <div class="bg-gradient-to-r from-blue-900 via-blue-800 to-blue-700 rounded-3xl shadow-lg overflow-hidden">
 
-                        <div>
-                            <h1 id="display-name" class="text-3xl font-bold text-gray-800">Jhyzeel Dianela</h1>
+                    <div class="p-7 flex flex-col lg:flex-row justify-between items-center gap-6">
 
-                            <div class="mt-2 inline-flex items-center gap-2 bg-blue-100 text-blue-600 px-3 py-1 rounded-full text-sm">
-                                <i class="fas fa-user text-xs"></i>
-                                <span id="display-account-type">User</span>
+                        <div class="flex items-center gap-5">
+
+                            <!-- Avatar -->
+                            <div id="avatarContainer" class="avatar-container w-28 h-28 rounded-full bg-white/10 backdrop-blur border-4 border-white/30 overflow-hidden flex-shrink-0 shadow-lg">
+                                <div id="avatarDisplay" class="avatar-placeholder">
+                                    <i class="fas fa-user text-white text-4xl"></i>
+                                </div>
+
+                                <div id="avatarOverlay" class="avatar-overlay">
+                                    <i class="fas fa-camera"></i>
+                                </div>
+
+                                <input id="avatarInput" type="file" accept="image/*" class="hidden">
                             </div>
 
-                            <div class="flex items-center gap-2 mt-4 text-gray-500 text-sm">
-                                <i class="fas fa-calendar-alt"></i>
-                                <span>Member since February 20, 2026</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div id="action-buttons">
-                        <!-- Edit button (visible when not editing) -->
-                        <button id="edit-btn" class="flex items-center gap-2 border border-blue-500 text-blue-500 px-4 py-2 rounded-lg hover:bg-blue-50 transition-custom">
-                            <i class="fas fa-edit"></i>
-                            Edit Profile
-                        </button>
-                        <div id="edit-actions" class="hidden flex gap-3">
-                            <button id="save-btn" class="flex items-center gap-2 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-custom">
-                                <i class="fas fa-save"></i>
-                                Save
-                            </button>
-                            <button id="cancel-btn" class="flex items-center gap-2 border border-red-400 text-red-500 px-4 py-2 rounded-lg hover:bg-red-50 transition-custom">
-                                <i class="fas fa-times"></i>
-                                Cancel
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                <div class="mt-10">
-                    <div class="flex items-center gap-3 mb-6">
-                        <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-500">
-                            <i class="fas fa-user"></i>
-                        </div>
-                        <h2 class="text-xl font-semibold text-gray-800">Personal Information</h2>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label class="block text-sm text-gray-600 mb-2">Full Name</label>
-                            <div id="full-name-display" class="border border-gray-200 rounded-xl px-4 py-3 bg-gray-50">
-                                Jhyzeel Dianela
-                            </div>
-                            <input id="full-name-input" type="text" value="Jhyzeel Dianela" class="hidden w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-300" />
-                        </div>
-
-                        <!-- EMAIL -->
-                        <div>
-                            <label class="block text-sm text-gray-600 mb-2">Email Address</label>
-                            <div id="email-display" class="border border-gray-200 rounded-xl px-4 py-3 bg-gray-50">
-                                jhdianela@gmail.com
-                            </div>
-                            <input id="email-input" type="email" value="jhdianela@gmail.com" class="hidden w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-300" />
-                        </div>
-
-                        <!-- MOBILE -->
-                        <div>
-                            <label class="block text-sm text-gray-600 mb-2">Mobile Number</label>
-                            <div id="mobile-display" class="border border-gray-200 rounded-xl px-4 py-3 bg-gray-50">
-                                09924974712
-                            </div>
-                            <input id="mobile-input" type="text" value="09924974712" class="hidden w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-300" />
-                        </div>
-
-                        <!-- ACCOUNT TYPE -->
-                        <div>
-                            <label class="block text-sm text-gray-600 mb-2">Account Type</label>
-                            <div class="border border-gray-200 rounded-xl px-4 py-3 bg-gray-50">
-                                User
-                            </div>
-                        </div>
-
-                    </div>
-                </div>
-                <div class="mt-10 border border-gray-200 rounded-2xl p-5">
-
-                    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-
-                        <div class="flex items-center gap-4">
-                            <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-500">
-                                <i class="fas fa-shield-alt"></i>
-                            </div>
                             <div>
-                                <h3 class="font-semibold text-gray-800">Account Security</h3>
-                                <p class="text-sm text-gray-500">Keep your account secure and updated</p>
+                                <h1 id="display-name" class="text-3xl font-bold text-white">Jhyzeel Dianela</h1>
+
+                                <div class="inline-flex items-center gap-2 mt-3 px-3 py-1 rounded-full bg-white/20 text-white text-sm">
+                                    <i class="fas fa-user text-xs"></i>
+                                    <span id="display-account-type">User</span>
+                                </div>
+
+                                <div class="flex items-center gap-2 mt-4 text-blue-100 text-sm">
+                                    <i class="fas fa-calendar-alt"></i>
+                                    <span>Member since February 20, 2026</span>
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <!-- Buttons -->
+                        <div id="action-buttons">
+                            <button id="edit-btn" class="px-5 py-2.5 rounded-xl bg-white text-blue-800 font-semibold shadow hover:scale-[1.02] transition">
+                                <i class="fas fa-edit mr-2"></i>Edit Profile
+                            </button>
+
+                            <div id="edit-actions" class="hidden flex gap-3">
+                                <button id="save-btn" class="px-5 py-2.5 rounded-xl bg-emerald-500 text-white font-semibold hover:bg-emerald-600 transition">
+                                    <i class="fas fa-save mr-2"></i>Save
+                                </button>
+
+                                <button id="cancel-btn" class="px-5 py-2.5 rounded-xl bg-red-500 text-white font-semibold hover:bg-red-600 transition">
+                                    <i class="fas fa-times mr-2"></i>Cancel
+                                </button>
                             </div>
                         </div>
 
-                        <button id="toggle-password-btn" class="flex items-center gap-2 border border-blue-500 text-blue-500 px-4 py-2 rounded-lg hover:bg-blue-50 transition-custom">
-                            <i class="fas fa-lock"></i>
-                            Change Password
-                        </button>
                     </div>
 
-                    <!-- PASSWORD FORM (hidden by default) -->
-                    <div id="password-form" class="hidden mt-6 grid grid-cols-1 gap-4">
+                </div>
 
-                        <input id="current-password" type="password" placeholder="Current Password" class="border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-300" />
+                <!-- ================= BENTO GRID ================= -->
+                <div class="grid grid-cols-12 gap-5">
 
-                        <input id="new-password" type="password" placeholder="New Password" class="border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-300" />
+                    <!-- PERSONAL INFO -->
+                    <div class="col-span-12 lg:col-span-8 bg-white rounded-3xl border border-slate-200 shadow-sm">
 
-                        <input id="confirm-password" type="password" placeholder="Confirm New Password" class="border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-300" />
+                        <div class="px-6 py-4 border-b border-slate-100">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center">
+                                    <i class="fas fa-user"></i>
+                                </div>
 
-                        <button id="update-password-btn" class="bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-xl transition-custom">
-                            Update Password
-                        </button>
+                                <h2 class="font-bold text-lg text-slate-800">Personal Information</h2>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 p-5">
+
+                            <!-- Full Name -->
+                            <div class="rounded-2xl bg-slate-50 border border-slate-200 p-4">
+                                <label class="text-xs uppercase tracking-wider text-slate-500 font-semibold">Full Name</label>
+                                <div id="full-name-display" class="mt-2 text-slate-800 font-semibold">Jhyzeel Dianela</div>
+                                <input id="full-name-input" type="text" class="hidden w-full mt-2 border border-slate-300 rounded-xl px-3 py-2 focus:ring-2 focus:ring-blue-300">
+                            </div>
+
+                            <!-- Email -->
+                            <div class="rounded-2xl bg-slate-50 border border-slate-200 p-4">
+                                <label class="text-xs uppercase tracking-wider text-slate-500 font-semibold">Email</label>
+                                <div id="email-display" class="mt-2 text-slate-800 font-semibold">jhdianela@gmail.com</div>
+                                <input id="email-input" type="email" class="hidden w-full mt-2 border border-slate-300 rounded-xl px-3 py-2 focus:ring-2 focus:ring-blue-300">
+                            </div>
+
+                            <!-- Mobile -->
+                            <div class="rounded-2xl bg-slate-50 border border-slate-200 p-4">
+                                <label class="text-xs uppercase tracking-wider text-slate-500 font-semibold">Mobile Number</label>
+                                <div id="mobile-display" class="mt-2 text-slate-800 font-semibold">09924974712</div>
+                                <input id="mobile-input" type="text" class="hidden w-full mt-2 border border-slate-300 rounded-xl px-3 py-2 focus:ring-2 focus:ring-blue-300">
+                            </div>
+
+                            <!-- Account -->
+                            <div class="rounded-2xl bg-slate-50 border border-slate-200 p-4">
+                                <label class="text-xs uppercase tracking-wider text-slate-500 font-semibold">Account Type</label>
+                                <div class="mt-2 text-slate-800 font-semibold">User</div>
+                            </div>
+
+                        </div>
+
                     </div>
+
+                    <!-- SECURITY -->
+                    <div class="col-span-12 lg:col-span-4 bg-white rounded-3xl border border-slate-200 shadow-sm flex flex-col">
+
+                        <div class="px-6 py-4 border-b border-slate-100">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
+                                    <i class="fas fa-shield-alt"></i>
+                                </div>
+
+                                <div>
+                                    <h3 class="font-bold text-slate-800">Account Security</h3>
+                                    <p class="text-xs text-slate-500">Protect your account</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="p-5 flex flex-col gap-5">
+                            <button id="toggle-password-btn" class="w-full bg-blue-700 hover:bg-blue-800 text-white rounded-xl py-3 font-semibold transition">
+                                <i class="fas fa-lock mr-2"></i>Change Password
+                            </button>
+
+                            <div id="password-form" class="hidden space-y-3">
+                                <input id="current-password" type="password" placeholder="Current Password" class="w-full rounded-xl border border-slate-300 px-4 py-3">
+                                <input id="new-password" type="password" placeholder="New Password" class="w-full rounded-xl border border-slate-300 px-4 py-3">
+                                <input id="confirm-password" type="password" placeholder="Confirm New Password" class="w-full rounded-xl border border-slate-300 px-4 py-3">
+
+                                <button id="update-password-btn" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl py-3 font-semibold transition">Update Password</button>
+                            </div>
+                        </div>
+
+                    </div>
+
                 </div>
 
             </div>
+
         </div>
 
     </main>
-   <script>
-        async function loadComponent(id, file) {
-            try {
-                const response = await fetch(file);
-                if (!response.ok) {
-                    throw new Error(`Cannot load ${file}`);
-                }
-                document.getElementById(id).innerHTML = await response.text();
-            } catch (error) {
-                console.error(error);
-            }
-        }
+<script src="/assets/js/userSidebar.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", async () => {
+    try {
+        // Load sidebar/header
+        await loadSidebar();
 
-        Promise.all([
-            loadComponent("sidebar", "/user/userSidebar.html"),
-            loadComponent("header", "/user/userHeader.html")
-        ])
-        .then(() => {
-            
-            document.getElementById("sidebar").style.visibility = "visible";
-            document.getElementById("header").style.visibility = "visible";
-
-            const currentPath = window.location.pathname;
-            const pageTitle = document.getElementById("pageTitle");
-            const customTitles = {
-                "/profile": "Profile",
-                "/cash-donation": "Donation",
-                "/inkind-donation": "Donation"
-            };
-            if (pageTitle && customTitles[currentPath]) {
-                pageTitle.textContent = customTitles[currentPath];
-            }
-
-            const links = document.querySelectorAll("#sidebar .nav-link");
-            links.forEach(link => {
-                const href = link.getAttribute("href");
-                const isActive = href === currentPath || (href !== "/dashboard" && currentPath.startsWith(href));
-
-                if (isActive) {
-                    link.className = "nav-link flex items-center gap-4 px-5 py-4 rounded-2xl bg-blue-600 text-white shadow";
-                    if (pageTitle && !customTitles[currentPath]) {
-                        pageTitle.textContent = link.dataset.title;
-                    }
-                } else {
-                    link.className = "nav-link flex items-center gap-4 px-5 py-4 rounded-2xl text-gray-800 hover:bg-blue-50 hover:text-blue-600 transition";
-                }
+        // Wait until the header is rendered
+        requestAnimationFrame(async () => {
+            await loadTopbar({
+                title: "User Profile",
+                subtitle: "Share updates about your adopted pet."
             });
 
-            document.body.style.visibility = "visible";
-        })
-        .catch(error => console.error(error));
+            await fetchProfileData();
+            setAvatarEditMode(false);
 
+            document.body.style.visibility = "visible";
+        });
+
+    } catch (error) {
+        console.error("Error initializing page:", error);
+        document.body.style.visibility = "visible";
+    }
+});
         let isEditing = false;
         let isPasswordFormVisible = false;
 
@@ -379,10 +289,6 @@ body{
             }
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            fetchProfileData();
-            setAvatarEditMode(false);
-        });
 
  
        function enterEditMode() {
