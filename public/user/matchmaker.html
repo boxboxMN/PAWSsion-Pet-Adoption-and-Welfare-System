@@ -75,11 +75,11 @@
                 </div>
             </section>
 
-            <section id="preferenceScreen" class="hidden px-8 pt-2 pb-8 max-w-6xl mx-auto">
-                <h1 class="text-3xl font-bold text-blue-700">Pet Preferences</h1>
-                <p class="text-gray-600 mt-2">Basic criteria to help the system filter the initial animal list.</p>
+            <section id="preferenceScreen" class="hidden max-w-screen-2xl mx-auto mt-0">
+                <h1 class="text-3xl font-bold text-blue-700 -mt-5">Pet Preferences</h1>
+                <p class="text-gray-600 text-s mt-0">Basic criteria to help the system filter the initial animal list.</p>
 
-                <form class="grid grid-cols-1 md:grid-cols-3 gap-8 mt-5">
+                <form class="grid grid-cols-1 md:grid-cols-3 gap-8 mt-8">
                     <div>
                         <label class="font-medium">Type <span class="text-red-500">*</span></label>
                         <select class="w-full border rounded-lg px-4 py-3 mt-2" id="type">
@@ -111,7 +111,7 @@
                 </form>
 
                 <div class="mt-10">
-                    <p class="font-medium mb-4">Tell us about your ideal pet. The more details you provide about their behavior and traits, the better we can match you.</p>
+                    <p class="font-medium mb-4">Tell us about your ideal pet. The more details you provide about their behavior and traits, the better we can match you.<span class="text-red-500">*</span></p>
                     <textarea rows="5" id="behavior" class="w-full border rounded-xl p-4" placeholder="Describe your ideal pet...&#10;&#10;e.g., I would like a friendly, playful, and affectionate young cat that enjoys being around people. It should be comfortable living indoors, get along with other pets, and not require too much grooming."></textarea>
                     
                     <p class="text-sm text-gray-500 mt-3 text-justify ">
@@ -119,6 +119,11 @@
                         Please use standard spelling and avoid slang, abbreviations, or emojis. 
                         To receive more accurate matches,describe your ideal pet using at least 3–5 meaningful words or a complete sentence that explains its <strong> personality, behavior, and traits <i>(e.g., friendly, playful, affectionate, gentle, and good with children).</i></strong>
                         Very short descriptions or single-word inputs may result in less accurate recommendations.
+                    </p>
+                    <p id="validationMessage"
+                    class="hidden mt-5 flex items-center justify-center gap-2 rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+                        <i class="fas fa-exclamation-circle"></i>
+                        Please fill in all required fields before continuing.
                     </p>
                     <div class="mt-10 flex justify-center gap-6">
                         <button
@@ -143,27 +148,27 @@
                 </div>
             </section>
 
-            <section id="compatibilityScreen" class="hidden px-8 pt-1 pb-8 max-w-7xl mx-auto">
-                <h1 class="text-3xl font-bold text-blue-700">Compatibility Results</h1>
-                <p class="text-gray-600 mt-2">Based on your preferences, here are the pets that best match your criteria.</p>
+            <section id="compatibilityScreen" class="hidden max-w-screen-2xl mx-auto -mt-5">
+                        <h1 class="text-2xl font-bold text-blue-700">Compatibility Results</h1>
+                        <p class="text-gray-600 text-xs -mt-0">
+                            Based on your preferences, here are the pets that best match your criteria.
+                        </p>
 
-                <div class="mt-10 grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
-                    <!-- Example pet card -->
-                    <div class="bg-white rounded-xl shadow-md p-5">
-                        <img src="/assets/images/dog_example.jpg" alt="Pet Image" class="w-full h-48 object-cover rounded-lg">
-                        <h2 class="text-xl font-bold mt-4">Buddy</h2>
-                        <p class="text-gray-600">Friendly and playful dog, loves to run and play fetch.</p>
-                        <button class="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">View Profile</button>
+                        <div class="mt-5 grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
+                            <!-- Cards -->
+                        </div>
+
+                        <div class="mt-10 flex justify-center">
+                            <button
+                                type="button"
+                                id="compatibilityRestartBtn"
+                                class="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-8 py-3 text-base font-semibold text-white shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:bg-blue-700 hover:shadow-lg active:scale-95">
+                                <i class="fas fa-rotate-right"></i>
+                                Match Again
+                            </button>
+                        </div>
+
                     </div>
-                    <!-- Repeat for other pets -->
-                </div>
-                <div class="mt-10 flex justify-center gap-6">
-                    <button
-                        type="button"
-                        id="compatibilityRestartBtn"
-                        class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg">
-                        Match Again
-                    </button>
                 </div>
 
                 <div class="flex justify-center gap-3 mt-8">
