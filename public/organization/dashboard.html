@@ -19,10 +19,10 @@
 
     <main 
         id="mainContent" 
-        class="pt-28 pb-12 px-4 md:px-8 transition-all duration-200 ease-in-out left-0 md:ml-[280px]"
-    >
+        class="pt-28 pb-12 px-4 md:px-8 transition-all duration-200 ease-in-out left-0 md:ml-[280px]">
+
         <div class="bg-gradient-to-r from-blue-900 to-indigo-950 rounded-2xl p-6 md:p-8 shadow-md border border-blue-950/20 relative overflow-hidden group">
-            <div class="absolute -right-10 -top-10 w-40 h-40 bg-white/5 rounded-full blur-2xl group-hover:bg-white/10 transition duration-500"></div>
+            <div class="absolute -right-10 -top-20 w-40 h-40 bg-white/5 rounded-full blur-2xl group-hover:bg-white/10 transition duration-500"></div>
             <div class="relative z-10">
                 <h2 class="text-2xl md:text-3xl font-bold text-white tracking-tight">
                     Welcome back,
@@ -37,48 +37,58 @@
         </div>
 
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-5 mt-6">
-            <div class="bg-white rounded-2xl p-5 border border-gray-200/60 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition duration-200">
-                <div class="w-12 h-12 rounded-xl flex items-center justify-center bg-blue-50 text-blue-900 text-xl mb-4 ring-4 ring-blue-50/50">
-                    <i class="fa-solid fa-paw"></i>
+            <!-- Total Pets -->
+            <div class="bg-white rounded-2xl p-5 border border-gray-200/60 shadow-sm hover:shadow-md transition">
+                <div class="flex items-center gap-4 mb-5">
+                    <div class="w-16 h-16 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-900 text-2xl ring-4 ring-blue-100/50">
+                        <i class="fa-solid fa-paw"></i>
+                    </div>
+                    <div id="totalPets" class="text-4xl font-extrabold text-gray-900">0</div>
                 </div>
-                <div id="totalPets" class="text-3xl font-extrabold text-gray-900 tracking-tight"> 0 </div>
-                <div class="text-sm font-semibold text-gray-700 mt-1">Total Pets</div>
-                <div class="text-xs text-emerald-600 font-medium mt-1 flex items-center gap-1">
-                    <span class="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Ready for adoption
-                </div>
+
+                <h3 class="text-lg font-bold text-gray-800">Total Pets</h3>
+                <p class="text-sm text-gray-400 mt-1">Registered animals</p>
             </div>
 
-            <div class="bg-white rounded-2xl p-5 border border-gray-200/60 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition duration-200">
-                <div class="w-12 h-12 rounded-xl flex items-center justify-center bg-amber-50 text-amber-600 text-xl mb-4 ring-4 ring-amber-50/50">
-                    <i class="fa-solid fa-clock"></i>
+            <!-- Pending -->
+            <div class="bg-white rounded-2xl p-5 border border-gray-200/60 shadow-sm hover:shadow-md transition">
+                <div class="flex items-center gap-4 mb-5">
+                    <div class="w-16 h-16 rounded-2xl bg-amber-50 flex items-center justify-center text-amber-600 text-2xl ring-4 ring-amber-100/50">
+                        <i class="fa-solid fa-clock"></i>
+                    </div>
+                    <div id="pendingAdoptions" class="text-4xl font-extrabold text-gray-900">0</div>
                 </div>
-               <div id="pendingAdoptions" class="text-3xl font-extrabold text-gray-900 tracking-tight"> 0 </div>
-                <div class="text-sm font-semibold text-gray-700 mt-1">Pending Adoption</div>
-                <div class="text-xs text-amber-500 font-medium mt-1">Awaiting application review</div>
+
+                <h3 class="text-lg font-bold text-gray-800">Pending Adoptions</h3>
+                <p class="text-sm text-gray-400 mt-1">Awaiting review</p>
             </div>
 
-            <div class="bg-white rounded-2xl p-5 border border-gray-200/60 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition duration-200">
-                <div class="w-12 h-12 rounded-xl flex items-center justify-center bg-emerald-50 text-emerald-600 text-xl mb-4 ring-4 ring-emerald-50/50">
-                    <i class="fa-solid fa-hand-holding-dollar"></i>
+            <!-- Donations -->
+            <div class="bg-white rounded-2xl p-5 border border-gray-200/60 shadow-sm hover:shadow-md transition">
+                <div class="flex items-center gap-4 mb-5">
+                    <div class="w-16 h-16 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-600 text-2xl ring-4 ring-emerald-100/50">
+                        <i class="fa-solid fa-hand-holding-dollar"></i>
+                    </div>
+                    <div id="totalDonations" class="text-4xl font-extrabold text-gray-900">₱0</div>
                 </div>
-                <div id="totalDonations" class="text-3xl font-extrabold text-gray-900 tracking-tight"> ₱0 </div>
-                <div class="text-sm font-semibold text-gray-700 mt-1">Total Donations</div>
-                <div class="text-xs text-gray-400 mt-1 flex flex-wrap items-center gap-1">
-                    this month
-                    <span class="text-emerald-600 font-bold whitespace-nowrap bg-emerald-50 px-1.5 py-0.5 rounded text-[10px]">
-                        <i class="fa-solid fa-arrow-up"></i> +₱1,000
-                    </span>
-                </div>
+
+                <h3 class="text-lg font-bold text-gray-800">Total Donations</h3>
+                <p class="text-sm text-gray-400 mt-1">Approved cash donations</p>
             </div>
 
-            <div class="bg-white rounded-2xl p-5 border border-gray-200/60 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition duration-200">
-                <div class="w-12 h-12 rounded-xl flex items-center justify-center bg-purple-50 text-purple-600 text-xl mb-4 ring-4 ring-purple-50/50">
-                    <i class="fa-solid fa-heart"></i>
+            <!-- Adopted -->
+            <div class="bg-white rounded-2xl p-5 border border-gray-200/60 shadow-sm hover:shadow-md transition">
+                <div class="flex items-center gap-4 mb-5">
+                    <div class="w-16 h-16 rounded-2xl bg-purple-50 flex items-center justify-center text-purple-600 text-2xl ring-4 ring-purple-100/50">
+                        <i class="fa-solid fa-heart"></i>
+                    </div>
+                    <div id="adoptedPets" class="text-4xl font-extrabold text-gray-900">0</div>
                 </div>
-                <div id="adoptedPets" class="text-3xl font-extrabold text-gray-900 tracking-tight"> 0 </div>
-                <div class="text-sm font-semibold text-gray-700 mt-1">Forever Homes Found</div>
-                <div class="text-xs text-purple-500 font-medium mt-1">All-time record</div>
+
+                <h3 class="text-lg font-bold text-gray-800">Forever Homes Found</h3>
+                <p class="text-sm text-gray-400 mt-1">Successfully adopted</p>
             </div>
+
         </div>
 
         <div class="grid grid-cols-1 xl:grid-cols-3 gap-6 mt-6">
@@ -160,47 +170,19 @@
             <div class="bg-white rounded-2xl border border-gray-200/60 shadow-sm overflow-hidden flex flex-col">
                 <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
                     <h3 class="font-bold text-gray-900 tracking-tight flex items-center gap-2">
-                        <i class="fa-solid fa-dog text-amber-600 text-sm"></i> Newly Added
+                        <i class="fa-solid fa-dog text-amber-600 text-sm"></i>
+                        Newly Added Pets
                     </h3>
-                    <a href="/org/pets" class="text-xs font-bold text-blue-900 hover:text-indigo-950 hover:underline flex items-center gap-1 transition">
-                        See all <i class="fa-solid fa-arrow-right text-[10px]"></i>
+
+                    <a href="/org/pets" class="group flex items-center gap-1 text-xs font-semibold text-blue-700 hover:text-blue-900 transition-colors duration-200">
+                        See all
+                        <i class="fa-solid fa-arrow-right text-[10px] transition-transform duration-200 group-hover:translate-x-1"></i>
                     </a>
                 </div>
 
-                <div class="grid grid-cols-2 gap-3 p-5 flex-1 content-start">
-                    <a href="#" class="flex flex-col items-center p-4 rounded-xl bg-slate-50 border border-slate-100 hover:bg-blue-50/30 hover:border-blue-200/70 hover:shadow-sm transition group text-center">
-                        <div class="w-14 h-14 rounded-full bg-blue-50 flex items-center justify-center text-2xl shadow-inner border border-blue-100/50 mb-2.5 group-hover:scale-105 transition-transform duration-200">
-                            🐕
-                        </div>
-                        <span class="text-sm font-bold text-gray-800 group-hover:text-blue-950 transition">Mikha</span>
-                        <span class="text-[11px] font-medium text-gray-400 mt-0.5 bg-gray-100 px-2 py-0.5 rounded-full">Dog • 1y</span>
-                    </a>
-
-                    <a href="#" class="flex flex-col items-center p-4 rounded-xl bg-slate-50 border border-slate-100 hover:bg-blue-50/30 hover:border-blue-200/70 hover:shadow-sm transition group text-center">
-                        <div class="w-14 h-14 rounded-full bg-blue-50 flex items-center justify-center text-2xl shadow-inner border border-blue-100/50 mb-2.5 group-hover:scale-105 transition-transform duration-200">
-                            🐕
-                        </div>
-                        <span class="text-sm font-bold text-gray-800 group-hover:text-blue-950 transition">Brent</span>
-                        <span class="text-[11px] font-medium text-gray-400 mt-0.5 bg-gray-100 px-2 py-0.5 rounded-full">Dog • 8m</span>
-                    </a>
-
-                    <a href="#" class="flex flex-col items-center p-4 rounded-xl bg-slate-50 border border-slate-100 hover:bg-blue-50/30 hover:border-blue-200/70 hover:shadow-sm transition group text-center">
-                        <div class="w-14 h-14 rounded-full bg-orange-50/60 flex items-center justify-center text-2xl shadow-inner border border-orange-100/50 mb-2.5 group-hover:scale-105 transition-transform duration-200">
-                            🐈
-                        </div>
-                        <span class="text-sm font-bold text-gray-800 group-hover:text-blue-950 transition">Taco</span>
-                        <span class="text-[11px] font-medium text-gray-400 mt-0.5 bg-gray-100 px-2 py-0.5 rounded-full">Cat • 2y</span>
-                    </a>
-
-                    <a href="#" class="flex flex-col items-center p-4 rounded-xl bg-slate-50 border border-slate-100 hover:bg-blue-50/30 hover:border-blue-200/70 hover:shadow-sm transition group text-center">
-                        <div class="w-14 h-14 rounded-full bg-blue-50 flex items-center justify-center text-2xl shadow-inner border border-blue-100/50 mb-2.5 group-hover:scale-105 transition-transform duration-200">
-                            🐕
-                        </div>
-                        <span class="text-sm font-bold text-gray-800 group-hover:text-blue-950 transition">Sith</span>
-                        <span class="text-[11px] font-medium text-gray-400 mt-0.5 bg-gray-100 px-2 py-0.5 rounded-full">Dog • 3y</span>
-                    </a>
-                </div>
+                <div id="newPetsContainer" class="grid grid-cols-2 gap-3 p-5 flex-1 content-start min-h-[300px]"></div>
             </div>
+
         </div>
 
         <!--Logout Modal-->
@@ -251,6 +233,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     await loadDashboardStats();
+    await loadNewestPets();
 
 });
 async function loadDashboardStats() {
@@ -282,6 +265,69 @@ async function loadDashboardStats() {
 
         console.error(err);
 
+    }
+
+}
+//NEWLY ADDED PETS
+async function loadNewestPets() {
+    try {
+        const response = await fetch("/org/pets/newest");
+        const pets = await response.json();
+        const container = document.getElementById("newPetsContainer");
+        container.innerHTML = "";
+        if (!pets.length) {
+            container.innerHTML = `
+                <div class="col-span-2 text-center py-8 text-gray-400 text-sm">
+                    No pets added yet.
+                </div>
+            `;
+            return;
+        }
+        pets.forEach(pet => {
+            const emoji =
+                pet.species === "Dog"
+                    ? "🐕"
+                    : "🐈";
+            const bg =
+                pet.species === "Dog"
+                    ? "bg-blue-50 border-blue-100"
+                    : "bg-orange-50 border-orange-100";
+            const age = formatAge(pet.age);
+
+            container.innerHTML += `
+                <a href="/org/pets"
+                   class="flex flex-col items-center p-4 rounded-xl bg-slate-50 border border-slate-100 hover:bg-blue-50 hover:border-blue-200 hover:shadow-sm transition group text-center">
+
+                    <img
+                    src="/uploads/pets/${pet.image_path}"
+                    class="w-14 h-14 rounded-full object-cover border shadow-sm mb-2.5 group-hover:scale-105 transition">
+                    <span class="text-sm font-bold text-gray-800 group-hover:text-blue-900"> ${pet.name}</span>
+                    <span class="text-[11px] font-medium text-gray-400 mt-1 bg-gray-100 px-2 py-0.5 rounded-full"> ${pet.species} • ${age}</span>
+                </a>
+            `;
+        });
+    } catch (err) {
+        console.error(err);
+    }
+}
+function formatAge(age) {
+
+    switch (age) {
+
+        case "Puppy/Kitten (0-1 yr old)":
+            return "0-1 yr";
+
+        case "Adolescence (2-3 yrs old)":
+            return "2-3 yrs";
+
+        case "Adult (4-7 yrs old)":
+            return "4-7 yrs";
+
+        case "Senior (8-10 yrs old)":
+            return "8-10 yrs";
+
+        default:
+            return age;
     }
 
 }

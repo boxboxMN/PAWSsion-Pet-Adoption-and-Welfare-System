@@ -19,7 +19,8 @@ const {
     getInKindDonations,
     updateInKindDonationStatus,
     getDropoffInfo,   
-    updateDropoffInfo  
+    updateDropoffInfo,
+    getNewestPets
 } = require("../controllers/orgController");
 
 const router = express.Router();
@@ -71,6 +72,8 @@ router.get("/dashboard", (req, res) => {
 router.get("/pets", (req, res) => {
     res.sendFile(path.join(__dirname, "../public/organization/pets.html"));
 });
+
+router.get("/pets/newest", checkOrganizationApproval, getNewestPets);
 
 router.get("/adoption", (req, res) => {
     res.sendFile(path.join(__dirname, "../public/organization/adoption.html"));

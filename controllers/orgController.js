@@ -1094,3 +1094,41 @@ exports.getDashboardStats = async (req, res) => {
 
     }
 };
+// NEWLY ADDED PETS
+exports.getNewestPets = async (req, res) => {
+    try {
+
+        const [org] = await pool.query(
+            `SELECT organization_id
+             FROM organizations
+             WHERE account_id = ?`,
+            [req.session.accountId]
+        );
+
+        if (!org.length) {
+            return res.json([]);
+        }
+
+        const organizationId = org[0].organization_id;
+
+        const [pets] = await pool.query(
+            `SELECT
+                animal_id,
+                name,
+                species,
+                age,
+                image_path
+             FROM animals
+             WHERE organization_id = ?
+             ORDER BY created_at DESC
+             LIMIT 4`,
+            [organizationId]
+        );
+
+        res.json(pets);
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Failed to load newest pets." });
+    }
+};
