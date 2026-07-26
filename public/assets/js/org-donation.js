@@ -26,9 +26,9 @@
         fetchInKindDonations();
     });
 
-    // ==========================================
-    // MAIN TAB SWITCHING LOGIC
-    // ==========================================
+    /**
+     * Switches between the Cash Donations and In-Kind Donations tabs.
+     */
     function switchDonationTab(tab) {
         activeTab = tab;
         const tabCash = document.getElementById("tabCash");
@@ -50,9 +50,10 @@
         filterDonations();
     }
 
-    // ==========================================
-    // MODAL SUB-TAB SWITCHING
-    // ==========================================
+   /**
+     * Switches between the Cash and In-Kind configuration
+     * sections inside the settings modal.
+     */
     function switchModalConfigTab(type) {
         const modalTabCash = document.getElementById("modalTabCash");
         const modalTabInKind = document.getElementById("modalTabInKind");
@@ -71,10 +72,10 @@
             modalCashSection.classList.add("hidden");
         }
     }
-
-    // ==========================================
-    // FETCH PAYMENT & IN-KIND LOCATION DETAILS
-    // ==========================================
+    /**
+     * Retrieves the organization's payment information
+     * and in-kind drop-off details from the server.
+     */
     async function fetchPaymentDetails() {
     try {
         const res = await fetch("/org/payment-info");
@@ -108,10 +109,10 @@
         console.error("Error fetching payment/in-kind details:", error);
     }
 }
-
-    // ==========================================
-    // FETCH & RENDER CASH DONATIONS
-    // ==========================================
+/**
+ * Retrieves all cash donations and displays
+ * them in the donations table.
+ */
     async function fetchDonations() {
         try {
             const res = await fetch("/org/donations");
@@ -139,7 +140,10 @@
             }
         }
     }
-
+/**
+ * Displays the cash donations in the table
+ * with their corresponding details and status.
+ */
     function renderDonationsTable(donations) {
         const tbody = document.getElementById("donationsTableBody");
         if (!tbody) return;
@@ -202,11 +206,10 @@
 
         updatePaginationInfo(donations.length);
     }
-
-    // ==========================================
-    // FETCH & RENDER IN-KIND DONATIONS
-    // ==========================================
-  
+/**
+ * Retrieves all in-kind donations from the server
+ * and updates the donation summary.
+ */
 async function fetchInKindDonations() {
     try {
         const res = await fetch("/org/donations/in-kind");
@@ -231,7 +234,10 @@ async function fetchInKindDonations() {
         }
     }
 }
-
+/**
+ * Displays the list of in-kind donations
+ * in the donations table.
+ */
     function renderInKindTable(donations) {
         const tbody = document.getElementById("inkindTableBody");
         if (!tbody) return;
@@ -277,10 +283,10 @@ async function fetchInKindDonations() {
 
         document.getElementById("inkindPaginationInfo").textContent = `Showing 1 to ${donations.length} of ${donations.length} results`;
     }
-
-    // ==========================================
-    // IN-KIND MODAL CONTROL FUNCTIONS
-    // ==========================================
+/**
+ * Opens the in-kind donation review modal
+ * and displays the selected donation details.
+ */
     function openInKindModal(id) {
         selectedInKindId = id;
         const donation = allInKindDonations.find(item => (item.inkind_donation_id || item.id) == id);
@@ -339,27 +345,38 @@ async function fetchInKindDonations() {
         modal.classList.remove("opacity-0", "pointer-events-none");
         modal.querySelector("div").classList.remove("scale-95");
     }
-
+/**
+ * Closes the in-kind donation review modal.
+ */
     function closeInKindModal() {
         const modal = document.getElementById("reviewInKindModal");
         modal.classList.add("opacity-0", "pointer-events-none");
         modal.querySelector("div").classList.add("scale-95");
         selectedInKindId = null;
     }
-
+/**
+ * Displays the rejection section
+ * for an in-kind donation.
+ */
     function showInKindRejectionFlow() {
         document.getElementById("inkindRejectionSection").classList.remove("hidden");
         document.getElementById("inkindInitialActionButtons").classList.add("hidden");
         document.getElementById("inkindRejectionActionButtons").classList.remove("hidden");
         updateInKindRejectionText();
     }
-
+    /**
+     * Hides the in-kind rejection section
+     * and restores the default action buttons.
+     */
     function hideInKindRejectionFlow() {
         document.getElementById("inkindRejectionSection").classList.add("hidden");
         document.getElementById("inkindInitialActionButtons").classList.remove("hidden");
         document.getElementById("inkindRejectionActionButtons").classList.add("hidden");
     }
-
+    /**
+     * Updates the rejection reason message
+     * based on the selected rejection option.
+     */
     function updateInKindRejectionText() {
         const selectedRadio = document.querySelector('input[name="inkindRejectReason"]:checked');
         const reasonBox = document.getElementById("inkindRejectionReasonText");
@@ -377,12 +394,18 @@ async function fetchInKindDonations() {
             }
         }
     }
-
+/**
+ * Submits the rejection reason
+ * for an in-kind donation.
+ */
     async function submitInKindRejection() {
         const reasonText = document.getElementById("inkindRejectionReasonText").textContent;
         await updateInKindStatus('Rejected', reasonText);
     }
-
+/**
+ * Updates the status of the selected
+ * in-kind donation.
+ */
     async function updateInKindStatus(newStatus, reason = null) {
     if (!selectedInKindId) return;
 
@@ -409,9 +432,10 @@ async function fetchInKindDonations() {
         showToast("An error occurred while updating status.", 'error'); 
     }
 }
-    // ==========================================
-    // SEARCH & FILTER FUNCTION
-    // ==========================================
+/**
+ * Filters cash and in-kind donations
+ * based on the search keyword and status.
+ */
     function filterDonations() {
         const searchInput = document.getElementById("searchInput");
         const statusSelect = document.getElementById("statusFilter");
@@ -450,7 +474,10 @@ async function fetchInKindDonations() {
             renderInKindTable(filtered);
         }
     }
-
+/**
+ * Shows or hides the action dropdown menu
+ * for the selected cash donation.
+ */
     function toggleActionDropdown(e, id) {
         e.stopPropagation();
         document.querySelectorAll('.action-dropdown-menu').forEach(menu => {
@@ -459,20 +486,22 @@ async function fetchInKindDonations() {
         const targetMenu = document.getElementById(`actionMenu-${id}`);
         if (targetMenu) targetMenu.classList.toggle('hidden');
     }
-
+/**
+ * Updates the pagination information
+ * displayed below the donations table.
+ */
     function updatePaginationInfo(count) {
         const pagInfo = document.getElementById("paginationInfo");
         if (pagInfo) {
             pagInfo.textContent = `Showing 1 to ${count} of ${count} results`;
         }
     }
-
-// ==========================================
-    // RECEIPT LIGHTBOX MODAL
-    // ==========================================
     // Variable para sa kasalukuyang binubuksan na resibo
     let currentReceiptPath = null;
-
+/**
+ * Opens the receipt image
+ * in a lightbox modal.
+ */
     function viewReceiptDirect(receiptPathRaw) {
         let fullPath = "https://via.placeholder.com/400x600?text=No+Receipt+Uploaded";
         
@@ -489,7 +518,7 @@ async function fetchInKindDonations() {
 
         if (modalImg) {
             modalImg.src = fullPath;
-            // Siguraduhing malinaw at hindi distorted sa modal lightbox
+
             modalImg.classList.add("max-h-[85vh]", "w-auto", "object-contain", "mx-auto");
         }
 
@@ -502,6 +531,9 @@ async function fetchInKindDonations() {
             modal.querySelector("div")?.classList.remove("scale-95");
         }
     }
+/**
+ * Closes the receipt preview modal.
+ */
 
     function closeReceiptModal() {
         const modal = document.getElementById("receiptModal");
@@ -510,9 +542,11 @@ async function fetchInKindDonations() {
             modal.querySelector("div")?.classList.add("scale-95");
         }
     }
-
+    /**
+     * Opens the receipt lightbox
+     * from the review modal.
+     */
     function triggerViewReceiptFromReview() {
-        // Kunin ang nakaguhit na raw path sa data attribute o sa variable imbes na sa rendered src
         const img = document.getElementById("reviewReceiptImg");
         const rawPath = img?.getAttribute("data-raw-path") || currentReceiptPath || img?.src;
 
@@ -520,10 +554,10 @@ async function fetchInKindDonations() {
             viewReceiptDirect(rawPath);
         }
     }
-
-    // ==========================================
-    // REVIEW & VERIFICATION MONETARY MODAL
-    // ==========================================
+/**
+ * Opens the cash donation review modal
+ * and displays the selected donation details.
+ */
     function openReviewModal(id) {
         selectedDonationId = id;
         const donation = allDonations.find(item => (item.cash_donation_id || item.id) == id);
@@ -544,7 +578,6 @@ async function fetchInKindDonations() {
             receiptPath = "https://via.placeholder.com/400x600?text=No+Receipt+Uploaded";
         }
 
-        // I-save ang eksaktong path sa global variable at data attribute ng img element
         currentReceiptPath = receiptPath;
         const reviewImg = document.getElementById("reviewReceiptImg");
         if (reviewImg) {
@@ -600,7 +633,9 @@ async function fetchInKindDonations() {
         modal.classList.remove("opacity-0", "pointer-events-none");
         modal.querySelector("div").classList.remove("scale-95");
     }
-
+/**
+ * Closes the cash donation review modal.
+ */
     function closeReviewModal() {
         const modal = document.getElementById("reviewDonationModal");
         modal.classList.add("opacity-0", "pointer-events-none");
@@ -608,20 +643,29 @@ async function fetchInKindDonations() {
         selectedDonationId = null;
         currentReceiptPath = null;
     }
-
+/**
+ * Displays the rejection form
+ * for a cash donation.
+ */
     function showRejectionFlow() {
         document.getElementById("rejectionSection").classList.remove("hidden");
         document.getElementById("initialActionButtons").classList.add("hidden");
         document.getElementById("rejectionActionButtons").classList.remove("hidden");
         updateRejectionText();
     }
-
+/**
+ * Hides the rejection form
+ * and restores the default action buttons.
+ */
     function hideRejectionFlow() {
         document.getElementById("rejectionSection").classList.add("hidden");
         document.getElementById("initialActionButtons").classList.remove("hidden");
         document.getElementById("rejectionActionButtons").classList.add("hidden");
     }
-
+/**
+ * Updates the rejection message
+ * based on the selected reason.
+ */
     function updateRejectionText() {
         const selectedRadio = document.querySelector('input[name="rejectReason"]:checked');
         const reasonBox = document.getElementById("rejectionReasonText");
@@ -639,7 +683,10 @@ async function fetchInKindDonations() {
             }
         }
     }
-
+/**
+ * Approves and verifies
+ * the selected cash donation.
+ */
     async function approveDonation() {
         if (!selectedDonationId) return;
         
@@ -662,7 +709,10 @@ async function fetchInKindDonations() {
             showToast("An error occurred while approving the donation.", 'error');
         }
     }
-    
+    /**
+     * Rejects the selected cash donation
+     * and records the rejection reason.
+     */
     async function rejectDonation() {
         if (!selectedDonationId) return;
         const reasonText = document.getElementById("rejectionReasonText").textContent;
@@ -686,10 +736,10 @@ async function fetchInKindDonations() {
             showToast("An error occurred while rejecting the donation.", 'error'); 
         }
     }
-
-    // ==========================================
-    // CONFIG / SETTINGS MODAL CONTROL FUNCTIONS
-    // ==========================================
+/**
+ * Opens the donation settings
+ * configuration modal.
+ */
     function openConfigModal() {
         const modal = document.getElementById('paymentConfigModal');
         if (modal) {
@@ -697,7 +747,10 @@ async function fetchInKindDonations() {
             modal.querySelector('div').classList.remove('scale-95');
         }
     }
-
+/**
+ * Closes the donation settings
+ * configuration modal.
+ */
     function closeConfigModal() {
         const modal = document.getElementById('paymentConfigModal');
         if (modal) {
@@ -705,7 +758,10 @@ async function fetchInKindDonations() {
             modal.querySelector('div').classList.add('scale-95');
         }
     }
-
+/**
+ * Displays a preview of the selected
+ * image before uploading.
+ */
     function previewImage(event, targetImgId) {
         const file = event.target.files[0];
         if (file) {
@@ -716,7 +772,10 @@ async function fetchInKindDonations() {
             reader.readAsDataURL(file);
         }
     }
-
+/**
+ * Saves the organization's payment
+ * information and in-kind drop-off settings.
+ */
     async function savePaymentDetails(e) {
         e.preventDefault();
 
@@ -750,7 +809,13 @@ async function fetchInKindDonations() {
             saveBtn.innerHTML = originalBtnText;
         }
     }
-  
+    /**
+     * Displays a toast notification
+     * to inform the user of the result.
+     *
+     * @param {string} message - Notification message.
+     * @param {string} type - "success" or "error".
+     */
     function showToast(message, type = 'success') {
         const container = document.getElementById('toastContainer');
         if (!container) return;
