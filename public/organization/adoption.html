@@ -152,6 +152,9 @@
 
 <script>
     let allApplications = [];
+    let filteredApplications = [];
+    let currentPage = 1;
+    const itemsPerPage = 5; // Pwedeng baguhin kung ilang rows ang gusto mo bawat page
 
     document.addEventListener("DOMContentLoaded", async () => {
         // 1. Load Shared Components
@@ -209,8 +212,7 @@
 
     // Helper: Update Stat Cards
     function updateStatCards(data) {
-        // Tinatrato din ang 'PENDING' bilang 'UNDER_REVIEW' kung may pumasok man mula sa lumang DB records
-        const active = data.filter(a => a.status === "UNDER_REVIEW" || a.status === "PENDING").length;
+        const active = data.filter(a => a.status === "UNDER_REVIEW" || a.status === "PENDING" || a.status === "").length;
         const approved = data.filter(a => a.status === "APPROVED").length;
         const declined = data.filter(a => a.status === "DECLINED").length;
         const interview = data.filter(a => a.status === "INTERVIEW_SCHEDULED").length;
@@ -221,35 +223,38 @@
         document.getElementById("statInterviewApps").textContent = interview;
     }
 
-    // Helper: Filter & Render Function
+    // Helper: Filter Function
     function filterAndRenderTable() {
-        const searchVal = document.getElementById("searchInput").value.toLowerCase();
-        const statusVal = document.getElementById("statusFilter").value;
+        const searchVal = (document.getElementById("searchInput")?.value || "").toLowerCase();
+        const statusVal = document.getElementById("statusFilter")?.value || "ALL";
 
-        const filtered = allApplications.filter(app => {
+        filteredApplications = allApplications.filter(app => {
             const matchesSearch = 
                 (app.applicant_name || '').toLowerCase().includes(searchVal) ||
                 (app.applicant_email || '').toLowerCase().includes(searchVal) ||
                 (app.pet_name || '').toLowerCase().includes(searchVal);
 
-            // Kung ang napiling filter ay UNDER_REVIEW, isasali rin ang PENDING kung meron
             let appStatus = app.status;
-            if (appStatus === 'PENDING') appStatus = 'UNDER_REVIEW';
+            if (appStatus === 'PENDING' || !appStatus) appStatus = 'UNDER_REVIEW';
 
             const matchesStatus = statusVal === "ALL" || appStatus === statusVal;
 
             return matchesSearch && matchesStatus;
         });
 
-        renderTableRows(filtered);
+        currentPage = 1; // Reset sa page 1 kapag nagse-search/filter
+        renderTableRows();
     }
 
-    // Helper: Render Dynamic HTML Rows
-    function renderTableRows(applications) {
+    // Helper: Render Dynamic HTML Rows with Pagination
+    function renderTableRows() {
         const tableBody = document.getElementById("applicationsTableBody");
         const paginationInfo = document.getElementById("paginationInfo");
+        const paginationControls = document.getElementById("paginationControls");
 
-        if (applications.length === 0) {
+        const totalItems = filteredApplications.length;
+
+        if (totalItems === 0) {
             tableBody.innerHTML = `
                 <tr>
                     <td colspan="5" class="py-8 text-center text-gray-400">
@@ -258,12 +263,19 @@
                 </tr>
             `;
             paginationInfo.textContent = "Showing 0 of 0 results";
+            paginationControls.innerHTML = "";
             return;
         }
 
+        // Calculate Pagination Slices
+        const totalPages = Math.ceil(totalItems / itemsPerPage);
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
+        const currentData = filteredApplications.slice(startIndex, endIndex);
+
         const fallbackImg = "https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&q=80&w=80&h=80";
 
-        tableBody.innerHTML = applications.map(app => {
+        tableBody.innerHTML = currentData.map(app => {
             const statusBadge = getStatusBadgeHTML(app.status);
             
             let petImage = app.pet_image;
@@ -274,20 +286,20 @@
             }
 
             return `
-                <tr class="hover:bg-gray-50/50">
+                <tr class="hover:bg-gray-50/50 transition-colors">
                     <td class="py-4 px-6">
-                        <span class="font-semibold text-gray-900 block">${escapeHtml(app.applicant_name)}</span>
-                        <span class="text-xs text-gray-400 block mt-0.5">${escapeHtml(app.applicant_email)}</span>
+                        <span class="font-semibold text-gray-900 block">${escapeHtml(app.applicant_name || 'N/A')}</span>
+                        <span class="text-xs text-gray-400 block mt-0.5">${escapeHtml(app.applicant_email || '')}</span>
                     </td>
                     <td class="py-4 px-6">
                         <div class="flex items-center gap-3">
                             <img src="${petImage}" 
-                                 alt="${escapeHtml(app.pet_name)}" 
+                                 alt="${escapeHtml(app.pet_name || 'Pet')}" 
                                  onerror="this.onerror=null; this.src='${fallbackImg}';"
                                  class="w-9 h-9 rounded-full object-cover border border-gray-100" />
                             <div>
-                                <span class="font-semibold text-gray-900 block">${escapeHtml(app.pet_name)}</span>
-                                <span class="text-xs text-gray-400 block mt-0.5">${escapeHtml(app.pet_type || "Pet")} · ${escapeHtml(app.pet_gender || "")}</span>
+                                <span class="font-semibold text-gray-900 block">${escapeHtml(app.pet_name || 'N/A')}</span>
+                                <span class="text-xs text-gray-400 block mt-0.5">${escapeHtml(app.pet_type || "Pet")}${app.pet_gender ? ' · ' + escapeHtml(app.pet_gender) : ''}</span>
                             </div>
                         </div>
                     </td>
@@ -295,11 +307,11 @@
                         ${statusBadge}
                     </td>
                     <td class="py-4 px-6">
-                        <span class="font-medium text-gray-900 block">${app.applied_date || ''}</span>
+                        <span class="font-medium text-gray-900 block">${app.applied_date || 'N/A'}</span>
                         <span class="text-xs text-gray-400 block mt-0.5">${app.applied_time || ""}</span>
                     </td>
                     <td class="py-4 px-6 text-center">
-                        <button onclick="viewApplicationDetails('${app.id}')" class="text-gray-400 hover:text-blue-600 transition-colors" title="View Application">
+                        <button onclick="viewApplicationDetails('${app.id}')" class="text-gray-400 hover:text-blue-600 transition-colors p-2 rounded-lg hover:bg-gray-100" title="View Application">
                             <i class="fa-regular fa-eye text-lg"></i>
                         </button>
                     </td>
@@ -307,16 +319,71 @@
             `;
         }).join('');
 
-        paginationInfo.textContent = `Showing 1 to ${applications.length} of ${applications.length} results`;
+        // Update Info Text
+        paginationInfo.textContent = `Showing ${startIndex + 1} to ${endIndex} of ${totalItems} results`;
+
+        // Render Pagination Buttons (Tulad ng nasa image)
+        renderPaginationButtons(totalPages);
     }
 
-    // Status Badge Component Helper (May kasamang eksaktong design tulad ng sa image)
+    // Helper: Render Pagination UI Buttons (Matching UI design)
+    function renderPaginationButtons(totalPages) {
+        const paginationControls = document.getElementById("paginationControls");
+        let html = '';
+
+        // Previous Button (<)
+        const prevDisabled = currentPage === 1;
+        html += `
+            <button onclick="changePage(${currentPage - 1})" ${prevDisabled ? 'disabled' : ''} 
+                class="w-8 h-8 flex items-center justify-center border border-gray-200 rounded-lg text-gray-500 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed text-xs transition">
+                <i class="fa-solid fa-chevron-left"></i>
+            </button>
+        `;
+
+        // Page Number Buttons
+        for (let page = 1; page <= totalPages; page++) {
+            if (page === currentPage) {
+                html += `
+                    <button class="w-8 h-8 flex items-center justify-center border border-blue-600 bg-blue-50 text-blue-600 font-semibold rounded-lg text-xs">
+                        ${page}
+                    </button>
+                `;
+            } else {
+                html += `
+                    <button onclick="changePage(${page})" 
+                        class="w-8 h-8 flex items-center justify-center border border-gray-200 text-gray-600 hover:bg-gray-50 rounded-lg text-xs font-medium transition">
+                        ${page}
+                    </button>
+                `;
+            }
+        }
+
+        // Next Button (>)
+        const nextDisabled = currentPage === totalPages;
+        html += `
+            <button onclick="changePage(${currentPage + 1})" ${nextDisabled ? 'disabled' : ''} 
+                class="w-8 h-8 flex items-center justify-center border border-gray-200 rounded-lg text-gray-500 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed text-xs transition">
+                <i class="fa-solid fa-chevron-right"></i>
+            </button>
+        `;
+
+        paginationControls.innerHTML = html;
+    }
+
+    // Change Page Action
+    function changePage(newPage) {
+        currentPage = newPage;
+        renderTableRows();
+    }
+
+    // Status Badge Component Helper
     function getStatusBadgeHTML(status) {
         const cleanStatus = (status || '').toUpperCase();
 
         switch (cleanStatus) {
             case 'UNDER_REVIEW':
-            case 'PENDING': // Awtomatikong ipapakita bilang 'Under Review'
+            case 'PENDING':
+            case '':
                 return `<span class="inline-flex px-3 py-1 text-xs font-semibold bg-amber-100/70 text-amber-600 rounded-full">Under Review</span>`;
             
             case 'INTERVIEW_SCHEDULED':
