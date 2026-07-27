@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Adoption Application Details - Pawpon Org</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <script src="../assets/js/orgSidebar.js"></script>
+    <script src="../assets/js/orgTopbar.js"></script>
+</head>
+<body class="bg-slate-100 font-['Inter',_sans-serif] min-h-screen">
+
+    <div id="headerContainer"></div>
+    <div id="sidebarContainer"></div>
+
+    <main id="mainContent" class="pt-24 pb-20 px-4 md:px-8 transition-all duration-200 ease-in-out left-0 md:ml-[280px] data-[sidebar-collapsed=true]:md:ml-20">
+        
+        <!-- Header / Back Navigation -->
+        <div class="mb-6">
+            <h1 class="text-2xl font-bold text-gray-900">Adoption Application Details</h1>
+            <button onclick="window.history.back()" class="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 text-sm font-semibold mt-2 cursor-pointer transition">
+                <i class="fa-solid fa-arrow-left"></i> Back
+            </button>
+        </div>
+
+        <!-- Status & Submitted Bar -->
+        <div class="flex items-center gap-4 mb-6">
+            <span id="appStatusBadge" class="inline-flex px-4 py-1.5 rounded-full text-sm font-medium bg-amber-100 text-amber-600">
+                Under Review
+            </span>
+            <span id="appSubmittedDate" class="text-sm text-gray-500 font-medium">
+                Submitted on Feb 11, 2026 • 10:24 AM
+            </span>
+        </div>
+
+        <!-- Main Content Grid (Left & Right Cards) -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            
+            <!-- LEFT COLUMN -->
+            <div class="lg:col-span-7 space-y-6">
+                
+                <!-- Applicant Information -->
+                <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+                    <h3 class="text-blue-600 font-semibold text-base mb-4">Applicant Information</h3>
+                    <div class="mb-4">
+                        <h2 id="applicantName" class="text-xl font-bold text-gray-900">Jhyzzeel Dianela</h2>
+                        <p id="applicantLocation" class="text-sm text-gray-500 flex items-center gap-1 mt-1">
+                            <i class="fa-solid fa-location-dot text-blue-500"></i> Pili, Camarines Sur
+                        </p>
+                    </div>
+
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-3 border-t border-gray-50">
+                        <div>
+                            <span class="text-xs text-gray-400 block mb-1">Contact Number</span>
+                            <span id="applicantPhone" class="text-xs font-semibold text-gray-800 block">09924974712</span>
+                        </div>
+                        <div>
+                            <span class="text-xs text-gray-400 block mb-1">Civil Status</span>
+                            <span id="applicantStatus" class="text-xs font-semibold text-gray-800 block">Single</span>
+                        </div>
+                        <div>
+                            <span class="text-xs text-gray-400 block mb-1">Occupation</span>
+                            <span id="applicantJob" class="text-xs font-semibold text-gray-800 block">Student</span>
+                        </div>
+                        <div>
+                            <span class="text-xs text-gray-400 block mb-1">Email Address</span>
+                            <span id="applicantEmail" class="text-xs font-semibold text-gray-800 block truncate">jd@gmail.com</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lifestyle & Home Assessment -->
+                <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+                    <h3 class="text-blue-600 font-semibold text-base mb-4">Lifestyle & Home Assessment</h3>
+                    <div class="grid grid-cols-2 gap-6">
+                        <div>
+                            <span class="text-xs text-gray-400 block mb-1">Work Schedule</span>
+                            <span id="workSchedule" class="text-xs font-semibold text-gray-800 block">Student</span>
+                        </div>
+                        <div>
+                            <span class="text-xs text-gray-400 block mb-1">Hours away from home</span>
+                            <span id="hoursAway" class="text-xs font-semibold text-gray-800 block">Less than 4 hours</span>
+                        </div>
+                        <div>
+                            <span class="text-xs text-gray-400 block mb-1">Do you have children?</span>
+                            <span id="hasChildren" class="text-xs font-semibold text-gray-800 block">No</span>
+                        </div>
+                        <div>
+                            <span class="text-xs text-gray-400 block mb-1">Do you have other pets?</span>
+                            <span id="hasOtherPets" class="text-xs font-semibold text-gray-800 block">No</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Preferred Pets -->
+                <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+                    <h3 class="text-blue-600 font-semibold text-base mb-3">Preferred Pets</h3>
+                    <div class="p-3 bg-gray-50 rounded-xl border border-gray-100">
+                        <span id="targetPetName" class="text-xs font-semibold text-gray-700">Name: Lebron</span>
+                    </div>
+                </div>
+
+                <!-- Reason for Adoption -->
+                <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+                    <h3 class="text-blue-600 font-semibold text-base mb-3">Reason for Adoption</h3>
+                    <div class="p-4 bg-gray-50 rounded-xl border border-gray-100">
+                        <p id="adoptionReason" class="text-xs text-gray-600 leading-relaxed">
+                            I want to give a loving home. I believe that the pets are family and deserve a safe space to grow.
+                        </p>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- RIGHT COLUMN -->
+            <div class="lg:col-span-5 space-y-6">
+                
+                <!-- Emergency Contact & ID Proof Card -->
+                <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-6">
+                    <div>
+                        <h3 class="text-blue-600 font-semibold text-base mb-4">Emergency Contact</h3>
+                        <div class="grid grid-cols-3 gap-2">
+                            <div>
+                                <span class="text-xs text-gray-400 block mb-1">Name</span>
+                                <span id="emergencyName" class="text-xs font-semibold text-gray-800 block">Joana Dianela</span>
+                            </div>
+                            <div>
+                                <span class="text-xs text-gray-400 block mb-1">Contact Number</span>
+                                <span id="emergencyPhone" class="text-xs font-semibold text-gray-800 block">0994757382</span>
+                            </div>
+                            <div>
+                                <span class="text-xs text-gray-400 block mb-1">Relationship</span>
+                                <span id="emergencyRelation" class="text-xs font-semibold text-gray-800 block">Mother</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="pt-4 border-t border-gray-100">
+                        <h3 class="text-blue-600 font-semibold text-base mb-4">ID Proof</h3>
+                        <div class="w-36 h-24 bg-gray-50 border border-gray-200 rounded-xl flex items-center justify-center p-2 cursor-pointer hover:bg-gray-100 transition overflow-hidden" onclick="previewIdProof()">
+                            <img id="idProofImg" src="" alt="ID Proof" class="hidden object-cover w-full h-full rounded-lg" />
+                            <div id="idProofPlaceholder" class="text-center text-gray-400">
+                                <i class="fa-regular fa-id-card text-2xl mb-1"></i>
+                                <span id="idProofFileName" class="text-[10px] block truncate font-medium">ID_PROOF.PNG</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Sticky Bottom Action Footer Bar -->
+        <div class="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-gray-200 py-3 px-6 md:ml-[280px] flex items-center justify-between z-40">
+            <button onclick="handleDecline()" class="px-5 py-2.5 rounded-xl border border-red-500 text-red-500 hover:bg-red-50 text-sm font-semibold transition cursor-pointer">
+                Decline Application
+            </button>
+
+            <div class="flex items-center gap-3">
+                <button onclick="handleScheduleInterview()" class="px-5 py-2.5 rounded-xl border border-gray-300 text-gray-700 hover:bg-gray-100 text-sm font-semibold transition cursor-pointer">
+                    Schedule Interview
+                </button>
+                <button onclick="handleApprove()" class="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition shadow-md shadow-blue-200 cursor-pointer">
+                    Approve & Finalize
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+<script>
+    let currentAppId = null;
+
+    document.addEventListener("DOMContentLoaded", async () => {
+        // Load Topbar at Sidebar
+        if (typeof loadTopbar === "function") {
+            await loadTopbar({
+                title: "Adoption Application Details",
+                subtitle: "Review complete details for this adopter"
+            });
+        }
+        if (typeof loadSidebar === "function") {
+            await loadSidebar("adoption");
+        }
+
+        // Kukunin ang ID sa URL search params (?id=xxx)
+        const urlParams = new URLSearchParams(window.location.search);
+        currentAppId = urlParams.get('id');
+
+        if (currentAppId) {
+            await fetchApplicationDetail(currentAppId);
+        }
+    });
+
+    async function fetchApplicationDetail(id) {
+        try {
+            const response = await fetch(`/api/organization/applications/${id}`, {
+                method: "GET",
+                credentials: "include"
+            });
+
+            if (!response.ok) throw new Error("Failed to load details");
+
+            const app = await response.json();
+            populateDetailsUI(app);
+
+        } catch (err) {
+            console.error("Error loading application detail:", err);
+        }
+    }
+
+    function populateDetailsUI(app) {
+        // Header
+        document.getElementById("appSubmittedDate").textContent = `Submitted on ${app.applied_date || 'N/A'}`;
+        
+        // Applicant Info
+        document.getElementById("applicantName").textContent = app.applicant_name || "N/A";
+        document.getElementById("applicantLocation").innerHTML = `<i class="fa-solid fa-location-dot text-blue-500"></i> ${app.applicant_address || 'N/A'}`;
+        document.getElementById("applicantPhone").textContent = app.applicant_phone || "N/A";
+        document.getElementById("applicantStatus").textContent = app.civil_status || "Single";
+        document.getElementById("applicantJob").textContent = app.occupation || "N/A";
+        document.getElementById("applicantEmail").textContent = app.applicant_email || "N/A";
+
+        // Lifestyle & Assessment
+        document.getElementById("workSchedule").textContent = app.work_schedule || "N/A";
+        document.getElementById("hoursAway").textContent = app.hours_away || "N/A";
+        document.getElementById("hasChildren").textContent = app.has_children ? "Yes" : "No";
+        document.getElementById("hasOtherPets").textContent = app.has_other_pets ? "Yes" : "No";
+
+        // Preferred Pet
+        document.getElementById("targetPetName").textContent = `Name: ${app.pet_name || 'N/A'}`;
+
+        // Reason
+        document.getElementById("adoptionReason").textContent = app.reason || "No reason provided.";
+
+        // Emergency Contact
+        document.getElementById("emergencyName").textContent = app.emergency_name || "N/A";
+        document.getElementById("emergencyPhone").textContent = app.emergency_phone || "N/A";
+        document.getElementById("emergencyRelation").textContent = app.emergency_relationship || "N/A";
+
+        // ID Proof
+        if (app.id_proof_url) {
+            const idImg = document.getElementById("idProofImg");
+            idImg.src = app.id_proof_url;
+            idImg.classList.remove("hidden");
+            document.getElementById("idProofPlaceholder").classList.add("hidden");
+        }
+    }
+
+    // Action Handlers
+    function handleDecline() {
+        if (confirm("Are you sure you want to decline this application?")) {
+            // Send API call to decline
+        }
+    }
+
+    function handleScheduleInterview() {
+        // Open interview modal or logic
+    }
+
+    function handleApprove() {
+        if (confirm("Approve and finalize this adoption application?")) {
+            // Send API call to approve
+        }
+    }
+
+    function previewIdProof() {
+        const idImg = document.getElementById("idProofImg");
+        if (idImg.src) {
+            window.open(idImg.src, '_blank');
+        }
+    }
+</script>
+<script src="/assets/js/orgProfile.js"></script> 
+</body>
+</html>

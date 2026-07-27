@@ -311,7 +311,7 @@
                         <span class="text-xs text-gray-400 block mt-0.5">${app.applied_time || ""}</span>
                     </td>
                     <td class="py-4 px-6 text-center">
-                        <button onclick="viewApplicationDetails('${app.id}')" class="text-gray-400 hover:text-blue-600 transition-colors p-2 rounded-lg hover:bg-gray-100" title="View Application">
+                        <button onclick="viewApplicationDetails('${app.id}')" class="text-gray-400 hover:text-blue-600 transition-colors p-2 rounded-lg hover:bg-gray-100 cursor-pointer" title="View Application">
                             <i class="fa-regular fa-eye text-lg"></i>
                         </button>
                     </td>
@@ -402,7 +402,7 @@
 
     // Action Handler
     function viewApplicationDetails(applicationId) {
-        window.location.href = `/org/application-details.html?id=${applicationId}`;
+        window.location.href = `/organization/org_application-details.html?id=${applicationId}`;
     }
 
     // Utility to prevent XSS
