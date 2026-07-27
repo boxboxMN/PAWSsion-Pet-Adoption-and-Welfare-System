@@ -351,6 +351,42 @@ app.get("/api/pets", async (req, res) => {
     }
 });
 
+//Fetching the adoption applications for the organization adoption dashboard
+app.get('/api/organization/applications', async (req, res) => {
+    try {
+        // Query na kumukuha sa user_adoption_applications table
+        const query = `
+           SELECT 
+                app.application_id AS id,
+                CONCAT(adopt.first_name, ' ', adopt.last_name) AS applicant_name,
+                acc.email AS applicant_email,
+                p.name AS pet_name,
+                p.species AS pet_type,
+                p.gender AS pet_gender,
+                p.image_path AS pet_image,
+                app.status,
+                DATE_FORMAT(app.created_at, '%b %d, %Y') AS applied_date,
+                DATE_FORMAT(app.created_at, '%h:%i %p') AS applied_time
+            FROM user_adoption_applications app
+            -- 1. Kukunin ang Pangalan mula sa 'adopters' table
+            LEFT JOIN adopters adopt ON app.adopter_id = adopt.adopter_id
+            -- 2. Kukunin ang Email mula sa 'accounts' table gamit ang account_id sa adopters
+            LEFT JOIN accounts acc ON adopt.account_id = acc.account_id
+            -- 3. Kukunin ang Pet Info mula sa 'animals' table
+            LEFT JOIN animals p ON app.animal_id = p.animal_id
+            ORDER BY app.created_at DESC;
+        `;
+
+        const [rows] = await pool.query(query);
+
+        // Ipadala ang data pabalik sa Frontend
+        res.status(200).json(rows);
+    } catch (error) {
+        console.error("Database Error:", error);
+        res.status(500).json({ error: "Failed to fetch applications from database" });
+    }
+});
+
 const PORT = 3000;
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
