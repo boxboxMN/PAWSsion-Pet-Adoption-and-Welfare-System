@@ -6,6 +6,8 @@ const router = express.Router();
 const userController = require("../controllers/userController");
 const matchmakerController = require("../controllers/matchmakerController");
 const { matchPets } = require("../controllers/matchmakerController");
+const pool = require('../config/database');
+
 
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
@@ -60,6 +62,37 @@ const uploadReceipt = multer({
         cb(new Error("Only images (JPG, PNG) and PDF files are allowed!"));
     }
 });
+
+const docStorage = multer.diskStorage({
+  destination: function (req, file, cb) {
+      const dir = "uploads/documents/";
+      if (!fs.existsSync(dir)) {
+          fs.mkdirSync(dir, { recursive: true });
+      }
+      cb(null, dir);
+  },
+  filename: function (req, file, cb) {
+      const accountId = req.session?.accountId || "guest";
+      cb(null, `doc-${accountId}-${Date.now()}${path.extname(file.originalname)}`);
+  }
+});
+
+const uploadDoc = multer({
+  storage: docStorage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB Limit
+  fileFilter: function (req, file, cb) {
+      const allowedTypes = /jpeg|jpg|png|pdf/;
+      const extName = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+      const mimeType = allowedTypes.test(file.mimetype);
+
+      if (extName && mimeType) {
+          return cb(null, true);
+      }
+      cb(new Error("Only images (JPG, PNG) and PDF files are allowed!"));
+  }
+});
+
+
 router.get("/api/pets", userController.getAvailablePets);
 router.post( "/api/matchmaking", matchmakerController.matchPets);
 router.get("/dashboard", (req, res) => {
@@ -103,4 +136,11 @@ router.post("/api/user/profile/avatar", upload.single("avatar"), userController.
 router.get("/api/organizations", userController.getOrganizations);
 router.post( "/api/user/donation/cash", uploadReceipt.single("receipt"), userController.submitCashDonation);
 router.post('/api/user/donation/in-kind', userController.submitInKindDonation);
+
+//for user adoption application submission
+router.post(
+  '/api/adoptions/submit-application', 
+  uploadDoc.single('document'), 
+  userController.submitAdoptionApplication
+);
 module.exports = router;

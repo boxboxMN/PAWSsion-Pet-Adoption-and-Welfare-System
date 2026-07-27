@@ -516,3 +516,103 @@ exports.getOrgDropoffDetails = async (req, res) => {
         res.status(500).json({ success: false, message: "Server Error" });
     }
 };
+
+//for user adoption application submission
+exports.submitAdoptionApplication = async (req, res) => {
+    try {
+        // 1. Tama na: req.session.accountId ang gamitin
+        const accountId = req.session?.accountId;
+
+        if (!accountId) {
+            return res.status(401).json({
+                status: 'error',
+                message: 'Unauthorized access. Please log in to submit an application.'
+            });
+        }
+
+        // 2. Kunin ang totoong adopter_id mula sa adopters table
+        const [adopterRows] = await pool.query(
+            `SELECT adopter_id FROM adopters WHERE account_id = ?`,
+            [accountId]
+        );
+
+        if (!adopterRows.length) {
+            return res.status(404).json({
+                status: 'error',
+                message: 'Adopter profile record not found.'
+            });
+        }
+
+        const adopterId = adopterRows[0].adopter_id;
+
+        // 3. Kunin ang totoong uploaded filename galing kay Multer (req.file)
+        const documentPath = req.file ? req.file.filename : null;
+
+        const {
+            animal_id,
+            full_name,
+            contact_number,
+            email,
+            full_address,
+            civil_status,
+            age,
+            occupation,
+            adoption_intent,
+            emergency_name,
+            emergency_phone,
+            emergency_relation
+        } = req.body;
+
+        // 4. Save sa Database
+        const query = `
+            INSERT INTO user_adoption_applications (
+                adopter_id,
+                animal_id,
+                full_name,
+                contact_number,
+                email,
+                full_address,
+                civil_status,
+                age,
+                occupation,
+                adoption_intent,
+                emergency_name,
+                emergency_phone,
+                emergency_relation,
+                document_path,
+                status
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pending')
+        `;
+
+        const values = [
+            adopterId,
+            animal_id,
+            full_name,
+            contact_number,
+            email,
+            full_address,
+            civil_status,
+            age,
+            occupation,
+            adoption_intent,
+            emergency_name,
+            emergency_phone,
+            emergency_relation,
+            documentPath
+        ];
+
+        await pool.query(query, values);
+
+        return res.status(200).json({
+            status: 'success',
+            message: 'Application submitted successfully! Please wait for approval.'
+        });
+
+    } catch (error) {
+        console.error('Error saving adoption application:', error);
+        return res.status(500).json({
+            status: 'error',
+            message: 'Failed to submit application: ' + error.message
+        });
+    }
+};
