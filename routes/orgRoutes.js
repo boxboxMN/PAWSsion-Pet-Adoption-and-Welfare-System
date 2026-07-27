@@ -128,4 +128,61 @@ router.put("/donations/in-kind/:id/status", updateInKindDonationStatus);
 router.get("/dropoff-info", getDropoffInfo);
 router.post("/dropoff-info", uploadDropoff.single("dropoff_image"), updateDropoffInfo);
 
+// GET Single Application Details Endpoint
+router.get('/api/organization/applications/:id', async (req, res) => {
+    try {
+        const appId = req.params.id;
+
+        // SQL Query para kunin ang details ng applicant at pet
+        const query = `
+            SELECT 
+                app.application_id AS id,
+                app.status,
+                DATE_FORMAT(app.created_at, '%b %d, %Y • %h:%i %p') AS applied_date,
+                
+                -- Adopter / Applicant Info
+                CONCAT(adopt.first_name, ' ', adopt.last_name) AS applicant_name,
+                adopt.address AS applicant_address,
+                adopt.contact_number AS applicant_phone,
+                adopt.civil_status,
+                adopt.occupation,
+                acc.email AS applicant_email,
+                
+                -- Lifestyle / Assessment Info (mula sa user_adoption_applications)
+                app.work_schedule,
+                app.hours_away,
+                app.has_children,
+                app.has_other_pets,
+                app.reason_for_adoption AS reason,
+                
+                -- Emergency Contact Info
+                app.emergency_name,
+                app.emergency_phone,
+                app.emergency_relationship,
+                app.valid_id_url AS id_proof_url,
+
+                -- Animal / Pet Info (mula sa animals table)
+                p.name AS pet_name
+            FROM user_adoption_applications app
+            LEFT JOIN adopters adopt ON app.adopter_id = adopt.adopter_id
+            LEFT JOIN accounts acc ON adopt.account_id = acc.account_id
+            LEFT JOIN animals p ON app.animal_id = p.animal_id
+            WHERE app.application_id = ?
+        `;
+
+        const [rows] = await db.execute(query, [appId]);
+
+        if (rows.length === 0) {
+            return res.status(404).json({ message: "Application not found" });
+        }
+
+        // Ibalik ang data pabalik sa Frontend Fetch API
+        res.json(rows[0]);
+
+    } catch (err) {
+        console.error("Database Error:", err);
+        res.status(500).json({ message: "Internal Server Error" });
+    }
+});
+
 module.exports = router;

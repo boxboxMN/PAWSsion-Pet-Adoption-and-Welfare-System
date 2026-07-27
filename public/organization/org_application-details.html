@@ -169,108 +169,163 @@
 
     </main>
 
-<script>
-    let currentAppId = null;
-
-    document.addEventListener("DOMContentLoaded", async () => {
-        // Load Topbar at Sidebar
-        if (typeof loadTopbar === "function") {
-            await loadTopbar({
-                title: "Adoption Application Details",
-                subtitle: "Review complete details for this adopter"
-            });
+    <script>
+        let currentAppId = null;
+    
+        document.addEventListener("DOMContentLoaded", async () => {
+            // Load Topbar at Sidebar
+            if (typeof loadTopbar === "function") {
+                await loadTopbar({
+                    title: "Adoption Application Details",
+                    subtitle: "Review complete details for this adopter"
+                });
+            }
+            if (typeof loadSidebar === "function") {
+                await loadSidebar("adoption");
+            }
+    
+            // Kukunin ang ID sa URL search params (?id=xxx)
+            const urlParams = new URLSearchParams(window.location.search);
+            currentAppId = urlParams.get('id');
+    
+            console.log("Current App ID from URL:", currentAppId);
+    
+            if (currentAppId) {
+                await fetchApplicationDetail(currentAppId);
+            } else {
+                console.error("❌ WALANG ID SA URL! Siguraduhing may '?id=NUMBER' ang URL halimbawa: details.html?id=1");
+            }
+        });
+    
+        async function fetchApplicationDetail(id) {
+            try {
+                const response = await fetch(`/api/organization/applications/${id}`, {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    credentials: "include"
+                });
+    
+                if (!response.ok) {
+                    throw new Error(`HTTP Error! Status: ${response.status}`);
+                }
+    
+                const app = await response.json();
+                
+                // 🔍 CHECK MO ITO SA F12 CONSOLE NG BROWSER MO
+                console.log("Data na nakuha mula sa Express Backend:", app);
+    
+                if (app) {
+                    populateDetailsUI(app);
+                }
+    
+            } catch (err) {
+                console.error("❌ Error loading application detail:", err);
+            }
         }
-        if (typeof loadSidebar === "function") {
-            await loadSidebar("adoption");
+    
+        function populateDetailsUI(app) {
+            // Safe Helper para maiwasan ang undefined Errors
+            const getValue = (val1, val2, defaultVal = "N/A") => val1 || val2 || defaultVal;
+    
+            // 1. Status Badge
+            const statusBadge = document.getElementById("appStatusBadge");
+            if (statusBadge) {
+                const status = getValue(app.status, app.application_status, "Under Review");
+                statusBadge.textContent = status;
+                
+                if (status.toLowerCase() === "approved") {
+                    statusBadge.className = "inline-flex px-4 py-1.5 rounded-full text-sm font-medium bg-emerald-100 text-emerald-600";
+                } else if (status.toLowerCase() === "declined") {
+                    statusBadge.className = "inline-flex px-4 py-1.5 rounded-full text-sm font-medium bg-red-100 text-red-600";
+                } else {
+                    statusBadge.className = "inline-flex px-4 py-1.5 rounded-full text-sm font-medium bg-amber-100 text-amber-600";
+                }
+            }
+    
+            // 2. Date
+            const appDate = getValue(app.applied_date, app.created_at, "");
+            document.getElementById("appSubmittedDate").textContent = appDate ? `Submitted on ${appDate}` : 'Date unknown';
+    
+            // 3. Applicant Info (Chinecheck natin pareho ang camelCase at snake_case)
+            document.getElementById("applicantName").textContent = getValue(app.applicant_name, app.applicantName, "No Name");
+            document.getElementById("applicantLocation").innerHTML = `<i class="fa-solid fa-location-dot text-blue-500"></i> ${getValue(app.applicant_address, app.address, "No Address")}`;
+            document.getElementById("applicantPhone").textContent = getValue(app.applicant_phone, app.phone, "N/A");
+            document.getElementById("applicantStatus").textContent = getValue(app.civil_status, app.civilStatus, "N/A");
+            document.getElementById("applicantJob").textContent = getValue(app.occupation, app.job, "N/A");
+            document.getElementById("applicantEmail").textContent = getValue(app.applicant_email, app.email, "N/A");
+    
+            // 4. Assessment
+            document.getElementById("workSchedule").textContent = getValue(app.work_schedule, app.workSchedule, "N/A");
+            document.getElementById("hoursAway").textContent = getValue(app.hours_away, app.hoursAway, "N/A");
+            
+            // Boolean check (1 / true / "yes")
+            const hasChildrenVal = app.has_children ?? app.hasChildren;
+            document.getElementById("hasChildren").textContent = (hasChildrenVal == 1 || hasChildrenVal === true || hasChildrenVal === "Yes") ? "Yes" : "No";
+    
+            const hasPetsVal = app.has_other_pets ?? app.hasOtherPets;
+            document.getElementById("hasOtherPets").textContent = (hasPetsVal == 1 || hasPetsVal === true || hasPetsVal === "Yes") ? "Yes" : "No";
+    
+            // 5. Preferred Pet & Reason
+            const petName = getValue(app.pet_name, app.petName, "N/A");
+            document.getElementById("targetPetName").textContent = `Name: ${petName}`;
+            document.getElementById("adoptionReason").textContent = getValue(app.reason, app.adoptionReason, "No reason provided.");
+    
+            // 6. Emergency Contact
+            document.getElementById("emergencyName").textContent = getValue(app.emergency_name, app.emergencyName, "N/A");
+            document.getElementById("emergencyPhone").textContent = getValue(app.emergency_phone, app.emergencyPhone, "N/A");
+            document.getElementById("emergencyRelation").textContent = getValue(app.emergency_relationship, app.emergencyRelationship, "N/A");
+    
+            // 7. ID Proof
+            const idProof = getValue(app.id_proof_url, app.idProofUrl, null);
+            if (idProof) {
+                const idImg = document.getElementById("idProofImg");
+                idImg.src = idProof;
+                idImg.classList.remove("hidden");
+                document.getElementById("idProofPlaceholder").classList.add("hidden");
+            }
         }
-
-        // Kukunin ang ID sa URL search params (?id=xxx)
-        const urlParams = new URLSearchParams(window.location.search);
-        currentAppId = urlParams.get('id');
-
-        if (currentAppId) {
-            await fetchApplicationDetail(currentAppId);
+    
+        // Actions
+        async function handleDecline() {
+            if (!currentAppId) return alert("No Application Selected!");
+            if (!confirm("Are you sure you want to decline this application?")) return;
+    
+            try {
+                const response = await fetch(`/api/organization/applications/${currentAppId}/decline`, {
+                    method: "PATCH",
+                    credentials: "include"
+                });
+    
+                if (response.ok) {
+                    alert("Application declined.");
+                    location.reload();
+                } else {
+                    alert("Failed to decline application.");
+                }
+            } catch (err) {
+                console.error("Failed to decline:", err);
+            }
         }
-    });
-
-    async function fetchApplicationDetail(id) {
-        try {
-            const response = await fetch(`/api/organization/applications/${id}`, {
-                method: "GET",
-                credentials: "include"
-            });
-
-            if (!response.ok) throw new Error("Failed to load details");
-
-            const app = await response.json();
-            populateDetailsUI(app);
-
-        } catch (err) {
-            console.error("Error loading application detail:", err);
+    
+        function handleScheduleInterview() {
+            alert("Schedule interview modal trigger");
         }
-    }
-
-    function populateDetailsUI(app) {
-        // Header
-        document.getElementById("appSubmittedDate").textContent = `Submitted on ${app.applied_date || 'N/A'}`;
-        
-        // Applicant Info
-        document.getElementById("applicantName").textContent = app.applicant_name || "N/A";
-        document.getElementById("applicantLocation").innerHTML = `<i class="fa-solid fa-location-dot text-blue-500"></i> ${app.applicant_address || 'N/A'}`;
-        document.getElementById("applicantPhone").textContent = app.applicant_phone || "N/A";
-        document.getElementById("applicantStatus").textContent = app.civil_status || "Single";
-        document.getElementById("applicantJob").textContent = app.occupation || "N/A";
-        document.getElementById("applicantEmail").textContent = app.applicant_email || "N/A";
-
-        // Lifestyle & Assessment
-        document.getElementById("workSchedule").textContent = app.work_schedule || "N/A";
-        document.getElementById("hoursAway").textContent = app.hours_away || "N/A";
-        document.getElementById("hasChildren").textContent = app.has_children ? "Yes" : "No";
-        document.getElementById("hasOtherPets").textContent = app.has_other_pets ? "Yes" : "No";
-
-        // Preferred Pet
-        document.getElementById("targetPetName").textContent = `Name: ${app.pet_name || 'N/A'}`;
-
-        // Reason
-        document.getElementById("adoptionReason").textContent = app.reason || "No reason provided.";
-
-        // Emergency Contact
-        document.getElementById("emergencyName").textContent = app.emergency_name || "N/A";
-        document.getElementById("emergencyPhone").textContent = app.emergency_phone || "N/A";
-        document.getElementById("emergencyRelation").textContent = app.emergency_relationship || "N/A";
-
-        // ID Proof
-        if (app.id_proof_url) {
+    
+        function handleApprove() {
+            if (!currentAppId) return alert("No Application Selected!");
+            if (confirm("Approve and finalize this adoption application?")) {
+                // Put approve fetch logic here
+            }
+        }
+    
+        function previewIdProof() {
             const idImg = document.getElementById("idProofImg");
-            idImg.src = app.id_proof_url;
-            idImg.classList.remove("hidden");
-            document.getElementById("idProofPlaceholder").classList.add("hidden");
+            if (idImg && idImg.src) {
+                window.open(idImg.src, '_blank');
+            }
         }
-    }
-
-    // Action Handlers
-    function handleDecline() {
-        if (confirm("Are you sure you want to decline this application?")) {
-            // Send API call to decline
-        }
-    }
-
-    function handleScheduleInterview() {
-        // Open interview modal or logic
-    }
-
-    function handleApprove() {
-        if (confirm("Approve and finalize this adoption application?")) {
-            // Send API call to approve
-        }
-    }
-
-    function previewIdProof() {
-        const idImg = document.getElementById("idProofImg");
-        if (idImg.src) {
-            window.open(idImg.src, '_blank');
-        }
-    }
 </script>
 <script src="/assets/js/orgProfile.js"></script> 
 </body>
