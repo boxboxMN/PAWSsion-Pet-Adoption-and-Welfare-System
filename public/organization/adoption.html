@@ -25,7 +25,7 @@
                         <i class="fa-regular fa-file-lines"></i>
                     </div>
                     <div>
-                        <span class="text-sm font-semibold text-gray-700 block">Active Application</span>
+                        <span class="text-sm font-semibold text-gray-700 block">Under Review</span>
                         <span id="statActiveApps" class="text-3xl font-bold text-gray-900 block mt-0.5">0</span>
                         <span class="text-xs text-blue-500 font-medium">Requires your review</span>
                     </div>
@@ -38,7 +38,7 @@
                         <i class="fa-regular fa-circle-check"></i>
                     </div>
                     <div>
-                        <span class="text-sm font-semibold text-gray-700 block">Successful Adoption</span>
+                        <span class="text-sm font-semibold text-gray-700 block">Approved</span>
                         <span id="statSuccessfulApps" class="text-3xl font-bold text-gray-900 block mt-0.5">0</span>
                         <span class="text-xs text-green-500 font-medium">Completed</span>
                     </div>
@@ -64,9 +64,9 @@
                         <i class="fa-regular fa-calendar-days"></i>
                     </div>
                     <div>
-                        <span class="text-sm font-semibold text-gray-700 block">Interviews Schedule</span>
+                        <span class="text-sm font-semibold text-gray-700 block">Interviews Scheduled</span>
                         <span id="statInterviewApps" class="text-3xl font-bold text-gray-900 block mt-0.5">0</span>
-                        <span class="text-xs text-pink-500 font-medium">upcoming</span>
+                        <span class="text-xs text-pink-500 font-medium">Upcoming</span>
                     </div>
                 </div>
             </div>
@@ -104,12 +104,11 @@
                             <th class="py-4 px-6">Applicant</th>
                             <th class="py-4 px-6">Target Pet</th>
                             <th class="py-4 px-6">Status</th>
-                            <th class="py-4 px-6">Applicant Date</th>
+                            <th class="py-4 px-6">Applied Date</th>
                             <th class="py-4 px-6 text-center">Action</th>
                         </tr>
                     </thead>
                     <tbody id="applicationsTableBody" class="divide-y divide-gray-100 text-sm text-gray-700">
-                        <!-- Dynamic Rows Will Be Rendered Here -->
                         <tr>
                             <td colspan="5" class="py-8 text-center text-gray-400">
                                 <i class="fa-solid fa-spinner fa-spin text-2xl mb-2"></i>
@@ -124,7 +123,7 @@
             <div class="bg-white border-t border-gray-100 px-6 py-4 flex items-center justify-between">
                 <span id="paginationInfo" class="text-sm text-gray-500">Showing 0 of 0 results</span>
                 <div class="flex items-center gap-2" id="paginationControls">
-                    <!-- Pagination buttons generated via JS -->
+                    <!-- Pagination buttons -->
                 </div>
             </div>
         </div>
@@ -155,7 +154,6 @@
     let allApplications = [];
 
     document.addEventListener("DOMContentLoaded", async () => {
-
         // 1. Load Shared Components
         if (typeof loadTopbar === "function") {
             await loadTopbar({
@@ -180,8 +178,11 @@
         const tableBody = document.getElementById("applicationsTableBody");
 
         try {
-            // Palitan ang URL ng totoong API endpoint mo sa backend
-            const response = await fetch("/api/organization/applications");
+            const response = await fetch("/api/organization/applications", {
+                method: "GET",
+                headers: { "Content-Type": "application/json" },
+                credentials: "include"
+            });
             
             if (!response.ok) throw new Error("Failed to load applications");
 
@@ -198,7 +199,7 @@
             tableBody.innerHTML = `
                 <tr>
                     <td colspan="5" class="py-8 text-center text-red-500 font-medium">
-                        <i class="fa-solid fa-circle-exclamation text-xl mb-1 block"></i>
+                        <i class="fa-solid fa-triangle-exclamation text-xl mb-1 block"></i>
                         Failed to fetch data. Please try again.
                     </td>
                 </tr>
@@ -208,7 +209,8 @@
 
     // Helper: Update Stat Cards
     function updateStatCards(data) {
-        const active = data.filter(a => a.status === "UNDER_REVIEW").length;
+        // Tinatrato din ang 'PENDING' bilang 'UNDER_REVIEW' kung may pumasok man mula sa lumang DB records
+        const active = data.filter(a => a.status === "UNDER_REVIEW" || a.status === "PENDING").length;
         const approved = data.filter(a => a.status === "APPROVED").length;
         const declined = data.filter(a => a.status === "DECLINED").length;
         const interview = data.filter(a => a.status === "INTERVIEW_SCHEDULED").length;
@@ -226,11 +228,15 @@
 
         const filtered = allApplications.filter(app => {
             const matchesSearch = 
-                app.applicant_name.toLowerCase().includes(searchVal) ||
-                app.applicant_email.toLowerCase().includes(searchVal) ||
-                app.pet_name.toLowerCase().includes(searchVal);
+                (app.applicant_name || '').toLowerCase().includes(searchVal) ||
+                (app.applicant_email || '').toLowerCase().includes(searchVal) ||
+                (app.pet_name || '').toLowerCase().includes(searchVal);
 
-            const matchesStatus = statusVal === "ALL" || app.status === statusVal;
+            // Kung ang napiling filter ay UNDER_REVIEW, isasali rin ang PENDING kung meron
+            let appStatus = app.status;
+            if (appStatus === 'PENDING') appStatus = 'UNDER_REVIEW';
+
+            const matchesStatus = statusVal === "ALL" || appStatus === statusVal;
 
             return matchesSearch && matchesStatus;
         });
@@ -255,13 +261,15 @@
             return;
         }
 
+        const fallbackImg = "https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&q=80&w=80&h=80";
+
         tableBody.innerHTML = applications.map(app => {
             const statusBadge = getStatusBadgeHTML(app.status);
+            
             let petImage = app.pet_image;
             if (!petImage) {
-                petImage = "https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&q=80&w=80&h=80";
+                petImage = fallbackImg;
             } else if (!petImage.startsWith("http") && !petImage.startsWith("/")) {
-                // I-prepend ang folder relative path kung sakaling filename lang ang nasa DB
                 petImage = `/uploads/pets/${petImage}`; 
             }
 
@@ -273,7 +281,10 @@
                     </td>
                     <td class="py-4 px-6">
                         <div class="flex items-center gap-3">
-                            <img src="${petImage}" alt="${escapeHtml(app.pet_name)}" class="w-9 h-9 rounded-full object-cover border border-gray-100" />
+                            <img src="${petImage}" 
+                                 alt="${escapeHtml(app.pet_name)}" 
+                                 onerror="this.onerror=null; this.src='${fallbackImg}';"
+                                 class="w-9 h-9 rounded-full object-cover border border-gray-100" />
                             <div>
                                 <span class="font-semibold text-gray-900 block">${escapeHtml(app.pet_name)}</span>
                                 <span class="text-xs text-gray-400 block mt-0.5">${escapeHtml(app.pet_type || "Pet")} · ${escapeHtml(app.pet_gender || "")}</span>
@@ -284,11 +295,11 @@
                         ${statusBadge}
                     </td>
                     <td class="py-4 px-6">
-                        <span class="font-medium text-gray-900 block">${app.applied_date}</span>
+                        <span class="font-medium text-gray-900 block">${app.applied_date || ''}</span>
                         <span class="text-xs text-gray-400 block mt-0.5">${app.applied_time || ""}</span>
                     </td>
                     <td class="py-4 px-6 text-center">
-                        <button onclick="viewApplicationDetails('${app.id}')" class="text-gray-400 hover:text-blue-600 transition-colors title="View Application">
+                        <button onclick="viewApplicationDetails('${app.id}')" class="text-gray-400 hover:text-blue-600 transition-colors" title="View Application">
                             <i class="fa-regular fa-eye text-lg"></i>
                         </button>
                     </td>
@@ -299,25 +310,31 @@
         paginationInfo.textContent = `Showing 1 to ${applications.length} of ${applications.length} results`;
     }
 
-    // Status Badge Component Helper
+    // Status Badge Component Helper (May kasamang eksaktong design tulad ng sa image)
     function getStatusBadgeHTML(status) {
-        switch (status) {
+        const cleanStatus = (status || '').toUpperCase();
+
+        switch (cleanStatus) {
             case 'UNDER_REVIEW':
-                return `<span class="inline-flex px-3 py-1 text-xs font-medium bg-amber-50 text-amber-600 rounded-full border border-amber-100">Under Review</span>`;
+            case 'PENDING': // Awtomatikong ipapakita bilang 'Under Review'
+                return `<span class="inline-flex px-3 py-1 text-xs font-semibold bg-amber-100/70 text-amber-600 rounded-full">Under Review</span>`;
+            
             case 'INTERVIEW_SCHEDULED':
-                return `<span class="inline-flex px-3 py-1 text-xs font-medium bg-blue-50 text-blue-600 rounded-full border border-blue-100">Interview Scheduled</span>`;
+                return `<span class="inline-flex px-3 py-1 text-xs font-semibold bg-blue-100/70 text-blue-600 rounded-full">Interview Scheduled</span>`;
+            
             case 'APPROVED':
-                return `<span class="inline-flex px-3 py-1 text-xs font-medium bg-emerald-50 text-emerald-600 rounded-full border border-emerald-100">Approved</span>`;
+                return `<span class="inline-flex px-3 py-1 text-xs font-semibold bg-emerald-100/70 text-emerald-600 rounded-full">Approved</span>`;
+            
             case 'DECLINED':
-                return `<span class="inline-flex px-3 py-1 text-xs font-medium bg-rose-50 text-rose-600 rounded-full border border-rose-100">Declined</span>`;
+                return `<span class="inline-flex px-3 py-1 text-xs font-semibold bg-rose-100/80 text-rose-500 rounded-full">Declined</span>`;
+            
             default:
-                return `<span class="inline-flex px-3 py-1 text-xs font-medium bg-gray-50 text-gray-600 rounded-full border border-gray-100">${status}</span>`;
+                return `<span class="inline-flex px-3 py-1 text-xs font-semibold bg-gray-100 text-gray-600 rounded-full">${escapeHtml(status)}</span>`;
         }
     }
 
     // Action Handler
     function viewApplicationDetails(applicationId) {
-        // Redirection o modal popup papuntang full application details
         window.location.href = `/org/application-details.html?id=${applicationId}`;
     }
 
@@ -327,43 +344,6 @@
             return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m];
         });
     }
-
-    // Function to fetch adoption applications from the backend
-async function fetchAdoptionApplications() {
-    const tableBody = document.getElementById("applicationsTableBody");
-
-    try {
-        const response = await fetch("/api/organization/applications", {
-            method: "GET",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            credentials: "include"
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        allApplications = data;
-
-        // Update stat cards and the table
-        updateStatCards(allApplications);
-        filterAndRenderTable();
-
-    } catch (error) {
-        console.error("Error fetching adoption applications:", error);
-        tableBody.innerHTML = `
-            <tr>
-                <td colspan="5" class="py-8 text-center text-red-500 font-medium">
-                    <i class="fa-solid fa-triangle-exclamation text-xl mb-1 block"></i>
-                    Failed to load data.
-                </td>
-            </tr>
-        `;
-    }
-}
 </script>
 <script src="/assets/js/orgProfile.js"></script> 
 </body>

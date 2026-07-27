@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jul 27, 2026 at 08:04 PM
+-- Generation Time: Jul 27, 2026 at 09:02 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.0.30
 
@@ -43,7 +43,7 @@ CREATE TABLE `user_adoption_applications` (
   `emergency_phone` varchar(15) NOT NULL,
   `emergency_relation` varchar(50) NOT NULL,
   `document_path` varchar(255) NOT NULL,
-  `status` enum('Pending','Approved','Rejected','Cancelled') DEFAULT 'Pending',
+  `status` enum('UNDER_REVIEW','INTERVIEW_SCHEDULED','APPROVED','DECLINED') NOT NULL DEFAULT 'UNDER_REVIEW',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -53,9 +53,10 @@ CREATE TABLE `user_adoption_applications` (
 --
 
 INSERT INTO `user_adoption_applications` (`application_id`, `animal_id`, `adopter_id`, `full_name`, `contact_number`, `email`, `full_address`, `civil_status`, `age`, `occupation`, `adoption_intent`, `emergency_name`, `emergency_phone`, `emergency_relation`, `document_path`, `status`, `created_at`, `updated_at`) VALUES
-(1, 15, 1, 'Irene Espeleta', '09331231232', 'irespeleta@my.cspc.edu.ph', 'sfdsfffffffffffffffffffffffffffffffffffffffff', 'Single', 45, 'dfgdfgdfgdfg', 'gfrgrfgrfgf', 'Irene Espeleta', '09676565666', 'fddgvdgdg', 'doc-3-1785174605742.png', 'Pending', '2026-07-27 17:50:05', '2026-07-27 17:50:05'),
-(2, 15, 1, 'Irene Espeleta', '09331231232', 'irespeleta@my.cspc.edu.ph', 'sfdsfffffffffffffffffffffffffffffffffffffffff', 'Married', 45, 'dfgdfgdfgdfg', 'hgjfhjuhjhm', 'Irene Espeleta', '09676565666', 'jfjfghjhgjg', 'doc-3-1785175113458.png', 'Pending', '2026-07-27 17:58:33', '2026-07-27 17:58:33'),
-(3, 15, 1, 'Irene Espeleta', '09331231232', 'irespeleta@my.cspc.edu.ph', 'sfdsfffffffffffffffffffffffffffffffffffffffff', 'Single', 45, 'dfgdfgdfgdfg', 'hnhnhnhn', 'Irene Espeleta', '09676565666', 'rrgrg', 'doc-3-1785175383163.png', 'Pending', '2026-07-27 18:03:03', '2026-07-27 18:03:03');
+(1, 15, 1, 'Irene Espeleta', '09331231232', 'irespeleta@my.cspc.edu.ph', 'sfdsfffffffffffffffffffffffffffffffffffffffff', 'Single', 45, 'dfgdfgdfgdfg', 'gfrgrfgrfgf', 'Irene Espeleta', '09676565666', 'fddgvdgdg', 'doc-3-1785174605742.png', 'UNDER_REVIEW', '2026-07-27 17:50:05', '2026-07-27 19:00:42'),
+(2, 15, 1, 'Irene Espeleta', '09331231232', 'irespeleta@my.cspc.edu.ph', 'sfdsfffffffffffffffffffffffffffffffffffffffff', 'Married', 45, 'dfgdfgdfgdfg', 'hgjfhjuhjhm', 'Irene Espeleta', '09676565666', 'jfjfghjhgjg', 'doc-3-1785175113458.png', 'UNDER_REVIEW', '2026-07-27 17:58:33', '2026-07-27 19:00:42'),
+(3, 15, 1, 'Irene Espeleta', '09331231232', 'irespeleta@my.cspc.edu.ph', 'sfdsfffffffffffffffffffffffffffffffffffffffff', 'Single', 45, 'dfgdfgdfgdfg', 'hnhnhnhn', 'Irene Espeleta', '09676565666', 'rrgrg', 'doc-3-1785175383163.png', 'UNDER_REVIEW', '2026-07-27 18:03:03', '2026-07-27 19:00:42'),
+(4, 13, 1, 'Irene Espeleta', '09331231232', 'irespeleta@my.cspc.edu.ph', 'sfdsfffffffffffffffffffffffffffffffffffffffff', 'Single', 67, 'dfgdfgdfgdfg', 'yujyjyhj', 'Irene Espeleta', '09676565666', 'fddgvdgdg', 'doc-3-1785178265448.png', 'UNDER_REVIEW', '2026-07-27 18:51:05', '2026-07-27 19:00:42');
 
 --
 -- Indexes for dumped tables
@@ -77,7 +78,7 @@ ALTER TABLE `user_adoption_applications`
 -- AUTO_INCREMENT for table `user_adoption_applications`
 --
 ALTER TABLE `user_adoption_applications`
-  MODIFY `application_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `application_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- Constraints for dumped tables
