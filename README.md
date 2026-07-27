@@ -56,6 +56,7 @@ MODIFY COLUMN status ENUM(
             </div>
         </div>
 
+
 # **9. TO DO (07.19.26)**
 
 ## **ALL MODULES**
@@ -108,6 +109,9 @@ MODIFY COLUMN status ENUM(
 
 > *pa add kung ano pa gagawin dito*
 bry naniya
+
+# 11.
+paimport na lang ng user_adoption_applications table sa db nyo
 
 
 HOW TO RUN IT
