@@ -121,6 +121,12 @@ Pa update na lang ng db, palagay netong command:
 
 ALTER TABLE user_adoption_applications ADD COLUMN decline_reason TEXT NULL AFTER status;
 
+ALTER TABLE user_adoption_applications
+ADD COLUMN interview_date DATE NULL,
+ADD COLUMN interview_time VARCHAR(50) NULL,
+ADD COLUMN interview_method ENUM('onsite', 'virtual') DEFAULT 'virtual',
+ADD COLUMN interview_location_link TEXT NULL;
+
 
 HOW TO RUN IT
 - import new db (7.23)

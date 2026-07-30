@@ -93,7 +93,7 @@
                         </p>
                     </div>
                 </div>
-
+                <div id="interviewDetailsCard" class="hidden"></div>
             </div>
 
             <!-- RIGHT COLUMN -->
@@ -211,6 +211,73 @@
         </div>
     </div>
 
+    <!-- INTERVIEW SETUP MODAL -->
+    <div id="scheduleModal" class="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl transform transition-all space-y-6">
+            
+            <!-- Modal Title -->
+            <div class="text-center">
+                <h3 class="text-2xl font-bold text-blue-900">Interview Setup</h3>
+                <div class="w-full h-[1px] bg-gray-200 mt-4"></div>
+            </div>
+
+            <form id="scheduleForm" onsubmit="submitInterviewSchedule(event)" class="space-y-5">
+                
+                <!-- Set Date -->
+                <div>
+                    <label for="interviewDate" class="block text-xs font-semibold text-gray-400 mb-1.5">Set Date</label>
+                    <div class="relative">
+                        <input type="date" id="interviewDate" required class="w-full p-3.5 border border-gray-200 rounded-2xl text-sm font-semibold text-gray-700 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition cursor-pointer">
+                    </div>
+                </div>
+
+                <!-- Set Time -->
+                <div>
+                    <label for="interviewTime" class="block text-xs font-semibold text-gray-400 mb-1.5">Set Time</label>
+                    <input type="text" id="interviewTime" placeholder="9:00 A.M - 10:00 A.M" required class="w-full p-3.5 border border-gray-200 rounded-2xl text-sm font-semibold text-gray-700 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                </div>
+
+                <!-- Interview Method Selection -->
+                <div>
+                    <label class="block text-xs font-semibold text-gray-400 mb-2">Interview Method</label>
+                    <div class="grid grid-cols-2 gap-3">
+                        
+                        <!-- On-site Option -->
+                        <button type="button" id="btnMethodOnsite" onclick="selectInterviewMethod('onsite')" class="flex flex-col items-center justify-center py-4 px-3 border border-gray-200 rounded-2xl gap-2 transition cursor-pointer hover:border-blue-400">
+                            <i class="fa-solid fa-building text-2xl text-gray-400" id="iconOnsite"></i>
+                            <span id="textOnsite" class="text-sm font-bold text-gray-600">On-site</span>
+                        </button>
+
+                        <!-- Virtual Option (Default Selected) -->
+                        <button type="button" id="btnMethodVirtual" onclick="selectInterviewMethod('virtual')" class="flex flex-col items-center justify-center py-4 px-3 border-2 border-blue-500 bg-blue-50/50 rounded-2xl gap-2 transition cursor-pointer">
+                            <i class="fa-solid fa-video text-2xl text-blue-500" id="iconVirtual"></i>
+                            <span id="textVirtual" class="text-sm font-bold text-blue-600">Virtual</span>
+                        </button>
+
+                    </div>
+                </div>
+
+                <!-- Dynamic Field (GMeet Link or Location) -->
+                <div id="methodDetailContainer">
+                    <label id="methodDetailLabel" for="interviewLocationLink" class="block text-xs font-semibold text-gray-700 mb-1.5">GMeet Link:</label>
+                    <input type="text" id="interviewLocationLink" placeholder="https://meet.google.com/xyz-abc-123" required class="w-full p-2 border-b border-gray-200 text-sm focus:border-blue-500 outline-none transition bg-transparent">
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex items-center justify-center gap-4 pt-2">
+                    <button type="button" onclick="closeScheduleModal()" class="w-1/2 py-3 border border-gray-300 text-gray-700 font-bold rounded-xl hover:bg-gray-50 transition">
+                        Cancel
+                    </button>
+                    <button type="submit" id="confirmScheduleBtn" class="w-1/2 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition shadow-md shadow-blue-200">
+                        Confirm
+                    </button>
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+
     <!-- Logout Modal -->
     <div id="logoutModal" class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/45 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-200">
         <div class="bg-white rounded-2xl max-w-sm w-full mx-4 p-6 shadow-2xl scale-95 transition-transform duration-200">
@@ -231,7 +298,6 @@
             </div>
         </div>
     </div>
-
     <script>
         let currentAppId = null;
     
@@ -283,36 +349,47 @@
         function populateDetailsUI(app) {
             const val = (v, fallback = "N/A") => (v !== undefined && v !== null && v !== "") ? v : fallback;
 
-            // 1. Status Badge
-            const statusBadge = document.getElementById("appStatusBadge");
-            const status = val(app.status, "Pending");
-            const lowerStatus = status.toLowerCase();
+    // 1. Matalinong Status Check
+    let status = app.status;
 
-            if (statusBadge) {
-                statusBadge.textContent = status;
+    // Kung blanko ang status SA DATABASE pero may nai-save nang interview date/time:
+    if ((!status || status.trim() === "") && (app.interview_date || app.interview_time)) {
+        status = "Interview Scheduled";
+    } else if (!status || status.trim() === "") {
+        status = "Under Review"; // Default fallback kapag talagang walang interview schedule
+    }
 
-                if (lowerStatus === "approved") {
-                    statusBadge.className = "inline-flex px-4 py-1.5 rounded-full text-sm font-medium bg-emerald-100 text-emerald-600";
-                } else if (lowerStatus === "declined" || lowerStatus === "rejected") {
-                    statusBadge.className = "inline-flex px-4 py-1.5 rounded-full text-sm font-medium bg-red-100 text-red-600";
-                } else {
-                    statusBadge.className = "inline-flex px-4 py-1.5 rounded-full text-sm font-medium bg-amber-100 text-amber-600";
-                }
-            }
+    const lowerStatus = status.toLowerCase();
+    const statusBadge = document.getElementById("appStatusBadge");
 
+    if (statusBadge) {
+        statusBadge.textContent = status;
+
+        if (lowerStatus === "approved") {
+            statusBadge.className = "inline-flex px-4 py-1.5 rounded-full text-sm font-medium bg-emerald-100 text-emerald-600";
+        } else if (lowerStatus === "declined" || lowerStatus === "rejected") {
+            statusBadge.className = "inline-flex px-4 py-1.5 rounded-full text-sm font-medium bg-red-100 text-red-600";
+        } else if (lowerStatus.includes("interview") || lowerStatus.includes("scheduled")) {
+            statusBadge.className = "inline-flex px-4 py-1.5 rounded-full text-sm font-medium bg-blue-100 text-blue-600";
+        } else {
+            // Under Review (Default)
+            statusBadge.className = "inline-flex px-4 py-1.5 rounded-full text-sm font-medium bg-amber-100 text-amber-600";
+        }
+    }
+    
             // 2. Disable buttons kapag Finalized na (Approved, Declined, or Rejected)
             const declineBtn = document.getElementById("declineBtn");
             const scheduleBtn = document.getElementById("scheduleBtn");
             const approveBtn = document.getElementById("approveBtn");
-
+    
             const isFinalized = ["approved", "declined", "rejected"].includes(lowerStatus);
             if (declineBtn) declineBtn.disabled = isFinalized;
             if (scheduleBtn) scheduleBtn.disabled = isFinalized;
             if (approveBtn) approveBtn.disabled = isFinalized;
-
+    
             // 3. Applied Date
             document.getElementById("appSubmittedDate").textContent = app.applied_date ? `Submitted on ${app.applied_date}` : 'Submitted on N/A';
-
+    
             // 4. Direct DB Mapping para sa Applicant Info
             document.getElementById("applicantName").textContent = val(app.full_name);
             
@@ -320,32 +397,32 @@
             if (locEl) {
                 locEl.innerHTML = `<i class="fa-solid fa-location-dot text-blue-500 mt-0.5 shrink-0"></i> <span>${val(app.full_address)}</span>`;
             }
-
+    
             document.getElementById("applicantPhone").textContent = val(app.contact_number);
             document.getElementById("applicantAge").textContent = val(app.age);
             document.getElementById("applicantStatus").textContent = val(app.civil_status);
             document.getElementById("applicantJob").textContent = val(app.occupation);
             document.getElementById("applicantEmail").textContent = val(app.email);
-
+    
             // 5. Preferred Pet & Adoption Intent
             document.getElementById("targetPetName").textContent = `Name: ${val(app.pet_name)}`;
             document.getElementById("adoptionReason").textContent = val(app.adoption_intent, "No reason provided.");
-
+    
             // 6. Emergency Contact Direct DB Mapping
             document.getElementById("emergencyName").textContent = val(app.emergency_name);
             document.getElementById("emergencyPhone").textContent = val(app.emergency_phone);
             document.getElementById("emergencyRelation").textContent = val(app.emergency_relation);
-
+    
             // 7. Document Path / ID Proof
             if (app.document_path) {
                 const idImg = document.getElementById("idProofImg");
-
+    
                 let cleanPath = app.document_path.replace(/\\/g, '/');
-
+    
                 if (!cleanPath.startsWith('/') && !cleanPath.startsWith('http')) {
                     cleanPath = '/' + cleanPath;
                 }
-
+    
                 if (!cleanPath.startsWith('/uploads/')) {
                     if (cleanPath.startsWith('/documents/')) {
                         cleanPath = '/uploads' + cleanPath;
@@ -353,14 +430,17 @@
                         cleanPath = '/uploads/documents' + cleanPath;
                     }
                 }
-
+    
                 idImg.src = cleanPath;
                 idImg.classList.remove("hidden");
                 document.getElementById("idProofPlaceholder").classList.add("hidden");
-
+    
                 const filename = cleanPath.split('/').pop();
                 document.getElementById("idProofFileName").textContent = filename || "ID_PROOF.PNG";
             }
+    
+            // 8. Render Status Action Box
+            renderApplicationStatusDetails(app);
         }
     
         // ================= DECLINE LOGIC =================
@@ -371,22 +451,22 @@
             const modal = document.getElementById("declineModal");
             if (modal) modal.classList.remove("hidden");
         }
-
+    
         function closeDeclineModal() {
             const modal = document.getElementById("declineModal");
             if (modal) modal.classList.add("hidden");
             document.getElementById("declineReason").value = "";
         }
-
+    
         async function submitDecline() {
             if (!currentAppId) return;
-
+    
             const confirmBtn = document.getElementById("confirmDeclineBtn");
             const reason = document.getElementById("declineReason").value.trim();
-
+    
             confirmBtn.disabled = true;
             confirmBtn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> Processing...`;
-
+    
             try {
                 await updateStatus(currentAppId, "Declined", reason);
                 closeDeclineModal();
@@ -395,7 +475,7 @@
                 confirmBtn.innerHTML = `<span>Confirm Decline</span>`;
             }
         }
-
+    
         // ================= APPROVE & FINALIZE LOGIC =================
         function handleApprove() {
             if (!currentAppId) {
@@ -404,19 +484,19 @@
             const modal = document.getElementById("approveModal");
             if (modal) modal.classList.remove("hidden");
         }
-
+    
         function closeApproveModal() {
             const modal = document.getElementById("approveModal");
             if (modal) modal.classList.add("hidden");
         }
-
+    
         async function submitApprove() {
             if (!currentAppId) return;
-
+    
             const confirmBtn = document.getElementById("confirmApproveBtn");
             confirmBtn.disabled = true;
             confirmBtn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> Finalizing...`;
-
+    
             try {
                 await updateStatus(currentAppId, "Approved");
                 closeApproveModal();
@@ -425,7 +505,7 @@
                 confirmBtn.innerHTML = `<span>Confirm Approval</span>`;
             }
         }
-
+    
         // ================= STATUS UPDATE API HANDLER =================
         async function updateStatus(appId, status, reason = null) {
             try {
@@ -435,9 +515,9 @@
                     credentials: 'include',
                     body: JSON.stringify({ status: status, decline_reason: reason })
                 });
-
+    
                 const data = await response.json();
-
+    
                 if (response.ok && (data.success || data.status === "success")) {
                     await Swal.fire({
                         icon: 'success',
@@ -464,17 +544,216 @@
                 });
             }
         }
-
-        // ================= ACTION BUTTONS =================
+    
+        // ================= INTERVIEW SCHEDULE LOGIC =================
+        let selectedMethod = 'virtual';
+    
         function handleScheduleInterview() {
-            Swal.fire({
-                icon: 'info',
-                title: 'Schedule Interview',
-                text: 'Interview scheduling workflow can be configured here.',
+            if (!currentAppId) {
+                return Swal.fire({ 
+                    icon: 'warning', 
+                    title: 'Attention', 
+                    text: 'No application selected.', 
+                    confirmButtonColor: '#2563EB' 
+                });
+            }
+            
+            selectInterviewMethod('virtual');
+            
+            const modal = document.getElementById("scheduleModal");
+            if (modal) modal.classList.remove("hidden");
+        }
+    
+        function closeScheduleModal() {
+            const modal = document.getElementById("scheduleModal");
+            if (modal) modal.classList.add("hidden");
+            document.getElementById("scheduleForm").reset();
+        }
+    
+        function selectInterviewMethod(method) {
+            selectedMethod = method;
+            
+            const btnOnsite = document.getElementById("btnMethodOnsite");
+            const btnVirtual = document.getElementById("btnMethodVirtual");
+            const iconOnsite = document.getElementById("iconOnsite");
+            const iconVirtual = document.getElementById("iconVirtual");
+            const textOnsite = document.getElementById("textOnsite");
+            const textVirtual = document.getElementById("textVirtual");
+            
+            const label = document.getElementById("methodDetailLabel");
+            const input = document.getElementById("interviewLocationLink");
+    
+            if (method === 'onsite') {
+                btnOnsite.className = "flex flex-col items-center justify-center py-4 px-3 border-2 border-blue-500 bg-blue-50/50 rounded-2xl gap-2 transition cursor-pointer";
+                iconOnsite.className = "fa-solid fa-building text-2xl text-blue-500";
+                textOnsite.className = "text-sm font-bold text-blue-600";
+    
+                btnVirtual.className = "flex flex-col items-center justify-center py-4 px-3 border border-gray-200 rounded-2xl gap-2 transition cursor-pointer hover:border-blue-400";
+                iconVirtual.className = "fa-solid fa-video text-2xl text-gray-400";
+                textVirtual.className = "text-sm font-bold text-gray-600";
+    
+                label.textContent = "Venue / Office Address:";
+                input.placeholder = "e.g. Pawpon Shelter HQ, Main Hall";
+            } else {
+                btnVirtual.className = "flex flex-col items-center justify-center py-4 px-3 border-2 border-blue-500 bg-blue-50/50 rounded-2xl gap-2 transition cursor-pointer";
+                iconVirtual.className = "fa-solid fa-video text-2xl text-blue-500";
+                textVirtual.className = "text-sm font-bold text-blue-600";
+    
+                btnOnsite.className = "flex flex-col items-center justify-center py-4 px-3 border border-gray-200 rounded-2xl gap-2 transition cursor-pointer hover:border-blue-400";
+                iconOnsite.className = "fa-solid fa-building text-2xl text-gray-400";
+                textOnsite.className = "text-sm font-bold text-gray-600";
+    
+                label.textContent = "GMeet Link:";
+                input.placeholder = "https://meet.google.com/xyz-abc-123";
+            }
+        }
+    
+        async function submitInterviewSchedule(event) {
+    // Ligtas na iprevent ang default form submit kung may event
+    if (event && typeof event.preventDefault === "function") {
+        event.preventDefault();
+    }
+    
+    if (!currentAppId) return;
+
+    const dateVal = document.getElementById("interviewDate").value;
+    const timeVal = document.getElementById("interviewTime").value.trim();
+    const detailVal = document.getElementById("interviewLocationLink").value.trim();
+    const confirmBtn = document.getElementById("confirmScheduleBtn");
+
+    if (!dateVal || !timeVal) {
+        return Swal.fire({
+            icon: 'warning',
+            title: 'Incomplete Details',
+            text: 'Please select both Date and Time for the interview.',
+            confirmButtonColor: '#2563EB'
+        });
+    }
+
+    confirmBtn.disabled = true;
+    confirmBtn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> Saving...`;
+
+    const payload = {
+        status: "Interview Scheduled",
+        interview_date: dateVal,
+        interview_time: timeVal,
+        interview_method: selectedMethod,
+        interview_location_link: detailVal
+    };
+
+    try {
+        const response = await fetch(`/org/applications/${currentAppId}/schedule`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify(payload)
+        });
+
+        const data = await response.json();
+
+        if (response.ok && (data.success || data.status === "success")) {
+            closeScheduleModal();
+            await Swal.fire({
+                icon: 'success',
+                title: 'Scheduled!',
+                text: 'Interview schedule has been set successfully.',
                 confirmButtonColor: '#2563EB'
             });
+            // Re-fetch para ma-update agad ang UI mula sa DB
+            fetchApplicationDetail(currentAppId);
+        } else {
+            Swal.fire({
+                icon: 'error',
+                title: 'Schedule Failed',
+                text: data.message || 'Could not save schedule. Please try again.',
+                confirmButtonColor: '#EF4444'
+            });
         }
+    } catch (err) {
+        console.error("❌ Error scheduling interview:", err);
+        Swal.fire({
+            icon: 'error',
+            title: 'Server Error',
+            text: 'Unable to connect to the server. Please try again later.',
+            confirmButtonColor: '#EF4444'
+        });
+    } finally {
+        confirmBtn.disabled = false;
+        confirmBtn.innerHTML = `Confirm`;
+    }
+}
+    
+function renderApplicationStatusDetails(app) {
+    const container = document.getElementById("interviewDetailsCard");
+    if (!container) return;
 
+    // Tingnan kung may schedule data (kahit anong status)
+    const hasSchedule = app.interview_date || app.interview_time || app.interview_location_link;
+
+    if (!hasSchedule) {
+        container.classList.add("hidden");
+        return;
+    }
+
+    const interviewDateRaw = app.interview_date;
+    const interviewTime = app.interview_time || "N/A";
+    const interviewMethod = app.interview_method ? app.interview_method.toUpperCase() : "N/A";
+    const locationLink = app.interview_location_link || "N/A";
+
+    // Format Date (Hal: July 31, 2026)
+    let formattedDate = "Not Scheduled";
+    if (interviewDateRaw) {
+        const d = new Date(interviewDateRaw);
+        if (!isNaN(d.getTime())) {
+            formattedDate = d.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        }
+    }
+
+    // Siguraduhing Isang Standard Status String lang
+    const displayStatus = app.status || 'Interview Scheduled';
+
+    // Render sa UI Card
+    container.innerHTML = `
+        <div class="bg-white p-6 rounded-2xl border border-blue-100 shadow-sm">
+            <h3 class="text-blue-600 font-semibold text-base mb-3 flex items-center gap-2">
+                <i class="fa-solid fa-calendar-check text-blue-500"></i> Interview Schedule Details
+            </h3>
+            <div class="p-4 bg-blue-50/50 rounded-xl border border-blue-100 grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-gray-700">
+                <div>
+                    <span class="text-xs text-gray-400 block mb-0.5">Status</span>
+                    <span class="font-bold text-blue-800">${displayStatus}</span>
+                </div>
+                <div>
+                    <span class="text-xs text-gray-400 block mb-0.5">Method</span>
+                    <span class="font-bold text-gray-800">${interviewMethod}</span>
+                </div>
+                <div>
+                    <span class="text-xs text-gray-400 block mb-0.5">Date</span>
+                    <span class="font-bold text-gray-800">${formattedDate}</span>
+                </div>
+                <div>
+                    <span class="text-xs text-gray-400 block mb-0.5">Time</span>
+                    <span class="font-bold text-gray-800">${interviewTime}</span>
+                </div>
+                <div class="sm:col-span-2 pt-2 border-t border-blue-100/60">
+                    <span class="text-xs text-gray-400 block mb-0.5">Location / Link</span>
+                    <span class="font-semibold text-gray-800 break-all">
+                        ${locationLink.startsWith('http') 
+                            ? `<a href="${locationLink}" target="_blank" class="text-blue-600 hover:underline flex items-center gap-1"><i class="fa-solid fa-arrow-up-right-from-square text-xs"></i> ${locationLink}</a>` 
+                            : locationLink}
+                    </span>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    container.classList.remove("hidden");
+}
+    
         function previewIdProof() {
             const idImg = document.getElementById("idProofImg");
             if (idImg && idImg.src && !idImg.classList.contains("hidden")) {
@@ -495,8 +774,7 @@
                 });
             }
         }
-
-        // Back button helper
+    
         function goBackAndRefresh() {
             if (document.referrer) {
                 window.location.href = document.referrer;

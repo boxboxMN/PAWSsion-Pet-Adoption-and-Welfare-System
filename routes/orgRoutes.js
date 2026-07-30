@@ -151,6 +151,10 @@ router.get('/applications/:id', async (req, res) => {
                 app.emergency_relation,
                 app.document_path,
                 app.status,
+                app.interview_date,
+                app.interview_time,
+                app.interview_method,
+                app.interview_location_link,
                 DATE_FORMAT(app.created_at, '%b %d, %Y • %h:%i %p') AS applied_date,
                 p.name AS pet_name
             FROM user_adoption_applications app
@@ -164,7 +168,6 @@ router.get('/applications/:id', async (req, res) => {
             return res.status(404).json({ message: "Application not found" });
         }
 
-        // Direct na ipapasa ang DB row pabalik sa frontend
         res.json(rows[0]);
 
     } catch (err) {
@@ -220,6 +223,45 @@ router.patch('/applications/:id/status', async (req, res) => {
             message: "Failed to update application status due to a database error.",
             details: err.message 
         });
+    }
+});
+
+// POST: Save/Schedule Interview
+router.post('/applications/:id/schedule', async (req, res) => {
+    try {
+        const { id } = req.params;
+        let { interview_date, interview_time, interview_method, interview_location_link } = req.body;
+
+        // SIGURADUHING EXACT MATCH SA ENUM MO SA DB ('Interview Scheduled')
+        const exactStatus = "Interview Scheduled"; 
+
+        // Siguraduhing lowercase 'virtual' o 'onsite' para tumugma sa ENUM ng interview_method
+        const cleanMethod = (interview_method && interview_method.toLowerCase() === 'onsite') ? 'onsite' : 'virtual';
+
+        const query = `
+            UPDATE user_adoption_applications 
+            SET 
+                status = ?,
+                interview_date = ?,
+                interview_time = ?,
+                interview_method = ?,
+                interview_location_link = ?
+            WHERE application_id = ?
+        `;
+
+        await pool.query(query, [
+            exactStatus,
+            interview_date,
+            interview_time,
+            cleanMethod,
+            interview_location_link,
+            id
+        ]);
+
+        return res.json({ success: true, message: "Interview scheduled!" });
+    } catch (err) {
+        console.error("❌ Schedule Error:", err);
+        return res.status(500).json({ success: false, error: err.message });
     }
 });
 
