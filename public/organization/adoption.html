@@ -378,27 +378,28 @@
 
     // Status Badge Component Helper
     function getStatusBadgeHTML(status) {
-        const cleanStatus = (status || '').toUpperCase();
+    if (!status) status = '';
+    
+    // Gawing lowercase at palitan ang underscores para ligtas ang comparison
+    const cleanStatus = status.toLowerCase().replace('_', ' ').trim();
 
-        switch (cleanStatus) {
-            case 'UNDER_REVIEW':
-            case 'PENDING':
-            case '':
-                return `<span class="inline-flex px-3 py-1 text-xs font-semibold bg-amber-100/70 text-amber-600 rounded-full">Under Review</span>`;
-            
-            case 'INTERVIEW_SCHEDULED':
-                return `<span class="inline-flex px-3 py-1 text-xs font-semibold bg-blue-100/70 text-blue-600 rounded-full">Interview Scheduled</span>`;
-            
-            case 'APPROVED':
-                return `<span class="inline-flex px-3 py-1 text-xs font-semibold bg-emerald-100/70 text-emerald-600 rounded-full">Approved</span>`;
-            
-            case 'DECLINED':
-                return `<span class="inline-flex px-3 py-1 text-xs font-semibold bg-rose-100/80 text-rose-500 rounded-full">Declined</span>`;
-            
-            default:
-                return `<span class="inline-flex px-3 py-1 text-xs font-semibold bg-gray-100 text-gray-600 rounded-full">${escapeHtml(status)}</span>`;
-        }
+    if (cleanStatus.includes('approved')) {
+        return `<span class="px-3 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-600">Approved</span>`;
+    } 
+    else if (cleanStatus.includes('declined') || cleanStatus.includes('rejected')) {
+        return `<span class="px-3 py-1 rounded-full text-xs font-medium bg-rose-100 text-rose-500">Declined</span>`;
+    } 
+    else if (cleanStatus.includes('interview') || cleanStatus.includes('scheduled')) {
+        return `<span class="px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-600">Interview Scheduled</span>`;
+    } 
+    else if (cleanStatus.includes('review') || cleanStatus.includes('pending') || cleanStatus === '') {
+        return `<span class="px-3 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-600">Under Review</span>`;
+    } 
+    else {
+        // Fallback lang para sa hindi kilalang status
+        return `<span class="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">${status}</span>`;
     }
+}
 
     // Action Handler
     function viewApplicationDetails(applicationId) {
