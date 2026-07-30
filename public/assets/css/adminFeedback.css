@@ -483,7 +483,31 @@
             opacity: 1;
             visibility: visible;
         }
+ /* Custom scrollbar hiding */
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
 
+        /* Detail Slide Panel Animations */
+        .panel-overlay {
+            transition: opacity 0.25s ease-in-out;
+        }
+        .detail-panel {
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        /* Subtle Fade In */
+        .fade-in {
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
         /* ─── Responsive ─── */
         @media (max-width: 1024px) {
             .feedback-table-wrap .message-preview {

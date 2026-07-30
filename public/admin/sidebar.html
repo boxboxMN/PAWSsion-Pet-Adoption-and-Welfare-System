@@ -1,71 +1,103 @@
-<aside class="w-64 bg-white/70 border-r border-white/50 shadow-xl flex flex-col justify-between h-full">
+<aside class="w-64 bg-slate-900 text-slate-300 border-r border-slate-800/90 shadow-2xl flex flex-col justify-between h-full shrink-0 select-none">
     <div>
-        <!-- Logo -->
-        <div class="flex items-center justify-between p-6">
-            <div class="flex items-center gap-3">
-                <img
-                    src="/assets/images/Pawpon.png"
-                    alt="Pawpon Logo"
-                    class="w-12 h-12 object-contain"
-                >
+        <!-- Logo Section (Light/Dark Glassmorphic Gradient) -->
+        <div class="p-5 border-b border-slate-800/80 bg-slate-950/40">
+            <div class="flex items-center gap-3.5">
+                <!-- Logo Box with subtle glow ring -->
+                <div class="relative flex items-center justify-center w-10 h-10 rounded-xl bg-slate-800/90 border border-slate-700/60 shadow-inner shrink-0 group">
+                    <img
+                        src="/assets/images/Pawpon.png"
+                        alt="Pawpon Logo"
+                        class="w-6 h-6 object-contain filter drop-shadow-md group-hover:scale-105 transition-transform duration-200"
+                    >
+                </div>
 
-                <div>
-                    <h1 class="text-3xl font-bold text-blue-700">
+                <div class="flex flex-col">
+                    <h1 class="text-lg font-black tracking-tight text-slate-100 leading-none">
                         Pawpon
                     </h1>
-
-                    <p class="text-xs text-slate-500">
+                    <span class="text-[10px] font-bold tracking-widest text-sky-400 uppercase mt-1">
                         Admin Portal
-                    </p>
+                    </span>
                 </div>
             </div>
         </div>
 
-        <!-- Navigation -->
-        <nav class="px-3">
-            <ul>
-                <li class="mb-2">
-                    <a href="dashboard.html" class="sidebar-link flex items-center gap-3 rounded-xl px-4 py-3 hover:bg-slate-100 transition" data-page="dashboard">
-                        <i class="fa-solid fa-table-columns w-5"></i> Dashboard
+        <!-- Navigation Section -->
+        <nav class="px-3 pt-5">
+            <p class="px-3 text-[10px] font-bold tracking-widest text-slate-500 uppercase mb-2.5">Main Menu</p>
+            <ul class="space-y-1 font-medium text-sm">
+                
+                <!-- Dashboard -->
+                <li>
+                    <a href="dashboard.html" 
+                       class="sidebar-link flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-slate-400 hover:text-slate-100 hover:bg-slate-800/70 transition-all duration-200 group" 
+                       data-page="dashboard">
+                        <i class="fa-solid fa-table-columns w-5 text-center text-slate-500 group-hover:text-sky-400 transition-colors"></i> 
+                        <span>Dashboard</span>
                     </a>
                 </li>
-                <li class="dropdown open">
-                    <a href="#" id="orgDropdownToggle" class="flex justify-between items-center rounded-xl px-4 py-3 hover:bg-slate-100 transition">
+
+                <!-- Organization Dropdown -->
+                <li class="dropdown">
+                    <button type="button" 
+                            id="orgDropdownToggle" 
+                            class="w-full flex justify-between items-center rounded-xl px-3.5 py-2.5 text-slate-400 hover:text-slate-100 hover:bg-slate-800/70 transition-all duration-200 group focus:outline-none">
                         <div class="flex items-center gap-3">
-                            <i class="fa-solid fa-users-gear w-5"></i> Organization
+                            <i class="fa-solid fa-users-gear w-5 text-center text-slate-500 group-hover:text-sky-400 transition-colors"></i> 
+                            <span>Organization</span>
                         </div>
-                        <i class="fa-solid fa-angle-down text-sm transition"></i>
-                    </a>
-                    <ul class="dropdown-menu pl-8 mt-2 space-y-1">
+                        <i id="orgArrow" class="fa-solid fa-angle-down text-xs text-slate-500 group-hover:text-slate-300 transition-transform duration-300"></i>
+                    </button>
+
+                    <!-- Submenu -->
+                    <ul id="orgSubmenu" class="hidden pl-4 mt-1 space-y-1 border-l-2 border-slate-800 ml-6 my-1">
                         <li>
-                            <a href="organization.html" class="sidebar-link block rounded-lg px-3 py-2 text-sm hover:bg-slate-100" data-page="organization">
+                            <a href="organization.html" 
+                               class="sidebar-link block rounded-lg px-3 py-2 text-xs text-slate-400 hover:text-slate-100 hover:bg-slate-800/50 transition-all" 
+                               data-page="organization">
                                 Organization Masterlist
                             </a>
                         </li>
                         <li>
-                            <a href="partner-request.html" class="sidebar-link block rounded-lg px-3 py-2 text-sm hover:bg-slate-100" data-page="partner-request">
+                            <a href="partner-request.html" 
+                               class="sidebar-link block rounded-lg px-3 py-2 text-xs text-slate-400 hover:text-slate-100 hover:bg-slate-800/50 transition-all" 
+                               data-page="partner-request">
                                 Partner Requests
                             </a>
                         </li>
                     </ul>
                 </li>
-                <li class="mt-2">
-                    <a href="user-management.html" class="sidebar-link flex items-center gap-3 rounded-xl px-4 py-3 hover:bg-slate-100 transition" data-page="user-management">
-                        <i class="fa-regular fa-user w-5"></i> User Management
-                    </a>
-                </li>
+
+                <!-- User Management -->
                 <li>
-                    <a href="feedback.html" class="sidebar-link flex items-center gap-3 rounded-xl px-4 py-3 hover:bg-slate-100 transition" data-page="feedback">
-                        <i class="fa-regular fa-comment-dots w-5"></i> Feedback
+                    <a href="user-management.html" 
+                       class="sidebar-link flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-slate-400 hover:text-slate-100 hover:bg-slate-800/70 transition-all duration-200 group" 
+                       data-page="user-management">
+                        <i class="fa-regular fa-user w-5 text-center text-slate-500 group-hover:text-sky-400 transition-colors"></i> 
+                        <span>User Management</span>
                     </a>
                 </li>
+
+                <!-- Feedback -->
+                <li>
+                    <a href="feedback.html" 
+                       class="sidebar-link flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-slate-400 hover:text-slate-100 hover:bg-slate-800/70 transition-all duration-200 group" 
+                       data-page="feedback">
+                        <i class="fa-regular fa-comment-dots w-5 text-center text-slate-500 group-hover:text-sky-400 transition-colors"></i> 
+                        <span>Feedback</span>
+                    </a>
+                </li>
+
             </ul>
         </nav>
     </div>
 
-    <div class="p-6">
-        <a href="#" class="flex items-center gap-3 text-blue-700 font-semibold">
-            <i class="fa-solid fa-arrow-right-from-bracket"></i> Logout
+    <!-- Bottom / Logout -->
+    <div class="p-3 border-t border-slate-800/80 bg-slate-950/20">
+        <a href="/auth/login.html" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-rose-400 hover:text-rose-200 hover:bg-rose-500/15 border border-transparent hover:border-rose-500/20 transition-all duration-200">
+            <i class="fa-solid fa-arrow-right-from-bracket w-4 text-center"></i> 
+            <span>Logout</span>
         </a>
     </div>
 </aside>

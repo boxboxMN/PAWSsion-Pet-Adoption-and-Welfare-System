@@ -1,477 +1,102 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-full bg-slate-100">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Pawpon | Feedback</title>
+    <title>Pawpon | Feedback Management</title>
 
+    <!-- Google Fonts & FontAwesome -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    
+    <!-- Custom CSS -->
     <link rel="stylesheet" href="../assets/css/adminFeedback.css" />
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ["Inter", "sans-serif"]
-                    }
-                }
-            }
-        }
-    </script>
-
     <script src="../assets/js/adminSidebar.js"></script>
     <script src="../assets/js/adminTopbar.js"></script>
-<style>
-    /* Sidebar */
-        .dropdown .dropdown-menu {
-            display: none;
-        }
-
-        .dropdown.open .dropdown-menu {
-            display: block;
-        }
-
-        .dropdown.open .fa-angle-down {
-            transform: rotate(180deg);
-        }
-</style>
+    <script src="../assets/js/adminFeedback.js"></script>
 </head>
 
-<body class="h-screen overflow-hidden text-slate-800">
-    <div class="flex h-full">
+<body class="h-full text-slate-800 antialiased font-sans flex overflow-hidden">
 
-        <!-- Sidebar -->
-        <div id="sidebar"></div>
+    <!-- Sidebar Container -->
+    <div id="sidebar" class="flex-shrink-0"></div>
 
-        <!-- Main -->
-        <main class="flex-1 p-3 overflow-hidden">
-            <div class="glass h-full rounded-3xl shadow-2xl flex flex-col relative overflow-visible">
+    <!-- Main Content Area -->
+    <main class="flex-1 flex flex-col min-w-0 bg-slate-50/50 h-full overflow-hidden">
 
-                <!-- HEADER -->
-                <div id="topbar"></div>
+        <!-- Topbar Container -->
+        <div id="topbar" class="flex-shrink-0 border-b border-slate-200 bg-white"></div>
 
-                <!-- CONTENT -->
-                <div class="flex-1 overflow-y-auto px-6 pb-6 pt-2 hide-scrollbar">
+        <!-- Scrollable Content Viewport -->
+        <div class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-6">
 
-                    <!-- Search + count -->
-                    <div class="search-wrap fadeIn">
-                        <div class="relative flex-1">
-                            <input
-                            type="text"
-                            id="searchInput"
-                            class="search-input w-full"
-                            placeholder="Search feedback..."
-                            autocomplete="off"
-                            />
-                        </div>
-                        <span class="search-count" id="feedbackCount">0 feedback</span>
-                    </div>
-
-                    <!-- Feedback Table -->
-                    <div class="feedback-table-wrap fadeIn">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th style="width: 22%;">Sender</th>
-                                    <th style="width: 35%;">Message</th>
-                                    <th style="width: 20%;">Date Submitted</th>
-                                    <th style="width: 13%;">Status</th>
-                                    <th style="width: 10%; text-align: center;">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody id="feedbackTableBody">
-                                <!-- Rendered by JS -->
-                            </tbody>
-                        </table>
-                    </div>
-
+            <!-- Title & Search Header -->
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 fade-in">
+                <!-- Search Input Box -->
+                <div class="relative flex-1 max-w-md">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                    <input
+                        type="text"
+                        id="searchInput"
+                        class="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-700 placeholder-slate-400 focus:outline-none focus:border-brand-600 focus:ring-4 focus:ring-brand-500/10 transition-all shadow-sm"
+                        placeholder="Search feedback by name, email, or content..."
+                        autocomplete="off"
+                    />
                 </div>
 
+                <!-- Total Count Badge -->
+                <div class="inline-flex items-center gap-2 self-start sm:self-auto px-3.5 py-1.5 bg-white border border-slate-200 rounded-xl shadow-sm text-xs font-semibold text-slate-600">
+                    <span class="w-2 h-2 rounded-full bg-brand-500"></span>
+                    <span id="feedbackCount">0 Feedbacks</span>
+                </div>
             </div>
-        </main>
 
-    </div>
+            <!-- Table Card Container -->
+            <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden fade-in">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-50/75 border-b border-slate-200 text-[11px] font-bold tracking-wider text-slate-500 uppercase">
+                                <th class="py-3.5 px-5">Sender</th>
+                                <th class="py-3.5 px-5">Message</th>
+                                <th class="py-3.5 px-5 hidden md:table-cell">Date Submitted</th>
+                                <th class="py-3.5 px-5">Status</th>
+                                <th class="py-3.5 px-5 text-center">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="feedbackTableBody" class="divide-y divide-slate-100 text-sm text-slate-700">
+                            <!-- JS Populated Dynamic Content -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
 
-    <!-- Overlay -->
-    <div class="panel-overlay" id="panelOverlay"></div>
+        </div>
+    </main>
 
-    <!-- Detail Panel -->
-    <div class="detail-panel" id="detailPanel">
-        <div class="panel-header">
-            <h3>Feedback Details</h3>
-            <button class="panel-close" id="panelClose">
-                <i class="fas fa-times"></i>
+    <!-- Detail Panel Slide-over Overlay -->
+    <div id="panelOverlay" class="panel-overlay fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40 opacity-0 pointer-events-none transition-opacity"></div>
+
+    <!-- Detail Panel Drawer -->
+    <aside id="detailPanel" class="detail-panel fixed top-0 right-0 w-full max-w-md h-full bg-white shadow-2xl z-50 transform translate-x-full flex flex-col border-l border-slate-200">
+        <!-- Drawer Header -->
+        <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-slate-50/50">
+            <h3 class="font-bold text-slate-800 text-base flex items-center gap-2.5">
+                <i class="fa-regular fa-comment-dots text-brand-600"></i> Feedback Details
+            </h3>
+            <button id="panelClose" class="w-8 h-8 rounded-lg bg-slate-200/60 hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition">
+                <i class="fas fa-xmark"></i>
             </button>
         </div>
-        <div class="panel-body" id="panelBody">
-            <!-- Rendered by JS -->
+
+        <!-- Drawer Content Body -->
+        <div id="panelBody" class="flex-1 overflow-y-auto p-6 space-y-6">
+            <!-- Dynamic Content loaded via JavaScript -->
         </div>
-    </div>
-
-    <script>
-        document.addEventListener("DOMContentLoaded", () => {
-
-            loadSidebar("feedback");
-
-            loadTopbar({
-                title: "Feedback",
-                subtitle: "Review and manage user feedback."
-            });
-
-            loadFeedback();
-
-            // Search filter
-            document.getElementById("searchInput").addEventListener("input", function() {
-                filterFeedback(this.value.trim().toLowerCase());
-            });
-
-            // Panel close
-            document.getElementById("panelClose").addEventListener("click", closePanel);
-            document.getElementById("panelOverlay").addEventListener("click", closePanel);
-
-            document.addEventListener("keydown", (e) => {
-                if (e.key === "Escape") closePanel();
-            });
-
-        });
-
-        // ─── Data ──────────────────────────────────────────────
-        let allFeedback = [];
-        let selectedFeedbackId = null;
-
-        // ─── Avatar images ────────────────────────────────────
-        const avatarImages = [
-            "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=120",
-            "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=120",
-            "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&q=80&w=120",
-            "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=120",
-            "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=120",
-            "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=120",
-        ];
-
-        function getAvatarUrl(index) {
-            return avatarImages[index % avatarImages.length];
-        }
-
-        // ─── Load feedback ─────────────────────────────────────
-        async function loadFeedback() {
-            try {
-                const res = await fetch("/admin/feedback");
-                allFeedback = await res.json();
-
-                if (!allFeedback || allFeedback.length === 0) {
-                    document.getElementById("feedbackTableBody").innerHTML = `
-                        <tr>
-                            <td colspan="5">
-                                <div class="empty-state">
-                                    <i class="fas fa-comment"></i>
-                                    <p>No feedback found</p>
-                                </div>
-                            </td>
-                        </tr>
-                    `;
-                    document.getElementById("feedbackCount").textContent = "0 feedback";
-                    return;
-                }
-
-                renderFeedback(allFeedback);
-
-            } catch (err) {
-                console.error("Failed to load feedback:", err);
-                // Fallback: use sample data for demo
-                allFeedback = getSampleFeedback();
-                renderFeedback(allFeedback);
-            }
-        }
-
-        // ─── Sample data (fallback) ──────────────────────────
-        function getSampleFeedback() {
-            return [
-                { id: 1, sender_name: "Ezekiel Roswell", sender_email: "ezek@gmail.com", sender_role: "User", message: "di ako maka donate, sira ata system niyo ...", date: "2026-05-03T10:29:00", status: "pending" },
-                { id: 2, sender_name: "Maria Santos", sender_email: "mari@gmail.com", sender_role: "User", message: "Thank you for the quick response to my concern. Great support team!", date: "2026-05-02T14:15:00", status: "resolved" },
-                { id: 3, sender_name: "Joseph Mark", sender_email: "jm@gmail.com", sender_role: "User", message: "I think there's a bug in the payment processing page. It keeps loading.", date: "2026-05-01T09:45:00", status: "pending" },
-                { id: 4, sender_name: "Jonel Lomeda", sender_email: "jonle@gmail.com", sender_role: "User", message: "The new update is great! Love the new features.", date: "2026-04-30T16:20:00", status: "resolved" },
-                { id: 5, sender_name: "Angeline Regine", sender_email: "arg@gmail.com", sender_role: "User", message: "Can we have a dark mode option? It would be very helpful.", date: "2026-04-29T11:00:00", status: "archived" },
-                { id: 6, sender_name: "Mark Jake", sender_email: "mj@gmail.com", sender_role: "User", message: "I'm having trouble logging in. It says invalid credentials.", date: "2026-04-28T08:30:00", status: "pending" },
-                { id: 7, sender_name: "Yvan El", sender_email: "vanel@gmail.com", sender_role: "User", message: "Great platform! Very intuitive and easy to use.", date: "2026-04-27T13:45:00", status: "resolved" },
-                { id: 8, sender_name: "Muisin", sender_email: "msis@gmail.com", sender_role: "User", message: "The donation feature is not working properly. Please fix.", date: "2026-04-26T10:00:00", status: "pending" },
-                { id: 9, sender_name: "Emenem", sender_email: "123@gmail.com", sender_role: "User", message: "I would like to request a feature for recurring donations.", date: "2026-04-25T09:15:00", status: "archived" },
-            ];
-        }
-
-        // ─── Render ────────────────────────────────────────────
-        function renderFeedback(feedback) {
-            const tbody = document.getElementById("feedbackTableBody");
-            tbody.innerHTML = "";
-
-            if (!feedback || feedback.length === 0) {
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="5">
-                            <div class="empty-state">
-                                <i class="fas fa-search"></i>
-                                <p>No feedback match your search</p>
-                            </div>
-                        </td>
-                    </tr>
-                `;
-                document.getElementById("feedbackCount").textContent = "0 feedback";
-                return;
-            }
-
-            feedback.forEach((item, index) => {
-                const row = buildFeedbackRow(item, index);
-                tbody.appendChild(row);
-            });
-
-            document.getElementById("feedbackCount").textContent = `${feedback.length} feedback`;
-        }
-
-        // ─── Build row ─────────────────────────────────────────
-        function buildFeedbackRow(item, index) {
-            const id = item.id || `feedback-${index}`;
-            const name = item.sender_name || "Unknown";
-            const email = item.sender_email || "—";
-            const role = item.sender_role || "User";
-            const message = item.message || "No message";
-            const status = item.status || "pending";
-
-            let statusClass = "pending";
-            let statusLabel = "Pending";
-            if (status === "resolved" || status === "Resolved") {
-                statusClass = "resolved";
-                statusLabel = "Resolved";
-            } else if (status === "archived" || status === "Archived") {
-                statusClass = "archived";
-                statusLabel = "Archived";
-            }
-
-            // Format date
-            let dateStr = "Today 10:30 A.M";
-            if (item.date) {
-                const d = new Date(item.date);
-                const now = new Date();
-                const isToday = d.toDateString() === now.toDateString();
-                const hours = d.getHours();
-                const mins = String(d.getMinutes()).padStart(2, "0");
-                const ampm = hours >= 12 ? "P.M" : "A.M";
-                const hour12 = hours % 12 || 12;
-                const datePart = isToday ? "Today" : d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-                dateStr = `${datePart} ${hour12}:${mins} ${ampm}`;
-            }
-
-            const avatarUrl = getAvatarUrl(index);
-
-            const tr = document.createElement("tr");
-            tr.className = `${selectedFeedbackId === id ? 'selected' : ''}`;
-            tr.dataset.feedbackId = id;
-
-            tr.innerHTML = `
-                <td>
-                    <div class="sender-cell">
-                        <img
-                            src="${avatarUrl}"
-                            alt="${name}"
-                            class="avatar"
-                            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'"
-                        />
-                        <div class="avatar-placeholder" style="display:none; background: linear-gradient(135deg, #6366f1, #8b5cf6);">
-                            ${name.charAt(0)}
-                        </div>
-                        <div>
-                            <div class="name">${name}</div>
-                            <div class="role">${role}</div>
-                        </div>
-                    </div>
-                </td>
-                <td>
-                    <div class="message-preview" title="${message}">${message}</div>
-                </td>
-                <td>
-                    <div class="text-slate-600 text-sm">${dateStr}</div>
-                </td>
-                <td>
-                    <span class="status-badge ${statusClass}">
-                        <span class="dot"></span>
-                        ${statusLabel}
-                    </span>
-                </td>
-                <td style="text-align: center;">
-                    <button class="action-btn" data-action="review" data-id="${id}">Review</button>
-                </td>
-            `;
-
-            // Click row → open detail
-            tr.addEventListener("click", (e) => {
-                if (e.target.closest(".action-btn")) return;
-                selectFeedback(id);
-            });
-
-            // Review button
-            const reviewBtn = tr.querySelector(".action-btn");
-            reviewBtn.addEventListener("click", (e) => {
-                e.stopPropagation();
-                selectFeedback(id);
-            });
-
-            return tr;
-        }
-
-        // ─── Select ────────────────────────────────────────────
-        function selectFeedback(id) {
-            selectedFeedbackId = id;
-            const item = allFeedback.find(f => (f.id || `feedback-${allFeedback.indexOf(f)}`) === id);
-            if (item) openPanel(item);
-            const currentQuery = document.getElementById("searchInput").value.trim().toLowerCase();
-            const filtered = getFilteredFeedback(currentQuery);
-            renderFeedback(filtered);
-        }
-
-        function getFilteredFeedback(query) {
-            if (!query) return allFeedback;
-            return allFeedback.filter(item => {
-                const name = (item.sender_name || "").toLowerCase();
-                const email = (item.sender_email || "").toLowerCase();
-                const message = (item.message || "").toLowerCase();
-                return name.includes(query) ||
-                    email.includes(query) ||
-                    message.includes(query);
-            });
-        }
-
-        // ─── Panel ─────────────────────────────────────────────
-        function openPanel(item) {
-            const panel = document.getElementById("detailPanel");
-            const overlay = document.getElementById("panelOverlay");
-            const body = document.getElementById("panelBody");
-
-            const id = item.id || "0";
-            const name = item.sender_name || "Unknown";
-            const initial = name.charAt(0).toUpperCase();
-            const role = item.sender_role || "User";
-            const email = item.sender_email || "—";
-            const message = item.message || "No message";
-            const status = item.status || "pending";
-
-            let statusLabel = "Pending";
-            let statusClass = "status-pending";
-            if (status === "resolved" || status === "Resolved") {
-                statusLabel = "Resolved";
-                statusClass = "status-resolved";
-            } else if (status === "archived" || status === "Archived") {
-                statusLabel = "Archived";
-                statusClass = "status-archived";
-            }
-
-            const date = item.date ? new Date(item.date) : new Date();
-            const dateStr = date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-            const timeStr = date.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
-
-            const avatarUrl = getAvatarUrl(allFeedback.indexOf(item));
-
-            body.innerHTML = `
-                <img
-                    src="${avatarUrl}"
-                    alt="${name}"
-                    class="profile-avatar"
-                    onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'"
-                />
-                <div class="profile-avatar-placeholder" style="display:none; background: linear-gradient(135deg, #6366f1, #8b5cf6); margin: 0 auto 14px;">
-                    ${initial}
-                </div>
-
-                <div class="profile-name">${name}</div>
-                <div class="profile-role">${role}</div>
-                <div class="profile-email">${email}</div>
-
-                <div class="detail-grid">
-                    <div class="detail-row">
-                        <span class="label">Date</span>
-                        <span class="value">${dateStr} ${timeStr}</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="label">Status</span>
-                        <span class="value ${statusClass}">${statusLabel}</span>
-                    </div>
-                </div>
-
-                <h4 class="text-sm font-semibold text-slate-800 mb-2">Message</h4>
-                <div class="message-box">${message}</div>
-
-                <h4 class="text-sm font-semibold text-slate-800 mt-5 mb-3">Resolution Action</h4>
-
-                <div class="action-buttons">
-                    <button class="action-btn resolve" data-action="resolve" data-id="${id}">
-                        <i class="fa-regular fa-circle-check"></i>
-                        Mark as Resolve
-                    </button>
-                    <button class="action-btn archive" data-action="archive" data-id="${id}">
-                        <i class="fa-regular fa-box-archive"></i>
-                        Archive
-                    </button>
-                </div>
-            `;
-
-            body.querySelectorAll(".action-btn").forEach(btn => {
-                btn.addEventListener("click", (e) => {
-                    e.stopPropagation();
-                    const action = btn.dataset.action;
-                    const id = btn.dataset.id;
-                    handleAction(action, id, item);
-                });
-            });
-
-            panel.classList.add("open");
-            overlay.classList.add("show");
-            document.body.style.overflow = "hidden";
-        }
-
-        function closePanel() {
-            document.getElementById("detailPanel").classList.remove("open");
-            document.getElementById("panelOverlay").classList.remove("show");
-            document.body.style.overflow = "";
-            selectedFeedbackId = null;
-            const currentQuery = document.getElementById("searchInput").value.trim().toLowerCase();
-            const filtered = getFilteredFeedback(currentQuery);
-            renderFeedback(filtered);
-        }
-
-        // ─── Filter ────────────────────────────────────────────
-        function filterFeedback(query) {
-            const filtered = getFilteredFeedback(query);
-            renderFeedback(filtered);
-            if (selectedFeedbackId) {
-                const stillVisible = filtered.some(f => (f.id || `feedback-${allFeedback.indexOf(f)}`) === selectedFeedbackId);
-                if (!stillVisible) closePanel();
-            }
-        }
-
-        // ─── Actions ───────────────────────────────────────────
-        function handleAction(action, id, item) {
-            const name = item.sender_name || "User";
-
-            switch (action) {
-                case "resolve":
-                    console.log(`[${action}] ${name} (${id})`);
-                    alert(`Marking feedback from ${name} as resolved... (API not implemented)`);
-                    break;
-
-                case "archive":
-                    console.log(`[${action}] ${name} (${id})`);
-                    if (confirm(`Archive feedback from ${name}?`)) {
-                        alert(`Archiving feedback from ${name}... (API not implemented)`);
-                    }
-                    break;
-
-                default:
-                    console.warn("Unknown action:", action);
-            }
-        }
-    </script>
-
+    </aside>
 </body>
 </html>
