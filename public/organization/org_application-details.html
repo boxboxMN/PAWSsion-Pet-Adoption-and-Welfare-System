@@ -184,7 +184,34 @@
         </div>
     </div>
 
-    <!--Logout Modal-->
+    <!-- APPROVE MODAL -->
+    <div id="approveModal" class="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl p-6 max-w-md w-full shadow-xl transform transition-all space-y-4">
+            <div class="flex items-center justify-between border-b border-gray-100 pb-3">
+                <h3 class="text-lg font-bold text-gray-900 flex items-center gap-2">
+                    <i class="fa-solid fa-circle-check text-emerald-500"></i> Approve & Finalize
+                </h3>
+                <button onclick="closeApproveModal()" class="text-gray-400 hover:text-gray-600 transition">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            
+            <p class="text-sm text-gray-600">
+                Are you sure you want to approve this application? This will finalize the adoption process for this applicant.
+            </p>
+
+            <div class="flex items-center justify-end gap-3 pt-2">
+                <button onclick="closeApproveModal()" class="px-4 py-2 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50 text-sm font-semibold transition">
+                    Cancel
+                </button>
+                <button id="confirmApproveBtn" onclick="submitApprove()" class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition flex items-center gap-2 shadow-md shadow-blue-200">
+                    <span>Confirm Approval</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Logout Modal -->
     <div id="logoutModal" class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/45 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-200">
         <div class="bg-white rounded-2xl max-w-sm w-full mx-4 p-6 shadow-2xl scale-95 transition-transform duration-200">
             <div class="text-center">
@@ -254,95 +281,90 @@
         }
     
         function populateDetailsUI(app) {
-        const val = (v, fallback = "N/A") => (v !== undefined && v !== null && v !== "") ? v : fallback;
+            const val = (v, fallback = "N/A") => (v !== undefined && v !== null && v !== "") ? v : fallback;
 
-        // 1. Status Badge
-        const statusBadge = document.getElementById("appStatusBadge");
-        const status = val(app.status, "Pending");
-        const lowerStatus = status.toLowerCase();
+            // 1. Status Badge
+            const statusBadge = document.getElementById("appStatusBadge");
+            const status = val(app.status, "Pending");
+            const lowerStatus = status.toLowerCase();
 
-        if (statusBadge) {
-            statusBadge.textContent = status;
+            if (statusBadge) {
+                statusBadge.textContent = status;
 
-            if (lowerStatus === "approved") {
-                statusBadge.className = "inline-flex px-4 py-1.5 rounded-full text-sm font-medium bg-emerald-100 text-emerald-600";
-            } else if (lowerStatus === "declined" || lowerStatus === "rejected") {
-                statusBadge.className = "inline-flex px-4 py-1.5 rounded-full text-sm font-medium bg-red-100 text-red-600";
-            } else {
-                statusBadge.className = "inline-flex px-4 py-1.5 rounded-full text-sm font-medium bg-amber-100 text-amber-600";
-            }
-        }
-
-        // --- IDAGDAG ITO: I-disable ang mga buttons kapag Declined o Approved na ---
-        const declineBtn = document.getElementById("declineBtn");
-        const scheduleBtn = document.getElementById("scheduleBtn");
-        const approveBtn = document.getElementById("approveBtn");
-
-        if (lowerStatus === "declined" || lowerStatus === "rejected") {
-            if (declineBtn) declineBtn.disabled = true;
-            if (scheduleBtn) scheduleBtn.disabled = true;
-            if (approveBtn) approveBtn.disabled = true;
-        } else {
-            if (declineBtn) declineBtn.disabled = false;
-            if (scheduleBtn) scheduleBtn.disabled = false;
-            if (approveBtn) approveBtn.disabled = false;
-        }
-
-        // 2. Applied Date
-        document.getElementById("appSubmittedDate").textContent = app.applied_date ? `Submitted on ${app.applied_date}` : 'Submitted on N/A';
-
-        // 3. Direct DB Mapping para sa Applicant Info
-        document.getElementById("applicantName").textContent = val(app.full_name);
-        
-        const locEl = document.getElementById("applicantLocation");
-        if (locEl) {
-            locEl.innerHTML = `<i class="fa-solid fa-location-dot text-blue-500 mt-0.5 shrink-0"></i> <span>${val(app.full_address)}</span>`;
-        }
-
-        document.getElementById("applicantPhone").textContent = val(app.contact_number);
-        document.getElementById("applicantAge").textContent = val(app.age);
-        document.getElementById("applicantStatus").textContent = val(app.civil_status);
-        document.getElementById("applicantJob").textContent = val(app.occupation);
-        document.getElementById("applicantEmail").textContent = val(app.email);
-
-        // 4. Preferred Pet & Adoption Intent
-        document.getElementById("targetPetName").textContent = `Name: ${val(app.pet_name)}`;
-        document.getElementById("adoptionReason").textContent = val(app.adoption_intent, "No reason provided.");
-
-        // 5. Emergency Contact Direct DB Mapping
-        document.getElementById("emergencyName").textContent = val(app.emergency_name);
-        document.getElementById("emergencyPhone").textContent = val(app.emergency_phone);
-        document.getElementById("emergencyRelation").textContent = val(app.emergency_relation);
-
-        // 6. Document Path / ID Proof
-        if (app.document_path) {
-            const idImg = document.getElementById("idProofImg");
-
-            let cleanPath = app.document_path.replace(/\\/g, '/');
-
-            if (!cleanPath.startsWith('/') && !cleanPath.startsWith('http')) {
-                cleanPath = '/' + cleanPath;
-            }
-
-            if (!cleanPath.startsWith('/uploads/')) {
-                if (cleanPath.startsWith('/documents/')) {
-                    cleanPath = '/uploads' + cleanPath;
+                if (lowerStatus === "approved") {
+                    statusBadge.className = "inline-flex px-4 py-1.5 rounded-full text-sm font-medium bg-emerald-100 text-emerald-600";
+                } else if (lowerStatus === "declined" || lowerStatus === "rejected") {
+                    statusBadge.className = "inline-flex px-4 py-1.5 rounded-full text-sm font-medium bg-red-100 text-red-600";
                 } else {
-                    cleanPath = '/uploads/documents' + cleanPath;
+                    statusBadge.className = "inline-flex px-4 py-1.5 rounded-full text-sm font-medium bg-amber-100 text-amber-600";
                 }
             }
 
-            idImg.src = cleanPath;
-            idImg.classList.remove("hidden");
-            document.getElementById("idProofPlaceholder").classList.add("hidden");
+            // 2. Disable buttons kapag Finalized na (Approved, Declined, or Rejected)
+            const declineBtn = document.getElementById("declineBtn");
+            const scheduleBtn = document.getElementById("scheduleBtn");
+            const approveBtn = document.getElementById("approveBtn");
 
-            const filename = cleanPath.split('/').pop();
-            document.getElementById("idProofFileName").textContent = filename || "ID_PROOF.PNG";
+            const isFinalized = ["approved", "declined", "rejected"].includes(lowerStatus);
+            if (declineBtn) declineBtn.disabled = isFinalized;
+            if (scheduleBtn) scheduleBtn.disabled = isFinalized;
+            if (approveBtn) approveBtn.disabled = isFinalized;
+
+            // 3. Applied Date
+            document.getElementById("appSubmittedDate").textContent = app.applied_date ? `Submitted on ${app.applied_date}` : 'Submitted on N/A';
+
+            // 4. Direct DB Mapping para sa Applicant Info
+            document.getElementById("applicantName").textContent = val(app.full_name);
+            
+            const locEl = document.getElementById("applicantLocation");
+            if (locEl) {
+                locEl.innerHTML = `<i class="fa-solid fa-location-dot text-blue-500 mt-0.5 shrink-0"></i> <span>${val(app.full_address)}</span>`;
+            }
+
+            document.getElementById("applicantPhone").textContent = val(app.contact_number);
+            document.getElementById("applicantAge").textContent = val(app.age);
+            document.getElementById("applicantStatus").textContent = val(app.civil_status);
+            document.getElementById("applicantJob").textContent = val(app.occupation);
+            document.getElementById("applicantEmail").textContent = val(app.email);
+
+            // 5. Preferred Pet & Adoption Intent
+            document.getElementById("targetPetName").textContent = `Name: ${val(app.pet_name)}`;
+            document.getElementById("adoptionReason").textContent = val(app.adoption_intent, "No reason provided.");
+
+            // 6. Emergency Contact Direct DB Mapping
+            document.getElementById("emergencyName").textContent = val(app.emergency_name);
+            document.getElementById("emergencyPhone").textContent = val(app.emergency_phone);
+            document.getElementById("emergencyRelation").textContent = val(app.emergency_relation);
+
+            // 7. Document Path / ID Proof
+            if (app.document_path) {
+                const idImg = document.getElementById("idProofImg");
+
+                let cleanPath = app.document_path.replace(/\\/g, '/');
+
+                if (!cleanPath.startsWith('/') && !cleanPath.startsWith('http')) {
+                    cleanPath = '/' + cleanPath;
+                }
+
+                if (!cleanPath.startsWith('/uploads/')) {
+                    if (cleanPath.startsWith('/documents/')) {
+                        cleanPath = '/uploads' + cleanPath;
+                    } else {
+                        cleanPath = '/uploads/documents' + cleanPath;
+                    }
+                }
+
+                idImg.src = cleanPath;
+                idImg.classList.remove("hidden");
+                document.getElementById("idProofPlaceholder").classList.add("hidden");
+
+                const filename = cleanPath.split('/').pop();
+                document.getElementById("idProofFileName").textContent = filename || "ID_PROOF.PNG";
+            }
         }
-    }
     
-    // ================= DECLINE LOGIC =================
-    function handleDecline() {
+        // ================= DECLINE LOGIC =================
+        function handleDecline() {
             if (!currentAppId) {
                 return Swal.fire({ icon: 'warning', title: 'Attention', text: 'No application selected.', confirmButtonColor: '#2563EB' });
             }
@@ -371,6 +393,36 @@
             } finally {
                 confirmBtn.disabled = false;
                 confirmBtn.innerHTML = `<span>Confirm Decline</span>`;
+            }
+        }
+
+        // ================= APPROVE & FINALIZE LOGIC =================
+        function handleApprove() {
+            if (!currentAppId) {
+                return Swal.fire({ icon: 'warning', title: 'Attention', text: 'No application selected.', confirmButtonColor: '#2563EB' });
+            }
+            const modal = document.getElementById("approveModal");
+            if (modal) modal.classList.remove("hidden");
+        }
+
+        function closeApproveModal() {
+            const modal = document.getElementById("approveModal");
+            if (modal) modal.classList.add("hidden");
+        }
+
+        async function submitApprove() {
+            if (!currentAppId) return;
+
+            const confirmBtn = document.getElementById("confirmApproveBtn");
+            confirmBtn.disabled = true;
+            confirmBtn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> Finalizing...`;
+
+            try {
+                await updateStatus(currentAppId, "Approved");
+                closeApproveModal();
+            } finally {
+                confirmBtn.disabled = false;
+                confirmBtn.innerHTML = `<span>Confirm Approval</span>`;
             }
         }
 
@@ -403,7 +455,7 @@
                     });
                 }
             } catch (err) {
-                console.error(" Error updating status:", err);
+                console.error("❌ Error updating status:", err);
                 Swal.fire({
                     icon: 'error',
                     title: 'Server Error',
@@ -421,26 +473,6 @@
                 text: 'Interview scheduling workflow can be configured here.',
                 confirmButtonColor: '#2563EB'
             });
-        }
-
-        async function handleApprove() {
-            if (!currentAppId) {
-                return Swal.fire({ icon: 'warning', title: 'Attention', text: 'No application selected.', confirmButtonColor: '#2563EB' });
-            }
-
-            const result = await Swal.fire({
-                title: 'Approve Application?',
-                text: 'Are you sure you want to approve and finalize this adoption application?',
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonColor: '#2563EB',
-                cancelButtonColor: '#6B7280',
-                confirmButtonText: 'Yes, Approve It'
-            });
-
-            if (result.isConfirmed) {
-                await updateStatus(currentAppId, "Approved");
-            }
         }
 
         function previewIdProof() {
@@ -464,13 +496,11 @@
             }
         }
 
-        //for back buton
+        // Back button helper
         function goBackAndRefresh() {
             if (document.referrer) {
-                // Lilipat sa pinanggalingang URL at magpo-force ng reload
                 window.location.href = document.referrer;
             } else {
-                // Fallback kung walang referrer (halimbawa, direct link)
                 window.history.back();
             }
         }
