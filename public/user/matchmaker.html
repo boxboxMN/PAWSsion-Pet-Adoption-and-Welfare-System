@@ -179,6 +179,77 @@
             </section>
         </div>
     </main>
+<div id="viewPetModal" class="fixed inset-0 hidden items-center justify-center bg-black/60 backdrop-blur-sm z-[999] p-6">
+  <div class="w-full max-w-7xl bg-white rounded-[30px] overflow-hidden shadow-2xl flex relative">
+
+    <!-- Close -->
+    <button onclick="closeMatchPetModal()" class="absolute top-6 right-6 text-4xl text-gray-400 hover:text-gray-700">
+      &times;
+    </button>
+
+    <!-- LEFT SIDE -->
+    <div class="w-[33%] bg-gray-50 border-r border-gray-200 p-7">
+      <img id="modalImage" class="w-full h-[420px] object-cover rounded-3xl shadow" alt="Pet Image">
+
+      <div class="space-y-4 mt-6">
+        <div class="bg-white border rounded-2xl p-4">
+          <p class="text-sm font-bold text-blue-700">Species</p>
+          <p id="modalSpecies" class="mt-3 text-3xl font-semibold"></p>
+        </div>
+
+        <div class="bg-white border rounded-2xl p-4">
+          <p class="text-sm font-bold text-blue-700">Gender</p>
+          <p id="modalGender" class="mt-3 text-3xl font-semibold"></p>
+        </div>
+
+        <div class="bg-white border rounded-2xl p-4">
+          <p class="text-sm font-bold text-blue-700">Age</p>
+          <p id="modalAge" class="mt-3 text-3xl font-semibold"></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT -->
+    <div class="flex-1 p-7 flex flex-col">
+      <h1 id="modalName" class="text-6xl font-extrabold"></h1>
+
+      <!-- Status Badges -->
+      <div class="flex flex-wrap gap-3 mt-5">
+        <span id="modalStatus" class="px-6 py-2 rounded-full font-semibold"></span>
+        <span id="modalHealth" class="px-6 py-2 rounded-full font-semibold"></span>
+        <span id="modalVaccination" class="px-6 py-2 rounded-full font-semibold"></span>
+      </div>
+
+      <!-- Personality -->
+      <h3 class="mt-8 text-3xl font-bold text-blue-700">Personality</h3>
+      <div id="modalTags" class="flex flex-wrap gap-3 mt-4"></div>
+
+      <!-- Description -->
+      <h3 class="mt-8 text-3xl font-bold text-blue-700">Pet Description</h3>
+      <p id="modalBehavior" class="mt-4 text-xl leading-8 text-gray-600"></p>
+
+      <!-- Medical -->
+      <h3 class="mt-8 text-3xl font-bold text-blue-700">Medical History</h3>
+      <div class="border rounded-3xl overflow-hidden mt-4">
+        <table class="w-full">
+          <thead class="bg-blue-700 text-white">
+            <tr>
+              <th class="p-5 text-left">Treatment</th>
+              <th class="text-left">Date</th>
+              <th class="text-left">Administered By</th>
+            </tr>
+          </thead>
+          <tbody id="modalMedicalBody"></tbody>
+        </table>
+      </div>
+
+      <button id="applyModalBtn" class="mt-8 bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-2xl font-bold text-xl">
+        Apply for Adoption
+      </button>
+    </div>
+
+  </div>
+</div>
 
 <script src="../assets/js/userSidebar.js"></script>
 <script src="../assets/js/userMatchmaker.js"></script>

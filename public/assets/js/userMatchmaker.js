@@ -152,7 +152,9 @@ document
 function showIntroScreen() {
     showScreen(introScreen);
 }
+let matchedPets = [];
 function renderMatches(matches) {
+      matchedPets = matches;
     const container = document.querySelector("#compatibilityScreen .grid");
     container.innerHTML = "";
 
@@ -179,7 +181,7 @@ function renderMatches(matches) {
         else if (pet.score >= 75) badgeColor = "bg-blue-600";
         else if (pet.score >= 60) badgeColor = "bg-yellow-500";
 
-      container.innerHTML += `
+     container.innerHTML += `
 <div class="group bg-white rounded-3xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-gray-100 max-w-[420px]">
 
     <!-- IMAGE -->
@@ -198,7 +200,7 @@ function renderMatches(matches) {
     </div>
 
     <!-- BODY -->
-    <div class="p-5">
+    <div class="p-4 flex flex-col h-[360px]">
 
         <!-- Name -->
         <h2 class="text-xl font-bold text-gray-800">
@@ -206,18 +208,18 @@ function renderMatches(matches) {
         </h2>
 
         <!-- Basic Info -->
-        <p class="text-sm text-gray-500 mt-1">
+        <p class="text-sm text-gray-500 mt-0">
             ${pet.species} • ${pet.gender} • ${pet.age}
         </p>
 
         <!-- Personality Tags -->
-        <div class="flex flex-wrap gap-2 mt-4">
+        <div class="flex flex-wrap gap-2 mt-2">
             ${
                 pet.personality_tags
                 ? pet.personality_tags
                     .split(",")
                     .map(tag => `
-                        <span class="bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-xs font-medium">
+                        <span class="bg-blue-50 text-blue-700 px-2 py-1 rounded-full text-xs font-medium">
                             ${tag.trim()}
                         </span>
                     `).join("")
@@ -225,13 +227,15 @@ function renderMatches(matches) {
             }
         </div>
 
-        <!-- Description -->
-        <p class="text-sm text-gray-600 leading-6 text-justify mt-4 line-clamp-4">
-            ${pet.pet_description}
-        </p>
+        <!-- Description Wrapper -->
+        <div class="mt-2 h-28 border border-gray-200 rounded-2xl bg-gray-50 p-4 overflow-hidden">
+            <p class="text-sm text-gray-600 leading-6 text-justify line-clamp-4">
+                ${pet.pet_description}
+            </p>
+        </div>
 
         <!-- Similarity -->
-        <div class="mt-5">
+        <div class="mt-auto">
             <div class="flex justify-between items-center text-sm mb-2">
                 <span class="text-gray-600 font-medium">
                     Behavior Similarity
@@ -250,7 +254,9 @@ function renderMatches(matches) {
         </div>
 
         <!-- Button -->
-        <button class="w-full mt-5 bg-blue-600 hover:bg-blue-700 transition text-white py-2.5 rounded-xl font-semibold">
+        <button
+            class="view-profile-btn w-full mt-5 bg-blue-600 hover:bg-blue-700 transition text-white py-2.5 rounded-xl font-semibold"
+            data-id="${pet.animal_id}">
             View Pet Profile
         </button>
 
@@ -258,4 +264,71 @@ function renderMatches(matches) {
 </div>
 `;
     });
+}
+// =========================
+// VIEW PET PROFILE BUTTON
+// =========================
+document.addEventListener("click", (e) => {
+
+    const btn = e.target.closest(".view-profile-btn");
+
+    if (!btn) return;
+
+    const id = Number(btn.dataset.id);
+
+    const pet = matchedPets.find(p => p.animal_id == id);
+
+    if (pet) {
+        openMatchPetModal(pet);
+    }
+
+});
+function openMatchPetModal(pet) {
+
+    document.getElementById("modalImage").src =
+        `/uploads/pets/${pet.image_path}`;
+
+    document.getElementById("modalName").textContent =
+        pet.name;
+
+    document.getElementById("modalSpecies").textContent =
+        pet.species;
+
+    document.getElementById("modalGender").textContent =
+        pet.gender;
+
+    document.getElementById("modalAge").textContent =
+        pet.age;
+
+    document.getElementById("modalBehavior").textContent =
+        pet.pet_description || "No description.";
+
+    // Personality Tags
+    const tags = document.getElementById("modalTags");
+    tags.innerHTML = "";
+
+    if (pet.personality_tags) {
+
+        pet.personality_tags.split(",").forEach(tag => {
+
+            tags.innerHTML += `
+                <span class="bg-blue-600 text-white px-3 py-1 rounded-full text-sm font-semibold">
+                    ${tag.trim()}
+                </span>
+            `;
+
+        });
+
+    }
+
+    // Show modal
+    document.getElementById("viewPetModal").classList.remove("hidden");
+    document.getElementById("viewPetModal").classList.add("flex");
+
+}
+function closeMatchPetModal() {
+
+    document.getElementById("viewPetModal").classList.add("hidden");
+    document.getElementById("viewPetModal").classList.remove("flex");
+
 }

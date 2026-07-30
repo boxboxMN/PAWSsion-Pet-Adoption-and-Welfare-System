@@ -82,7 +82,7 @@ async function matchPets(preferences) {
         // Smooth Boost
         // -----------------------------------
         // Only boost if already a decent match.
-        if (behaviorSimilarity >= 0.40) {
+        if (behaviorSimilarity >= 0.50) {
 
             // Increase by up to 25% of the remaining distance to 1.0
             behaviorSimilarity =
