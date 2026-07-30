@@ -106,52 +106,56 @@ exports.getOrganizations = async (req, res) => {
     }
 
 };
-/**
+/** NOT WORKING
  * GET DASHBOARD STATS
  * GET /admin/dashboard/stats
  */
-exports.getDashboardStats = async (req, res) => {
-    try {
+// exports.getDashboardStats = async (req, res) => {
+//     try {
 
-        const [[organizations]] = await pool.query(`
-            SELECT COUNT(*) AS totalOrganizations
-            FROM organizations
-        `);
+//         const [[organizations]] = await pool.query(`
+//             SELECT COUNT(*) AS totalOrganizations
+//             FROM organizations
+//         `);
 
-        const [[users]] = await pool.query(`
-            SELECT COUNT(*) AS totalActiveUsers
-            FROM accounts
-            WHERE status='active'
-        `);
+//         const [[users]] = await pool.query(`
+//             SELECT COUNT(*) AS totalActiveUsers
+//             FROM accounts
+//             WHERE status='active'
+//         `);
+//         const [pets] = await pool.query(`
+//             SELECT COUNT(*) AS totalPets
+//             FROM animals
+//         `);
+//         const [[orgThisMonth]] = await pool.query(`
+//             SELECT COUNT(*) AS organizationsThisMonth
+//             FROM organizations o
+//             JOIN accounts a ON o.account_id = a.account_id
+//             WHERE YEAR(a.created_at)=YEAR(CURDATE())
+//               AND MONTH(a.created_at)=MONTH(CURDATE())
+//         `);
 
-        const [[orgThisMonth]] = await pool.query(`
-            SELECT COUNT(*) AS organizationsThisMonth
-            FROM organizations o
-            JOIN accounts a ON o.account_id = a.account_id
-            WHERE YEAR(a.created_at)=YEAR(CURDATE())
-              AND MONTH(a.created_at)=MONTH(CURDATE())
-        `);
+//         const [[usersThisMonth]] = await pool.query(`
+//             SELECT COUNT(*) AS usersThisMonth
+//             FROM accounts
+//             WHERE status='active'
+//               AND YEAR(created_at)=YEAR(CURDATE())
+//               AND MONTH(created_at)=MONTH(CURDATE())
+//         `);
 
-        const [[usersThisMonth]] = await pool.query(`
-            SELECT COUNT(*) AS usersThisMonth
-            FROM accounts
-            WHERE status='active'
-              AND YEAR(created_at)=YEAR(CURDATE())
-              AND MONTH(created_at)=MONTH(CURDATE())
-        `);
+//         res.json({
+//             totalOrganizations: organizations.totalOrganizations,
+//             totalActiveUsers: users.totalActiveUsers,
+//             totalPets: pets[0].totalPets,
+//             organizationsThisMonth: orgThisMonth.organizationsThisMonth,
+//             usersThisMonth: usersThisMonth.usersThisMonth
+//         });
 
-        res.json({
-            totalOrganizations: organizations.totalOrganizations,
-            totalActiveUsers: users.totalActiveUsers,
-            organizationsThisMonth: orgThisMonth.organizationsThisMonth,
-            usersThisMonth: usersThisMonth.usersThisMonth
-        });
-
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: err.message });
-    }
-};
+//     } catch (err) {
+//         console.error(err);
+//         res.status(500).json({ message: err.message });
+//     }
+// };
 exports.getUsers = async (req, res) => {
 
     try {

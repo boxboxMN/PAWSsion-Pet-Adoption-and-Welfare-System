@@ -627,10 +627,22 @@ router.get("/dashboard/stats", async (req, res) => {
             FROM accounts
             WHERE status = 'active'
         `);
-
+        // Total Pets
+        const [pets] = await pool.query(`
+            SELECT COUNT(*) AS totalPets
+            FROM animals
+        `);
+        // Total Successful Adoptions
+        const [[adoptions]] = await pool.query(`
+            SELECT COUNT(*) AS totalAdoptions
+            FROM animals
+            WHERE adoption_status = 'Adopted'
+        `);
         res.json({
             totalOrganizations: organizations.totalOrganizations,
-            totalActiveUsers: users.totalActiveUsers
+            totalActiveUsers: users.totalActiveUsers,
+            totalPets: pets[0].totalPets,
+             totalAdoptions: adoptions.totalAdoptions,
         });
 
     } catch (err) {

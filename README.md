@@ -58,6 +58,9 @@ MODIFY COLUMN status ENUM(
 
 
 # **9. TO DO (07.19.26)**
+## **LOGIN**
+- forgot password
+
 
 ## **ALL MODULES**
 - **Session handling**

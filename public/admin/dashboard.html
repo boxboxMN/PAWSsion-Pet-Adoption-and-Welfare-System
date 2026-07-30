@@ -96,10 +96,10 @@
                     </div>
                     <div class="min-w-0 flex-1">
                         <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Pets Listed</p>
-                        <h2 class="text-2xl font-extrabold text-slate-900 leading-tight mt-0.5">300</h2>
+                       <h2 id="totalPets" class="text-2xl font-extrabold text-slate-900 leading-tight mt-0.5"> 0</h2>
                         <div class="flex items-center gap-1.5 mt-1">
-                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700">
-                                <i class="fa-solid fa-caret-up text-[9px]"></i> +8.5%
+                            <span id="petsListedText" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-700">
+                                All organizations
                             </span>
                         </div>
                     </div>
@@ -110,12 +110,15 @@
                     <div class="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-lg shrink-0">
                         <i class="fa-regular fa-heart"></i>
                     </div>
+
                     <div class="min-w-0 flex-1">
-                        <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Adoptions</p>
-                        <h2 class="text-2xl font-extrabold text-slate-900 leading-tight mt-0.5">50</h2>
+                        <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Successful Adoptions</p>
+
+                        <h2 id="totalAdoptions" class="text-2xl font-extrabold text-slate-900 leading-tight mt-0.5">0</h2>
+
                         <div class="flex items-center gap-1.5 mt-1">
-                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700">
-                                <i class="fa-solid fa-caret-up text-[9px]"></i> +12%
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-purple-50 text-purple-700">
+                                Adopted Pets
                             </span>
                         </div>
                     </div>
@@ -221,7 +224,7 @@
 
                 document.getElementById("totalOrganizations").textContent = data.totalOrganizations ?? 3;
                 document.getElementById("totalActiveUsers").textContent = data.totalActiveUsers ?? 124;
-
+                document.getElementById("totalPets").textContent = data.totalPets ?? 0;
                 document.getElementById("organizationsThisMonth").innerHTML =
                     `<i class="fa-solid fa-caret-up text-[9px]"></i> ${data.organizationsThisMonth ?? 1} new this month`;
 
