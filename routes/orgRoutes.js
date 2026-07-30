@@ -173,4 +173,54 @@ router.get('/applications/:id', async (req, res) => {
     }
 });
 
+// PATCH Update Application Status (Decline, Approve, Schedule Interview)
+router.patch('/applications/:id/status', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { status, decline_reason } = req.body;
+
+        const validStatuses = ['Under Review', 'Interview Scheduled', 'Approved', 'Declined'];
+
+        if (!status || !validStatuses.includes(status)) {
+            return res.status(400).json({ 
+                success: false,
+                message: `Invalid status selected. Allowed: ${validStatuses.join(', ')}` 
+            });
+        }
+
+        const updateQuery = `
+            UPDATE user_adoption_applications 
+            SET 
+                status = ?, 
+                decline_reason = ?, 
+                updated_at = NOW() 
+            WHERE application_id = ?
+        `;
+
+        const reasonValue = (status === 'Declined') ? (decline_reason || null) : null;
+
+        const [result] = await pool.query(updateQuery, [status, reasonValue, id]);
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ 
+                success: false, 
+                message: "Application not found or no changes were saved." 
+            });
+        }
+
+        res.json({
+            success: true,
+            message: `Application status successfully updated to "${status}".`,
+            status: status
+        });
+
+    } catch (err) {
+        res.status(500).json({ 
+            success: false, 
+            message: "Failed to update application status due to a database error.",
+            details: err.message 
+        });
+    }
+});
+
 module.exports = router;

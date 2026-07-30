@@ -116,6 +116,11 @@ bry naniya
 # 11.
 paimport na lang ng user_adoption_applications table sa db nyo
 
+# 12. 
+Pa update na lang ng db, palagay netong command:
+
+ALTER TABLE user_adoption_applications ADD COLUMN decline_reason TEXT NULL AFTER status;
+
 
 HOW TO RUN IT
 - import new db (7.23)
