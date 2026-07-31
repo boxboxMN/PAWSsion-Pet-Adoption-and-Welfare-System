@@ -212,20 +212,6 @@ function renderMatches(matches) {
             ${pet.species} • ${pet.gender} • ${pet.age}
         </p>
 
-        <!-- Personality Tags -->
-        <div class="flex flex-wrap gap-2 mt-2">
-            ${
-                pet.personality_tags
-                ? pet.personality_tags
-                    .split(",")
-                    .map(tag => `
-                        <span class="bg-blue-50 text-blue-700 px-2 py-1 rounded-full text-xs font-medium">
-                            ${tag.trim()}
-                        </span>
-                    `).join("")
-                : ""
-            }
-        </div>
 
         <!-- Description Wrapper -->
         <div class="mt-2 h-28 border border-gray-200 rounded-2xl bg-gray-50 p-4 overflow-hidden">
@@ -276,15 +262,14 @@ document.addEventListener("click", (e) => {
 
     const id = Number(btn.dataset.id);
 
-    const pet = matchedPets.find(p => p.animal_id == id);
-
-    if (pet) {
-        openMatchPetModal(pet);
+    const index = matchedPets.findIndex(p => p.animal_id == id);
+    if (index !== -1) {
+        openMatchPetModal(matchedPets[index], index + 1);
     }
 
 });
-function openMatchPetModal(pet) {
-
+function openMatchPetModal(pet, rank) {
+    console.log(pet);
     // ===========================
     // BASIC INFO
     // ===========================
@@ -295,28 +280,98 @@ function openMatchPetModal(pet) {
     document.getElementById("modalAge").textContent = pet.age;
     document.getElementById("modalBehavior").textContent = pet.pet_description || "No description available.";
     document.getElementById("modalStatus").textContent = pet.status || "Available";
+    document.getElementById("modalHealth").textContent = pet.health_status;
+    document.getElementById("modalVaccination").textContent = pet.vaccination_status;
+    // ======================
+    // Adoption Status Remark
+    // ======================
+    const statusRemark = document.getElementById("modalStatus");
 
+    switch (pet.status || "Available") {
+        case "Available":
+            statusRemark.textContent = "🟢 Ready for Adoption";
+            break;
+        case "Pending":
+            statusRemark.textContent = "🟡 Adoption in Progress";
+            break;
+        case "Adopted":
+            statusRemark.textContent = "💙 Successfully Adopted";
+            break;
+        case "Archived":
+            statusRemark.textContent = "⚪ No Longer Listed";
+            break;
+        default:
+            statusRemark.textContent = "";
+    }
+
+    // ======================
+    // Health Status Remark
+    // ======================
+    const healthRemark = document.getElementById("modalHealth");
+
+    switch (pet.health_status) {
+        case "Healthy":
+            healthRemark.textContent = "💚 Excellent Condition";
+            break;
+        case "Recovered":
+            healthRemark.textContent = "🌿 Recovered";
+            break;
+        case "Under Treatment":
+            healthRemark.textContent = "🩺 Under Treatment";
+            break;
+        case "Sick":
+            healthRemark.textContent = "❤️ Needs Extra Care";
+            break;
+        default:
+            healthRemark.textContent = "";
+    }
+
+    // ==========================
+    // Vaccination Status Remark
+    // ==========================
+    const vaccinationRemark = document.getElementById("modalVaccination");
+
+    switch (pet.vaccination_status) {
+        case "Vaccinated":
+            vaccinationRemark.textContent = "💉 Vaccinated";
+            break;
+        case "Not Vaccinated":
+            vaccinationRemark.textContent = "⚠️ Not Yet Vaccinated";
+            break;
+        case "Unknown":
+            vaccinationRemark.textContent = "❓ Vaccination Record Unavailable";
+            break;
+        default:
+            vaccinationRemark.textContent = "";
+    }
+    document.getElementById("modalOrganization").textContent = pet.organization_name || "Unknown Organization";
+   
+   
     // ===========================
     // MATCH SCORE
     // ===========================
+  
+    document.getElementById("modalRank").textContent = rank;
     document.getElementById("modalScore").textContent = pet.score + "%";
-    document.getElementById("modalBehaviorPercent").textContent = pet.behaviorSimilarity + "%";
-   const behaviorBar = document.getElementById("modalBehaviorBar");
-    if (behaviorBar) {
-        behaviorBar.style.width = pet.behaviorSimilarity + "%";
-    }
+    document.getElementById("modalFinalScore").textContent = pet.score + "%";
+    document.getElementById("modalFinalScoreBar").style.width = pet.score + "%";        
+    const remark = document.getElementById("modalMatchRemark");
+        if (pet.score >= 90) {
+            remark.textContent = "Perfect Match 💚";
+        }
+        else if (pet.score >= 80) {
+            remark.textContent = "Excellent Match 🌟";
+        }
+        else if (pet.score >= 70) {
+            remark.textContent = "Great Match ❤️";
+        }
+        else if (pet.score >= 60) {
+            remark.textContent = "Good Match 👍";
+        }
+        else {
+            remark.textContent = "Possible Match 🐾";
+        }
 
-    // ===========================
-    // PERSONALITY TAGS
-    // ===========================
-    const tags = document.getElementById("modalTags");
-    tags.innerHTML = "";
-
-    if (pet.personality_tags) {
-        pet.personality_tags.split(",").forEach(tag => {
-            tags.innerHTML += `<span class="px-5 py-2 rounded-full bg-blue-50 text-blue-700 font-semibold border border-blue-100">${tag.trim()}</span>`;
-        });
-    }
     // ===========================
     // MEDICAL HISTORY
     // ===========================
@@ -350,5 +405,47 @@ function closeMatchPetModal() {
 
     document.getElementById("viewPetModal").classList.add("hidden");
     document.getElementById("viewPetModal").classList.remove("flex");
+}
 
+// REMARKS
+const healthTag = document.getElementById("modalHealth").parentElement;
+
+switch (pet.health_status) {
+    case "Healthy":
+        healthTag.className =
+            "flex items-center gap-2 px-4 py-2 rounded-full bg-green-50 border border-green-200 text-green-700 text-sm font-medium";
+        break;
+
+    case "Recovered":
+        healthTag.className =
+            "flex items-center gap-2 px-4 py-2 rounded-full bg-lime-50 border border-lime-200 text-lime-700 text-sm font-medium";
+        break;
+
+    case "Under Treatment":
+        healthTag.className =
+            "flex items-center gap-2 px-4 py-2 rounded-full bg-amber-50 border border-amber-200 text-amber-700 text-sm font-medium";
+        break;
+
+    case "Sick":
+        healthTag.className =
+            "flex items-center gap-2 px-4 py-2 rounded-full bg-red-50 border border-red-200 text-red-700 text-sm font-medium";
+        break;
+}
+const vaccineTag = document.getElementById("modalVaccination").parentElement;
+
+switch (pet.vaccination_status) {
+    case "Vaccinated":
+        vaccineTag.className =
+            "flex items-center gap-2 px-4 py-2 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-sm font-medium";
+        break;
+
+    case "Not Vaccinated":
+        vaccineTag.className =
+            "flex items-center gap-2 px-4 py-2 rounded-full bg-orange-50 border border-orange-200 text-orange-700 text-sm font-medium";
+        break;
+
+    case "Unknown":
+        vaccineTag.className =
+            "flex items-center gap-2 px-4 py-2 rounded-full bg-slate-100 border border-slate-200 text-slate-700 text-sm font-medium";
+        break;
 }

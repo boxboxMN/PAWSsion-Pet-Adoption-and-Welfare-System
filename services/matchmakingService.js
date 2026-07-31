@@ -46,13 +46,19 @@ async function matchPets(preferences) {
             a.pet_description,
             a.personality_tags,
             a.image_path,
+            a.organization_id,
+            o.organization_name,
+            a.adoption_status,
+            a.health_status,
+            a.vaccination_status,
             ae.embedding
         FROM animals a
         INNER JOIN animal_embeddings ae
             ON a.animal_id = ae.animal_id
-        WHERE
-            a.adoption_status='Available'
-            AND a.species=?
+        INNER JOIN organizations o
+            ON a.organization_id = o.organization_id
+        WHERE a.adoption_status='Available'
+        AND a.species=?
     `, [type]);
 
     const matches = [];
@@ -115,24 +121,20 @@ async function matchPets(preferences) {
             console.log("====================================\n");
             
         matches.push({
-
             animal_id: pet.animal_id,
-
             name: pet.name,
-
             species: pet.species,
-
             gender: pet.gender,
-
             age: pet.age,
-
             color: pet.color,
-
             image_path: pet.image_path,
-
             personality_tags: pet.personality_tags,
-
             pet_description: pet.pet_description,
+            organization_id: pet.organization_id,
+            organization_name: pet.organization_name,
+            adoption_status: pet.adoption_status,
+            health_status: pet.health_status,
+            vaccination_status: pet.vaccination_status,
 
             behaviorSimilarity:
                 Number((behaviorSimilarity * 100).toFixed(2)),

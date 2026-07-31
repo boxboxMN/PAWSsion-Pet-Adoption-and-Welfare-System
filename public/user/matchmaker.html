@@ -13,6 +13,7 @@
     <style>
         *{
             box-sizing:border-box;
+            scrollbar-width: none;
         }
 
         html{
@@ -29,6 +30,19 @@
         #header{
             visibility:hidden;
         }
+        /* Hide scrollbar but keep scrolling */
+        .hide-scrollbar {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;     /* Firefox */
+        }
+
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;             /* Chrome, Safari */
+        }
+        *::-webkit-scrollbar {
+         display: none;
+        }
+
     </style>
 </head>
 <body class="bg-gray-100 h-full overflow-hidden">
@@ -183,63 +197,95 @@
 VIEW PET PROFILE (NEW BENTO DESIGN)
 ========================================================== -->
 
-<div id="viewPetModal" class="fixed inset-0 hidden z-[999] bg-black/50 backdrop-blur-md flex items-center justify-center p-4">
+<div id="viewPetModal"
+     class="fixed inset-0 hidden z-[999] bg-black/50 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto hide-scrollbar">
 
-    <div class="relative w-full max-w-[1100px] h-[82vh] bg-white rounded-3xl shadow-2xl overflow-hidden">
+    <div class="relative w-full max-w-[1100px] h-[95vh] bg-white rounded-3xl shadow-2xl overflow-hidden">
 
         <!-- Close -->
         <button onclick="closeMatchPetModal()" class="absolute top-4 right-5 z-50 text-slate-400 hover:text-slate-700 transition">
             <i class="fa-solid fa-xmark text-2xl"></i>
         </button>
 
-        <div class="grid grid-cols-[280px_1fr] h-full">
+       <div class="grid grid-cols-[360px_1fr] h-full">
 
             <!-- =====================================================
             LEFT COLUMN
             ====================================================== -->
 
-            <aside class="bg-white border-r border-slate-200 p-4 overflow-y-auto">
-
+            <aside class="bg-white border-r border-slate-200/80 p-5 overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden space-y-5">
                 <!-- IMAGE CARD -->
-                <div class="relative rounded-2xl overflow-hidden shadow-md">
-                    <img id="modalImage" class="w-full h-[240px] object-cover">
+                <div class="relative rounded-2xl overflow-hidden shadow-md border border-slate-200/70 group">
+                    <img id="modalImage" class="w-full h-[350px] object-cover transition-transform duration-500 group-hover:scale-105" alt="Pet Profile Photo">
 
-                    <!-- Rank -->
-                    <div class="absolute top-3 left-3 bg-white/90 backdrop-blur-sm rounded-xl px-2.5 py-1 shadow text-blue-700 font-bold text-sm">#<span id="modalRank">1</span></div>
+                    <!-- Subtle Gradient Overlay for Text/Badges -->
+                    <div class="absolute inset-0 bg-gradient-to-t from-slate-900/40 via-transparent to-slate-900/20 pointer-events-none"></div>
 
-                    <!-- Match -->
-                    <div class="absolute top-3 right-3 bg-blue-600 text-white rounded-xl px-2.5 py-1 shadow font-semibold text-xs"><span id="modalScore">91%</span> Match</div>
+                    <!-- Rank Badge -->
+                    <div class="absolute top-3 left-3 bg-white/95 backdrop-blur-md border border-white/40 rounded-xl px-3 py-1.5 shadow-md flex items-center gap-1 text-indigo-700 font-extrabold text-sm tracking-tight">
+                        <i class="fa-solid fa-crown text-amber-500 text-xs"></i>
+                        <span>RANK <span id="modalRank">1</span></span>
+                    </div>
+
+                    <!-- Match Score Badge -->
+                    <div class="absolute top-3 right-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white border border-white/20 rounded-xl px-3 py-1.5 shadow-md font-bold text-xs flex items-center gap-1.5">
+                        <i class="fa-solid fa-sparkles text-amber-300 text-xs"></i>
+                        <span><span id="modalScore">91%</span> Match</span>
+                    </div>
                 </div>
 
-                <!-- QUICK INFO -->
-                <div class="mt-4 bg-slate-50/50 rounded-2xl border border-slate-200 p-4">
-                    <h3 class="font-bold text-xs tracking-wider text-blue-900 uppercase">Quick Information</h3>
+                <!-- QUICK INFO CARD -->
+                <div class="bg-gradient-to-b from-slate-50/90 to-white rounded-2xl border border-slate-200/90 p-4 shadow-2xs">
+                    
+                    <!-- Section Header with Icon & Gradient Underline Accent -->
+                    <div class="flex items-center gap-2 pb-3 border-b border-slate-200/70">
+                        <div class="w-7 h-7 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center shrink-0">
+                            <i class="fa-solid fa-circle-info text-blue-600 text-xs"></i>
+                        </div>
+                        <h3 class="font-extrabold text-xs tracking-wider text-slate-800 uppercase">Quick Information</h3>
+                    </div>
 
-                    <div class="divide-y divide-slate-100 text-xs mt-3">
+                    <!-- Info List -->
+                    <div class="divide-y divide-slate-100 text-sm mt-1">
 
-                        <div class="flex justify-between py-2">
-                            <span class="text-slate-500">Species</span>
-                            <span id="modalSpecies" class="font-semibold text-slate-800"></span>
+                        <!-- Species -->
+                        <div class="flex justify-between items-center py-2.5">
+                            <span class="text-slate-500 font-medium flex items-center gap-2">
+                                <i class="fa-solid fa-dna text-slate-400 text-xs w-4 text-center"></i>Species
+                            </span>
+                            <span id="modalSpecies" class="font-bold text-slate-800 text-sm"></span>
                         </div>
 
-                        <div class="flex justify-between py-2">
-                            <span class="text-slate-500">Gender</span>
-                            <span id="modalGender" class="font-semibold text-slate-800"></span>
+                        <!-- Gender -->
+                        <div class="flex justify-between items-center py-2.5">
+                            <span class="text-slate-500 font-medium flex items-center gap-2">
+                                <i class="fa-solid fa-venus-mars text-slate-400 text-xs w-4 text-center"></i>Gender
+                            </span>
+                            <span id="modalGender" class="font-bold text-slate-800 text-sm"></span>
                         </div>
 
-                        <div class="flex justify-between py-2">
-                            <span class="text-slate-500">Age</span>
-                            <span id="modalAge" class="font-semibold text-slate-800"></span>
+                        <!-- Age -->
+                        <div class="flex justify-between items-center py-2.5">
+                            <span class="text-slate-500 font-medium flex items-center gap-2">
+                                <i class="fa-regular fa-calendar-days text-slate-400 text-xs w-4 text-center"></i>Age
+                            </span>
+                            <span id="modalAge" class="font-bold text-slate-800 text-sm"></span>
                         </div>
 
-                        <div class="flex justify-between py-2">
-                            <span class="text-slate-500">Breed</span>
-                            <span id="modalBreed" class="font-semibold text-slate-800"></span>
+                        <!-- Status -->
+                        <div class="flex justify-between items-center py-2.5">
+                            <span class="text-slate-500 font-medium flex items-center gap-2">
+                                <i class="fa-solid fa-signal text-slate-400 text-xs w-4 text-center"></i>Status
+                            </span>
+                            <span id="modalStatus" class="bg-emerald-50 text-emerald-700 border border-emerald-200/80 rounded-full px-3 py-1 text-xs font-bold shadow-2xs"></span>
                         </div>
 
-                        <div class="flex justify-between py-2 items-center">
-                            <span class="text-slate-500">Status</span>
-                            <span id="modalStatus" class="bg-green-100 text-green-700 rounded-full px-2.5 py-0.5 text-[11px] font-semibold"></span>
+                        <!-- Organization -->
+                        <div class="flex justify-between items-center py-2.5">
+                            <span class="text-slate-500 font-medium flex items-center gap-2">
+                                <i class="fa-solid fa-building text-slate-400 text-xs w-4 text-center"></i>Organization
+                            </span>
+                            <span id="modalOrganization"class="font-bold text-slate-800 text-sm text-right flex-1 ml-3 break-words"></span>
                         </div>
 
                     </div>
@@ -252,33 +298,53 @@ VIEW PET PROFILE (NEW BENTO DESIGN)
             ====================================================== -->
 
             <section class="p-5 overflow-y-auto bg-white space-y-5">
-
-                <!-- HEADER & STATUS -->
-                <div>
+               <!-- HEADER & STATUS -->
+                <div class="border-b border-slate-200/80 pb-5">
                     <div class="flex justify-between items-start">
                         <div>
-                            <div class="flex items-center gap-2">
-                                <h1 id="modalName" class="text-2xl font-black text-slate-900"></h1>
-                                <i class="fa-solid fa-circle-check text-xl text-blue-600"></i>
+                            <!-- Name & Verification Badge -->
+                            <div class="flex items-center gap-2.5">
+                                <h1 id="modalName" class="text-4xl font-extrabold text-slate-900 tracking-tight"></h1>
+                                <div class="flex items-center justify-center text-blue-600 bg-blue-50 border border-blue-200/60 rounded-full p-1 shadow-2xs">
+                                    <i class="fa-solid fa-circle-check text-xl"></i>
+                                </div>
                             </div>
-                            <p class="text-xs text-slate-500 mt-0.5">Your AI Recommended Companion</p>
+
+                            <!-- AI Subtitle Tag -->
+                            <div class="inline-flex items-center gap-1.5 mt-1.5 px-2.5 py-0.5 rounded-md bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100/80">
+                                <i class="fa-solid fa-sparkles text-xs text-indigo-600"></i>
+                                <p class="text-xs font-semibold text-indigo-900 tracking-wide">AI Recommended Companion</p>
+                            </div>
                         </div>
                     </div>
 
                     <!-- STATUS PILLS -->
-                    <div class="flex flex-wrap gap-2 mt-3">
-                        <div class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-semibold border border-emerald-100">
-                            <i class="fa-regular fa-circle-check text-xs"></i>
-                            <span id="modalStatus">Available for Adoption</span>
+                    <!-- STATUS PILLS -->
+                    <div class="flex flex-wrap items-center gap-3 mt-4">
+
+                        <!-- Adoption Status -->
+                        <div class="flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm font-semibold">
+                            <span class="relative flex h-2.5 w-2.5">
+                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                            </span>
+                            <span id="modalStatus"></span>
                         </div>
 
-                        <div class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-50 text-green-700 text-xs font-semibold border border-green-100">
-                            <i class="fa-solid fa-heart-pulse text-xs"></i>Healthy
+                        <!-- Health Tag -->
+                        <div class="flex items-center gap-2 px-4 py-2 rounded-full bg-red-50 border border-red-200 text-red-700 text-sm font-medium">
+                            <i class="fa-solid fa-heart-pulse"></i>
+                            <span id="modalHealth"></span>
+                            <span id="modalHealthRemark"></span>
                         </div>
 
-                        <div class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-semibold border border-blue-100">
-                            <i class="fa-solid fa-shield-heart text-xs"></i>Vaccinated
+                        <!-- Vaccination Tag -->
+                        <div class="flex items-center gap-2 px-4 py-2 rounded-full bg-sky-50 border border-sky-200 text-sky-700 text-sm font-medium">
+                            <i class="fa-solid fa-syringe"></i>
+                            <span id="modalVaccination"></span>
+                            <span id="modalVaccinationRemark"></span>
                         </div>
+
                     </div>
                 </div>
 
@@ -287,85 +353,87 @@ VIEW PET PROFILE (NEW BENTO DESIGN)
                 =========================== -->
                 <div class="grid grid-cols-2 gap-4">
 
-                    <!-- PERSONALITY -->
-                    <div class="rounded-2xl border border-slate-200 shadow-sm p-4 bg-white">
+                    <!-- PET DESCRIPTION -->
+                    <div class="rounded-2xl border border-slate-200/80 shadow-xs p-5 bg-white flex flex-col">
                         <div class="flex items-center gap-2.5">
-                            <div class="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
+                            <div class="w-9 h-9 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center shrink-0">
                                 <i class="fa-solid fa-paw text-blue-600 text-sm"></i>
                             </div>
-                            <h3 class="font-bold text-sm text-slate-800">Personality</h3>
-                        </div>
-                        <div id="modalTags" class="flex flex-wrap gap-2 mt-3"></div>
-                    </div>
-
-                    <!-- BEHAVIOR SCORE -->
-                    <div class="rounded-2xl border border-slate-200 shadow-sm p-4 bg-white">
-                        <div class="flex items-center gap-2.5">
-                            <div class="w-8 h-8 rounded-lg bg-purple-50 flex items-center justify-center">
-                                <i class="fa-solid fa-bullseye text-purple-600 text-sm"></i>
-                            </div>
-                            <h3 class="font-bold text-sm text-slate-800">Behavior Similarity</h3>
+                            <h3 class="font-bold text-sm uppercase tracking-wider text-slate-800">Pet Description</h3>
                         </div>
 
-                        <div class="flex items-baseline justify-between mt-3 mb-1">
-                            <h2 id="modalBehaviorPercent" class="text-3xl font-black text-indigo-600">84%</h2>
-                            <p class="text-xs font-semibold text-slate-500">Great Match ❤️</p>
-                        </div>
-
-                        <div class="w-full bg-slate-100 rounded-full h-2">
-                            <div id="modalBehaviorBar" class="bg-indigo-600 h-2 rounded-full transition-all duration-500" style="width:0%"></div>
-                        </div>
-
-                        <div class="mt-3 rounded-xl bg-slate-50 p-2.5 flex gap-2 items-start text-xs border border-slate-100">
-                            <i class="fa-solid fa-sparkles text-indigo-500 mt-0.5"></i>
-                            <p class="text-slate-600 leading-relaxed">This pet matches well with the personality and behavior you described.</p>
+                        <div class="mt-3.5 rounded-xl bg-slate-50 border border-slate-100 p-4 flex-1">
+                            <p id="modalBehavior" class="text-sm leading-relaxed text-slate-700 text-justify">
+                            </p>
                         </div>
                     </div>
 
-                    <!-- ABOUT -->
-                    <div class="col-span-2 rounded-2xl border border-slate-200 shadow-sm p-4 bg-white">
-                        <div class="flex justify-between items-center">
+                    <!-- FINAL MATCH SCORE -->
+                    <div class="rounded-2xl border border-slate-200/80 shadow-xs p-5 bg-white flex flex-col justify-between">
+
+                        <div>
                             <div class="flex items-center gap-2.5">
-                                <div class="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
-                                    <i class="fa-solid fa-file-lines text-blue-600 text-sm"></i>
+                                <div class="w-9 h-9 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center justify-center shrink-0">
+                                    <i class="fa-solid fa-medal text-emerald-600 text-sm"></i>
                                 </div>
-                                <h3 class="font-bold text-sm text-slate-800">About Me</h3>
+                                <h3 class="font-bold text-sm uppercase tracking-wider text-slate-800">Final Match Score</h3>
                             </div>
-                            <i class="fa-regular fa-heart text-2xl text-blue-200"></i>
+
+                            <div class="flex items-baseline justify-between mt-3.5">
+                                <div>
+                                    <h2 id="modalFinalScore" class="text-4xl font-black text-emerald-600 tracking-tight">83%</h2>
+                                    <p id="modalMatchRemark" class="text-sm font-bold text-slate-600 mt-0.5">Excellent Match 💚</p>
+                                </div>
+                            </div>
+
+                            <!-- Progress -->
+                            <div class="w-full bg-slate-100 rounded-full h-2.5 mt-3.5 overflow-hidden">
+                                <div id="modalFinalScoreBar" class="bg-gradient-to-r from-emerald-500 to-blue-600 h-2.5 rounded-full transition-all duration-700" style="width:0%"></div>
+                            </div>
                         </div>
-                        <p id="modalBehavior" class="mt-3 text-xs leading-relaxed text-slate-600 text-justify"></p>
+
+                        <!-- AI Insight -->
+                        <div class="mt-4 rounded-xl bg-emerald-50/80 border border-emerald-100/80 p-3 flex items-start gap-2.5">
+                            <i class="fa-solid fa-sparkles text-emerald-600 text-sm mt-0.5 shrink-0"></i>
+                            <p class="text-xs text-slate-700 leading-normal">
+                                This score combines <strong>pet description (70%)</strong>, <strong>age (20%)</strong>, and <strong>gender (10%)</strong> to estimate overall adoption compatibility.
+                            </p>
+                        </div>
+
                     </div>
 
                     <!-- MEDICAL HISTORY -->
-                    <div class="col-span-2 rounded-2xl border border-slate-200 shadow-sm overflow-hidden bg-white">
+                    <div class="col-span-2 rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden bg-white">
                         <!-- Header -->
-                        <div class="flex items-center justify-between px-4 py-3 bg-slate-50 border-b border-slate-100">
+                        <div class="flex items-center justify-between px-5 py-3.5 bg-slate-50/70 border-b border-slate-100">
                             <div class="flex items-center gap-2.5">
-                                <div class="w-8 h-8 rounded-lg bg-violet-50 flex items-center justify-center">
+                                <div class="w-9 h-9 rounded-lg bg-violet-50 border border-violet-100 flex items-center justify-center">
                                     <i class="fa-solid fa-notes-medical text-violet-600 text-sm"></i>
                                 </div>
-                                <h3 class="text-sm font-bold text-slate-800">Medical History</h3>
+                                <h3 class="text-sm font-bold uppercase tracking-wider text-slate-800">Medical History</h3>
                             </div>
-                            <span class="text-xs text-slate-400">Latest treatments and vaccinations</span>
+                            <span class="text-xs font-medium text-slate-500">Latest treatments & vaccinations</span>
                         </div>
 
                         <!-- TABLE -->
-                        <table class="w-full text-xs">
-                            <thead class="bg-blue-600 text-white font-medium">
-                                <tr>
-                                    <th class="text-left px-4 py-2.5">Treatment</th>
-                                    <th class="text-left px-4 py-2.5">Date</th>
-                                    <th class="text-left px-4 py-2.5">Administered By</th>
-                                </tr>
-                            </thead>
-                            <tbody id="modalMedicalBody" class="divide-y divide-slate-100 bg-white"></tbody>
-                        </table>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm">
+                                <thead class="bg-slate-100/80 text-slate-800 font-bold border-b border-slate-200/60">
+                                    <tr>
+                                        <th class="text-left px-5 py-2.5">Treatment</th>
+                                        <th class="text-left px-5 py-2.5">Date</th>
+                                        <th class="text-left px-5 py-2.5">Administered By</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="modalMedicalBody" class="divide-y divide-slate-100 bg-white text-slate-700"></tbody>
+                            </table>
+                        </div>
                     </div>
 
                     <!-- APPLY BUTTON -->
                     <div class="col-span-2 pt-1">
-                        <button class="w-full rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 transition text-white py-3 text-sm font-bold shadow-md hover:shadow-lg active:scale-[0.99] flex items-center justify-center gap-2">
-                            <i class="fa-regular fa-heart"></i>Apply for Adoption
+                        <button class="w-full rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 transition-all duration-200 text-white py-3.5 text-base font-bold shadow-md hover:shadow-indigo-200 active:scale-[0.99] flex items-center justify-center gap-2.5 cursor-pointer">
+                            <i class="fa-regular fa-heart text-base"></i>Apply for Adoption
                         </button>
                     </div>
 
