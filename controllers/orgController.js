@@ -98,6 +98,34 @@ exports.addPet = async (req, res) => {
 
             // Get the newly inserted pet ID
             const animal_id = result.insertId;
+            // ============================
+            // Generate embedding
+            // ============================
+            console.log("Generating embedding...");
+
+            const embedding = await generateEmbedding(
+                pet_description || ""
+            );
+
+            console.log("Embedding generated.");
+
+            // Save embedding
+            await pool.query(
+                `
+                INSERT INTO animal_embeddings
+                (
+                    animal_id,
+                    embedding
+                )
+                VALUES (?, ?)
+                `,
+                [
+                    animal_id,
+                    JSON.stringify(embedding)
+                ]
+            );
+
+            console.log("Embedding saved.");
 
         // Parse medical history from frontend
         const medicalHistory = medical_history
