@@ -285,43 +285,63 @@ document.addEventListener("click", (e) => {
 });
 function openMatchPetModal(pet) {
 
-    document.getElementById("modalImage").src =
-        `/uploads/pets/${pet.image_path}`;
+    // ===========================
+    // BASIC INFO
+    // ===========================
+    document.getElementById("modalImage").src = `/uploads/pets/${pet.image_path}`;
+    document.getElementById("modalName").textContent = pet.name;
+    document.getElementById("modalSpecies").textContent = pet.species;
+    document.getElementById("modalGender").textContent = pet.gender;
+    document.getElementById("modalAge").textContent = pet.age;
+    document.getElementById("modalBehavior").textContent = pet.pet_description || "No description available.";
+    document.getElementById("modalStatus").textContent = pet.status || "Available";
 
-    document.getElementById("modalName").textContent =
-        pet.name;
+    // ===========================
+    // MATCH SCORE
+    // ===========================
+    document.getElementById("modalScore").textContent = pet.score + "%";
+    document.getElementById("modalBehaviorPercent").textContent = pet.behaviorSimilarity + "%";
+   const behaviorBar = document.getElementById("modalBehaviorBar");
+    if (behaviorBar) {
+        behaviorBar.style.width = pet.behaviorSimilarity + "%";
+    }
 
-    document.getElementById("modalSpecies").textContent =
-        pet.species;
-
-    document.getElementById("modalGender").textContent =
-        pet.gender;
-
-    document.getElementById("modalAge").textContent =
-        pet.age;
-
-    document.getElementById("modalBehavior").textContent =
-        pet.pet_description || "No description.";
-
-    // Personality Tags
+    // ===========================
+    // PERSONALITY TAGS
+    // ===========================
     const tags = document.getElementById("modalTags");
     tags.innerHTML = "";
 
     if (pet.personality_tags) {
-
         pet.personality_tags.split(",").forEach(tag => {
-
-            tags.innerHTML += `
-                <span class="bg-blue-600 text-white px-3 py-1 rounded-full text-sm font-semibold">
-                    ${tag.trim()}
-                </span>
-            `;
-
+            tags.innerHTML += `<span class="px-5 py-2 rounded-full bg-blue-50 text-blue-700 font-semibold border border-blue-100">${tag.trim()}</span>`;
         });
+    }
+    // ===========================
+    // MEDICAL HISTORY
+    // ===========================
+    const body = document.getElementById("modalMedicalBody");
+    body.innerHTML = "";
 
+    if (pet.medical_history && pet.medical_history.length) {
+        pet.medical_history.forEach(record => {
+            body.innerHTML += `
+            <tr>
+                <td class="px-6 py-4">${record.treatment}</td>
+                <td class="px-6 py-4">${record.date}</td>
+                <td class="px-6 py-4">${record.administered_by}</td>
+            </tr>`;
+        });
+    } else {
+        body.innerHTML = `
+        <tr>
+            <td colspan="3" class="text-center py-8 text-slate-400">No medical history available.</td>
+        </tr>`;
     }
 
-    // Show modal
+    // ===========================
+    // OPEN MODAL
+    // ===========================
     document.getElementById("viewPetModal").classList.remove("hidden");
     document.getElementById("viewPetModal").classList.add("flex");
 

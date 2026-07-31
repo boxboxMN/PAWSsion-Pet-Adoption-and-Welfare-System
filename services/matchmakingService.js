@@ -87,7 +87,7 @@ async function matchPets(preferences) {
             // Increase by up to 25% of the remaining distance to 1.0
             behaviorSimilarity =
                 behaviorSimilarity +
-                ((1 - behaviorSimilarity) * 0.25);
+                ((1 - behaviorSimilarity) * 0.30);
         }
             console.log("Behavior Similarity AFTER Boost :", (behaviorSimilarity * 100).toFixed(2) + "%");
 
