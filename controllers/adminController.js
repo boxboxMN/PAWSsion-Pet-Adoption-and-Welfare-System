@@ -106,56 +106,56 @@ exports.getOrganizations = async (req, res) => {
     }
 
 };
-/** NOT WORKING
- * GET DASHBOARD STATS
- * GET /admin/dashboard/stats
- */
-// exports.getDashboardStats = async (req, res) => {
-//     try {
+router.get("/dashboard/stats", async (req, res) => {
+    try {
+        // Bilang ng mga Approved Applications sa user_adoption_applications
+        const [appRows] = await pool.query(`
+            SELECT COUNT(*) AS totalApprovedApplications
+            FROM user_adoption_applications
+            WHERE status = 'Approved'
+        `);
+        const totalApprovedApplications = appRows[0]?.totalApprovedApplications || 0;
 
-//         const [[organizations]] = await pool.query(`
-//             SELECT COUNT(*) AS totalOrganizations
-//             FROM organizations
-//         `);
+        // Total Organizations
+        const [orgRows] = await pool.query(`
+            SELECT COUNT(*) AS totalOrganizations
+            FROM organizations
+            WHERE verification_status = 'Approved'
+        `);
+        const totalOrganizations = orgRows[0]?.totalOrganizations || 0;
 
-//         const [[users]] = await pool.query(`
-//             SELECT COUNT(*) AS totalActiveUsers
-//             FROM accounts
-//             WHERE status='active'
-//         `);
-//         const [pets] = await pool.query(`
-//             SELECT COUNT(*) AS totalPets
-//             FROM animals
-//         `);
-//         const [[orgThisMonth]] = await pool.query(`
-//             SELECT COUNT(*) AS organizationsThisMonth
-//             FROM organizations o
-//             JOIN accounts a ON o.account_id = a.account_id
-//             WHERE YEAR(a.created_at)=YEAR(CURDATE())
-//               AND MONTH(a.created_at)=MONTH(CURDATE())
-//         `);
+        // Total Active Users
+        const [userRows] = await pool.query(`
+            SELECT COUNT(*) AS totalActiveUsers
+            FROM accounts
+            WHERE status = 'active'
+        `);
+        const totalActiveUsers = userRows[0]?.totalActiveUsers || 0;
 
-//         const [[usersThisMonth]] = await pool.query(`
-//             SELECT COUNT(*) AS usersThisMonth
-//             FROM accounts
-//             WHERE status='active'
-//               AND YEAR(created_at)=YEAR(CURDATE())
-//               AND MONTH(created_at)=MONTH(CURDATE())
-//         `);
+        // Total Pets
+        const [petRows] = await pool.query(`
+            SELECT COUNT(*) AS totalPets
+            FROM animals
+        `);
+        const totalPets = petRows[0]?.totalPets || 0;
 
-//         res.json({
-//             totalOrganizations: organizations.totalOrganizations,
-//             totalActiveUsers: users.totalActiveUsers,
-//             totalPets: pets[0].totalPets,
-//             organizationsThisMonth: orgThisMonth.organizationsThisMonth,
-//             usersThisMonth: usersThisMonth.usersThisMonth
-//         });
+        res.json({
+            success: true,
+            totalApprovedApplications,
+            totalOrganizations,
+            totalActiveUsers,
+            totalPets
+        });
 
-//     } catch (err) {
-//         console.error(err);
-//         res.status(500).json({ message: err.message });
-//     }
-// };
+    } catch (err) {
+        console.error("Dashboard Stats Error:", err);
+        res.status(500).json({
+            success: false,
+            message: "Database Error",
+            error: err.message
+        });
+    }
+});
 exports.getUsers = async (req, res) => {
 
     try {

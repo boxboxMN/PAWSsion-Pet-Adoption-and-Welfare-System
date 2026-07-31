@@ -217,29 +217,33 @@
 
     <script>
         async function loadDashboardStats() {
-            try {
-                const res = await fetch("/admin/dashboard/stats");
-                if (!res.ok) throw new Error("API response not OK");
-                const data = await res.json();
+    try {
+        const res = await fetch("/admin/dashboard/stats");
+        if (!res.ok) throw new Error("API response not OK");
+        const data = await res.json();
 
-                document.getElementById("totalOrganizations").textContent = data.totalOrganizations ?? 3;
-                document.getElementById("totalActiveUsers").textContent = data.totalActiveUsers ?? 124;
-                document.getElementById("totalPets").textContent = data.totalPets ?? 0;
-                document.getElementById("organizationsThisMonth").innerHTML =
-                    `<i class="fa-solid fa-caret-up text-[9px]"></i> ${data.organizationsThisMonth ?? 1} new this month`;
+        document.getElementById("totalOrganizations").textContent = data.totalOrganizations ?? 3;
+        document.getElementById("totalActiveUsers").textContent = data.totalActiveUsers ?? 124;
+        document.getElementById("totalPets").textContent = data.totalPets ?? 0;
+        
+        // --- IDAGDAG ANG LINYANG ITO ---
+        document.getElementById("totalAdoptions").textContent = data.totalApprovedApplications ?? 0;
 
-                document.getElementById("usersThisMonth").innerHTML =
-                    `<i class="fa-solid fa-caret-up text-[9px]"></i> ${data.usersThisMonth ?? 14} new this month`;
+        document.getElementById("organizationsThisMonth").innerHTML =
+            `<i class="fa-solid fa-caret-up text-[9px]"></i> ${data.organizationsThisMonth ?? 1} new this month`;
 
-            } catch (err) {
-                console.warn("Using default stats visualization:", err);
-                // Graceful UI fallback display
-                document.getElementById("totalOrganizations").textContent = "3";
-                document.getElementById("totalActiveUsers").textContent = "124";
-                document.getElementById("organizationsThisMonth").innerHTML = `<i class="fa-solid fa-caret-up text-[9px]"></i> 1 new this month`;
-                document.getElementById("usersThisMonth").innerHTML = `<i class="fa-solid fa-caret-up text-[9px]"></i> 14 new this month`;
-            }
-        }
+        document.getElementById("usersThisMonth").innerHTML =
+            `<i class="fa-solid fa-caret-up text-[9px]"></i> ${data.usersThisMonth ?? 14} new this month`;
+
+    } catch (err) {
+        console.warn("Using default stats visualization:", err);
+        document.getElementById("totalOrganizations").textContent = "3";
+        document.getElementById("totalActiveUsers").textContent = "124";
+        document.getElementById("totalAdoptions").textContent = "0"; // Fallback
+        document.getElementById("organizationsThisMonth").innerHTML = `<i class="fa-solid fa-caret-up text-[9px]"></i> 1 new this month`;
+        document.getElementById("usersThisMonth").innerHTML = `<i class="fa-solid fa-caret-up text-[9px]"></i> 14 new this month`;
+    }
+}
 
         document.addEventListener("DOMContentLoaded", function() {
             loadSidebar("dashboard");

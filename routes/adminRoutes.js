@@ -580,53 +580,56 @@ router.put("/users/:id/suspend", async(req,res)=>{
     }
 
 });
-/*
-=================================================
-DASHBOARD STATS
-=================================================
-*/
 router.get("/dashboard/stats", async (req, res) => {
     try {
+        // Bilang ng mga Approved Applications sa user_adoption_applications
+        const [appRows] = await pool.query(`
+            SELECT COUNT(*) AS totalApprovedApplications
+            FROM user_adoption_applications
+            WHERE status = 'Approved'
+        `);
+        const totalApprovedApplications = appRows[0]?.totalApprovedApplications || 0;
 
-        // Total Approved Organizations
-        const [[organizations]] = await pool.query(`
+        // Total Organizations
+        const [orgRows] = await pool.query(`
             SELECT COUNT(*) AS totalOrganizations
             FROM organizations
             WHERE verification_status = 'Approved'
         `);
+        const totalOrganizations = orgRows[0]?.totalOrganizations || 0;
 
         // Total Active Users
-        const [[users]] = await pool.query(`
+        const [userRows] = await pool.query(`
             SELECT COUNT(*) AS totalActiveUsers
             FROM accounts
             WHERE status = 'active'
         `);
+        const totalActiveUsers = userRows[0]?.totalActiveUsers || 0;
+
         // Total Pets
-        const [pets] = await pool.query(`
+        const [petRows] = await pool.query(`
             SELECT COUNT(*) AS totalPets
             FROM animals
         `);
-        // Total Successful Adoptions
-        const [[adoptions]] = await pool.query(`
-            SELECT COUNT(*) AS totalAdoptions
-            FROM animals
-            WHERE adoption_status = 'Adopted'
-        `);
+        const totalPets = petRows[0]?.totalPets || 0;
+
         res.json({
-            totalOrganizations: organizations.totalOrganizations,
-            totalActiveUsers: users.totalActiveUsers,
-            totalPets: pets[0].totalPets,
-             totalAdoptions: adoptions.totalAdoptions,
+            success: true,
+            totalApprovedApplications,
+            totalOrganizations,
+            totalActiveUsers,
+            totalPets
         });
 
     } catch (err) {
-        console.error(err);
+        console.error("Dashboard Stats Error:", err);
         res.status(500).json({
-            message: "Database Error"
+            success: false,
+            message: "Database Error",
+            error: err.message
         });
     }
 });
-
 router.put("/users/:id/ban", async (req, res) => {
 
     try {
