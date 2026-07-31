@@ -198,5 +198,30 @@
             </div>
         </div>
     </div>
+    <!-- Custom Toast Notification Container -->
+<div id="toastContainer" class="fixed bottom-5 right-5 z-[70] flex flex-col gap-2 pointer-events-none"></div>
+
+<!-- Custom Confirmation Modal -->
+<div id="customConfirmModal" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm hidden">
+    <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-sm mx-4 transform transition-all scale-95 opacity-0 duration-200" id="modalContentBox">
+        <div class="flex items-center gap-3 mb-4">
+            <div id="modalIconContainer" class="w-10 h-10 rounded-full flex items-center justify-center bg-amber-100 text-amber-600">
+                <i class="fa-solid fa-triangle-exclamation text-lg"></i>
+            </div>
+            <div>
+                <h3 id="modalTitle" class="font-bold text-slate-800 text-base">Confirm Action</h3>
+                <p id="modalDesc" class="text-xs text-slate-500">Are you sure you want to proceed?</p>
+            </div>
+        </div>
+        <div class="flex justify-end gap-2 mt-6">
+            <button id="modalCancelBtn" class="px-4 py-2 text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors">
+                Cancel
+            </button>
+            <button id="modalConfirmBtn" class="px-4 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors shadow-sm">
+                Confirm
+            </button>
+        </div>
+    </div>
+</div>
 </body>
 </html>

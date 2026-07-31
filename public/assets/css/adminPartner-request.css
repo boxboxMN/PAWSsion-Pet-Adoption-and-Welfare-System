@@ -143,6 +143,34 @@ body {
     color: #b91c1c;
     border: 1px solid #fecaca;
 }
+/* CSS para sa Modal at Toast Animation */
+#customConfirmModal:not(.hidden) {
+    display: flex;
+}
+#customConfirmModal:not(.hidden) #modalContentBox {
+    transform: scale(1);
+    opacity: 1;
+}
+.toast {
+    min-width: 250px;
+    padding: 12px 16px;
+    border-radius: 8px;
+    color: #fff;
+    font-size: 14px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    animation: slideInUp 0.3s ease forwards;
+    pointer-events: auto;
+}
+.toast.success { background-color: #10b981; }
+.toast.error { background-color: #ef4444; }
+
+@keyframes slideInUp {
+    from { transform: translateY(100%); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
 
 /* ── Responsive tweaks ── */
 @media (max-width: 640px) {

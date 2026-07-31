@@ -13,6 +13,72 @@ document.addEventListener("DOMContentLoaded", () => {
 
 const modal = document.getElementById("detailsModal");
 
+// Function para sa Custom Toast Notification UI
+function showToast(message, type = "success") {
+    const container = document.getElementById("toastContainer");
+    if (!container) {
+        alert(message);
+        return;
+    }
+
+    const toast = document.createElement("div");
+    toast.className = `toast ${type}`;
+    
+    const icon = type === "success" ? '<i class="fa-solid fa-circle-check"></i>' : '<i class="fa-solid fa-circle-exclamation"></i>';
+    toast.innerHTML = `${icon} <span>${message}</span>`;
+
+    container.appendChild(toast);
+
+    setTimeout(() => {
+        toast.style.opacity = "0";
+        toast.style.transition = "opacity 0.3s ease";
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
+
+// Function para sa Custom Confirm Modal UI
+function showConfirmModal(title, description, confirmButtonText = "Confirm", isDanger = false) {
+    return new Promise((resolve) => {
+        const confirmModal = document.getElementById("customConfirmModal");
+        const titleEl = document.getElementById("modalTitle");
+        const descEl = document.getElementById("modalDesc");
+        const confirmBtn = document.getElementById("modalConfirmBtn");
+        const cancelBtn = document.getElementById("modalCancelBtn");
+        const iconContainer = document.getElementById("modalIconContainer");
+
+        titleEl.textContent = title;
+        descEl.textContent = description;
+        confirmBtn.textContent = confirmButtonText;
+
+        if (isDanger) {
+            confirmBtn.className = "px-4 py-2 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded-lg transition-colors shadow-sm";
+            iconContainer.className = "w-10 h-10 rounded-full flex items-center justify-center bg-rose-100 text-rose-600";
+            iconContainer.innerHTML = '<i class="fa-solid fa-triangle-exclamation text-lg"></i>';
+        } else {
+            confirmBtn.className = "px-4 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg transition-colors shadow-sm";
+            iconContainer.className = "w-10 h-10 rounded-full flex items-center justify-center bg-emerald-100 text-emerald-600";
+            iconContainer.innerHTML = '<i class="fa-solid fa-circle-check text-lg"></i>';
+        }
+
+        confirmModal.classList.remove("hidden");
+
+        const newConfirmBtn = confirmBtn.cloneNode(true);
+        const newCancelBtn = cancelBtn.cloneNode(true);
+        confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+        cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
+
+        newConfirmBtn.addEventListener("click", () => {
+            confirmModal.classList.add("hidden");
+            resolve(true);
+        });
+
+        newCancelBtn.addEventListener("click", () => {
+            confirmModal.classList.add("hidden");
+            resolve(false);
+        });
+    });
+}
+
 async function viewDetailsById(orgId) {
     try {
         const res = await fetch(`/admin/organization/${orgId}`);
@@ -105,20 +171,44 @@ async function viewDetailsById(orgId) {
         const approveBtn = document.getElementById("approveBtn");
         if (approveBtn) {
             approveBtn.onclick = async () => {
-                if (!confirm("Approve this organization?")) return;
-                await fetch(`/admin/approve/${data.organization_id}`, { method: "PUT" });
-                closeModal();
-                loadRequests();
+                const confirmed = await showConfirmModal(
+                    "Approve Organization", 
+                    `Are you sure you want to approve ${data.organization_name}?`, 
+                    "Yes, Approve", 
+                    false
+                );
+                if (!confirmed) return;
+
+                const response = await fetch(`/admin/approve/${data.organization_id}`, { method: "PUT" });
+                if (response.ok) {
+                    closeModal();
+                    showToast("Organization approved successfully.", "success");
+                    loadRequests();
+                } else {
+                    showToast("Failed to approve organization.", "error");
+                }
             };
         }
 
         const rejectBtn = document.getElementById("rejectBtn");
         if (rejectBtn) {
             rejectBtn.onclick = async () => {
-                if (!confirm("Reject this organization?")) return;
-                await fetch(`/admin/reject/${data.organization_id}`, { method: "PUT" });
-                closeModal();
-                loadRequests();
+                const confirmed = await showConfirmModal(
+                    "Reject Organization", 
+                    `Are you sure you want to reject ${data.organization_name}?`, 
+                    "Yes, Reject", 
+                    true
+                );
+                if (!confirmed) return;
+
+                const response = await fetch(`/admin/reject/${data.organization_id}`, { method: "PUT" });
+                if (response.ok) {
+                    closeModal();
+                    showToast("Organization rejected.", "success");
+                    loadRequests();
+                } else {
+                    showToast("Failed to reject organization.", "error");
+                }
             };
         }
 
@@ -127,7 +217,7 @@ async function viewDetailsById(orgId) {
 
     } catch (err) {
         console.error(err);
-        alert("Unable to load organization.");
+        showToast("Unable to load organization details.", "error");
     }
 }
 
@@ -159,7 +249,8 @@ async function loadRequests() {
     try {
         const res = await fetch("/admin/partner-requests");
         if (!res.ok) throw new Error("Failed to load requests.");
-        const organizations = await res.json();
+        const data = await res.json();
+        const organizations = data.organizations || data;
         loadedOrganizations = organizations; 
         const grid = document.getElementById("partnerGrid");
 
