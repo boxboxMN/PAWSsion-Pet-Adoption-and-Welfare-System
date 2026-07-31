@@ -22,16 +22,9 @@ npx tailwindcss init
 ALTER TABLE accounts
 ADD COLUMN last_login DATETIME NULL
 AFTER updated_at;
-7. pa add nalang sa database nito for modify nung action sa status ng mga user 
-ALTER TABLE accounts
-MODIFY COLUMN status ENUM(
-    'pending',
-    'active',
-    'disabled',
-    'suspended',
-    'banned',
-    'rejected'
-) DEFAULT 'active';
+7. pa add nalang sa database nito for modify nung action sa status ng mga usermanagement
+ALTER TABLE accounts 
+MODIFY COLUMN status ENUM('pending', 'active', 'disabled', 'suspended', 'banned', 'rejected') DEFAULT 'active';
 8. Import nyo na lang yung bagong database, may nabago doon
 9. kapag may bagong page sa org na need iclick yung logout, iadd na lang to sa dulo ng html bago mag </body> tag:
 
