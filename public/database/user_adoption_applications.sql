@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jul 27, 2026 at 09:02 PM
+-- Generation Time: Jul 31, 2026 at 03:27 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.0.30
 
@@ -43,20 +43,25 @@ CREATE TABLE `user_adoption_applications` (
   `emergency_phone` varchar(15) NOT NULL,
   `emergency_relation` varchar(50) NOT NULL,
   `document_path` varchar(255) NOT NULL,
-  `status` enum('UNDER_REVIEW','INTERVIEW_SCHEDULED','APPROVED','DECLINED') NOT NULL DEFAULT 'UNDER_REVIEW',
+  `status` enum('Under Review','Interview Scheduled','Approved','Declined') DEFAULT 'Under Review',
+  `decline_reason` text DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `interview_date` date DEFAULT NULL,
+  `interview_time` varchar(50) DEFAULT NULL,
+  `interview_method` enum('virtual','onsite') DEFAULT NULL,
+  `interview_location_link` text DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `user_adoption_applications`
 --
 
-INSERT INTO `user_adoption_applications` (`application_id`, `animal_id`, `adopter_id`, `full_name`, `contact_number`, `email`, `full_address`, `civil_status`, `age`, `occupation`, `adoption_intent`, `emergency_name`, `emergency_phone`, `emergency_relation`, `document_path`, `status`, `created_at`, `updated_at`) VALUES
-(1, 15, 1, 'Irene Espeleta', '09331231232', 'irespeleta@my.cspc.edu.ph', 'sfdsfffffffffffffffffffffffffffffffffffffffff', 'Single', 45, 'dfgdfgdfgdfg', 'gfrgrfgrfgf', 'Irene Espeleta', '09676565666', 'fddgvdgdg', 'doc-3-1785174605742.png', 'UNDER_REVIEW', '2026-07-27 17:50:05', '2026-07-27 19:00:42'),
-(2, 15, 1, 'Irene Espeleta', '09331231232', 'irespeleta@my.cspc.edu.ph', 'sfdsfffffffffffffffffffffffffffffffffffffffff', 'Married', 45, 'dfgdfgdfgdfg', 'hgjfhjuhjhm', 'Irene Espeleta', '09676565666', 'jfjfghjhgjg', 'doc-3-1785175113458.png', 'UNDER_REVIEW', '2026-07-27 17:58:33', '2026-07-27 19:00:42'),
-(3, 15, 1, 'Irene Espeleta', '09331231232', 'irespeleta@my.cspc.edu.ph', 'sfdsfffffffffffffffffffffffffffffffffffffffff', 'Single', 45, 'dfgdfgdfgdfg', 'hnhnhnhn', 'Irene Espeleta', '09676565666', 'rrgrg', 'doc-3-1785175383163.png', 'UNDER_REVIEW', '2026-07-27 18:03:03', '2026-07-27 19:00:42'),
-(4, 13, 1, 'Irene Espeleta', '09331231232', 'irespeleta@my.cspc.edu.ph', 'sfdsfffffffffffffffffffffffffffffffffffffffff', 'Single', 67, 'dfgdfgdfgdfg', 'yujyjyhj', 'Irene Espeleta', '09676565666', 'fddgvdgdg', 'doc-3-1785178265448.png', 'UNDER_REVIEW', '2026-07-27 18:51:05', '2026-07-27 19:00:42');
+INSERT INTO `user_adoption_applications` (`application_id`, `animal_id`, `adopter_id`, `full_name`, `contact_number`, `email`, `full_address`, `civil_status`, `age`, `occupation`, `adoption_intent`, `emergency_name`, `emergency_phone`, `emergency_relation`, `document_path`, `status`, `decline_reason`, `created_at`, `updated_at`, `interview_date`, `interview_time`, `interview_method`, `interview_location_link`) VALUES
+(1, 15, 1, 'Irene Espeleta', '09331231232', 'irespeleta@my.cspc.edu.ph', 'sfdsfffffffffffffffffffffffffffffffffffffffff', 'Single', 45, 'dfgdfgdfgdfg', 'gfrgrfgrfgf', 'Irene Espeleta', '09676565666', 'fddgvdgdg', 'doc-3-1785174605742.png', 'Under Review', NULL, '2026-07-27 17:50:05', '2026-07-30 17:56:56', '2026-07-31', '5555555555555555555555555555555555555555555', '', 'hgggggggggggggggggggggggg'),
+(2, 15, 1, 'Irene Espeleta', '09331231232', 'irespeleta@my.cspc.edu.ph', 'sfdsfffffffffffffffffffffffffffffffffffffffff', 'Married', 45, 'dfgdfgdfgdfg', 'hgjfhjuhjhm', 'Irene Espeleta', '09676565666', 'jfjfghjhgjg', 'doc-3-1785175113458.png', 'Approved', NULL, '2026-07-27 17:58:33', '2026-07-30 17:59:09', NULL, NULL, '', NULL),
+(3, 15, 1, 'Irene Espeleta', '09331231232', 'irespeleta@my.cspc.edu.ph', 'sfdsfffffffffffffffffffffffffffffffffffffffff', 'Single', 45, 'dfgdfgdfgdfg', 'hnhnhnhn', 'Irene Espeleta', '09676565666', 'rrgrg', 'doc-3-1785175383163.png', 'Declined', NULL, '2026-07-27 18:03:03', '2026-07-30 17:48:31', '2026-07-31', '5555555555555555555555555555555555555555555', 'virtual', 'hgggggggggggggggggggggggg'),
+(4, 13, 1, 'Irene Espeleta', '09331231232', 'irespeleta@my.cspc.edu.ph', 'sfdsfffffffffffffffffffffffffffffffffffffffff', 'Single', 67, 'dfgdfgdfgdfg', 'yujyjyhj', 'Irene Espeleta', '09676565666', 'fddgvdgdg', 'doc-3-1785178265448.png', 'Interview Scheduled', NULL, '2026-07-27 18:51:05', '2026-07-30 17:58:32', '2026-07-30', '5555555555555555555555555555555555555555555', 'virtual', 'hgggggggggggggggggggggggg');
 
 --
 -- Indexes for dumped tables
