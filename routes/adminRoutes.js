@@ -504,68 +504,42 @@ router.get("/users/:id", async (req, res) => {
     }
 
 });
-/*
-=================================================
-ACTIVATE / DEACTIVATE USER
-=================================================
-*/
+router.put("/users/:id/status", async (req, res) => {
+    try {
+        const id = req.params.id;
+        const { status } = req.body; // Dito tatanggapin kung suspended, banned, active, o disabled
 
-router.put("/users/:id/status", async (req,res)=>{
-
-    try{
-
-        const id=req.params.id;
-
-        const [[account]]=await pool.query(
-
-            `SELECT status
-             FROM accounts
-             WHERE account_id=?`,
-
-            [id]
-
-        );
-
-        if(!account){
-
-            return res.status(404).json({
-                message:"User not found"
-            });
-
+        // I-validate kung valid status ang ipinasa
+        const validStatuses = ['active', 'disabled', 'suspended', 'banned', 'pending', 'rejected'];
+        if (!validStatuses.includes(status)) {
+            return res.status(400).json({ message: "Invalid status provided" });
         }
 
-        const newStatus=
-            account.status==="active"
-            ? "disabled"
-            : "active";
+        const [[account]] = await pool.query(
+            `SELECT account_id FROM accounts WHERE account_id = ?`,
+            [id]
+        );
+
+        if (!account) {
+            return res.status(404).json({ message: "User not found" });
+        }
 
         await pool.query(
-
-            `UPDATE accounts
-             SET status=?
-             WHERE account_id=?`,
-
-            [newStatus,id]
-
+            `UPDATE accounts SET status = ? WHERE account_id = ?`,
+            [status, id]
         );
 
         res.json({
-
-            success:true,
-            status:newStatus
-
+            success: true,
+            status: status
         });
 
-    }catch(err){
-
+    } catch (err) {
         console.error(err);
-
         res.status(500).json({
-            message:"Database Error"
+            message: "Database Error"
         });
-
     }
-
 });
 /*
 =================================================

@@ -224,3 +224,16 @@ exports.getUsers = async (req, res) => {
     }
 
 };
+exports.updateUserStatus = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { status } = req.body; // or set specific logic per route endpoint
+        
+        await pool.query("UPDATE accounts SET status = ? WHERE account_id = ?", [status, id]);
+        
+        res.json({ success: true, message: "Account status updated successfully." });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false, message: "Failed to update status." });
+    }
+};

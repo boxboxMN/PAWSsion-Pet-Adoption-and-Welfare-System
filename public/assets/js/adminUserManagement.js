@@ -55,7 +55,7 @@ async function loadUsers() {
                     <p>No users found</p>
                 </div>
             `;
-            document.getElementById("userCount").textContent = "0 users";
+            document.getElementById("userCount").textContent = "0 Active Users";
             return;
         }
 
@@ -84,7 +84,7 @@ function renderUsers(users) {
                 <p>No users match your search</p>
             </div>
         `;
-        document.getElementById("userCount").textContent = "0 users";
+        document.getElementById("userCount").textContent = "0 Active Users";
         return;
     }
 
@@ -93,7 +93,9 @@ function renderUsers(users) {
         container.appendChild(card);
     });
 
-    document.getElementById("userCount").textContent = `${users.length} user${users.length > 1 ? 's' : ''}`;
+    // Binibilang at ipinapakita lamang ang mga may status na "active" sa counter badge
+    const activeCount = users.filter(u => (u.status || "active").toLowerCase() === "active").length;
+    document.getElementById("userCount").textContent = `${activeCount} Active User${activeCount > 1 ? 's' : ''}`;
 }
 
 // ─── Build card (Compact) ─────────────────────────────
@@ -104,15 +106,17 @@ function buildUserCard(user, index) {
     const phone = user.phone || "—";
     const email = user.email || "—";
 
-    const status = user.status || "active";
-    const isActive = status === "active" || status === "Active";
-    const isSuspended = status === "suspended" || status === "Suspended";
+    const status = (user.status || "active").toLowerCase();
     let statusClass = "active";
     let statusLabel = "Active";
-    if (isSuspended) {
+
+    if (status === "suspended") {
         statusClass = "suspended";
         statusLabel = "Suspended";
-    } else if (!isActive) {
+    } else if (status === "banned") {
+        statusClass = "status-banned"; // Ginagamit ang custom orange class para sa banned card
+        statusLabel = "Banned";
+    } else if (status === "disabled" || status === "inactive") {
         statusClass = "inactive";
         statusLabel = "Inactive";
     }
@@ -132,8 +136,8 @@ function buildUserCard(user, index) {
     }
 
     const avatarUrl =
-            user.profile
-                ? user.profile
+            user.profile_picture || user.profile
+                ? (user.profile_picture || user.profile)
                 : getAvatarUrl(index);
 
     const card = document.createElement("div");
@@ -220,18 +224,24 @@ function openPanel(user) {
     const role = user.role || "User";
     const phone = user.phone || "—";
     const email = user.email || "—";
-    const status = user.status || "active";
-    const isActive = status === "active" || status === "Active";
-    const isSuspended = status === "suspended" || status === "Suspended";
+    
+    const status = (user.status || "active").toLowerCase();
+    const isActive = status === "active";
+    const isSuspended = status === "suspended";
+    const isBanned = status === "banned";
 
     let statusLabel = "Active";
     let statusClass = "status-active";
-    if (isSuspended) {
-        statusLabel = "Suspended";
+    
+    if (status === "suspended") {
         statusClass = "status-suspended";
-    } else if (!isActive) {
-        statusLabel = "Inactive";
+        statusLabel = "Suspended";
+    } else if (status === "banned") {
+        statusClass = "status-banned";
+        statusLabel = "Banned";
+    } else if (status === "disabled" || status === "inactive") {
         statusClass = "status-inactive";
+        statusLabel = "Inactive";
     }
 
     const registered = user.created_at ? new Date(user.created_at).toLocaleDateString("en-US", {
@@ -250,8 +260,8 @@ function openPanel(user) {
     }) : "—";
 
     const avatarUrl =
-        user.profile
-            ? user.profile
+        user.profile_picture || user.profile
+            ? (user.profile_picture || user.profile)
             : getAvatarUrl(allUsers.indexOf(user));
 
     body.innerHTML = `
@@ -343,10 +353,15 @@ function filterUsers(query) {
 async function handleAction(action, id, user) {
     try {
         let url = "";
+        let options = { method: "PUT" };
 
         switch (action) {
             case "toggle":
+                // Gumagamit ng generic status route na nagpapalit sa pagitan ng active at disabled/inactive
                 url = `/admin/users/${id}/status`;
+                const newStatus = (user.status || "active").toLowerCase() === "active" ? "disabled" : "active";
+                options.headers = { "Content-Type": "application/json" };
+                options.body = JSON.stringify({ status: newStatus });
                 break;
             case "suspend":
                 url = `/admin/users/${id}/suspend`;
@@ -361,10 +376,7 @@ async function handleAction(action, id, user) {
         const confirmed = confirm(`Are you sure you want to ${action} this account?`);
         if (!confirmed) return;
 
-        const response = await fetch(url, {
-            method: "PUT"
-        });
-
+        const response = await fetch(url, options);
         const data = await response.json();
 
         if (!response.ok) {
@@ -378,5 +390,170 @@ async function handleAction(action, id, user) {
     } catch (err) {
         console.error(err);
         alert(err.message);
+    }
+}
+// Function para sa magandang UI notification sa halip na default alert
+function showToast(message, type = "success") {
+    const container = document.getElementById("toastContainer");
+    if (!container) {
+        // Fallback kung sakaling wala pang container sa HTML
+        alert(message);
+        return;
+    }
+
+    const toast = document.createElement("div");
+    toast.className = `toast ${type}`;
+    
+    const icon = type === "success" ? '<i class="fa-solid fa-circle-check"></i>' : '<i class="fa-solid fa-circle-exclamation"></i>';
+    toast.innerHTML = `${icon} <span>${message}</span>`;
+
+    container.appendChild(toast);
+
+    // Automatic na mawawala pagkalipas ng 3 segundo
+    setTimeout(() => {
+        toast.style.opacity = "0";
+        toast.style.transition = "opacity 0.3s ease";
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
+
+// Binagong handleAction na gumagamit ng showToast sa halip na alert()
+async function handleAction(action, id, user) {
+    try {
+        let url = "";
+        let options = { method: "PUT" };
+
+        switch (action) {
+            case "toggle":
+                url = `/admin/users/${id}/status`;
+                const newStatus = (user.status || "active").toLowerCase() === "active" ? "disabled" : "active";
+                options.headers = { "Content-Type": "application/json" };
+                options.body = JSON.stringify({ status: newStatus });
+                break;
+            case "suspend":
+                url = `/admin/users/${id}/suspend`;
+                break;
+            case "ban":
+                url = `/admin/users/${id}/ban`;
+                break;
+            default:
+                return;
+        }
+
+        const confirmed = confirm(`Are you sure you want to ${action} this account?`);
+        if (!confirmed) return;
+
+        const response = await fetch(url, options);
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.message || "Request failed");
+        }
+
+        closePanel();
+        showToast("Action completed successfully.", "success");
+        await loadUsers();
+
+    } catch (err) {
+        console.error(err);
+        showToast(err.message, "error");
+    }
+}
+// Function para sa Custom Confirm Modal UI
+function showConfirmModal(title, description, confirmButtonText = "Confirm", isDanger = false) {
+    return new Promise((resolve) => {
+        const modal = document.getElementById("customConfirmModal");
+        const titleEl = document.getElementById("modalTitle");
+        const descEl = document.getElementById("modalDesc");
+        const confirmBtn = document.getElementById("modalConfirmBtn");
+        const cancelBtn = document.getElementById("modalCancelBtn");
+        const iconContainer = document.getElementById("modalIconContainer");
+
+        titleEl.textContent = title;
+        descEl.textContent = description;
+        confirmBtn.textContent = confirmButtonText;
+
+        if (isDanger) {
+            confirmBtn.className = "px-4 py-2 text-xs font-semibold text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors shadow-sm";
+            iconContainer.className = "w-10 h-10 rounded-full flex items-center justify-center bg-red-100 text-red-600";
+            iconContainer.innerHTML = '<i class="fa-solid fa-triangle-exclamation text-lg"></i>';
+        } else {
+            confirmBtn.className = "px-4 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors shadow-sm";
+            iconContainer.className = "w-10 h-10 rounded-full flex items-center justify-center bg-amber-100 text-amber-600";
+            iconContainer.innerHTML = '<i class="fa-solid fa-circle-question text-lg"></i>';
+        }
+
+        modal.classList.remove("hidden");
+
+        // Clean up old event listeners para hindi mag-stack
+        const newConfirmBtn = confirmBtn.cloneNode(true);
+        const newCancelBtn = cancelBtn.cloneNode(true);
+        confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+        cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
+
+        newConfirmBtn.addEventListener("click", () => {
+            modal.classList.add("hidden");
+            resolve(true);
+        });
+
+        newCancelBtn.addEventListener("click", () => {
+            modal.classList.add("hidden");
+            resolve(false);
+        });
+    });
+}
+
+// I-update ang handleAction para gamitin ang bagong UI modal
+async function handleAction(action, id, user) {
+    try {
+        let url = "";
+        let options = { method: "PUT" };
+        let actionTitle = "";
+        let actionDesc = "";
+        let isDanger = false;
+
+        switch (action) {
+            case "toggle":
+                url = `/admin/users/${id}/status`;
+                const newStatus = (user.status || "active").toLowerCase() === "active" ? "disabled" : "active";
+                options.headers = { "Content-Type": "application/json" };
+                options.body = JSON.stringify({ status: newStatus });
+                actionTitle = "Toggle Account Status";
+                actionDesc = `Are you sure you want to change this account's status to ${newStatus}?`;
+                break;
+            case "suspend":
+                url = `/admin/users/${id}/suspend`;
+                actionTitle = "Suspend Account";
+                actionDesc = "Are you sure you want to suspend this user? They will temporarily lose access.";
+                isDanger = true;
+                break;
+            case "ban":
+                url = `/admin/users/${id}/ban`;
+                actionTitle = "Permanent Ban";
+                actionDesc = "Are you sure you want to permanently ban this user? This action has major implications.";
+                isDanger = true;
+                break;
+            default:
+                return;
+        }
+
+        // Gamitin ang Custom Modal sa halip na browser confirm()
+        const confirmed = await showConfirmModal(actionTitle, actionDesc, "Yes, Proceed", isDanger);
+        if (!confirmed) return;
+
+        const response = await fetch(url, options);
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.message || "Request failed");
+        }
+
+        closePanel();
+        showToast("Action completed successfully.", "success");
+        await loadUsers();
+
+    } catch (err) {
+        console.error(err);
+        showToast(err.message, "error");
     }
 }
