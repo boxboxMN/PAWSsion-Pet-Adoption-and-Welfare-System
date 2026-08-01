@@ -94,6 +94,7 @@ const uploadDoc = multer({
 
 
 router.get("/api/pets", userController.getAvailablePets);
+router.get("/api/pets/:id", userController.getPetById);
 router.post( "/api/matchmaking", matchmakerController.matchPets);
 router.get("/dashboard", (req, res) => {
   res.sendFile(path.join(__dirname, "../public/user/userDashboard.html"));

@@ -64,6 +64,16 @@ async function matchPets(preferences) {
     const matches = [];
 
     for (const pet of pets) {
+        const [medicalHistory] = await pool.query(`
+            SELECT
+                treatment,
+                DATE_FORMAT(administered_date, '%M %e, %Y') AS administered_date,
+                administered_by,
+                notes
+            FROM animal_medical_history
+            WHERE animal_id = ?
+            ORDER BY administered_date DESC;
+        `, [pet.animal_id]);
 
         // Convert JSON stored in MySQL
         const petEmbedding =
@@ -135,6 +145,7 @@ async function matchPets(preferences) {
             adoption_status: pet.adoption_status,
             health_status: pet.health_status,
             vaccination_status: pet.vaccination_status,
+            medical_history: medicalHistory,
 
             behaviorSimilarity:
                 Number((behaviorSimilarity * 100).toFixed(2)),
@@ -146,7 +157,11 @@ async function matchPets(preferences) {
                 sexScore * 100,
 
             score:
-                Number((finalScore * 100).toFixed(2))
+                Number((finalScore * 100).toFixed(2)),
+            
+            behaviorContribution: Number((behaviorSimilarity * 70).toFixed(2)),
+            ageContribution: Number((ageScore * 20).toFixed(2)),
+            sexContribution: Number((sexScore * 10).toFixed(2)),
 
         });
 

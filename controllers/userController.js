@@ -516,7 +516,39 @@ exports.getOrgDropoffDetails = async (req, res) => {
         res.status(500).json({ success: false, message: "Server Error" });
     }
 };
+// user application pet id
+exports.getPetById = async (req, res) => {
+    try {
+        const petId = req.params.id;
 
+        const [rows] = await pool.query(`
+            SELECT
+                a.animal_id,
+                a.name,
+                a.species,
+                a.gender,
+                a.age,
+                a.image_path,
+                o.organization_name
+            FROM animals a
+            JOIN organizations o
+                ON a.organization_id = o.organization_id
+            WHERE a.animal_id = ?
+        `, [petId]);
+
+        if (rows.length === 0) {
+            return res.status(404).json({
+                message: "Pet not found"
+            });
+        }
+
+        res.json(rows[0]);
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).json(err);
+    }
+};
 //for user adoption application submission
 exports.submitAdoptionApplication = async (req, res) => {
     try {
