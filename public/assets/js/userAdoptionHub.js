@@ -57,148 +57,95 @@ function renderGrid(pets = filteredPets) {
         return;
     }
 
-    grid.innerHTML = pets.map(pet =>`
-<div class="bg-white rounded-3xl overflow-hidden border border-gray-200 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+grid.innerHTML = pets.map(pet => `
+<div class="group bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1.5 border border-slate-200/80 flex flex-col">
 
     <!-- Image -->
-    <div class="relative">
-
+    <div class="relative overflow-hidden bg-slate-100">
         <img
             src="${pet.img}"
             alt="${pet.name}"
-            class="w-full h-52 object-cover"
+            class="w-full h-60 object-cover transition-transform duration-500 group-hover:scale-105"
         >
 
+        <!-- Gradient Overlay -->
+        <div class="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-transparent opacity-80"></div>
+
         <!-- Species -->
-        <span
-            class="absolute top-4 left-4
-            px-4 py-2 rounded-full
-            text-white text-xs font-bold shadow
-            ${
-                pet.species.toLowerCase() === "dog"
-                    ? "bg-blue-500"
-                    : "bg-orange-500"
-            }">
-
+        <span class="absolute top-3 left-3 px-3 py-1 rounded-xl text-white text-xs font-bold shadow-md ${
+            pet.species.toLowerCase() === "dog"
+                ? "bg-blue-600"
+                : "bg-orange-500"
+        }">
             ${pet.species.toUpperCase()}
-
         </span>
 
         <!-- Status -->
-        <span class="absolute top-4 right-4
-            px-4 py-2 rounded-full
-            bg-green-500 text-white
-            text-xs font-bold shadow">
-
+        <span class="absolute top-3 right-3 px-3 py-1 rounded-xl bg-green-600 text-white text-xs font-bold shadow-md">
             ${pet.status.toUpperCase()}
-
         </span>
 
+        <!-- Name Banner -->
+        <div class="absolute bottom-3 left-4 right-4">
+            <div class="inline-flex items-center px-3.5 py-1.5 rounded-xl bg-white/80 backdrop-blur-md border border-white/60 shadow-md">
+                <h2 class="text-xl font-extrabold text-slate-900 tracking-tight">
+                    ${pet.name}
+                </h2>
+            </div>
+        </div>
     </div>
 
     <!-- Body -->
-    <div class="p-6">
-
-        <!-- Name -->
-        <h2 class="text-3xl font-bold text-gray-800">
-
-            ${pet.name}
-
-        </h2>
-
+    <div class="p-5 flex flex-col flex-1 justify-between gap-4">
 
         <!-- Species Age Gender -->
-        <div class="flex flex-wrap items-center gap-2 mt-3 text-gray-600 text-sm font-bold">
+        <div class="flex items-center gap-2 overflow-x-auto whitespace-nowrap no-scrollbar">
+            <span class="inline-flex shrink-0 items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 text-xs font-semibold border border-slate-200/60">
+                <i class="fa-solid fa-paw text-slate-400 text-[10px]"></i>
+                ${pet.species}
+            </span>
 
-            <span>${pet.species}</span>
+            <span class="inline-flex shrink-0 items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 text-xs font-semibold border border-slate-200/60">
+                <i class="fa-regular fa-calendar-days text-slate-400 text-[10px]"></i>
+                ${pet.age}
+            </span>
 
-            <span>•</span>
-
-            <span>${pet.age}</span>
-
-            <span>•</span>
-
-            <span class="${
+            <span class="inline-flex shrink-0 items-center gap-1 px-2.5 py-1 rounded-lg border border-slate-200/60 bg-slate-100 text-xs font-semibold ${
                 pet.gender === "Male"
-                    ? "text-blue-500"
-                    : "text-pink-500"
-            } font-semibold">
-
+                    ? "text-blue-600"
+                    : "text-pink-600"
+            }">
                 <i class="fas ${
                     pet.gender === "Male"
                         ? "fa-mars"
                         : "fa-venus"
-                } mr-1"></i>
-
+                } text-[10px]"></i>
                 ${pet.gender}
-
             </span>
-
         </div>
 
-        <!-- Personality Tags -->
-        <div class="flex flex-wrap gap-2 mt-3">
-
-            ${
-                pet.breed
-                    .split(",")
-                    .map(tag => `
-                        <span
-                            class="px-4 py-1.5
-                                   rounded-full
-                                   border border-gray-300
-                                   bg-white
-                                   text-gray-700
-                                   text-sm
-                                   font-medium
-                                   hover:border-blue-400
-                                   hover:text-blue-600
-                                   transition">
-
-                            ${tag.trim()}
-
-                        </span>
-                    `)
-                    .join("")
-            }
-
+        <!-- Organization -->
+        <div class="rounded-2xl bg-slate-50 border border-slate-200/70 p-3.5">
+            <p class="text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-2">
+                <i class="fas fa-building text-slate-400 text-[10px]"></i>
+                Organization
+            </p>
+            <p class="text-sm font-semibold text-slate-800 break-words">
+                ${pet.organization}
+            </p>
         </div>
-
-          <!-- Organization -->
-        <p class="text-blue-500 mt-8 flex items-center gap-2">
-            <i class="fas fa-building"></i>
-            ${pet.organization}
-        </p>
 
         <!-- Button -->
-        <button
-            class="view-btn
-                   w-full
-                   mt-6
-                   py-3
-                   rounded-2xl
-                   border
-                   border-gray-300
-                   bg-white
-                   text-blue-600
-                   font-semibold
-                   text-lg
-                   hover:bg-blue-600
-                   hover:text-white
-                   hover:border-blue-600
-                   transition"
+        <button class="view-btn w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 transition-all duration-200 text-white py-3 rounded-xl font-bold text-xs shadow-md shadow-indigo-100 hover:shadow-indigo-200 active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer"
             data-id="${pet.animal_id}">
-
-            View Profile
-
+            <i class="fa-regular fa-eye text-sm"></i>View Profile
         </button>
 
     </div>
 
 </div>
-    `).join("");
-
-}
+`).join("");
+        }
 function filterPets() {
 
     const search = document

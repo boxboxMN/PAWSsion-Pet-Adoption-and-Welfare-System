@@ -222,87 +222,159 @@
                 </div>
 
                 <!-- ===== MODAL VIEW ===== -->
-                <div id="viewPetModal" class="fixed inset-0 hidden z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-6">
-                    <div class="bg-white rounded-3xl w-full max-w-6xl max-h-[90vh] overflow-hidden flex">
+<div id="viewPetModal" class="fixed inset-0 hidden z-[999] bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 overflow-y-auto hide-scrollbar">
 
-                        <!-- LEFT -->
-                        <div class="w-1/3 bg-gray-50 border-r p-6">
-                            <img id="modalImage" class="w-full rounded-2xl aspect-square object-cover mb-4" alt="Pet Image">
+    <div class="relative w-full max-w-[1150px] h-[92vh] bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-100 flex flex-col">
 
-                            <div class="space-y-3">
-                                <div class="bg-white rounded-xl border p-3">
-                                    <p class="text-[11px] font-bold text-blue-700 mb-2">Species</p>
-                                    <p id="modalSpecies" class="font-semibold text-slate-800 mt-1"></p>
-                                </div>
+        <!-- CLOSE BUTTON -->
+        <button onclick="closePetModal()" class="absolute top-5 right-6 z-50 p-2.5 rounded-full bg-slate-100/80 text-slate-400 hover:text-slate-700 hover:bg-slate-200/80 transition-all duration-200 backdrop-blur-sm cursor-pointer group">
+            <i class="fa-solid fa-xmark text-xl group-hover:rotate-90 transition-transform duration-300"></i>
+        </button>
 
-                                <div class="bg-white rounded-xl border p-3">
-                                    <p class="text-[11px] font-bold text-blue-700 mb-2">Gender</p>
-                                    <p id="modalGender" class="font-semibold mt-1"></p>
-                                </div>
+        <div class="grid grid-cols-1 lg:grid-cols-[380px_1fr] h-full overflow-hidden">
 
-                                <div class="bg-white rounded-xl border p-3">
-                                    <p class="text-[11px] font-bold text-blue-700 mb-2">Age</p>
-                                    <p id="modalAge" class="font-semibold mt-1"></p>
-                                </div>
-                            </div>
+            <!-- =====================================================
+            LEFT COLUMN
+            ====================================================== -->
+            <aside class="bg-slate-50/50 border-r border-slate-200/60 p-6 overflow-y-auto hide-scrollbar space-y-6 flex flex-col">
+                
+                <!-- IMAGE CARD -->
+                <div class="relative rounded-2xl overflow-hidden shadow-lg border border-slate-200/80 group shrink-0">
+                    <img id="modalImage" class="w-full h-[360px] object-cover group-hover:scale-105 transition-transform duration-500 ease-out" alt="Pet Image">
+                    <div class="absolute inset-0 bg-gradient-to-t from-slate-950/40 via-transparent to-transparent pointer-events-none"></div>
+                </div>
+
+                <!-- QUICK INFO CARD -->
+                <div class="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm space-y-4">
+                    
+                    <div class="flex items-center gap-2.5 pb-3 border-b border-slate-100">
+                        <div class="w-8 h-8 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600">
+                            <i class="fa-solid fa-sliders text-xs"></i>
+                        </div>
+                        <h4 class="text-xs font-black tracking-widest text-slate-400 uppercase">Key Info</h4>
+                    </div>
+
+                    <div class="divide-y divide-slate-100 text-base">
+
+                        <!-- Species -->
+                        <div class="flex justify-between items-center py-3">
+                            <span class="text-slate-500 font-semibold flex items-center gap-2.5 text-sm">
+                                <span class="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500">
+                                    <i class="fa-solid fa-dna text-xs"></i>
+                                </span>
+                                Species
+                            </span>
+                            <span id="modalSpecies" class="font-bold text-slate-900 text-base"></span>
                         </div>
 
-                        <!-- RIGHT -->
-                        <div class="flex-1 overflow-y-auto hide-scrollbar p-5">
-                            <div class="flex justify-between items-start">
-                                <div>
-                                    <h1 id="modalName" class="text-4xl font-bold"></h1>
-                                    <div class="flex flex-wrap gap-3 mt-4">
-                                        <span id="modalStatus" class="px-4 py-2 rounded-full text-sm font-medium"></span>
-                                        <span id="modalHealth" class="px-4 py-2 rounded-full text-sm font-medium"></span>
-                                        <span id="modalVaccination" class="px-4 py-2 rounded-full text-sm font-medium"></span>
-                                    </div>
-                                </div>
-                                <button onclick="closePetModal()" class="text-gray-400 hover:text-gray-600 transition-colors">
-                                    <i class="fa-solid fa-xmark text-3xl"></i>
-                                </button>
-                            </div>
+                        <!-- Gender -->
+                        <div class="flex justify-between items-center py-3">
+                            <span class="text-slate-500 font-semibold flex items-center gap-2.5 text-sm">
+                                <span class="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500">
+                                    <i class="fa-solid fa-venus-mars text-xs"></i>
+                                </span>
+                                Gender
+                            </span>
+                            <span id="modalGender" class="font-bold text-slate-900 text-base"></span>
+                        </div>
 
-                            <div class="mt-5">
-                                <h3 class="font-bold text-blue-700 mb-2">Personality</h3>
-                                <div id="modalTags" class="flex flex-wrap gap-2"></div>
-                            </div>
-
-                            <div class="mt-5">
-                                <h3 class="font-bold text-blue-700 mb-2">Pet Description</h3>
-                                <p id="modalBehavior" class="text-gray-600 leading-relaxed text-justify"></p>
-                            </div>
-
-                            <!-- Medical History -->
-                            <div class="mt-5">
-                                <h3 class="font-bold text-blue-700 mb-2">Medical History</h3>
-                                <div class="overflow-x-auto border rounded-2xl">
-                                    <table class="w-full">
-                                        <thead class="bg-blue-700 text-white">
-                                            <tr>
-                                                <th class="text-left p-3">Treatment</th>
-                                                <th class="text-left p-3">Date</th>
-                                                <th class="text-left p-3">Administered By</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="modalMedicalBody">
-                                            <tr>
-                                                <td colspan="3" class="text-center p-6 text-gray-400">
-                                                    No medical records.
-                                                </td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-
-                            <button id="applyModalBtn" class="mt-8 w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl transition-colors">
-                                Apply for Adoption
-                            </button>
+                        <!-- Age -->
+                        <div class="flex justify-between items-center py-3">
+                            <span class="text-slate-500 font-semibold flex items-center gap-2.5 text-sm">
+                                <span class="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500">
+                                    <i class="fa-regular fa-calendar-days text-xs"></i>
+                                </span>
+                                Age
+                            </span>
+                            <span id="modalAge" class="font-bold text-slate-900 text-base"></span>
                         </div>
 
                     </div>
                 </div>
+
+            </aside>
+
+            <!-- =====================================================
+            RIGHT COLUMN
+            ====================================================== -->
+            <section class="p-6 lg:p-8 overflow-y-auto bg-white space-y-6 hide-scrollbar">
+
+                <!-- HEADER & STATUS -->
+                <div class="border-b border-slate-100 pb-6">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h1 id="modalName" class="text-4xl sm:text-5xl font-black text-slate-900 tracking-tight leading-none bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 bg-clip-text text-transparent"></h1>
+                        </div>
+                    </div>
+
+                    <!-- STATUS PILLS -->
+                    <div class="flex flex-wrap items-center gap-2.5 mt-5">
+                        <span id="modalStatus" class="px-4 py-2 rounded-xl text-sm font-bold shadow-xs transition-all border"></span>
+                        <span id="modalHealth" class="px-4 py-2 rounded-xl text-sm font-semibold shadow-xs transition-all border"></span>
+                        <span id="modalVaccination" class="px-4 py-2 rounded-xl text-sm font-semibold shadow-xs transition-all border"></span>
+                    </div>
+                </div>
+
+                <!-- PET DESCRIPTION -->
+                <div class="rounded-2xl border border-slate-200/80 shadow-xs p-5 bg-gradient-to-br from-white to-slate-50/50">
+                    <div class="flex items-center gap-3 mb-3.5">
+                        <div class="w-9 h-9 rounded-xl bg-blue-600 text-white shadow-md shadow-blue-500/20 flex items-center justify-center shrink-0">
+                            <i class="fa-solid fa-paw text-sm"></i>
+                        </div>
+                        <h3 class="font-black text-base uppercase tracking-wider text-slate-800">Pet Profile</h3>
+                    </div>
+
+                    <div class="rounded-xl bg-white border border-slate-200/60 p-4 shadow-xs">
+                        <p id="modalBehavior" class="text-base leading-relaxed text-slate-600 text-justify font-normal"></p>
+                    </div>
+                </div>
+
+                <!-- MEDICAL HISTORY -->
+                <div class="rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden bg-white">
+                    
+                    <div class="flex items-center gap-3 px-6 py-4 bg-slate-50/80 border-b border-slate-200/60">
+                        <div class="w-9 h-9 rounded-xl bg-violet-600 text-white shadow-md shadow-violet-500/20 flex items-center justify-center shrink-0">
+                            <i class="fa-solid fa-notes-medical text-sm"></i>
+                        </div>
+                        <h3 class="text-base font-black uppercase tracking-wider text-slate-800">Medical History</h3>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-base">
+                            <thead class="bg-slate-100/70 text-slate-700 font-bold border-b border-slate-200/60 text-xs uppercase tracking-wider">
+                                <tr>
+                                    <th class="text-left px-6 py-3.5">Treatment</th>
+                                    <th class="text-left px-6 py-3.5">Date</th>
+                                    <th class="text-left px-6 py-3.5">Administered By</th>
+                                </tr>
+                            </thead>
+                            <tbody id="modalMedicalBody" class="divide-y divide-slate-100 bg-white text-slate-600 font-medium">
+                                <tr>
+                                    <td colspan="3" class="text-center p-8 text-slate-400 italic">
+                                        No medical records logged.
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                </div>
+
+                <!-- APPLY BUTTON -->
+                <div class="pt-2">
+                    <button id="applyModalBtn" class="w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600 hover:from-blue-700 hover:via-indigo-700 hover:to-violet-700 transition-all duration-300 text-white py-4 rounded-2xl font-black text-sm uppercase tracking-wider shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 active:scale-[0.99] flex items-center justify-center gap-2.5 cursor-pointer">
+                        <i class="fa-solid fa-heart text-base text-rose-300"></i>
+                        <span>Apply for Adoption</span>
+                    </button>
+                </div>
+
+            </section>
+
+        </div>
+
+    </div>
+
+</div>
 
             </div>
         </div>

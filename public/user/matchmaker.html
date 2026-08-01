@@ -52,120 +52,181 @@
         class="fixed left-0 top-0 w-64 h-screen bg-white border-r border-gray-200 z-50">
     </div>
     <!-- Main content -->
-   <main class="ml-64 pt-24 h-screen overflow-hidden bg-gray-50">
+   <main class="ml-64 pt-24 h-screen overflow-hidden bg-white/90 ">
         <!-- Header -->
         <div
             id="header"
             class="fixed top-0 left-64 right-0 h-24 bg-white border-b border-gray-200 z-40">
         </div>
+
         <!-- Matchmaker content -->
         <div class="w-full h-[calc(100vh-6rem)] overflow-y-auto p-6">
 
-            <section id="introScreen" class="flex items-center justify-center min-h-full">
-                <div class="text-center max-w-3xl">
-                    <img src="/assets/images/match.png" class="mx-auto w-72 mb-6" alt="Pawpon illustration">
-                   <h1 class="text-3xl font-semibold text-sm">
+        <section id="introScreen" class="flex items-center justify-center min-h-full py-6 px-4 ">
+        <div class="w-full max-w-full mx-auto text-center p-5 -mt-8 sm:p-14 space-y-8">
+
+                <!-- HERO ILLUSTRATION -->
+                <div class="relative max-w-md mx-auto">
+                    <div class="absolute inset-0 bg-blue-500/10 blur-3xl rounded-full -z-10 "></div>
+                    <img src="/assets/images/match.png" class="mx-auto -mt-12 w-80 sm:w-96 object-contain transition-transform duration-500 hover:scale-105" alt="Pawpon illustration">
+                </div>
+
+                <!-- HEADLINE & DESCRIPTION -->
+                <div class="space-y-4 max-w-3xl mx-auto">
+                    <h1 class="text-3xl sm:text-4xl lg:text-3xl font-black text-slate-900 tracking-tight leading-tight">
                         Find Your Purr-fect Companion
                     </h1>
 
-                    <p class="mt-6 text-gray-600 leading-7">
-                        Our Matchmaker uses Artificial Intelligence to help you find the pet that best matches your preferences and lifestyle. By analyzing the information you provide—including the qualities and behaviors you're looking for. Our matching system compares your preferences with each pet's profile to recommend the companions that are most compatible with you.
+                    <p class="w-full max-w-none text-sm sm:text-base text-slate-600 leading-relaxed text-center ">
+                        Our Matchmaker uses Artificial Intelligence to analyze your lifestyle, qualities, and desired behaviors. We compare your preferences with each pet’s profile to recommend your most compatible companions.
                     </p>
-
-                    <div class="mt-10 flex justify-center gap-6">
-                        <button
-                            type="button"
-                            id="introNextBtn"
-                            class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg">
-                            Next →
-                        </button>
-                    </div>
-
-                    <div class="flex justify-center gap-3 mt-10">
-                        <div class="w-3 h-3 rounded-full bg-blue-700"></div>
-                        <div class="w-3 h-3 rounded-full bg-gray-300"></div>
-                        <div class="w-3 h-3 rounded-full bg-gray-300"></div>
-                    </div>
                 </div>
-            </section>
 
-            <section id="preferenceScreen" class="hidden max-w-screen-2xl mx-auto mt-0">
-                <h1 class="text-3xl font-semibold text-sm text-blue-700 -mt-5">Pet Preferences</h1>
-                <p class="text-gray-600 text-s mt-0">Basic criteria to help the system filter the initial animal list.</p>
+                <!-- ACTION BUTTON -->
+                <div class="pt-4 flex justify-center">
+                    <button
+                        type="button"
+                        id="introNextBtn"
+                        class="w-full sm:w-auto -mt-1 sm:min-w-[240px] bg-gradient-to-r from-blue-600 via-indigo-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 transition-all duration-200 text-white px-10 py-4 rounded-xl font-bold text-base shadow-lg shadow-indigo-200 hover:shadow-indigo-300 active:scale-[0.99] flex items-center justify-center gap-3 cursor-pointer">
+                        <span>Get Started</span>
+                        <i class="fa-solid fa-arrow-right text-sm"></i>
+                    </button>
+                </div>
 
-                <form class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
-                    <div>
-                        <label class="font-medium">Type <span class="text-red-500">*</span></label>
-                        <select class="w-full border rounded-lg px-4 py-3 mt-2" id="type">
-                            <option>Select Type</option>
-                            <option>Dog</option>
-                            <option>Cat</option>
-                        </select>
+                <!-- STEP PROGRESS INDICATOR -->
+                <div class="flex items-center justify-center gap-2.5 pt-2">
+                    <!-- Step 1 (Active Pill) -->
+                    <div class="w-10 h-3 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 shadow-2xs"></div>
+                    <!-- Step 2 -->
+                    <div class="w-3 h-3 rounded-full bg-slate-200"></div>
+                    <!-- Step 3 -->
+                    <div class="w-3 h-3 rounded-full bg-slate-200"></div>
+                </div>
+
+            </div>
+        </section>
+
+        <section id="preferenceScreen" class="hidden flex items-start justify-center min-h-full py-6 px-4 ">
+        <div class="w-full max-w-8xl mx-auto -mt-9 p-8 sm:p-12 space-y-7">
+                <!-- HEADER BANNER -->
+                <div class="border-b border-slate-200/70 pb-5 -mt-12 -ml-14">
+                    <h1 class="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">Pet Preferences</h1>
+                    <p class="text-sm text-slate-500 mt-1">Select basic criteria to help the system filter the initial animal recommendations.</p>
+                </div>
+
+                <!-- FORM DROPDOWNS GRID -->
+               <form class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    
+                    <!-- Pet Type -->
+                    <div class="space-y-2 -mt-5 -ml-14">
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+                            <i class="fa-solid fa-paw text-slate-400 text-xs"></i> Type <span class="text-rose-500">*</span>
+                        </label>
+                        <div class="relative">
+                            <select id="type" class="w-full bg-slate-50/80 hover:bg-slate-50 border border-slate-200/90 focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 rounded-xl px-4 py-3 text-sm font-semibold text-slate-800 transition-all outline-none cursor-pointer">
+                                <option>Select Type</option>
+                                <option>Dog</option>
+                                <option>Cat</option>
+                            </select>
+                        </div>
                     </div>
 
-                    <div>
-                        <label class="font-medium">Sex <span class="text-red-500">*</span></label>
-                        <select class="w-full border rounded-lg px-4 py-3 mt-2" id="sex">
-                            <option>Select Sex</option>
-                            <option>Male</option>
-                            <option>Female</option>
-                        </select>
+                    <!-- Pet Sex -->
+                    <div class="space-y-2 -mt-5 ">
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+                            <i class="fa-solid fa-venus-mars text-slate-400 text-xs"></i> Sex <span class="text-rose-500">*</span>
+                        </label>
+                        <div class="relative">
+                            <select id="sex" class="w-full bg-slate-50/80 hover:bg-slate-50 border border-slate-200/90 focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 rounded-xl px-4 py-3 text-sm font-semibold text-slate-800 transition-all outline-none cursor-pointer">
+                                <option>Select Sex</option>
+                                <option>Male</option>
+                                <option>Female</option>
+                            </select>
+                        </div>
                     </div>
 
-                    <div>
-                        <label class="font-medium">Age <span class="text-red-500">*</span></label>
-                        <select class="w-full border rounded-lg px-4 py-3 mt-2" id="age">
-                            <option>Select Age</option>
-                            <option value="Puppy/Kitten (0-1 yr old)"> Puppy/Kitten</option>
-                            <option value="Adolescence (2-3 yrs old)">Adolescence</option>
-                            <option value="Adult (4-7 yrs old)">Adult</option>
-                            <option value="Senior (8-10 yrs old)"> Senior</option>
-                        </select>
+                    <!-- Pet Age -->
+                    <div class="space-y-2 -mt-5">
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+                            <i class="fa-regular fa-calendar-days text-slate-400 text-xs"></i> Age <span class="text-rose-500">*</span>
+                        </label>
+                        <div class="relative">
+                            <select id="age" class="w-full bg-slate-50/80 hover:bg-slate-50 border border-slate-200/90 focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 rounded-xl px-4 py-3 text-sm font-semibold text-slate-800 transition-all outline-none cursor-pointer">
+                                <option>Select Age</option>
+                                <option value="Puppy/Kitten (0-1 yr old)">Puppy/Kitten (0-1 yr old)</option>
+                                <option value="Adolescence (2-3 yrs old)">Adolescence (2-3 yrs old)</option>
+                                <option value="Adult (4-7 yrs old)">Adult (4-7 yrs old)</option>
+                                <option value="Senior (8-10 yrs old)">Senior (8-10 yrs old)</option>
+                            </select>
+                        </div>
                     </div>
+
                 </form>
 
-                <div class="mt-10">
-                    <p class="font-medium mb-4">Tell us about your ideal pet. The more details you provide about their behavior and traits, the better we can match you.<span class="text-red-500">*</span></p>
-                    <textarea rows="5" id="behavior" class="w-full border rounded-xl p-4" placeholder="Describe your ideal pet...&#10;&#10;e.g., I would like a friendly, playful, and affectionate young cat that enjoys being around people. It should be comfortable living indoors, get along with other pets, and not require too much grooming."></textarea>
-                    
-                    <p class="text-sm text-gray-500 mt-3 text-justify ">
-                        Notes: Maximum of 100 words. You may write in English or Tagalog. 
-                        Please use standard spelling and avoid slang, abbreviations, or emojis. 
-                        To receive more accurate matches,describe your ideal pet using at least 3–5 meaningful words or a complete sentence that explains its <strong> personality, behavior, and traits <i>(e.g., friendly, playful, affectionate, gentle, and good with children).</i></strong>
-                        Very short descriptions or single-word inputs may result in less accurate recommendations.
-                    </p>
-                    <p id="validationMessage"
-                    class="hidden mt-5 flex items-center justify-center gap-2 rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
-                        <i class="fas fa-exclamation-circle"></i>
+                <!-- BEHAVIOR & DESCRIPTION SECTION -->
+                <div class="space-y-4 -mt-32 -ml-14 flex flex-col">
+                    <div>
+                        <label class="block text-sm font-bold text-slate-800 ">
+                            Tell us about your ideal pet <span class="text-rose-500">*</span>
+                        </label>
+                        <p class="text-xs text-slate-500 leading-relaxed">The more details you provide about their behavior and traits, the better our AI engine can match you.</p>
+                    </div>
+
+                    <textarea rows="4" id="behavior" class="w-full bg-slate-50/60 hover:bg-slate-50 border border-slate-200/90 focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 rounded-2xl p-4 text-sm text-slate-800 placeholder:text-slate-400 transition-all outline-none leading-relaxed" 
+                        placeholder="Describe your ideal pet...&#10;&#10;e.g., I would like a friendly, playful, and affectionate young cat that enjoys being around people. It should be comfortable living indoors, get along with other pets, and not require too much grooming."></textarea>
+
+                    <!-- GUIDELINES CALLOUT BOX -->
+                    <div class="rounded-2xl bg-slate-50 border border-slate-200/80 p-3 space-y-2 -pt-10">
+                        <div class="flex items-center gap-2 text-xs font-bold text-slate-700 uppercase tracking-wide">
+                            <i class="fa-solid fa-circle-info text-indigo-500"></i> Description Guidelines
+                        </div>
+                        <p class="text-xs text-slate-500 leading-relaxed text-justify">
+                            Maximum of 100 words (English or Tagalog). Please use standard spelling and avoid slang, abbreviations, or emojis. 
+                            To receive more accurate matches, describe your ideal pet using at least <strong>3–5 meaningful words</strong> or a complete sentence explaining its <strong>personality, behavior, and traits</strong> <i>(e.g., friendly, playful, affectionate, gentle, and good with children).</i> Very short descriptions or single-word inputs may result in less accurate recommendations.
+                        </p>
+                    </div>
+
+                    <!-- VALIDATION ERROR MESSAGE -->
+                    <p id="validationMessage" class="hidden mt-4 flex items-center justify-center gap-2 rounded-xl border border-rose-200 bg-rose-50/80 px-4 py-3 text-xs font-bold text-rose-700 shadow-2xs">
+                        <i class="fa-solid fa-circle-exclamation text-sm"></i>
                         Please fill in all required fields before continuing.
                     </p>
-                    <div class="mt-10 flex justify-center gap-6">
-                        <button
-                            type="button"
-                            id="preferenceBackBtn"
-                            class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg">
-                            ← Back
-                        </button>
-                        <button
-                            type="button"
-                            id="preferenceNextBtn"
-                            class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg">
-                            Next →
-                        </button>
-                    </div>
                 </div>
 
-                <div class="flex justify-center gap-3 mt-6">
-                    <div class="w-3 h-3 rounded-full bg-gray-300"></div>
-                    <div class="w-3 h-3 rounded-full bg-blue-700"></div>
-                    <div class="w-3 h-3 rounded-full bg-gray-300"></div>
-                </div>
-            </section>
+                <!-- ACTION BUTTONS -->
+                <div class=" flex flex-col sm:flex-row items-center justify-center gap-4 -mt-10">
+                    
+                    <!-- BACK BUTTON -->
+                    <button type="button" id="preferenceBackBtn"class="w-full sm:w-auto sm:min-w-[160px] bg-white hover:bg-slate-50 text-slate-700 border border-slate-200/90 py-3.5 px-6 rounded-xl font-bold text-xs transition-all duration-200 shadow-2xs hover:shadow-sm active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer">
+                        <i class="fa-solid fa-arrow-left text-xs"></i>
+                        <span>Back</span>
+                    </button>
 
-           <section id="compatibilityScreen" class="hidden max-w-6xl mx-auto px-4 py-2 space-y-6">
+                    <!-- NEXT BUTTON -->
+                    <button type="button" id="preferenceNextBtn" class="w-full sm:w-auto sm:min-w-[200px] bg-gradient-to-r from-blue-600 via-indigo-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 transition-all duration-200 text-white py-3.5 px-8 rounded-xl font-bold text-xs shadow-md shadow-indigo-100 hover:shadow-indigo-200 active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer">
+                        <span>Find Matches</span>
+                        <i class="fa-solid fa-arrow-right text-xs"></i>
+                    </button>
+
+                </div>
+
+                <!-- STEP PROGRESS INDICATOR -->
+                <div class="flex items-center justify-center gap-2.5 pt-2">
+                    <!-- Step 1 -->
+                    <div class="w-3 h-3 rounded-full bg-slate-200"></div>
+                    <!-- Step 2 (Active Pill) -->
+                    <div class="w-10 h-3 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 shadow-2xs"></div>
+                    <!-- Step 3 -->
+                    <div class="w-3 h-3 rounded-full bg-slate-200"></div>
+                </div>
+
+            </div>
+        </section>
+
+        <section id="compatibilityScreen" class="hidden max-w-8xl mx-auto px-4 py-2 space-y-6 -ml-3 -mt-4">
 
                 <!-- COMPATIBILITY RESULT HEADER BANNER -->
-                <div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 p-6 text-white shadow-xl border border-blue-800/40">
+                <div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 p-4 text-white shadow-xl border border-blue-800/40">
                     <!-- Background Ambient Glow -->
                     <div class="absolute -top-10 -right-10 w-40 h-40 bg-blue-500/20 rounded-full blur-3xl pointer-events-none"></div>
                     <div class="absolute -bottom-10 -left-10 w-40 h-40 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none"></div>
@@ -173,19 +234,10 @@
                     <div class="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                         <div>
                             <!-- Badge Tag -->
-                            <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/20 border border-blue-400/30 backdrop-blur-md text-blue-200 text-xs font-semibold tracking-wide uppercase mb-2">
-                                <i class="fa-solid fa-sparkles text-amber-300"></i> Match Complete
-                            </div>
                             <h1 class="text-2xl sm:text-3xl font-black tracking-tight text-white">Your Best Companion Matches</h1>
                             <p class="text-blue-100/80 text-sm mt-1 max-w-xl leading-relaxed">
                                 Based on your lifestyle and preferences, our AI recommendation engine has selected the top pets that best fit your criteria.
                             </p>
-                        </div>
-
-                        <!-- Match Count Indicator Pill -->
-                        <div class="shrink-0 bg-white/10 backdrop-blur-md border border-white/15 px-4 py-2.5 rounded-xl text-center">
-                            <span class="block text-xs uppercase tracking-wider text-blue-200 font-medium">Top Matches</span>
-                            <span class="text-xl font-bold text-white">Ready to View</span>
                         </div>
                     </div>
                 </div>
@@ -219,7 +271,7 @@
 
                 </div>
 
-            </section>
+        </section>
         </div>
     </main>
 <!-- ==========================================================
