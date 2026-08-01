@@ -252,12 +252,12 @@ document.addEventListener("click", e => {
 
 });
 function openPetModal(pet){
-
+    window.currentPet = pet;
     const applyBtn = document.getElementById("applyModalBtn");
     if (applyBtn) {
         applyBtn.dataset.petId = pet.id || pet.animal_id; 
     }
-
+    
     document.getElementById("modalImage").src = pet.img;
 
     document.getElementById("modalName").textContent = pet.name;

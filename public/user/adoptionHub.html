@@ -101,7 +101,27 @@
 
                     <form id="adoptionForm" class="space-y-6">
                         <!-- Hidden input for Pet ID -->
-                        <input type="hidden" id="selectedPetId" name="animal_id" value="" />
+                       <input type="hidden" id="selectedPetId" name="animal_id" value="" />
+
+                        <!-- Selected Pet -->
+                        <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 mb-6">
+                            <h3 class="text-blue-600 font-bold flex items-center gap-2 mb-4">
+                                <i class="fa-solid fa-paw"></i>Pet You're Applying For
+                            </h3>
+
+                            <div class="flex items-center gap-5">
+                                <img id="selectedPetImage"src="" class="w-24 h-24 rounded-2xl object-cover border" alt="Pet">
+
+                                <div class="flex-1">
+                                    <h2 id="selectedPetName"class="text-xl font-bold text-gray-800">   Loading...  </h2>
+                                    <p id="selectedPetInfo"class="text-sm text-gray-500 mt-1">  - </p>
+                                    <div class="mt-2 inline-flex items-center px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-semibold">
+                                        <i class="fa-solid fa-building mr-2"></i> <span id="selectedPetOrg"> Loading organization... </span>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
                     
                         <!-- Section 1: Applicant Info -->
                         <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
@@ -318,7 +338,22 @@
 
             // Wait until sidebar + header are loaded
             await loadSidebar();
+            const params = new URLSearchParams(window.location.search);
+            const petId = params.get("petId");
 
+            if (petId) {
+            console.log("Opening form for pet:", petId);
+            await loadSelectedPet(petId);
+
+            document.getElementById("list-view").classList.add("hidden");
+            document.getElementById("application-view").classList.remove("hidden");
+
+            loadTopbar({
+                title: "Adoption Form",
+                subtitle: "Please fill out the form below to start your adoption journey."
+            });
+            }
+            
             requestAnimationFrame(() => {
                 loadTopbar({
                     title: "Adoption Hub",
@@ -330,6 +365,29 @@
 
             // Helper function to return to Pet List
             function returnToPetList() {
+                // Automatically open the application form if a pet ID is in the URL
+                if (petId) {
+
+                    // Save the pet ID
+                    const hiddenInput = document.getElementById("selectedPetId");
+                    if (hiddenInput) {
+                        hiddenInput.value = petId;
+                    }
+
+                    // Hide list
+                    document.getElementById("list-view").classList.add("hidden");
+
+                    // Show application form
+                    document.getElementById("application-view").classList.remove("hidden");
+
+                    // Update topbar
+                    if (typeof loadTopbar === "function") {
+                        loadTopbar({
+                            title: "Adoption Form",
+                            subtitle: "Please fill out the form below to start your adoption journey"
+                        });
+                    }
+                }
                 document.getElementById('application-view').classList.add('hidden');
                 document.getElementById('list-view').classList.remove('hidden');
 
@@ -340,40 +398,51 @@
                     });
                 }
             }
+            async function loadSelectedPet(petId) {
+            try {
+                const res = await fetch(`/api/pets/${petId}`);
+                const pet = await res.json();
 
+                document.getElementById("selectedPetId").value = pet.animal_id;
+
+                document.getElementById("selectedPetImage").src =
+                    `/uploads/pets/${pet.image_path}`;
+
+                document.getElementById("selectedPetName").textContent =
+                    pet.name;
+
+                document.getElementById("selectedPetInfo").textContent =
+                    `${pet.gender} • ${pet.species} • ${pet.age}`;
+
+                document.getElementById("selectedPetOrg").textContent =
+                    pet.organization_name;
+
+            } catch (err) {
+                console.error(err);
+            }
+        }
             // 1. Kapag pinindot ang Apply Button sa Modal
             const applyBtn = document.getElementById('applyModalBtn');
             if (applyBtn) {
-                applyBtn.addEventListener('click', function() {
-                    // Kunin ang Pet ID mula sa dataset attribute o global window object
-                    const selectedPetId = this.dataset.petId || (window.currentSelectedPet ? window.currentSelectedPet.id : '');
-                    
-                    // Isulat ang Pet ID sa hidden input ng form
-                    const hiddenInput = document.getElementById('selectedPetId');
-                    if (hiddenInput) {
-                        hiddenInput.value = selectedPetId;
-                    }
+                applyBtn.addEventListener("click", async function () {
+                const selectedPetId = window.currentPet.animal_id;
 
-                    // Kung walang napiling pet ID, magbigay ng babala
-                    if (!selectedPetId) {
-                        console.warn("Warning: No Pet ID found on the apply button.");
-                    }
+                window.history.replaceState(
+                    {},
+                    "",
+                    `adoptionHub.html?petId=${selectedPetId}`
+                );
 
-                    // Close pet detail modal
-                    if (typeof closePetModal === 'function') closePetModal();
-
-                    // Switch views
-                    document.getElementById('list-view').classList.add('hidden');
-                    document.getElementById('application-view').classList.remove('hidden');
-
-                    // Update Topbar Title
-                    if (typeof loadTopbar === 'function') {
-                        loadTopbar({
-                            title: "Adoption Form",
-                            subtitle: "Please fill out the form below to start your adoption journey"
-                        });
-                    }
+                await loadSelectedPet(selectedPetId);
+                closePetModal();
+                document.getElementById("list-view").classList.add("hidden");
+                document.getElementById("application-view").classList.remove("hidden");
+                loadTopbar({
+                    title: "Adoption Form",
+                    subtitle: "Please fill out the form below to start your adoption journey."
                 });
+
+            });
             }
 
             // 2. Kapag pinindot ang Back Button mula sa Application Form
@@ -441,8 +510,7 @@
                         if (response.ok) {
                             // Call our Tailwind Modal!
                             showModal('Success!', result.message, true, () => {
-                                // This will execute after clicking the button (optional)
-                                window.location.reload(); 
+                                window.location.href = "/user/adoptionHub.html";
                             });
                         } else {
                             showModal('Error!', result.message || result.error, false);
@@ -453,6 +521,24 @@
                 });
             }
 
+            // ==========================================
+            // Auto-open application form from Matchmaker
+            // ==========================================
+            if (petId) {
+
+                const hiddenInput = document.getElementById("selectedPetId");
+                hiddenInput.value = petId;
+
+                document.getElementById("list-view").classList.add("hidden");
+                document.getElementById("application-view").classList.remove("hidden");
+
+                loadTopbar({
+                    title: "Adoption Form",
+                    subtitle: "Please fill out the form below to start your adoption journey"
+                });
+
+                console.log("Application form opened!");
+            }
         });
 
         let modalCallback = null;
