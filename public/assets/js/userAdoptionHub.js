@@ -206,14 +206,11 @@ function openPetModal(pet){
     }
     
     document.getElementById("modalImage").src = pet.img;
-
     document.getElementById("modalName").textContent = pet.name;
-
     document.getElementById("modalSpecies").textContent = pet.species;
-
     document.getElementById("modalGender").textContent = pet.gender;
-
     document.getElementById("modalAge").textContent = pet.age;
+    document.getElementById("modalOrganization").textContent = pet.organization || "Unknown Organization";
 
     // ======================
     // Adoption Status
@@ -457,19 +454,19 @@ function renderMedicalHistory(history) {
 
             <tr class="border-t hover:bg-gray-50">
 
-                <td class="p-4">
+                <td class="p-3">
 
                     ${record.treatment}
 
                 </td>
 
-                <td class="p-4">
+                <td class="p-3">
 
                     ${date}
 
                 </td>
 
-                <td class="p-4">
+                <td class="p-3">
 
                     ${record.administered_by}
 

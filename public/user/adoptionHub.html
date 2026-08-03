@@ -285,11 +285,17 @@
                         <!-- Age -->
                         <div class="flex justify-between items-center py-2.5">
                             <span class="text-slate-500 font-medium flex items-center gap-2">
-                                <i class="fa-regular fa-calendar-days text-slate-400 text-xs w-4 text-center"></i>
-                                Age
+                                <i class="fa-regular fa-calendar-days text-slate-400 text-xs w-4 text-center"></i>Age
                             </span>
-
                             <span id="modalAge" class="font-bold text-slate-800 text-sm"></span>
+                        </div>
+
+                        <!-- Organization -->
+                        <div class="flex justify-between items-center py-2.5">
+                            <span class="text-slate-500 font-medium flex items-center gap-2">
+                                <i class="fa-solid fa-building text-slate-400 text-xs w-4 text-center"></i>Organization
+                            </span>
+                            <span id="modalOrganization"class="font-bold text-slate-800 text-sm text-right flex-1 ml-3 break-words"></span>
                         </div>
 
                     </div>
@@ -324,7 +330,7 @@
             <div class="col-span-2 rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden bg-white">
 
                 <!-- HEADER -->
-                <div class="flex items-center justify-between px-5 py-3.5 bg-slate-50/70 border-b border-slate-100">
+                <div class="flex items-center justify-between px-3 py-2 bg-slate-50/70 border-b border-slate-100">
 
                     <div class="flex items-center gap-2.5">
                         <div class="w-9 h-9 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center">
@@ -339,7 +345,7 @@
                 </div>
 
                 <!-- BODY -->
-                <div class="p-5 bg-white">
+                <div class="p-2 bg-white">
                     <div class="rounded-xl bg-slate-50 border border-slate-100 p-4 min-h-[170px]">
                         <p id="modalBehavior" class="text-sm leading-relaxed text-slate-700 text-justify"></p>
                     </div>
@@ -351,22 +357,15 @@
              <div class="col-span-2 rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden bg-white">
 
                 <!-- HEADER -->
-                <div class="flex items-center justify-between px-5 py-3.5 bg-slate-50/70 border-b border-slate-100">
+                <div class="flex items-center justify-between px-3 py-2 bg-slate-50/70 border-b border-slate-100">
 
                     <div class="flex items-center gap-2.5">
                         <div class="w-9 h-9 rounded-lg bg-violet-50 border border-violet-100 flex items-center justify-center">
                             <i class="fa-solid fa-notes-medical text-violet-600 text-sm"></i>
                         </div>
-
-                        <h3 class="text-sm font-bold uppercase tracking-wider text-slate-800">
-                            Medical History
-                        </h3>
+                        <h3 class="text-sm font-bold uppercase tracking-wider text-slate-800">Medical History  </h3>
                     </div>
-
-                    <span class="text-xs font-medium text-slate-500">
-                        Latest treatments & vaccinations
-                    </span>
-
+                    <span class="text-xs font-medium text-slate-500"> Latest treatments & vaccinations</span>
                 </div>
 
                 <!-- TABLE -->
@@ -383,7 +382,7 @@
 
                         <tbody id="modalMedicalBody" class="divide-y divide-slate-100 bg-white text-slate-700">
                             <tr>
-                                <td colspan="3" class="text-center py-8 text-slate-400 italic">
+                                <td colspan="3" class="text-center py-2 text-slate-400 italic">
                                     No medical records logged.
                                 </td>
                             </tr>
