@@ -121,7 +121,7 @@ ADD COLUMN interview_method ENUM('onsite', 'virtual') DEFAULT 'virtual',
 ADD COLUMN interview_location_link TEXT NULL;
 
 
-HOW TO RUN IT
+HOW TO RUN WITH WORKING MATCHMAKING FEATURE
 - import new db (7.23)
 - create .venv first inside flask-api
     *terminal: cd flask-api then python -m venv .venv
