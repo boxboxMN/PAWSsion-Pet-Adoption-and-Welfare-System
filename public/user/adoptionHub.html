@@ -222,74 +222,78 @@
                 </div>
 
                 <!-- ===== MODAL VIEW ===== -->
-<div id="viewPetModal" class="fixed inset-0 hidden z-[999] bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 overflow-y-auto hide-scrollbar">
+<div id="viewPetModal" class="fixed inset-0 hidden z-[999] items-center justify-center bg-black/60 backdrop-blur-sm p-3 overflow-y-auto hide-scrollbar">
 
-    <div class="relative w-full max-w-[1150px] h-[92vh] bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-100 flex flex-col">
+<div class="bg-white w-full max-w-6xl h-[92vh] rounded-3xl shadow-2xl flex flex-col lg:flex-row relative border border-slate-200 rounded-3xl">
 
         <!-- CLOSE BUTTON -->
-        <button onclick="closePetModal()" class="absolute top-5 right-6 z-50 p-2.5 rounded-full bg-slate-100/80 text-slate-400 hover:text-slate-700 hover:bg-slate-200/80 transition-all duration-200 backdrop-blur-sm cursor-pointer group">
-            <i class="fa-solid fa-xmark text-xl group-hover:rotate-90 transition-transform duration-300"></i>
+        <button onclick="closePetModal()" class="absolute top-5 right-5 z-50 w-10 h-10 flex items-center justify-center rounded-3xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-all duration-200 cursor-pointer">
+            <i class="fa-solid fa-xmark text-2xl"></i>
         </button>
 
-        <div class="grid grid-cols-1 lg:grid-cols-[380px_1fr] h-full overflow-hidden">
+        <div class="grid lg:grid-cols-[380px_minmax(0,1fr)] w-full h-[92vh] rounded-3xl overflow-hidden">
 
             <!-- =====================================================
             LEFT COLUMN
             ====================================================== -->
-            <aside class="bg-slate-50/50 border-r border-slate-200/60 p-6 overflow-y-auto hide-scrollbar space-y-6 flex flex-col">
-                
-                <!-- IMAGE CARD -->
-                <div class="relative rounded-2xl overflow-hidden shadow-lg border border-slate-200/80 group shrink-0">
-                    <img id="modalImage" class="w-full h-[360px] object-cover group-hover:scale-105 transition-transform duration-500 ease-out" alt="Pet Image">
-                    <div class="absolute inset-0 bg-gradient-to-t from-slate-950/40 via-transparent to-transparent pointer-events-none"></div>
+
+            <aside class="bg-white border-r border-slate-200 overflow-y-auto hide-scrollbar p-5 space-y-4 h-full">
+
+                <!-- IMAGE -->
+                <div class="relative rounded-[20px] overflow-hidden border border-slate-200 shadow-lg group">
+                    <img id="modalImage" class="w-full h-[380px] object-cover transition-transform duration-500 group-hover:scale-105" alt="Pet Image">
+                    <div class="absolute inset-0 bg-gradient-to-t from-slate-900/35 via-transparent to-transparent"></div>
                 </div>
 
-                <!-- QUICK INFO CARD -->
-                <div class="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm space-y-4">
-                    
-                    <div class="flex items-center gap-2.5 pb-3 border-b border-slate-100">
-                        <div class="w-8 h-8 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600">
-                            <i class="fa-solid fa-sliders text-xs"></i>
+                <!-- QUICK INFORMATION -->
+                <div class="bg-gradient-to-b from-slate-50/90 to-white rounded-2xl border border-slate-200/90 p-4 shadow-2xs">
+
+                    <!-- Header -->
+                    <div class="flex items-center gap-2 pb-3 border-b border-slate-200/70">
+                        <div class="w-7 h-7 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center shrink-0">
+                            <i class="fa-solid fa-circle-info text-blue-600 text-xs"></i>
                         </div>
-                        <h4 class="text-xs font-black tracking-widest text-slate-400 uppercase">Key Info</h4>
+
+                        <h3 class="font-extrabold text-xs tracking-wider text-slate-800 uppercase">
+                            Quick Information
+                        </h3>
                     </div>
 
-                    <div class="divide-y divide-slate-100 text-base">
+                    <!-- Information -->
+                    <div class="divide-y divide-slate-100 text-sm mt-1">
 
                         <!-- Species -->
-                        <div class="flex justify-between items-center py-3">
-                            <span class="text-slate-500 font-semibold flex items-center gap-2.5 text-sm">
-                                <span class="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500">
-                                    <i class="fa-solid fa-dna text-xs"></i>
-                                </span>
+                        <div class="flex justify-between items-center py-2.5">
+                            <span class="text-slate-500 font-medium flex items-center gap-2">
+                                <i class="fa-solid fa-dna text-slate-400 text-xs w-4 text-center"></i>
                                 Species
                             </span>
-                            <span id="modalSpecies" class="font-bold text-slate-900 text-base"></span>
+
+                            <span id="modalSpecies" class="font-bold text-slate-800 text-sm"></span>
                         </div>
 
                         <!-- Gender -->
-                        <div class="flex justify-between items-center py-3">
-                            <span class="text-slate-500 font-semibold flex items-center gap-2.5 text-sm">
-                                <span class="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500">
-                                    <i class="fa-solid fa-venus-mars text-xs"></i>
-                                </span>
+                        <div class="flex justify-between items-center py-2.5">
+                            <span class="text-slate-500 font-medium flex items-center gap-2">
+                                <i class="fa-solid fa-venus-mars text-slate-400 text-xs w-4 text-center"></i>
                                 Gender
                             </span>
-                            <span id="modalGender" class="font-bold text-slate-900 text-base"></span>
+
+                            <span id="modalGender" class="font-bold text-slate-800 text-sm"></span>
                         </div>
 
                         <!-- Age -->
-                        <div class="flex justify-between items-center py-3">
-                            <span class="text-slate-500 font-semibold flex items-center gap-2.5 text-sm">
-                                <span class="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500">
-                                    <i class="fa-regular fa-calendar-days text-xs"></i>
-                                </span>
+                        <div class="flex justify-between items-center py-2.5">
+                            <span class="text-slate-500 font-medium flex items-center gap-2">
+                                <i class="fa-regular fa-calendar-days text-slate-400 text-xs w-4 text-center"></i>
                                 Age
                             </span>
-                            <span id="modalAge" class="font-bold text-slate-900 text-base"></span>
+
+                            <span id="modalAge" class="font-bold text-slate-800 text-sm"></span>
                         </div>
 
                     </div>
+
                 </div>
 
             </aside>
@@ -297,87 +301,114 @@
             <!-- =====================================================
             RIGHT COLUMN
             ====================================================== -->
-            <section class="p-6 lg:p-8 overflow-y-auto bg-white space-y-6 hide-scrollbar">
+            <section class="flex flex-col h-full overflow-y-auto bg-white p-5 space-y-5 hide-scrollbar">
 
-                <!-- HEADER & STATUS -->
-                <div class="border-b border-slate-100 pb-6">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <h1 id="modalName" class="text-4xl sm:text-5xl font-black text-slate-900 tracking-tight leading-none bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 bg-clip-text text-transparent"></h1>
+            <!-- HEADER -->
+            <div class="border-b border-slate-200/80 pb-5">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h1 id="modalName" class="text-4xl font-extrabold text-slate-900 tracking-tight"></h1>
+                    </div>
+                </div>
+
+                <!-- STATUS -->
+                <div class="flex flex-wrap items-center gap-3 mt-4">
+                    <span id="modalStatus" class="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold"></span>
+                    <span id="modalHealth" class="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium"></span>
+                    <span id="modalVaccination" class="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium"></span>
+                </div>
+            </div>
+
+        <div class="grid grid-cols-2 gap-4">
+            <!-- PET DESCRIPTION -->
+            <div class="col-span-2 rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden bg-white">
+
+                <!-- HEADER -->
+                <div class="flex items-center justify-between px-5 py-3.5 bg-slate-50/70 border-b border-slate-100">
+
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-9 h-9 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center">
+                            <i class="fa-solid fa-paw text-blue-600 text-sm"></i>
                         </div>
+
+                        <h3 class="text-sm font-bold uppercase tracking-wider text-slate-800">
+                            Pet Description
+                        </h3>
                     </div>
 
-                    <!-- STATUS PILLS -->
-                    <div class="flex flex-wrap items-center gap-2.5 mt-5">
-                        <span id="modalStatus" class="px-4 py-2 rounded-xl text-sm font-bold shadow-xs transition-all border"></span>
-                        <span id="modalHealth" class="px-4 py-2 rounded-xl text-sm font-semibold shadow-xs transition-all border"></span>
-                        <span id="modalVaccination" class="px-4 py-2 rounded-xl text-sm font-semibold shadow-xs transition-all border"></span>
+                </div>
+
+                <!-- BODY -->
+                <div class="p-5 bg-white">
+                    <div class="rounded-xl bg-slate-50 border border-slate-100 p-4 min-h-[170px]">
+                        <p id="modalBehavior" class="text-sm leading-relaxed text-slate-700 text-justify"></p>
                     </div>
                 </div>
 
-                <!-- PET DESCRIPTION -->
-                <div class="rounded-2xl border border-slate-200/80 shadow-xs p-5 bg-gradient-to-br from-white to-slate-50/50">
-                    <div class="flex items-center gap-3 mb-3.5">
-                        <div class="w-9 h-9 rounded-xl bg-blue-600 text-white shadow-md shadow-blue-500/20 flex items-center justify-center shrink-0">
-                            <i class="fa-solid fa-paw text-sm"></i>
+            </div>
+
+            <!-- MEDICAL HISTORY -->
+             <div class="col-span-2 rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden bg-white">
+
+                <!-- HEADER -->
+                <div class="flex items-center justify-between px-5 py-3.5 bg-slate-50/70 border-b border-slate-100">
+
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-9 h-9 rounded-lg bg-violet-50 border border-violet-100 flex items-center justify-center">
+                            <i class="fa-solid fa-notes-medical text-violet-600 text-sm"></i>
                         </div>
-                        <h3 class="font-black text-base uppercase tracking-wider text-slate-800">Pet Profile</h3>
+
+                        <h3 class="text-sm font-bold uppercase tracking-wider text-slate-800">
+                            Medical History
+                        </h3>
                     </div>
 
-                    <div class="rounded-xl bg-white border border-slate-200/60 p-4 shadow-xs">
-                        <p id="modalBehavior" class="text-base leading-relaxed text-slate-600 text-justify font-normal"></p>
-                    </div>
-                </div>
-
-                <!-- MEDICAL HISTORY -->
-                <div class="rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden bg-white">
-                    
-                    <div class="flex items-center gap-3 px-6 py-4 bg-slate-50/80 border-b border-slate-200/60">
-                        <div class="w-9 h-9 rounded-xl bg-violet-600 text-white shadow-md shadow-violet-500/20 flex items-center justify-center shrink-0">
-                            <i class="fa-solid fa-notes-medical text-sm"></i>
-                        </div>
-                        <h3 class="text-base font-black uppercase tracking-wider text-slate-800">Medical History</h3>
-                    </div>
-
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-base">
-                            <thead class="bg-slate-100/70 text-slate-700 font-bold border-b border-slate-200/60 text-xs uppercase tracking-wider">
-                                <tr>
-                                    <th class="text-left px-6 py-3.5">Treatment</th>
-                                    <th class="text-left px-6 py-3.5">Date</th>
-                                    <th class="text-left px-6 py-3.5">Administered By</th>
-                                </tr>
-                            </thead>
-                            <tbody id="modalMedicalBody" class="divide-y divide-slate-100 bg-white text-slate-600 font-medium">
-                                <tr>
-                                    <td colspan="3" class="text-center p-8 text-slate-400 italic">
-                                        No medical records logged.
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
+                    <span class="text-xs font-medium text-slate-500">
+                        Latest treatments & vaccinations
+                    </span>
 
                 </div>
 
-                <!-- APPLY BUTTON -->
-                <div class="pt-2">
-                    <button id="applyModalBtn" class="w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600 hover:from-blue-700 hover:via-indigo-700 hover:to-violet-700 transition-all duration-300 text-white py-4 rounded-2xl font-black text-sm uppercase tracking-wider shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 active:scale-[0.99] flex items-center justify-center gap-2.5 cursor-pointer">
-                        <i class="fa-solid fa-heart text-base text-rose-300"></i>
-                        <span>Apply for Adoption</span>
-                    </button>
+                <!-- TABLE -->
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+
+                        <thead class="bg-slate-100/80 text-slate-800 border-b border-slate-200/60">
+                            <tr>
+                                <th class="text-left px-5 py-3 font-bold">Treatment</th>
+                                <th class="text-left px-5 py-3 font-bold">Date</th>
+                                <th class="text-left px-5 py-3 font-bold">Administered By</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="modalMedicalBody" class="divide-y divide-slate-100 bg-white text-slate-700">
+                            <tr>
+                                <td colspan="3" class="text-center py-8 text-slate-400 italic">
+                                    No medical records logged.
+                                </td>
+                            </tr>
+                        </tbody>
+
+                    </table>
                 </div>
 
-            </section>
+            </div>
+
+            <!-- APPLY BUTTON -->
+           <div class="col-span-2 pt-1">
+                <button id="applyModalBtn" class="w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 transition-all duration-200 text-white py-3 rounded-xl font-bold text-xs shadow-md shadow-indigo-100 hover:shadow-indigo-200 active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer">
+                    <i class="fa-regular fa-heart text-sm"></i>
+                    <span>Apply for Adoption</span>
+                </button>
+            </div>
+
+        </section>
 
         </div>
 
     </div>
 
 </div>
-
-            </div>
-        </div>
 
         <!--Custom Modal -->
         <div id="customModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 backdrop-blur-sm p-4 transition-all duration-300">

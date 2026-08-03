@@ -215,60 +215,173 @@ function openPetModal(pet){
 
     document.getElementById("modalAge").textContent = pet.age;
 
-    document.getElementById("modalStatus").textContent =
-        pet.status;
+    // ======================
+    // Adoption Status
+    // ======================
+    const statusBadge = document.getElementById("modalStatus");
 
-    // =============================
-    // Adoption Status Badge
-    // =============================
-    const status = document.getElementById("modalStatus");
-    status.textContent = pet.status;
-    status.className = "px-4 py-2 rounded-full text-sm font-medium " + 
-        (pet.status === "Available" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-700");
+    statusBadge.className =
+        "flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold";
 
-    // =============================
-    // Health Badge
-    // =============================
-    const health = document.getElementById("modalHealth");
-    health.textContent = pet.health || "Healthy";
+    switch (pet.status) {
 
-    let healthClass = "bg-orange-100 text-orange-700";
+        case "Available":
+            statusBadge.textContent = "🟢 Available";
+            statusBadge.classList.add(
+                "bg-emerald-50",
+                "border",
+                "border-emerald-200",
+                "text-emerald-800"
+            );
+            break;
+
+        case "Pending":
+            statusBadge.textContent = "🟡 Adoption in Progress";
+            statusBadge.classList.add(
+                "bg-yellow-50",
+                "border",
+                "border-yellow-200",
+                "text-yellow-800"
+            );
+            break;
+
+        case "Adopted":
+            statusBadge.textContent = "💙 Successfully Adopted";
+            statusBadge.classList.add(
+                "bg-blue-50",
+                "border",
+                "border-blue-200",
+                "text-blue-800"
+            );
+            break;
+
+        case "Archived":
+            statusBadge.textContent = "⚪ No Longer Listed";
+            statusBadge.classList.add(
+                "bg-slate-100",
+                "border",
+                "border-slate-300",
+                "text-slate-700"
+            );
+            break;
+
+        default:
+            statusBadge.textContent = "Unknown";
+            statusBadge.classList.add(
+                "bg-gray-50",
+                "border",
+                "border-gray-200",
+                "text-gray-700"
+            );
+    }
+    // ======================
+    // Health Status
+    // ======================
+    const healthBadge = document.getElementById("modalHealth");
+
+    healthBadge.className =
+        "flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium";
+
     switch (pet.health) {
+
         case "Healthy":
-            healthClass = "bg-green-100 text-green-700";
+            healthBadge.textContent = "💚 Excellent Condition";
+            healthBadge.classList.add(
+                "bg-emerald-50",
+                "border",
+                "border-emerald-200",
+                "text-emerald-800"
+            );
             break;
+
         case "Recovered":
-            healthClass = "bg-blue-100 text-blue-700";
+            healthBadge.textContent = "🌿 Recovered";
+            healthBadge.classList.add(
+                "bg-green-50",
+                "border",
+                "border-green-200",
+                "text-green-700"
+            );
             break;
-        case "Sick":
-            healthClass = "bg-red-100 text-red-700";
-            break;
+
         case "Under Treatment":
-            healthClass = "bg-yellow-100 text-yellow-700";
+            healthBadge.textContent = "🩺 Under Treatment";
+            healthBadge.classList.add(
+                "bg-yellow-50",
+                "border",
+                "border-yellow-200",
+                "text-yellow-800"
+            );
             break;
+
+        case "Sick":
+            healthBadge.textContent = "❤️ Needs Extra Care";
+            healthBadge.classList.add(
+                "bg-red-50",
+                "border",
+                "border-red-200",
+                "text-red-700"
+            );
+            break;
+
+        default:
+            healthBadge.textContent = "Unknown";
+            healthBadge.classList.add(
+                "bg-gray-50",
+                "border",
+                "border-gray-200",
+                "text-gray-700"
+            );
     }
-    health.className = `px-4 py-2 rounded-full text-sm font-medium ${healthClass}`;
+    // ======================
+    // Vaccination Status
+    // ======================
+    const vaccinationBadge = document.getElementById("modalVaccination");
 
-    // =============================
-    // Vaccination Badge
-    // =============================
-    const vaccination = document.getElementById("modalVaccination");
-    vaccination.textContent = pet.vaccination || "Unknown";
+    vaccinationBadge.className =
+        "flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium";
 
-    let vaccinationClass = "bg-gray-100 text-gray-700";
     switch (pet.vaccination) {
-        case "Vaccinated":
-            vaccinationClass = "bg-blue-100 text-blue-700";
-            break;
-        case "Not Vaccinated":
-            vaccinationClass = "bg-red-100 text-red-700";
-            break;
-        case "Unknown":
-            vaccinationClass = "bg-gray-100 text-gray-700";
-            break;
-    }
-    vaccination.className = `px-4 py-2 rounded-full text-sm font-medium ${vaccinationClass}`;
 
+        case "Vaccinated":
+            vaccinationBadge.textContent = "💉 Vaccinated";
+            vaccinationBadge.classList.add(
+                "bg-blue-50",
+                "border",
+                "border-blue-200",
+                "text-blue-700"
+            );
+            break;
+
+        case "Not Vaccinated":
+            vaccinationBadge.textContent = "⚠️ Not Yet Vaccinated";
+            vaccinationBadge.classList.add(
+                "bg-orange-50",
+                "border",
+                "border-orange-200",
+                "text-orange-700"
+            );
+            break;
+
+        case "Unknown":
+            vaccinationBadge.textContent = "❓ Vaccination Unknown";
+            vaccinationBadge.classList.add(
+                "bg-slate-100",
+                "border",
+                "border-slate-300",
+                "text-slate-700"
+            );
+            break;
+
+        default:
+            vaccinationBadge.textContent = "Unknown";
+            vaccinationBadge.classList.add(
+                "bg-gray-50",
+                "border",
+                "border-gray-200",
+                "text-gray-700"
+            );
+    }
     // Behavior
     document.getElementById("modalBehavior").textContent = pet.behavior || "No description.";
 
