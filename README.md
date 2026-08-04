@@ -136,3 +136,7 @@ HOW TO RUN WITH WORKING MATCHMAKING FEATURE
     *terminal: python app.py (keep this running on venv)
 - run Node.js
     *terminal: node server.js (this should be in new terminal)
+
+# August 4, 2026
+
+# Paimport na lang ng user_adoption_applications sa db nyo may nabago lang doon
