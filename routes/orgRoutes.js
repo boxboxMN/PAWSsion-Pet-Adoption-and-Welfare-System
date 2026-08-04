@@ -134,41 +134,41 @@ router.get('/applications/:id', async (req, res) => {
         const { id } = req.params;
 
         const query = `
-            SELECT 
-                app.application_id,
-                app.animal_id,
-                app.adopter_id,
-                app.full_name,
-                app.contact_number,
-                app.email,
-                app.full_address,
-                app.civil_status,
-                app.age,
-                app.occupation,
-                app.adoption_intent,
-                app.emergency_name,
-                app.emergency_phone,
-                app.emergency_relation,
-                app.document_path,
-                app.status,
-                app.interview_date,
-                app.interview_time,
-                app.interview_method,
-                app.interview_location_link,
-                DATE_FORMAT(app.created_at, '%b %d, %Y • %h:%i %p') AS applied_date,
-                p.name AS pet_name
-            FROM user_adoption_applications app
-            LEFT JOIN animals p ON app.animal_id = p.animal_id
-            WHERE app.application_id = ?
-        `;
-
-        const [rows] = await pool.query(query, [id]);
-
-        if (!rows || rows.length === 0) {
-            return res.status(404).json({ message: "Application not found" });
-        }
-
-        res.json(rows[0]);
+        SELECT 
+            app.application_id,
+            app.animal_id,
+            app.adopter_id,
+            app.full_name,
+            app.contact_number,
+            app.email,
+            app.full_address,
+            app.civil_status,
+            app.age,
+            app.occupation,
+            app.adoption_intent,
+            app.emergency_name,
+            app.emergency_phone,
+            app.emergency_relation,
+            app.document_path,
+            app.status,
+            app.interview_date, -- New column
+            app.interview_time, -- New column
+            app.interview_method, -- New column
+            app.interview_location_link, -- New column
+            DATE_FORMAT(app.created_at, '%b %d, %Y • %h:%i %p') AS applied_date,
+            p.name AS pet_name
+        FROM user_adoption_applications app
+        LEFT JOIN animals p ON app.animal_id = p.animal_id
+        WHERE app.application_id = ?
+    `;
+    
+    const [rows] = await pool.query(query, [id]);
+    
+    if (!rows || rows.length === 0) {
+        return res.status(404).json({ message: "Application not found" });
+    }
+    
+    res.json(rows[0]); // Send the application details, including the new columns
 
     } catch (err) {
         console.error("❌ SQL Error:", err);
