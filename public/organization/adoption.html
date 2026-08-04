@@ -212,11 +212,28 @@
 
     // Helper: Update Stat Cards
     function updateStatCards(data) {
-        const active = data.filter(a => a.status === "UNDER_REVIEW" || a.status === "PENDING" || a.status === "").length;
-        const approved = data.filter(a => a.status === "APPROVED").length;
-        const declined = data.filter(a => a.status === "DECLINED").length;
-        const interview = data.filter(a => a.status === "INTERVIEW_SCHEDULED").length;
+        let active = 0;     // Under Review
+        let approved = 0;   // Approved
+        let declined = 0;   // Declined / Rejected
+        let interview = 0;  // Interview Scheduled
 
+        data.forEach(app => {
+            // I-normalize ang status string para hindi magka-error sa casing o underscores
+            const status = (app.status || '').toLowerCase().replace(/_/g, ' ').trim();
+
+            if (status.includes('approved')) {
+                approved++;
+            } else if (status.includes('declined') || status.includes('rejected')) {
+                declined++;
+            } else if (status.includes('interview') || status.includes('scheduled')) {
+                interview++;
+            } else {
+                // Babagsak dito kapag "under review", "pending", o walang nakalagay na status
+                active++;
+            }
+        });
+
+        // I-update ang mga numero sa UI
         document.getElementById("statActiveApps").textContent = active;
         document.getElementById("statSuccessfulApps").textContent = approved;
         document.getElementById("statDeclinedApps").textContent = declined;
@@ -225,24 +242,43 @@
 
     // Helper: Filter Function
     function filterAndRenderTable() {
-        const searchVal = (document.getElementById("searchInput")?.value || "").toLowerCase();
-        const statusVal = document.getElementById("statusFilter")?.value || "ALL";
+        const searchVal = (document.getElementById("searchInput")?.value || "").toLowerCase().trim();
+        const statusVal = (document.getElementById("statusFilter")?.value || "ALL").toLowerCase();
 
         filteredApplications = allApplications.filter(app => {
+            // 1. Search Filter (Applicant Name, Email, o Pet Name)
             const matchesSearch = 
                 (app.applicant_name || '').toLowerCase().includes(searchVal) ||
                 (app.applicant_email || '').toLowerCase().includes(searchVal) ||
                 (app.pet_name || '').toLowerCase().includes(searchVal);
 
-            let appStatus = app.status;
-            if (appStatus === 'PENDING' || !appStatus) appStatus = 'UNDER_REVIEW';
+            // 2. Normalization ng App Status mula Backend
+            let rawStatus = (app.status || '').toLowerCase().replace(/_/g, ' ').trim();
+            
+            // Pag-set ng fallback kung walang status o PENDING
+            if (!rawStatus || rawStatus.includes('pending') || rawStatus.includes('review')) {
+                rawStatus = 'under review';
+            }
 
-            const matchesStatus = statusVal === "ALL" || appStatus === statusVal;
+            // 3. Status Matching Check
+            let matchesStatus = false;
+
+            if (statusVal === "all") {
+                matchesStatus = true;
+            } else if (statusVal === "under_review" && rawStatus.includes("review")) {
+                matchesStatus = true;
+            } else if (statusVal === "interview_scheduled" && (rawStatus.includes("interview") || rawStatus.includes("scheduled"))) {
+                matchesStatus = true;
+            } else if (statusVal === "approved" && rawStatus.includes("approved")) {
+                matchesStatus = true;
+            } else if (statusVal === "declined" && (rawStatus.includes("declined") || rawStatus.includes("rejected"))) {
+                matchesStatus = true;
+            }
 
             return matchesSearch && matchesStatus;
         });
 
-        currentPage = 1; // Reset sa page 1 kapag nagse-search/filter
+        currentPage = 1; // Panatilihing nasa page 1 pagkatapos mag-filter
         renderTableRows();
     }
 
