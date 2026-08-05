@@ -387,6 +387,8 @@ app.get('/api/organization/applications', async (req, res) => {
     }
 });
 
+// Adoption routes
+app.use('/api/userAdoptions', userRoutes);
 
 const PORT = 3000;
 app.listen(PORT, () => {

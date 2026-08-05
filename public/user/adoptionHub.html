@@ -444,16 +444,30 @@
             const petId = params.get("petId");
 
             if (petId) {
-            console.log("Opening form for pet:", petId);
-            await loadSelectedPet(petId);
+   
+                try {
+                    const res = await fetch(`/check-applied/${petId}`, { credentials: 'include' });
+                    const data = await res.json();
 
-            document.getElementById("list-view").classList.add("hidden");
-            document.getElementById("application-view").classList.remove("hidden");
+                    if (data.hasApplied) {
+                        alert(`You have already submitted an application for this pet (Status: ${data.status}).`);
+                        window.location.href = "/user/adoptionHub.html";
+                        return; // Itigil na ang pagbukas ng form
+                    }
 
-            loadTopbar({
-                title: "Adoption Form",
-                subtitle: "Please fill out the form below to start your adoption journey."
-            });
+                    console.log("Opening form for pet:", petId);
+                    await loadSelectedPet(petId);
+
+                    document.getElementById("list-view").classList.add("hidden");
+                    document.getElementById("application-view").classList.remove("hidden");
+
+                    loadTopbar({
+                        title: "Adoption Form",
+                        subtitle: "Please fill out the form below to start your adoption journey."
+                    });
+                } catch (err) {
+                    console.error("Error checking application status:", err);
+                }
             }
             
             requestAnimationFrame(() => {
@@ -475,6 +489,8 @@
                     if (hiddenInput) {
                         hiddenInput.value = petId;
                     }
+
+                    window.history.replaceState({}, "", "/user/adoptionHub.html");
 
                     // Hide list
                     document.getElementById("list-view").classList.add("hidden");
@@ -532,7 +548,7 @@
                 window.history.replaceState(
                     {},
                     "",
-                    `adoptionHub.html?petId=${selectedPetId}`
+                    `/user/adoptionHub.html?petId=${selectedPetId}`
                 );
 
                 await loadSelectedPet(selectedPetId);

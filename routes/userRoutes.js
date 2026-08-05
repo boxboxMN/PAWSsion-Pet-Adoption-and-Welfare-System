@@ -144,4 +144,8 @@ router.post(
   uploadDoc.single('document'), 
   userController.submitAdoptionApplication
 );
+
+// Check if the user has already applied for a specific pet
+router.get('/check-applied/:petId', userController.checkAppliedStatus);
+
 module.exports = router;

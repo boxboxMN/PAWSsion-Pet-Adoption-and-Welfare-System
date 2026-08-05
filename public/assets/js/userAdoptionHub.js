@@ -181,6 +181,7 @@ document.getElementById("search-input")
 
 document.getElementById("type-filter")
     .addEventListener("change", filterPets);
+
 document.addEventListener("click", e => {
 
     const btn = e.target.closest(".view-btn");
@@ -198,7 +199,42 @@ document.addEventListener("click", e => {
     }
 
 });
-function openPetModal(pet){
+
+// Check if the user has already applied for adoption for this pet
+async function checkPetApplicationStatus(petId) {
+    const applyBtn = document.getElementById('applyModalBtn');
+    if (!applyBtn) return;
+
+    try {
+        const res = await fetch(`/check-applied/${petId}`, {
+            credentials: 'include'
+        });
+        const data = await res.json();
+
+        if (data.hasApplied) {
+            // I-disable ang button at baguhin ang styling at text
+            applyBtn.disabled = true;
+            applyBtn.className = "w-full bg-gray-400 text-white py-3 rounded-xl font-bold text-xs shadow-none cursor-not-allowed flex items-center justify-center gap-2";
+            applyBtn.innerHTML = `
+                <i class="fa-solid fa-circle-check text-sm"></i>
+                <span>Application Already Submitted (${data.status || 'Pending'})</span>
+            `;
+        } else {
+            // Ibalik sa active state
+            applyBtn.disabled = false;
+            applyBtn.className = "w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 transition-all duration-200 text-white py-3 rounded-xl font-bold text-xs shadow-md shadow-indigo-100 hover:shadow-indigo-200 active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer";
+            applyBtn.innerHTML = `
+                <i class="fa-regular fa-heart text-sm"></i>
+                <span>Apply for Adoption</span>
+            `;
+        }
+    } catch (err) {
+        console.error("Error checking application status:", err);
+    }
+}
+
+async function openPetModal(pet){
+   
     window.currentPet = pet;
     const applyBtn = document.getElementById("applyModalBtn");
     if (applyBtn) {
@@ -383,41 +419,45 @@ function openPetModal(pet){
     document.getElementById("modalBehavior").textContent = pet.behavior || "No description.";
 
     renderMedicalHistory(pet.medical_history);
-        const tags = document.getElementById("modalTags");
+        // const tags = document.getElementById("modalTags");
+
+    await checkPetApplicationStatus(pet.animal_id);
 
     document.getElementById("viewPetModal").classList.remove("hidden");
     document.getElementById("viewPetModal").classList.add("flex");
-    tags.innerHTML = "";
+    // tags.innerHTML = "";
 
-if (pet.personality) {
+// if (pet.personality) {
 
-    pet.personality.split(",").forEach(tag => {
+//     pet.personality.split(",").forEach(tag => {
 
-        tags.innerHTML += `
-            <span
-                class="
-                bg-blue-600
-                text-white
-                text-sm
-                font-semibold
-                px-4
-                py-2
-                rounded-full">
+//         tags.innerHTML += `
+//             <span
+//                 class="
+//                 bg-blue-600
+//                 text-white
+//                 text-sm
+//                 font-semibold
+//                 px-4
+//                 py-2
+//                 rounded-full">
 
-                ${tag.trim()}
+//                 ${tag.trim()}
 
-            </span>
-        `;
+//             </span>
+//         `;
 
-    });
+//     });
 
-}
+// }
 
     document.getElementById("viewPetModal").classList.remove("hidden");
 
     document.getElementById("viewPetModal").classList.add("flex");
 
 }
+
+
 function renderMedicalHistory(history) {
 
     const tbody = document.getElementById("modalMedicalBody");
@@ -485,5 +525,4 @@ function closePetModal(){
     document.getElementById("viewPetModal").classList.add("hidden");
 
     document.getElementById("viewPetModal").classList.remove("flex");
-
 }

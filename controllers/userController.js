@@ -1,6 +1,7 @@
 //logic para sa lahat ng User modules.
 const pool = require("../config/database"); 
 const bcrypt = require("bcrypt");
+const AdoptionModel = require('../models/userModel');
 
 exports.getProfile = async (req, res) => {
     const accountId = req.session?.accountId;
@@ -646,5 +647,41 @@ exports.submitAdoptionApplication = async (req, res) => {
             status: 'error',
             message: 'Failed to submit application: ' + error.message
         });
+    }
+};
+
+// Check if user has already applied for a specific pet
+exports.checkAppliedStatus = async (req, res) => {
+    try {
+        const accountId = req.session?.accountId;
+        const petId = req.params.petId;
+
+        if (!accountId) {
+            return res.json({ hasApplied: false });
+        }
+
+        // 1. Kunin muna ang totoong adopter_id mula sa adopters table
+        const [adopterRows] = await pool.query(
+            `SELECT adopter_id FROM adopters WHERE account_id = ?`,
+            [accountId]
+        );
+
+        if (!adopterRows.length) {
+            return res.json({ hasApplied: false });
+        }
+
+        const adopterId = adopterRows[0].adopter_id;
+
+        // 2. I-check ang user_adoption_applications table
+        const application = await AdoptionModel.checkUserApplication(adopterId, petId);
+
+        if (application) {
+            return res.json({ hasApplied: true, status: application.status });
+        }
+
+        return res.json({ hasApplied: false });
+    } catch (error) {
+        console.error("Error checking application status:", error);
+        return res.status(500).json({ error: "Server error" });
     }
 };
