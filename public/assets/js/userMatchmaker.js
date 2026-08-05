@@ -61,11 +61,22 @@
 
         const introScreen = document.getElementById("introScreen");
         const preferenceScreen = document.getElementById("preferenceScreen");
+        const loadingScreen = document.getElementById("matchingLoadingScreen");
         const compatibilityScreen = document.getElementById("compatibilityScreen");
 
         function showScreen(screenToShow) {
-            [introScreen, preferenceScreen, compatibilityScreen].forEach((screen) => {
-                screen.classList.toggle("hidden", screen !== screenToShow);
+            [
+                introScreen,
+                preferenceScreen,
+                loadingScreen,
+                compatibilityScreen
+            ].forEach((screen) => {
+
+                screen.classList.toggle(
+                    "hidden",
+                    screen !== screenToShow
+                );
+
             });
 
             window.scrollTo({
@@ -73,10 +84,13 @@
                 behavior: "smooth"
             });
         }
-
-function showPreferenceScreen() {
-    showScreen(preferenceScreen);
-}
+        function showLoadingScreen() {
+            showScreen(loadingScreen);
+        }
+        function showPreferenceScreen() {
+            showScreen(preferenceScreen);
+        }
+        
 
 // =========================
 // MATCH PETS
@@ -93,6 +107,9 @@ async function showCompatibilityScreen() {
     // Hide previous message
     message.classList.add("hidden");
 
+    // ==============================
+    // VALIDATION
+    // ==============================
     if (
         type === "Select Type" ||
         sex === "Select Sex" ||
@@ -102,10 +119,23 @@ async function showCompatibilityScreen() {
         message.classList.remove("hidden");
         return;
     }
+
     console.log(type, sex, age, behavior);
+
+    // ==============================
+    // SHOW LOADING SCREEN
+    // ==============================
+    showLoadingScreen();
+
+    // Give the browser a moment to render
+    // the loading screen before starting the request
+    await new Promise(resolve => setTimeout(resolve, 5000));
 
     try {
 
+        // ==============================
+        // AI MATCHING REQUEST
+        // ==============================
         const response = await fetch("/api/matchmaking", {
             method: "POST",
             headers: {
@@ -121,16 +151,36 @@ async function showCompatibilityScreen() {
 
         console.log("Response:", response.status);
 
+        if (!response.ok) {
+            throw new Error(`Matching request failed: ${response.status}`);
+        }
+
         const data = await response.json();
 
         console.log(data);
 
+        // ==============================
+        // RENDER MATCHES
+        // ==============================
         renderMatches(data.matches);
 
+        // ==============================
+        // SHOW RESULTS
+        // ==============================
         showScreen(compatibilityScreen);
 
     } catch (err) {
-        console.error(err);
+
+        console.error("Matching error:", err);
+
+        // If something goes wrong,
+        // return to the preference screen
+        showScreen(preferenceScreen);
+
+        message.textContent =
+            "Something went wrong while finding matches. Please try again.";
+
+        message.classList.remove("hidden");
     }
 }
 document
