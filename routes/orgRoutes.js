@@ -20,7 +20,9 @@ const {
     updateInKindDonationStatus,
     getDropoffInfo,   
     updateDropoffInfo,
-    getNewestPets
+    getNewestPets,
+    getRecentApplications,
+    getAnalyticsData
 } = require("../controllers/orgController");
 
 const router = express.Router();
@@ -64,11 +66,18 @@ async function checkOrganizationApproval(req, res, next) {
 
 router.use(checkOrganizationApproval);
 router.get("/dashboard/stats", getDashboardStats);
-// 3. PAGES ROUTES
+router.get("/dashboard/recent-applications", getRecentApplications);
+router.get("/pets/newest", getNewestPets);
+router.get("/analytics/data", getAnalyticsData);
+
 router.get("/dashboard", (req, res) => {
-    res.sendFile(path.join(__dirname, "../public/organization/dashboard.html"));
+    res.sendFile(
+        path.join(__dirname, "../public/organization/dashboard.html")
+    );
 });
 
+// 3. PAGES ROUTES
+router.get("/dashboard", (req, res) => {res.sendFile(path.join(__dirname, "../public/organization/dashboard.html"));});
 router.get("/pets", (req, res) => {
     res.sendFile(path.join(__dirname, "../public/organization/pets.html"));
 });

@@ -95,75 +95,14 @@
             <div class="bg-white rounded-2xl border border-gray-200/60 shadow-sm overflow-hidden xl:col-span-2 flex flex-col">
                 <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
                     <h3 class="font-bold text-gray-900 tracking-tight flex items-center gap-2">
-                        <i class="fa-solid fa-file-invoice text-blue-900 text-sm"></i> Recent Applications
+                        <i class="fa-solid fa-file-invoice text-blue-900 text-sm"></i>
+                        Recent Applications
                     </h3>
-                    <span class="text-xs bg-blue-50 text-blue-900 px-2.5 py-1 rounded-full font-semibold">4 Action Required</span>
+                    <span id="actionRequiredCount" class="text-xs bg-blue-50 text-blue-900 px-2.5 py-1 rounded-full font-semibold">0 Action Required</span>
                 </div>
-                
-                <div class="divide-y divide-gray-100 flex-1">
-                    <div class="flex items-center justify-between gap-4 px-6 py-4 hover:bg-slate-50/60 transition group">
-                        <div class="flex items-center gap-3.5">
-                            <div class="w-11 h-11 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 border border-blue-200 flex items-center justify-center font-bold text-blue-950 text-sm shadow-sm shadow-indigo-100">
-                                JD
-                            </div>
-                            <div>
-                                <div class="text-sm font-bold text-gray-900 group-hover:text-blue-900 transition">Jhyzzeel Dianela</div>
-                                <div class="text-xs text-gray-400 mt-0.5 flex items-center gap-1.5"><i class="fa-regular fa-envelope text-[11px]"></i> jhdanela@gmail.com</div>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-3">
-                            <span class="text-xs font-semibold bg-amber-50 text-amber-700 px-2.5 py-1 rounded-full border border-amber-200/60">Pending</span>
-                            <button class="text-gray-400 hover:text-blue-900 p-1.5 rounded-lg hover:bg-gray-100 transition"><i class="fa-solid fa-chevron-right text-xs"></i></button>
-                        </div>
-                    </div>
 
-                    <div class="flex items-center justify-between gap-4 px-6 py-4 hover:bg-slate-50/60 transition group">
-                        <div class="flex items-center gap-3.5">
-                            <div class="w-11 h-11 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 border border-blue-200 flex items-center justify-center font-bold text-blue-950 text-sm shadow-sm shadow-indigo-100">
-                                JR
-                            </div>
-                            <div>
-                                <div class="text-sm font-bold text-gray-900 group-hover:text-blue-900 transition">Joe Rue</div>
-                                <div class="text-xs text-gray-400 mt-0.5 flex items-center gap-1.5"><i class="fa-regular fa-envelope text-[11px]"></i> everrest@gmail.com</div>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-3">
-                            <span class="text-xs font-semibold bg-blue-50 text-blue-700 px-2.5 py-1 rounded-full border border-blue-100">Reviewing</span>
-                            <button class="text-gray-400 hover:text-blue-900 p-1.5 rounded-lg hover:bg-gray-100 transition"><i class="fa-solid fa-chevron-right text-xs"></i></button>
-                        </div>
-                    </div>
-
-                    <div class="flex items-center justify-between gap-4 px-6 py-4 hover:bg-slate-50/60 transition group">
-                        <div class="flex items-center gap-3.5">
-                            <div class="w-11 h-11 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 border border-blue-200 flex items-center justify-center font-bold text-blue-950 text-sm shadow-sm shadow-indigo-100">
-                                JO
-                            </div>
-                            <div>
-                                <div class="text-sm font-bold text-gray-900 group-hover:text-blue-900 transition">Josip Marco</div>
-                                <div class="text-xs text-gray-400 mt-0.5 flex items-center gap-1.5"><i class="fa-regular fa-envelope text-[11px]"></i> jomarco@gmail.com</div>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-3">
-                            <span class="text-xs font-semibold bg-amber-50 text-amber-700 px-2.5 py-1 rounded-full border border-amber-200/60">Pending</span>
-                            <button class="text-gray-400 hover:text-blue-900 p-1.5 rounded-lg hover:bg-gray-100 transition"><i class="fa-solid fa-chevron-right text-xs"></i></button>
-                        </div>
-                    </div>
-
-                    <div class="flex items-center justify-between gap-4 px-6 py-4 hover:bg-slate-50/60 transition group">
-                        <div class="flex items-center gap-3.5">
-                            <div class="w-11 h-11 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 border border-blue-200 flex items-center justify-center font-bold text-blue-950 text-sm shadow-sm shadow-indigo-100">
-                                MI
-                            </div>
-                            <div>
-                                <div class="text-sm font-bold text-gray-900 group-hover:text-blue-900 transition">Mimi</div>
-                                <div class="text-xs text-gray-400 mt-0.5 flex items-center gap-1.5"><i class="fa-regular fa-envelope text-[11px]"></i> mimi@gmail.com</div>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-3">
-                            <span class="text-xs font-semibold bg-amber-50 text-amber-700 px-2.5 py-1 rounded-full border border-amber-200/60">Pending</span>
-                            <button class="text-gray-400 hover:text-blue-900 p-1.5 rounded-lg hover:bg-gray-100 transition"><i class="fa-solid fa-chevron-right text-xs"></i></button>
-                        </div>
-                    </div>
+                <div id="recentApplicationsContainer" class="divide-y divide-gray-100 flex-1">
+                    <div class="flex items-center justify-center py-10 text-sm text-gray-400">Loading applications...</div>
                 </div>
             </div>
 
@@ -233,6 +172,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     await loadDashboardStats();
+    await loadRecentApplications();
     await loadNewestPets();
 
 });
@@ -330,6 +270,204 @@ function formatAge(age) {
             return age;
     }
 
+}
+
+// RECENT APPLICATIONS
+async function loadRecentApplications() {
+    const container = document.getElementById("recentApplicationsContainer");
+    const actionCount = document.getElementById("actionRequiredCount");
+
+    try {
+        const response = await fetch("/org/dashboard/recent-applications");
+
+        if (!response.ok) {
+            throw new Error(`Request failed: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        console.log("Recent applications:", data);
+
+        if (!data.success) {
+            throw new Error(data.message || "Failed to load applications.");
+        }
+
+        // Update action required count
+        actionCount.textContent = `${data.actionRequired} Action Required`;
+
+        // No applications
+        if (!data.applications || data.applications.length === 0) {
+            container.innerHTML = `
+                <div class="flex flex-col items-center justify-center py-10 text-gray-400">
+                    <i class="fa-regular fa-folder-open text-3xl mb-3"></i>
+                    <p class="text-sm">No adoption applications yet.</p>
+                </div>
+            `;
+            return;
+        }
+
+        // Display applications
+        container.innerHTML = data.applications.map(app => {
+            const initials = getInitials(app.full_name);
+            const statusStyle = getApplicationStatusStyle(app.status);
+
+            return `
+                <div class="flex items-center justify-between gap-4 px-6 py-4 hover:bg-slate-50/60 transition group">
+                    <!-- Applicant -->
+                    <div class="flex items-center gap-3.5 min-w-0">
+                        <div class="w-11 h-11 shrink-0 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 border border-blue-200 flex items-center justify-center font-bold text-blue-950 text-sm shadow-sm shadow-indigo-100">
+                            ${initials}
+                        </div>
+
+                        <div class="min-w-0">
+                            <div class="text-sm font-bold text-gray-900 group-hover:text-blue-900 transition truncate">
+                                ${escapeHtml(app.full_name)}
+                            </div>
+
+                            <div class="text-xs text-gray-400 mt-0.5 flex items-center gap-1.5 truncate">
+                                <i class="fa-regular fa-envelope text-[11px]"></i>
+                                ${escapeHtml(app.email)}
+                            </div>
+
+                            <div class="text-[11px] text-gray-400 mt-0.5">
+                                Applying for:
+                                <span class="font-semibold text-gray-500">${escapeHtml(app.pet_name || "Unknown pet")}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Status -->
+                    <div class="flex items-center gap-3 shrink-0">
+                        <span class="text-xs font-semibold ${statusStyle}">
+                            ${escapeHtml(app.status)}
+                        </span>
+
+                        <button type="button" onclick="viewApplication(${app.application_id})" class="text-gray-400 hover:text-blue-900 p-1.5 rounded-lg hover:bg-gray-100 transition">
+                            <i class="fa-solid fa-chevron-right text-xs"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+        }).join("");
+
+    } catch (err) {
+        console.error("Failed to load applications:", err);
+
+        container.innerHTML = `
+            <div class="flex flex-col items-center justify-center py-10 text-red-400">
+                <i class="fa-solid fa-triangle-exclamation text-2xl mb-2"></i>
+                <p class="text-sm">Failed to load applications.</p>
+            </div>
+        `;
+    }
+}
+// =====================================================
+// GET INITIALS
+// =====================================================
+function getInitials(name) {
+    if (!name) return "?";
+    return name.trim().split(/\s+/).slice(0, 2).map(word => word.charAt(0).toUpperCase()).join("");
+}
+
+// =====================================================
+// APPLICATION STATUS STYLE
+// =====================================================
+function getApplicationStatusStyle(status) {
+    switch (status) {
+        case "Under Review":
+            return "bg-amber-50 text-amber-700 px-2.5 py-1 rounded-full border border-amber-200/60";
+        case "Interview Scheduled":
+            return "bg-blue-50 text-blue-700 px-2.5 py-1 rounded-full border border-blue-100";
+        case "Approved":
+            return "bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-full border border-emerald-200/60";
+        case "Declined":
+            return "bg-red-50 text-red-700 px-2.5 py-1 rounded-full border border-red-200/60";
+        default:
+            return "bg-gray-100 text-gray-600 px-2.5 py-1 rounded-full border border-gray-200";
+    }
+}
+
+// =====================================================
+// ESCAPE HTML
+// =====================================================
+function escapeHtml(value) {
+    if (value === null || value === undefined) return "";
+    return String(value).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+}
+
+function createApplicationRow(application) {
+    const fullName = application.full_name || "Unknown Applicant";
+    const email = application.email || "No email provided";
+
+    // ================================================
+    // GET INITIALS
+    // ================================================
+    const initials = fullName.trim().split(/\s+/).filter(Boolean).slice(0, 2).map(name => name.charAt(0).toUpperCase()).join("");
+
+    // ================================================
+    // STATUS
+    // ================================================
+    let statusClass = "";
+
+    switch (application.status) {
+        case "Under Review":
+            statusClass = "bg-amber-50 text-amber-700 border-amber-200/60";
+            break;
+
+        case "Interview Scheduled":
+            statusClass = "bg-blue-50 text-blue-700 border-blue-100";
+            break;
+
+        case "Approved":
+            statusClass = "bg-emerald-50 text-emerald-700 border-emerald-200/60";
+            break;
+
+        case "Declined":
+            statusClass = "bg-red-50 text-red-700 border-red-200/60";
+            break;
+
+        default:
+            statusClass = "bg-gray-50 text-gray-600 border-gray-200";
+            break;
+    }
+
+    return `
+        <div class="flex items-center justify-between gap-4 px-6 py-4 hover:bg-slate-50/60 transition group">
+            <!-- Applicant -->
+            <div class="flex items-center gap-3.5 min-w-0">
+                <div class="w-11 h-11 shrink-0 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 border border-blue-200 flex items-center justify-center font-bold text-blue-950 text-sm shadow-sm shadow-indigo-100">
+                    ${initials || "?"}
+                </div>
+
+                <div class="min-w-0">
+                    <div class="text-sm font-bold text-gray-900 group-hover:text-blue-900 transition truncate">${escapeHtml(fullName)}</div>
+                    <div class="text-xs text-gray-400 mt-0.5 flex items-center gap-1.5 truncate">
+                        <i class="fa-regular fa-envelope text-[11px]"></i>
+                        ${escapeHtml(email)}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Status -->
+            <div class="flex items-center gap-3 shrink-0">
+                <span class="text-xs font-semibold px-2.5 py-1 rounded-full border ${statusClass}">${escapeHtml(application.status)}</span>
+               <button type="button" onclick="viewApplication(${application.application_id})"class="text-gray-400 hover:text-blue-900 p-1.5 rounded-lg hover:bg-gray-100 transition"
+                    title="View application">
+                    <i class="fa-solid fa-chevron-right text-xs"></i>
+                </button>
+            </div>
+        </div>
+    `;
+}
+function viewApplication(applicationId) {
+
+    if (!applicationId) {
+        console.error("Missing application ID.");
+        return;
+    }
+
+    window.location.href =
+        `/org/adoption?application_id=${applicationId}`;
 }
 </script>
 <script src="/assets/js/orgProfile.js"></script> 

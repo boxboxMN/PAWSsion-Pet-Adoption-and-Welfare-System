@@ -4,8 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Organization Dashboard</title>
-    <script src="https://cdn.tailwindcss.com">
-    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <script src="../assets/js/orgSidebar.js"></script>
     <script src="../assets/js/orgTopbar.js"></script>
@@ -18,172 +17,236 @@
     <div id="sidebarContainer"></div>
 
     <!-- MAIN CONTENT – intentionally left empty (no cards, no stats, no styling) -->
-    <main id="mainContent"
-        data-sidebar-collapsed="false"
-        class="pt-28 pb-12 px-4 md:px-8 transition-all duration-200 ease-in-out left-0 md:ml-[280px] data-[sidebar-collapsed=true]:md:ml-20">
-        <!-- date and export buttons -->
+<main id="mainContent" data-sidebar-collapsed="false" class="pt-28 pb-12 px-4 md:px-8 transition-all duration-200 ease-in-out left-0 md:ml-[280px] data-[sidebar-collapsed=true]:md:ml-20">
+    <div class="max-w-7xl mx-auto">
+        <!-- =====================================================
+             HEADER
+        ====================================================== -->
+        <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-5 mb-7">
+            <div>
+                <div class="flex items-center gap-2 text-xs font-bold text-blue-700 uppercase tracking-wider mb-2">
+                    <i class="fa-solid fa-chart-line"></i> Organization Analytics
+                </div>
+                <h2 class="text-2xl md:text-3xl font-extrabold text-gray-900 tracking-tight">Performance Overview</h2>
+                <p class="text-sm text-gray-500 mt-1.5">Monitor your pets, adoption activity, and approved donations.</p>
+            </div>
 
-        <div class="flex w-full items-center justify-end gap-3 mb-6">
-  
-            <div class="relative inline-block">
-              <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-700">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                </svg>
-              </span>
-              
-              <select class="appearance-none bg-white border border-gray-200 text-gray-800 text-sm font-medium py-2 pl-9 pr-1 rounded shadow-sm hover:border-gray-300 focus:outline-none focus:ring-1 focus:ring-gray-400 cursor-pointer">
-                <option value="2026-01">January 2026</option>
-                <option value="2026-02">February 2026</option>
-                <option value="2026-03">March 2026</option>
-                <option value="2026-04">April 2026</option>
-                <option value="2026-05" selected>May 2026</option>
-                <option value="2026-06">June 2026</option>
-                <option value="2026-07">July 2026</option>
-                <option value="2026-08">August 2026</option>
-                <option value="2026-09">September 2026</option>
-                <option value="2026-10">October 2026</option>
-                <option value="2026-11">November 2026</option>
-                <option value="2026-12">December 2026</option>
-              </select>
-              
-              <span class="absolute inset-y-0 right-0 flex items-center pr-2.5 pointer-events-none text-gray-500">
-                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                </svg>
-              </span>
-            </div>
-          
-            <button class="flex items-center gap-2 bg-white border border-gray-200 text-gray-800 text-sm font-medium py-2 px-3 rounded shadow-sm hover:bg-gray-50 hover:border-gray-300 focus:outline-none focus:ring-1 focus:ring-gray-400 transition-colors">
-              <svg class="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
-              </svg>
-              <span>Export Report</span>
-            </button>       
-          </div>
+            <!-- FILTERS -->
+            <div class="flex flex-col sm:flex-row gap-2.5">
+                <!-- DAY / MONTH / YEAR -->
+                <div class="relative">
+                    <i class="fa-solid fa-filter absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs pointer-events-none"></i>
+                    <select id="analyticsPeriodType" class="appearance-none bg-white border border-gray-200 text-gray-700 text-sm font-semibold py-2.5 pl-9 pr-9 rounded-xl shadow-sm hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 cursor-pointer">
+                        <option value="month">Month</option>
+                        <option value="day">Day</option>
+                        <option value="year">Year</option>
+                    </select>
+                    <i class="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-[10px] pointer-events-none"></i>
+                </div>
 
-          <!-- Add your dashboard content here -->
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-6xl mx-auto">
-    
-            <div class="bg-white rounded-lg shadow-sm border border-gray-200 flex flex-col justify-between">
-              <div class="p-4">
-                <h3 class="text-sm font-bold text-gray-700 mb-4">Number of Adopted Pets (This month)</h3>
-                <div class="relative h-[220px] flex justify-center">
-                  <canvas id="adoptedPetsChart"></canvas>
-                </div>
-              </div>
-              <div class="bg-emerald-50 border-t border-gray-200 px-4 py-2 flex justify-between items-center text-sm font-bold text-emerald-900 rounded-b-lg">
-                <span>Total Adopted Pets</span>
-                <span>78</span>
-              </div>
-            </div>
-        
-            <div class="bg-white rounded-lg shadow-sm border border-gray-200 flex flex-col justify-between">
-              <div class="p-4">
-                <h3 class="text-sm font-bold text-gray-700 mb-4">Available Pets by Type (This month)</h3>
-                <div class="relative h-[220px] flex justify-center">
-                  <canvas id="availablePetsChart"></canvas>
-                </div>
-              </div>
-              <div class="bg-emerald-50 border-t border-gray-200 px-4 py-2 flex justify-between items-center text-sm font-bold text-emerald-900 rounded-b-lg">
-                <span>Total Available Pets</span>
-                <span>52</span>
-              </div>
-            </div>
-        
-            <div class="bg-white rounded-lg shadow-sm border border-gray-200 flex flex-col justify-between">
-              <div class="p-4">
-                <h3 class="text-sm font-bold text-gray-700 mb-4">Cash Donation by Payment Method (This month)</h3>
-                <div class="relative h-[220px] flex justify-center">
-                  <canvas id="cashDonationChart"></canvas>
-                </div>
-              </div>
-              <div class="bg-emerald-50 border-t border-gray-200 px-4 py-2 flex justify-between items-center text-sm font-bold text-emerald-900 rounded-b-lg">
-                <span>Total Cash Donated</span>
-                <span>10,000</span>
-              </div>
-            </div>
-        
-            <div class="bg-white rounded-lg shadow-sm border border-gray-200 flex flex-col justify-between">
-              <div class="p-4">
-                <h3 class="text-sm font-bold text-gray-700 mb-4">In-Kind Donation by Items (This Month)</h3>
-                <div class="relative h-[220px] flex justify-center">
-                  <canvas id="inKindDonationChart"></canvas>
-                </div>
-              </div>
-              <div class="bg-emerald-50 border-t border-gray-200 px-4 py-2 flex justify-between items-center text-sm font-bold text-emerald-900 rounded-b-lg">
-                <span>Total In-Kind Item</span>
-                <span>92</span>
-              </div>
-            </div>
-          </div>
+                <!-- DYNAMIC DATE -->
+                <div id="analyticsDateContainer"></div>
 
-          <!--Logout Modal-->
-          <div id="logoutModal" class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/45 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-200">
-            <div class="bg-white rounded-2xl max-w-sm w-full mx-4 p-6 shadow-2xl scale-95 transition-transform duration-200">
-                <div class="text-center">
-                    <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-50 mb-4">
-                        <i class="fa-solid fa-right-from-bracket text-red-600 text-lg"></i>
-                    </div>
-                    <h3 class="text-lg font-bold text-gray-900">Logging Out?</h3>
-                    <p class="text-sm text-gray-500 mt-2">Are you sure you want to leave the Pawpon Org Portal?</p>
+                <!-- REFRESH -->
+                <button id="refreshAnalyticsBtn" type="button" class="flex items-center justify-center gap-2 bg-white border border-gray-200 text-gray-700 text-sm font-semibold py-2.5 px-4 rounded-xl shadow-sm hover:bg-gray-50 hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-100 transition">
+                    <i id="refreshIcon" class="fa-solid fa-rotate-right text-sm"></i> Refresh
+                </button>
+            </div>
+        </div>
+
+        <!-- =====================================================
+             PET STATUS SUMMARY
+        ====================================================== -->
+        <div class="bg-white rounded-2xl border border-gray-200/70 shadow-sm overflow-hidden mb-5">
+            <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+                <div>
+                    <h3 class="font-bold text-gray-900">Pet Overview</h3>
+                    <p class="text-xs text-gray-400 mt-0.5">Current status of your organization's pets</p>
                 </div>
-                <div class="mt-6 flex gap-3">
-                    <button id="cancelLogoutBtn" class="flex-1 px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-xl transition text-sm">
-                        Cancel
-                    </button>
-                    <button id="confirmLogoutBtn" class="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white font-medium rounded-xl transition shadow-sm shadow-red-200 text-sm">
-                        Yes, Logout
-                    </button>
+                <div class="w-9 h-9 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center">
+                    <i class="fa-solid fa-paw"></i>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-5 divide-x divide-gray-100">
+                <!-- AVAILABLE -->
+                <div class="p-5">
+                    <p class="text-xs font-bold text-gray-400 uppercase tracking-wide">Available</p>
+                    <div id="petAvailable" class="text-3xl font-extrabold text-blue-700 mt-2">0</div>
+                    <p class="text-xs text-gray-400 mt-1">Ready for adoption</p>
+                </div>
+
+                <!-- PENDING -->
+                <div class="p-5">
+                    <p class="text-xs font-bold text-gray-400 uppercase tracking-wide">Pending</p>
+                    <div id="petPending" class="text-3xl font-extrabold text-amber-600 mt-2">0</div>
+                    <p class="text-xs text-gray-400 mt-1">Ongoing adoption</p>
+                </div>
+
+                <!-- ADOPTED -->
+                <div class="p-5">
+                    <p class="text-xs font-bold text-gray-400 uppercase tracking-wide">Adopted</p>
+                    <div id="petAdopted" class="text-3xl font-extrabold text-emerald-600 mt-2">0</div>
+                    <p class="text-xs text-gray-400 mt-1">Successfully adopted</p>
+                </div>
+
+                <!-- ARCHIVED -->
+                <div class="p-5">
+                    <p class="text-xs font-bold text-gray-400 uppercase tracking-wide">Archived</p>
+                    <div id="petArchived" class="text-3xl font-extrabold text-gray-500 mt-2">0</div>
+                    <p class="text-xs text-gray-400 mt-1">Archived records</p>
+                </div>
+
+                <!-- TOTAL -->
+                <div class="p-5 bg-slate-50/70">
+                    <p class="text-xs font-bold text-gray-400 uppercase tracking-wide">Total Pets</p>
+                    <div id="petTotal" class="text-3xl font-extrabold text-gray-900 mt-2">0</div>
+                    <p class="text-xs text-gray-400 mt-1">All pet records</p>
                 </div>
             </div>
         </div>
-    </main>
 
+        <!-- =====================================================
+             DONATION SUMMARY
+        ====================================================== -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
+            <!-- CASH -->
+            <div class="bg-white rounded-2xl border border-gray-200/70 shadow-sm p-5">
+                <div class="flex items-start justify-between">
+                    <div>
+                        <p class="text-xs font-bold text-gray-400 uppercase tracking-wide">Approved Cash Donations</p>
+                        <div id="summaryCash" class="text-3xl font-extrabold text-gray-900 mt-2">₱0.00</div>
+                        <p id="cashPeriodLabel" class="text-xs text-gray-400 mt-1">For selected month</p>
+                    </div>
+                    <div class="w-11 h-11 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600">
+                        <i class="fa-solid fa-hand-holding-dollar text-lg"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- IN-KIND -->
+            <div class="bg-white rounded-2xl border border-gray-200/70 shadow-sm p-5">
+                <div class="flex items-start justify-between">
+                    <div>
+                        <p class="text-xs font-bold text-gray-400 uppercase tracking-wide">Approved In-Kind Donations</p>
+                        <div id="summaryInKind" class="text-3xl font-extrabold text-gray-900 mt-2">0</div>
+                        <p id="inKindPeriodLabel" class="text-xs text-gray-400 mt-1">For selected month</p>
+                    </div>
+                    <div class="w-11 h-11 rounded-xl bg-purple-50 flex items-center justify-center text-purple-600">
+                        <i class="fa-solid fa-box-open text-lg"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- =====================================================
+             CHARTS
+        ====================================================== -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+            <!-- ADOPTION ACTIVITY -->
+            <div class="bg-white rounded-2xl border border-gray-200/70 shadow-sm overflow-hidden">
+                <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+                    <div>
+                        <h3 class="font-bold text-gray-900">Adoption Activity</h3>
+                        <p id="adoptionChartSubtitle" class="text-xs text-gray-400 mt-0.5">Approved adoptions for selected period</p>
+                    </div>
+                    <div class="w-9 h-9 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                        <i class="fa-solid fa-heart"></i>
+                    </div>
+                </div>
+                <div class="p-5">
+                    <div class="relative h-[280px]">
+                        <canvas id="adoptedPetsChart"></canvas>
+                    </div>
+                </div>
+                <div class="px-5 py-3 border-t border-gray-100 bg-gray-50/70 flex justify-between items-center">
+                    <span class="text-xs font-semibold text-gray-500">Approved adoptions</span>
+                    <span id="adoptedTotal" class="text-sm font-extrabold text-emerald-700">0</span>
+                </div>
+            </div>
+
+            <!-- AVAILABLE PETS -->
+            <div class="bg-white rounded-2xl border border-gray-200/70 shadow-sm overflow-hidden">
+                <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+                    <div>
+                        <h3 class="font-bold text-gray-900">Available Pets by Type</h3>
+                        <p class="text-xs text-gray-400 mt-0.5">Pets currently ready for adoption</p>
+                    </div>
+                    <div class="w-9 h-9 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center">
+                        <i class="fa-solid fa-paw"></i>
+                    </div>
+                </div>
+                <div class="p-5">
+                    <div class="relative h-[280px]">
+                        <canvas id="availablePetsChart"></canvas>
+                    </div>
+                </div>
+                <div class="px-5 py-3 border-t border-gray-100 bg-gray-50/70 flex justify-between items-center">
+                    <span class="text-xs font-semibold text-gray-500">Available pets</span>
+                    <span id="availableTotal" class="text-sm font-extrabold text-blue-700">0</span>
+                </div>
+            </div>
+
+            <!-- CASH CHART -->
+            <div class="bg-white rounded-2xl border border-gray-200/70 shadow-sm overflow-hidden">
+                <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+                    <div>
+                        <h3 class="font-bold text-gray-900">Cash Donations</h3>
+                        <p id="cashChartSubtitle" class="text-xs text-gray-400 mt-0.5">Approved cash donations</p>
+                    </div>
+                    <div class="w-9 h-9 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
+                        <i class="fa-solid fa-peso-sign"></i>
+                    </div>
+                </div>
+                <div class="p-5">
+                    <div class="relative h-[280px]">
+                        <canvas id="cashDonationChart"></canvas>
+                    </div>
+                </div>
+                <div class="px-5 py-3 border-t border-gray-100 bg-gray-50/70 flex justify-between items-center">
+                    <span class="text-xs font-semibold text-gray-500">Total approved</span>
+                    <span id="cashTotal" class="text-sm font-extrabold text-amber-700">₱0.00</span>
+                </div>
+            </div>
+
+            <!-- IN-KIND CHART -->
+            <div class="bg-white rounded-2xl border border-gray-200/70 shadow-sm overflow-hidden">
+                <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+                    <div>
+                        <h3 class="font-bold text-gray-900">In-Kind Donations</h3>
+                        <p id="inKindChartSubtitle" class="text-xs text-gray-400 mt-0.5">Approved donated items</p>
+                    </div>
+                    <div class="w-9 h-9 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center">
+                        <i class="fa-solid fa-box-open"></i>
+                    </div>
+                </div>
+                <div class="p-5">
+                    <div class="relative h-[280px]">
+                        <canvas id="inKindDonationChart"></canvas>
+                    </div>
+                </div>
+                <div class="px-5 py-3 border-t border-gray-100 bg-gray-50/70 flex justify-between items-center">
+                    <span class="text-xs font-semibold text-gray-500">Total approved</span>
+                    <span id="inKindTotal" class="text-sm font-extrabold text-purple-700">0</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
 
 <script>
-    document.addEventListener("DOMContentLoaded", async () => {
-
-    // ==========================
-    // Load Shared Components
-    // =========================
+document.addEventListener("DOMContentLoaded", async () => {
 
     await loadTopbar({
         title: "Analytics",
         subtitle: "Overview of pet adoption and donation performance"
     });
 
-    await loadSidebar("dashboard");
-
-    // ==========================
-    // Load Organization Name
-    // ==========================
-    try {
-        const response = await fetch("/api/organization/profile");
-
-        if (response.ok) {
-            const organization = await response.json();
-
-            const organizationName = document.getElementById("organizationName");
-
-            if (organizationName) {
-                organizationName.textContent =
-                    organization.organization_name;
-            }
-        }
-    } catch (error) {
-        console.error("Unable to load organization:", error);
-    }
-
-    // ==========================
-    // Load Dashboard Statistics
-    // ==========================
-    if (typeof loadDashboardStats === "function") {
-        loadDashboardStats();
-    }
+    await loadSidebar("analytics");
 
 });
 </script>
+
 <script src="/assets/js/orgCharts-logic.js"></script>
 <script src="/assets/js/orgProfile.js"></script> 
 </body>
