@@ -178,6 +178,9 @@ router.get('/applications/:id', async (req, res) => {
 
 // PATCH Update Application Status (Decline, Approve, Schedule Interview)
 router.patch('/applications/:id/status', async (req, res) => {
+    // Gumamit ng connection mula sa pool para sa Transaction
+    const connection = await pool.getConnection();
+
     try {
         const { id } = req.params;
         const { status, decline_reason } = req.body;
@@ -185,12 +188,34 @@ router.patch('/applications/:id/status', async (req, res) => {
         const validStatuses = ['Under Review', 'Interview Scheduled', 'Approved', 'Declined'];
 
         if (!status || !validStatuses.includes(status)) {
+            connection.release();
             return res.status(400).json({ 
                 success: false,
                 message: `Invalid status selected. Allowed: ${validStatuses.join(', ')}` 
             });
         }
 
+        await connection.beginTransaction();
+
+        // Get the animal_id of the pet from the application 
+        const [appRows] = await connection.query(
+            `SELECT animal_id FROM user_adoption_applications WHERE application_id = ?`,
+            [id]
+        );
+
+        if (appRows.length === 0) {
+            await connection.rollback();
+            connection.release();
+            return res.status(404).json({ 
+                success: false, 
+                message: "Application not found." 
+            });
+        }
+
+        const animalId = appRows[0].animal_id;
+        const reasonValue = (status === 'Declined') ? (decline_reason || null) : null;
+
+        // Update Application Status
         const updateQuery = `
             UPDATE user_adoption_applications 
             SET 
@@ -200,16 +225,28 @@ router.patch('/applications/:id/status', async (req, res) => {
             WHERE application_id = ?
         `;
 
-        const reasonValue = (status === 'Declined') ? (decline_reason || null) : null;
-
-        const [result] = await pool.query(updateQuery, [status, reasonValue, id]);
+        const [result] = await connection.query(updateQuery, [status, reasonValue, id]);
 
         if (result.affectedRows === 0) {
+            await connection.rollback();
+            connection.release();
             return res.status(404).json({ 
                 success: false, 
-                message: "Application not found or no changes were saved." 
+                message: "No changes were saved." 
             });
         }
+
+        // If approved, change the status of the pet from "animals" table, and matanggal sa Adoption Hub
+        if (status === 'Approved') {
+            await connection.query(
+                `UPDATE animals SET adoption_status = 'Adopted' WHERE animal_id = ?`,
+                [animalId]
+            );
+        }
+
+        // save the changes in the db
+        await connection.commit();
+        connection.release();
 
         res.json({
             success: true,
@@ -218,6 +255,9 @@ router.patch('/applications/:id/status', async (req, res) => {
         });
 
     } catch (err) {
+        await connection.rollback();
+        connection.release();
+
         res.status(500).json({ 
             success: false, 
             message: "Failed to update application status due to a database error.",
