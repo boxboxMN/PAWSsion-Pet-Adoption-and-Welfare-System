@@ -322,4 +322,9 @@ router.post('/applications/:id/schedule', async (req, res) => {
     }
 });
 
+//para magconnect kapag pinagclick ang action sa adoption to org_app-details
+router.get("/adoption-details", (req, res) => {
+    res.sendFile(path.join(__dirname, "../public/organization/org_application-details.html"));
+});
+
 module.exports = router;

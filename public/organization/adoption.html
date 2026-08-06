@@ -439,7 +439,11 @@
 
     // Action Handler
     function viewApplicationDetails(applicationId) {
-        window.location.href = `/organization/org_application-details.html?id=${applicationId}`;
+       // 1. I-save ang ID sa browser memory (tago sa URL)
+        sessionStorage.setItem("selectedApplicationId", applicationId);
+        
+        // 2. I-redirect sa page nang WALANG ?id= parameter
+        window.location.href = "/org/adoption-details";
     }
 
     // Utility to prevent XSS
