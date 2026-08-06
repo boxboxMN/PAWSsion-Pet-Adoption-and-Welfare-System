@@ -18,7 +18,7 @@
 
     <!-- MAIN CONTENT – intentionally left empty (no cards, no stats, no styling) -->
 <main id="mainContent" data-sidebar-collapsed="false" class="pt-28 pb-12 px-4 md:px-8 transition-all duration-200 ease-in-out left-0 md:ml-[280px] data-[sidebar-collapsed=true]:md:ml-20">
-    <div class="max-w-7xl mx-auto">
+  <div class="max-w-7xl mx-auto">
         <!-- =====================================================
              HEADER
         ====================================================== -->
@@ -143,95 +143,167 @@
              CHARTS
         ====================================================== -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
-            <!-- ADOPTION ACTIVITY -->
-            <div class="bg-white rounded-2xl border border-gray-200/70 shadow-sm overflow-hidden">
-                <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
-                    <div>
-                        <h3 class="font-bold text-gray-900">Adoption Activity</h3>
-                        <p id="adoptionChartSubtitle" class="text-xs text-gray-400 mt-0.5">Approved adoptions for selected period</p>
-                    </div>
-                    <div class="w-9 h-9 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                        <i class="fa-solid fa-heart"></i>
-                    </div>
-                </div>
-                <div class="p-5">
-                    <div class="relative h-[280px]">
-                        <canvas id="adoptedPetsChart"></canvas>
-                    </div>
-                </div>
-                <div class="px-5 py-3 border-t border-gray-100 bg-gray-50/70 flex justify-between items-center">
-                    <span class="text-xs font-semibold text-gray-500">Approved adoptions</span>
-                    <span id="adoptedTotal" class="text-sm font-extrabold text-emerald-700">0</span>
-                </div>
-            </div>
 
-            <!-- AVAILABLE PETS -->
-            <div class="bg-white rounded-2xl border border-gray-200/70 shadow-sm overflow-hidden">
-                <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
-                    <div>
-                        <h3 class="font-bold text-gray-900">Available Pets by Type</h3>
-                        <p class="text-xs text-gray-400 mt-0.5">Pets currently ready for adoption</p>
-                    </div>
-                    <div class="w-9 h-9 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center">
-                        <i class="fa-solid fa-paw"></i>
-                    </div>
-                </div>
-                <div class="p-5">
-                    <div class="relative h-[280px]">
-                        <canvas id="availablePetsChart"></canvas>
-                    </div>
-                </div>
-                <div class="px-5 py-3 border-t border-gray-100 bg-gray-50/70 flex justify-between items-center">
-                    <span class="text-xs font-semibold text-gray-500">Available pets</span>
-                    <span id="availableTotal" class="text-sm font-extrabold text-blue-700">0</span>
-                </div>
-            </div>
+          <!-- =====================================================
+              ADOPTION ACTIVITY
+          ====================================================== -->
+          <div class="bg-white rounded-2xl border border-gray-200/70 shadow-sm overflow-hidden">
 
-            <!-- CASH CHART -->
-            <div class="bg-white rounded-2xl border border-gray-200/70 shadow-sm overflow-hidden">
-                <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
-                    <div>
-                        <h3 class="font-bold text-gray-900">Cash Donations</h3>
-                        <p id="cashChartSubtitle" class="text-xs text-gray-400 mt-0.5">Approved cash donations</p>
-                    </div>
-                    <div class="w-9 h-9 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
-                        <i class="fa-solid fa-peso-sign"></i>
-                    </div>
-                </div>
-                <div class="p-5">
-                    <div class="relative h-[280px]">
-                        <canvas id="cashDonationChart"></canvas>
-                    </div>
-                </div>
-                <div class="px-5 py-3 border-t border-gray-100 bg-gray-50/70 flex justify-between items-center">
-                    <span class="text-xs font-semibold text-gray-500">Total approved</span>
-                    <span id="cashTotal" class="text-sm font-extrabold text-amber-700">₱0.00</span>
-                </div>
-            </div>
+              <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+                  <div>
+                      <h3 class="font-bold text-gray-900">
+                          Adoption Activity
+                      </h3>
+                      <p id="adoptionChartSubtitle" class="text-xs text-gray-400 mt-0.5">
+                          Approved adoptions
+                      </p>
+                  </div>
 
-            <!-- IN-KIND CHART -->
-            <div class="bg-white rounded-2xl border border-gray-200/70 shadow-sm overflow-hidden">
-                <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
-                    <div>
-                        <h3 class="font-bold text-gray-900">In-Kind Donations</h3>
-                        <p id="inKindChartSubtitle" class="text-xs text-gray-400 mt-0.5">Approved donated items</p>
-                    </div>
-                    <div class="w-9 h-9 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center">
-                        <i class="fa-solid fa-box-open"></i>
-                    </div>
-                </div>
-                <div class="p-5">
-                    <div class="relative h-[280px]">
-                        <canvas id="inKindDonationChart"></canvas>
-                    </div>
-                </div>
-                <div class="px-5 py-3 border-t border-gray-100 bg-gray-50/70 flex justify-between items-center">
-                    <span class="text-xs font-semibold text-gray-500">Total approved</span>
-                    <span id="inKindTotal" class="text-sm font-extrabold text-purple-700">0</span>
-                </div>
-            </div>
-        </div>
-    </div>
+                  <div class="w-9 h-9 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                      <i class="fa-solid fa-heart"></i>
+                  </div>
+              </div>
+
+              <div class="p-5">
+                  <div class="relative h-[280px]">
+                      <canvas id="adoptedPetsChart"></canvas>
+                  </div>
+              </div>
+
+              <div class="px-5 py-3 border-t border-gray-100 bg-gray-50/70 flex justify-between items-center">
+                  <span id="adoptionPeriodLabel" class="text-xs font-semibold text-gray-500">
+                      Selected period
+                  </span>
+
+                  <span id="adoptedTotal" class="text-sm font-extrabold text-emerald-700">
+                      0
+                  </span>
+              </div>
+
+          </div>
+
+
+          <!-- =====================================================
+              AVAILABLE PETS
+          ====================================================== -->
+          <div class="bg-white rounded-2xl border border-gray-200/70 shadow-sm overflow-hidden">
+
+              <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+                  <div>
+                      <h3 class="font-bold text-gray-900">
+                          Available Pets by Type
+                      </h3>
+
+                      <p id="availablePetsSubtitle" class="text-xs text-gray-400 mt-0.5">
+                          Current available pets
+                      </p>
+                  </div>
+
+                  <div class="w-9 h-9 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center">
+                      <i class="fa-solid fa-paw"></i>
+                  </div>
+              </div>
+
+              <div class="p-5">
+                  <div class="relative h-[280px]">
+                      <canvas id="availablePetsChart"></canvas>
+                  </div>
+              </div>
+
+              <div class="px-5 py-3 border-t border-gray-100 bg-gray-50/70 flex justify-between items-center">
+                  <span class="text-xs font-semibold text-gray-500">
+                      Currently available
+                  </span>
+
+                  <span id="availableTotal" class="text-sm font-extrabold text-blue-700">
+                      0
+                  </span>
+              </div>
+
+          </div>
+
+
+          <!-- =====================================================
+              CASH DONATIONS
+          ====================================================== -->
+          <div class="bg-white rounded-2xl border border-gray-200/70 shadow-sm overflow-hidden">
+
+              <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+                  <div>
+                      <h3 class="font-bold text-gray-900">
+                          Cash Donations
+                      </h3>
+
+                      <p id="cashChartSubtitle" class="text-xs text-gray-400 mt-0.5">
+                          Approved cash donations
+                      </p>
+                  </div>
+
+                  <div class="w-9 h-9 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
+                      <i class="fa-solid fa-peso-sign"></i>
+                  </div>
+              </div>
+
+              <div class="p-5">
+                  <div class="relative h-[280px]">
+                      <canvas id="cashDonationChart"></canvas>
+                  </div>
+              </div>
+
+              <div class="px-5 py-3 border-t border-gray-100 bg-gray-50/70 flex justify-between items-center">
+                  <span id="cashPeriodLabelChart" class="text-xs font-semibold text-gray-500">
+                      Selected period
+                  </span>
+
+                  <span id="cashTotal" class="text-sm font-extrabold text-amber-700">
+                      ₱0.00
+                  </span>
+              </div>
+
+          </div>
+
+
+          <!-- =====================================================
+              IN-KIND DONATIONS
+          ====================================================== -->
+          <div class="bg-white rounded-2xl border border-gray-200/70 shadow-sm overflow-hidden">
+
+              <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+                  <div>
+                      <h3 class="font-bold text-gray-900">
+                          In-Kind Donations
+                      </h3>
+
+                      <p id="inKindChartSubtitle" class="text-xs text-gray-400 mt-0.5">
+                          Approved donated items
+                      </p>
+                  </div>
+
+                  <div class="w-9 h-9 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center">
+                      <i class="fa-solid fa-box-open"></i>
+                  </div>
+              </div>
+
+              <div class="p-5">
+                  <div class="relative h-[280px]">
+                      <canvas id="inKindDonationChart"></canvas>
+                  </div>
+              </div>
+
+              <div class="px-5 py-3 border-t border-gray-100 bg-gray-50/70 flex justify-between items-center">
+                  <span id="inKindPeriodLabelChart" class="text-xs font-semibold text-gray-500">
+                      Selected period
+                  </span>
+
+                  <span id="inKindTotal" class="text-sm font-extrabold text-purple-700">
+                      0
+                  </span>
+              </div>
+
+          </div>
+
+      </div>
+  </div>
 </main>
 
 <script>

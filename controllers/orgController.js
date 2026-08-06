@@ -1262,7 +1262,6 @@ exports.getNewestPets = async (req, res) => {
 // ORGANIZATION ANALYTICS
 exports.getAnalyticsData = async (req, res) => {
     try {
-
         // =====================================================
         // CHECK LOGIN
         // =====================================================
@@ -1276,7 +1275,7 @@ exports.getAnalyticsData = async (req, res) => {
         }
 
         // =====================================================
-        // GET ORGANIZATION
+        // GET LOGGED-IN ORGANIZATION
         // =====================================================
         const [orgRows] = await pool.query(
             `
@@ -1298,47 +1297,61 @@ exports.getAnalyticsData = async (req, res) => {
         const organizationId = orgRows[0].organization_id;
 
         // =====================================================
-        // FILTER
+        // GET FILTER VALUES FIRST
         // =====================================================
-        const allowedPeriods = ["day", "month", "year"];
-
-        const period = allowedPeriods.includes(req.query.period)
+        const period = ["day", "month", "year"].includes(req.query.period)
             ? req.query.period
             : "month";
 
-        const selectedDate = req.query.date
-            ? req.query.date
-            : new Date().toISOString().slice(0, 10);
+        const requestedDate = req.query.date;
 
+        // =====================================================
+        // CREATE DATE RANGE
+        // =====================================================
         let startDate;
         let endDate;
+        let displayDate;
 
-        // =====================================================
-        // DATE RANGE
-        // =====================================================
         if (period === "day") {
+            // Expected: 2026-08-07
+            const dateValue = requestedDate || new Date().toISOString().slice(0, 10);
 
-            startDate = `${selectedDate} 00:00:00`;
+            startDate = `${dateValue} 00:00:00`;
 
-            const nextDay = new Date(`${selectedDate}T00:00:00`);
-            nextDay.setDate(nextDay.getDate() + 1);
+            const [year, month, day] = dateValue.split("-").map(Number);
+            const nextDay = new Date(year, month - 1, day + 1);
 
             endDate =
                 `${nextDay.getFullYear()}-` +
                 `${String(nextDay.getMonth() + 1).padStart(2, "0")}-` +
                 `${String(nextDay.getDate()).padStart(2, "0")} 00:00:00`;
 
-        } else if (period === "year") {
+            displayDate = dateValue;
 
-            const year = Number(selectedDate.substring(0, 4));
+        } else if (period === "year") {
+            // Expected: 2026 or 2026-01-01
+            const year = String(
+                requestedDate || new Date().getFullYear()
+            ).substring(0, 4);
 
             startDate = `${year}-01-01 00:00:00`;
-            endDate = `${year + 1}-01-01 00:00:00`;
+            endDate = `${Number(year) + 1}-01-01 00:00:00`;
+
+            displayDate = year;
 
         } else {
+            // =================================================
+            // MONTH
+            // Expected: 2026-08
+            // =================================================
+            const monthValue =
+                requestedDate ||
+                new Date().toISOString().slice(0, 7);
 
-            const year = Number(selectedDate.substring(0, 4));
-            const month = Number(selectedDate.substring(5, 7));
+            const [year, month] = monthValue
+                .substring(0, 7)
+                .split("-")
+                .map(Number);
 
             startDate =
                 `${year}-${String(month).padStart(2, "0")}-01 00:00:00`;
@@ -1347,62 +1360,62 @@ exports.getAnalyticsData = async (req, res) => {
 
             endDate =
                 `${nextMonth.getFullYear()}-` +
-                `${String(nextMonth.getMonth() + 1).padStart(2, "0")}-01 00:00:00`;
+                `${String(nextMonth.getMonth() + 1).padStart(2, "0")}-` +
+                `01 00:00:00`;
+
+            displayDate =
+                `${year}-${String(month).padStart(2, "0")}`;
         }
 
         // =====================================================
-        // PET STATUS
-        // CURRENT STATUS
-        // NOT FILTERED BY DATE
+        // PET SUMMARY
+        // CURRENT PET STATUS
+        // Based on animals table
         // =====================================================
-        const [petStatusRows] = await pool.query(
+        const [[petSummary]] = await pool.query(
             `
             SELECT
-                adoption_status,
-                COUNT(*) AS total
+                COUNT(*) AS totalPets,
+
+                SUM(
+                    CASE
+                        WHEN adoption_status = 'Available'
+                        THEN 1 ELSE 0
+                    END
+                ) AS availablePets,
+
+                SUM(
+                    CASE
+                        WHEN adoption_status = 'Pending'
+                        THEN 1 ELSE 0
+                    END
+                ) AS pendingPets,
+
+                SUM(
+                    CASE
+                        WHEN adoption_status = 'Adopted'
+                        THEN 1 ELSE 0
+                    END
+                ) AS adoptedPets,
+
+                SUM(
+                    CASE
+                        WHEN adoption_status = 'Archived'
+                        THEN 1 ELSE 0
+                    END
+                ) AS archivedPets
+
             FROM animals
             WHERE organization_id = ?
-            GROUP BY adoption_status
             `,
             [organizationId]
         );
 
-        const pets = {
-            available: 0,
-            pending: 0,
-            adopted: 0,
-            archived: 0,
-            total: 0
-        };
-
-        petStatusRows.forEach(row => {
-
-            const count = Number(row.total || 0);
-
-            pets.total += count;
-
-            if (row.adoption_status === "Available") {
-                pets.available = count;
-            }
-
-            if (row.adoption_status === "Pending") {
-                pets.pending = count;
-            }
-
-            if (row.adoption_status === "Adopted") {
-                pets.adopted = count;
-            }
-
-            if (row.adoption_status === "Archived") {
-                pets.archived = count;
-            }
-        });
-
         // =====================================================
         // AVAILABLE PETS BY SPECIES
-        // FROM animals
+        // Based on animals.species
         // =====================================================
-        const [availableBySpeciesRows] = await pool.query(
+        const [availablePetsBySpecies] = await pool.query(
             `
             SELECT
                 species,
@@ -1416,40 +1429,74 @@ exports.getAnalyticsData = async (req, res) => {
             [organizationId]
         );
 
-        const availableBySpecies = availableBySpeciesRows.map(row => ({
-            species: row.species,
-            total: Number(row.total || 0)
-        }));
-
         // =====================================================
         // APPROVED ADOPTIONS
-        // FROM user_adoption_applications
-        // JOIN animals TO MAKE SURE PET BELONGS TO THIS ORG
+        // Based on:
+        // user_adoption_applications.status = Approved
+        // animals.organization_id
         // =====================================================
-        let adoptionGroup;
+        let adoptionGroupFormat;
 
         if (period === "day") {
-            adoptionGroup = "HOUR(app.created_at)";
+            adoptionGroupFormat = "%H:00";
         } else if (period === "year") {
-            adoptionGroup = "MONTH(app.created_at)";
+            adoptionGroupFormat = "%Y-%m";
         } else {
-            adoptionGroup = "DAY(app.created_at)";
+            adoptionGroupFormat = "%Y-%m-%d";
         }
 
-        const [adoptionRows] = await pool.query(
+        const [adoptionChart] = await pool.query(
             `
             SELECT
-                ${adoptionGroup} AS period_value,
+                DATE_FORMAT(app.created_at, ?) AS label,
                 COUNT(*) AS total
             FROM user_adoption_applications app
+
             INNER JOIN animals animal
                 ON app.animal_id = animal.animal_id
+
             WHERE animal.organization_id = ?
               AND app.status = 'Approved'
               AND app.created_at >= ?
               AND app.created_at < ?
-            GROUP BY ${adoptionGroup}
-            ORDER BY ${adoptionGroup}
+
+            GROUP BY label
+            ORDER BY MIN(app.created_at)
+            `,
+            [
+                adoptionGroupFormat,
+                organizationId,
+                startDate,
+                endDate
+            ]
+        );
+
+        // =====================================================
+        // CASH DONATIONS
+        // Based on:
+        // cash_donations.status = Approved
+        // cash_donations.amount
+        // =====================================================
+        let cashGroupFormat;
+
+        if (period === "day") {
+            cashGroupFormat = "%H:00";
+        } else if (period === "year") {
+            cashGroupFormat = "%Y-%m";
+        } else {
+            cashGroupFormat = "%Y-%m-%d";
+        }
+
+        const [[cashSummary]] = await pool.query(
+            `
+            SELECT
+                COUNT(*) AS donationCount,
+                COALESCE(SUM(amount), 0) AS totalAmount
+            FROM cash_donations
+            WHERE organization_id = ?
+              AND status = 'Approved'
+              AND created_at >= ?
+              AND created_at < ?
             `,
             [
                 organizationId,
@@ -1458,88 +1505,43 @@ exports.getAnalyticsData = async (req, res) => {
             ]
         );
 
-        const adoptionSeries = adoptionRows.map(row => ({
-            period_value: Number(row.period_value),
-            total: Number(row.total || 0)
-        }));
-
-        const adoptionTotal = adoptionSeries.reduce(
-            (sum, row) => sum + row.total,
-            0
-        );
-
-        // =====================================================
-        // CASH DONATIONS
-        // FROM cash_donations
-        // APPROVED ONLY
-        // =====================================================
-        let cashGroup;
-
-        if (period === "day") {
-            cashGroup = "HOUR(created_at)";
-        } else if (period === "year") {
-            cashGroup = "MONTH(created_at)";
-        } else {
-            cashGroup = "DAY(created_at)";
-        }
-
-        const [cashRows] = await pool.query(
+        const [cashChart] = await pool.query(
             `
             SELECT
-                ${cashGroup} AS period_value,
+                DATE_FORMAT(created_at, ?) AS label,
                 COALESCE(SUM(amount), 0) AS total
             FROM cash_donations
             WHERE organization_id = ?
               AND status = 'Approved'
               AND created_at >= ?
               AND created_at < ?
-            GROUP BY ${cashGroup}
-            ORDER BY ${cashGroup}
+            GROUP BY label
+            ORDER BY MIN(created_at)
             `,
             [
+                cashGroupFormat,
                 organizationId,
                 startDate,
                 endDate
             ]
         );
 
-        const cashSeries = cashRows.map(row => ({
-            period_value: Number(row.period_value),
-            total: Number(row.total || 0)
-        }));
-
-        const cashTotal = cashSeries.reduce(
-            (sum, row) => sum + row.total,
-            0
-        );
-
         // =====================================================
         // IN-KIND DONATIONS
-        // FROM inkind_donations
-        // APPROVED ONLY
+        // Based on:
+        // inkind_donations.status = Approved
+        // inkind_donations.quantity
         // =====================================================
-        let inKindGroup;
-
-        if (period === "day") {
-            inKindGroup = "HOUR(created_at)";
-        } else if (period === "year") {
-            inKindGroup = "MONTH(created_at)";
-        } else {
-            inKindGroup = "DAY(created_at)";
-        }
-
-        const [inKindRows] = await pool.query(
+        const [[inKindSummary]] = await pool.query(
             `
             SELECT
-                ${inKindGroup} AS period_value,
-                COALESCE(SUM(quantity), 0) AS total
+                COUNT(*) AS donationRecords,
+                COALESCE(SUM(quantity), 0) AS totalQuantity
             FROM inkind_donations
             WHERE organization_id = ?
               AND status = 'Approved'
               AND created_at >= ?
               AND created_at < ?
-            GROUP BY ${inKindGroup}
-            ORDER BY ${inKindGroup}
             `,
             [
                 organizationId,
@@ -1548,31 +1550,42 @@ exports.getAnalyticsData = async (req, res) => {
             ]
         );
 
-        const inKindSeries = inKindRows.map(row => ({
-            period_value: Number(row.period_value),
-            total: Number(row.total || 0)
-        }));
-
-        const inKindTotal = inKindSeries.reduce(
-            (sum, row) => sum + row.total,
-            0
+        const [inKindChart] = await pool.query(
+            `
+            SELECT
+                DATE_FORMAT(created_at, ?) AS label,
+                COALESCE(SUM(quantity), 0) AS quantity
+            FROM inkind_donations
+            WHERE organization_id = ?
+              AND status = 'Approved'
+              AND created_at >= ?
+              AND created_at < ?
+            GROUP BY label
+            ORDER BY MIN(created_at)
+            `,
+            [
+                cashGroupFormat,
+                organizationId,
+                startDate,
+                endDate
+            ]
         );
 
         // =====================================================
         // IN-KIND BY ITEM
         // =====================================================
-        const [inKindItemRows] = await pool.query(
+        const [inKindItems] = await pool.query(
             `
             SELECT
-                item_name,
-                COALESCE(SUM(quantity), 0) AS total
+                item_name AS label,
+                SUM(quantity) AS quantity
             FROM inkind_donations
             WHERE organization_id = ?
               AND status = 'Approved'
               AND created_at >= ?
               AND created_at < ?
             GROUP BY item_name
-            ORDER BY total DESC
+            ORDER BY quantity DESC
             `,
             [
                 organizationId,
@@ -1581,44 +1594,61 @@ exports.getAnalyticsData = async (req, res) => {
             ]
         );
 
-        const inKindItems = inKindItemRows.map(row => ({
-            item_name: row.item_name,
-            total: Number(row.total || 0)
-        }));
-
         // =====================================================
-        // FINAL RESPONSE
+        // FORMAT RESPONSE
         // =====================================================
         res.json({
             success: true,
-
-            period,
-
-            date: selectedDate,
-
-            pets,
-
-            availableBySpecies,
-
+            period: period,
+            date: displayDate,
+            range: {
+                start: startDate,
+                end: endDate
+            },
+            pets: {
+                total: Number(petSummary.totalPets || 0),
+                available: Number(petSummary.availablePets || 0),
+                pending: Number(petSummary.pendingPets || 0),
+                adopted: Number(petSummary.adoptedPets || 0),
+                archived: Number(petSummary.archivedPets || 0)
+            },
+            availableBySpecies: availablePetsBySpecies.map(row => ({
+                species: row.species,
+                total: Number(row.total || 0)
+            })),
             adoptions: {
-                total: adoptionTotal,
-                series: adoptionSeries
+                total: adoptionChart.reduce(
+                    (sum, row) => sum + Number(row.total || 0),
+                    0
+                ),
+                chart: adoptionChart.map(row => ({
+                    label: row.label,
+                    total: Number(row.total || 0)
+                }))
             },
-
             cash: {
-                total: cashTotal,
-                series: cashSeries
+                total: Number(cashSummary.totalAmount || 0),
+                count: Number(cashSummary.donationCount || 0),
+                chart: cashChart.map(row => ({
+                    label: row.label,
+                    total: Number(row.total || 0)
+                }))
             },
-
             inKind: {
-                total: inKindTotal,
-                series: inKindSeries,
-                items: inKindItems
+                totalQuantity: Number(inKindSummary.totalQuantity || 0),
+                records: Number(inKindSummary.donationRecords || 0),
+                chart: inKindChart.map(row => ({
+                    label: row.label,
+                    quantity: Number(row.quantity || 0)
+                })),
+                items: inKindItems.map(row => ({
+                    label: row.label,
+                    quantity: Number(row.quantity || 0)
+                }))
             }
         });
 
     } catch (err) {
-
         console.error("Analytics error:", err);
 
         res.status(500).json({

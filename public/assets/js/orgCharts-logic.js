@@ -1,413 +1,546 @@
-// =====================================================
-// ORGANIZATION ANALYTICS - FRONTEND
-// =====================================================
-
+// ORGANIZATION ANALYTICS CHARTS
 let adoptedPetsChart = null;
 let availablePetsChart = null;
 let cashDonationChart = null;
 let inKindDonationChart = null;
 
-
-// =====================================================
-// DOM READY
-// =====================================================
-
-document.addEventListener("DOMContentLoaded", () => {
-    setupAnalyticsFilters();
-    loadAnalytics();
-});
-
-
-// =====================================================
-// FILTERS
-// =====================================================
-
-function setupAnalyticsFilters() {
-    const periodSelect = document.getElementById("analyticsPeriodType");
-    const dateContainer = document.getElementById("analyticsDateContainer");
-    const refreshButton = document.getElementById("refreshAnalyticsBtn");
-
-    if (!periodSelect || !dateContainer) {
-        console.error("Analytics filter elements not found.");
-        return;
+// FORMAT PERIOD LABEL
+function getPeriodLabel(period, date) {
+    const selectedDate = new Date(`${date}T00:00:00`);
+    if (period === "day") {
+        return selectedDate.toLocaleDateString("en-US", {
+            month: "long",
+            day: "numeric",
+            year: "numeric"
+        });
     }
-
-    function renderDateInput() {
-        const period = periodSelect.value;
-
-        let inputType = "month";
-        let value = new Date().toISOString().slice(0, 7);
-
-        if (period === "day") {
-            inputType = "date";
-            value = new Date().toISOString().slice(0, 10);
-        }
-
-        if (period === "year") {
-            inputType = "number";
-            value = new Date().getFullYear();
-        }
-
-        dateContainer.innerHTML = `
-            <input
-                id="analyticsDate"
-                type="${inputType}"
-                value="${value}"
-                ${period === "year" ? 'min="2000" max="2100"' : ""}
-                class="bg-white border border-gray-200 text-gray-700 text-sm font-semibold py-2.5 px-3 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400"
-            >
-        `;
-
-        const dateInput = document.getElementById("analyticsDate");
-
-        if (dateInput) {
-            dateInput.addEventListener("change", loadAnalytics);
-        }
+    if (period === "year") {
+        return selectedDate.getFullYear().toString();
     }
-
-    periodSelect.addEventListener("change", () => {
-        renderDateInput();
-        loadAnalytics();
+    return selectedDate.toLocaleDateString("en-US", {
+        month: "long",
+        year: "numeric"
     });
-
-    if (refreshButton) {
-        refreshButton.addEventListener("click", loadAnalytics);
-    }
-
-    renderDateInput();
 }
+// FORMAT DATE LABEL
+function formatDateLabel(value) {
+    const selectedDate = new Date(`${value}T00:00:00`);
 
+    return selectedDate.toLocaleDateString("en-US", {
+        month: "long",
+        day: "numeric",
+        year: "numeric"
+    });
+}
+// FORMAT MONTH LABEL
+function formatMonthLabel(value) {
+    const [year, month] = value.split("-");
+    const date = new Date(Number(year), Number(month) - 1, 1);
 
-// =====================================================
+    return date.toLocaleDateString("en-US", {
+        month: "long",
+        year: "numeric"
+    });
+}
+// GET PERIOD DESCRIPTION
+function getPeriodDescription(period) {
+    if (period === "day") {
+        return "Hourly";
+    }
+    if (period === "year") {
+        return "Monthly";
+    }
+    return "Daily";
+}
 // LOAD ANALYTICS
-// =====================================================
-
 async function loadAnalytics() {
     try {
-        const period =
-            document.getElementById("analyticsPeriodType")?.value || "month";
-
-        const dateInput =
+        const periodElement =
+            document.getElementById("analyticsPeriodType");
+        const dateElement =
             document.getElementById("analyticsDate");
-
-        let date = dateInput?.value;
-
-        if (!date) {
-            if (period === "year") {
-                date = new Date().getFullYear().toString();
-            } else if (period === "month") {
-                date = new Date().toISOString().slice(0, 7);
-            } else {
-                date = new Date().toISOString().slice(0, 10);
-            }
-        }
-
+        const period =
+            periodElement?.value || "month";
+        const date =
+            dateElement?.value ||
+            new Date().toISOString().slice(0, 10);
         const response = await fetch(
-            `/org/analytics/data?period=${encodeURIComponent(period)}&date=${encodeURIComponent(date)}`,
-            {
-                method: "GET",
-                credentials: "include"
-            }
+            `/org/analytics/data?period=${encodeURIComponent(period)}&date=${encodeURIComponent(date)}`
         );
-
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
-        }
-
         const data = await response.json();
 
         console.log("Analytics DB response:", data);
 
         if (!data.success) {
-            throw new Error(data.message || "Failed to load analytics.");
+            throw new Error(
+                data.message || "Failed to load analytics."
+            );
         }
 
-        // =================================================
-        // UPDATE EVERYTHING
-        // =================================================
+        // PERIOD LABEL
+        const periodLabel =
+            getPeriodLabel(data.period, data.date);
+        const periodDescription =
+            getPeriodDescription(data.period);
 
-        updatePetSummary(data.pets);
-        updateDonationSummary(data);
-        updateAdoptionChart(data);
-        updateAvailablePetsChart(data);
-        updateCashChart(data);
-        updateInKindChart(data);
-        updatePeriodLabels(period, date);
+        // PET SUMMARY
+        document.getElementById("petAvailable").textContent =
+            data.pets.available;
+        document.getElementById("petPending").textContent =
+            data.pets.pending;
+        document.getElementById("petAdopted").textContent =
+            data.pets.adopted;
+        document.getElementById("petArchived").textContent =
+            data.pets.archived;
+        document.getElementById("petTotal").textContent =
+            data.pets.total;
 
+        // CASH SUMMARY
+        const cashTotal =
+            Number(data.cash.total || 0);
+        document.getElementById("summaryCash").textContent =
+            `₱${cashTotal.toLocaleString("en-PH", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            })}`;
+        document.getElementById("cashTotal").textContent =
+            `₱${cashTotal.toLocaleString("en-PH", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            })}`;
+        document.getElementById("cashPeriodLabel").textContent =
+            `${periodLabel} — Approved donations`;
+        document.getElementById("cashPeriodLabelChart").textContent =
+            periodLabel;
+
+        // IN-KIND SUMMARY
+        const inKindTotal =
+            Number(data.inKind.totalQuantity || 0);
+        document.getElementById("summaryInKind").textContent =
+            inKindTotal.toLocaleString();
+        document.getElementById("inKindTotal").textContent =
+            inKindTotal.toLocaleString();
+        document.getElementById("inKindPeriodLabel").textContent =
+            `${periodLabel} — Approved donations`;
+        document.getElementById("inKindPeriodLabelChart").textContent =
+            periodLabel;
+
+        // ADOPTION TOTAL
+        const adoptionTotal =
+            Number(data.adoptions.total || 0);
+        document.getElementById("adoptedTotal").textContent =
+            adoptionTotal;
+        document.getElementById("adoptionPeriodLabel").textContent =
+            periodLabel;
+
+        // AVAILABLE PET TOTAL
+        document.getElementById("availableTotal").textContent =
+            data.pets.available;
+        document.getElementById("availablePetsSubtitle").textContent =
+            `Current available pets — ${periodLabel}`;
+
+        // CHART SUBTITLES
+        document.getElementById("adoptionChartSubtitle").textContent =
+            `${periodLabel} — ${periodDescription} approved adoptions`;
+        document.getElementById("cashChartSubtitle").textContent =
+            `${periodLabel} — ${periodDescription} approved cash donations`;
+        document.getElementById("inKindChartSubtitle").textContent =
+            `${periodLabel} — ${periodDescription} approved in-kind donations`;
+
+        // DRAW CHART
+        createAdoptionChart(
+            data,
+            periodLabel,
+            periodDescription
+        );
+        createAvailablePetsChart(
+            data
+        );
+        createCashChart(
+            data,
+            periodLabel,
+            periodDescription
+        );
+        createInKindChart(
+            data,
+            periodLabel,
+            periodDescription
+        );
     } catch (error) {
-        console.error("Analytics loading error:", error);
+        console.error(
+            "Analytics loading error:",
+            error
+        );
     }
 }
 
-
-// =====================================================
-// PET SUMMARY
-// =====================================================
-
-function updatePetSummary(pets) {
-    document.getElementById("petAvailable").textContent =
-        pets?.available ?? 0;
-
-    document.getElementById("petPending").textContent =
-        pets?.pending ?? 0;
-
-    document.getElementById("petAdopted").textContent =
-        pets?.adopted ?? 0;
-
-    document.getElementById("petArchived").textContent =
-        pets?.archived ?? 0;
-
-    document.getElementById("petTotal").textContent =
-        pets?.total ?? 0;
-
-    document.getElementById("availableTotal").textContent =
-        pets?.available ?? 0;
-}
-
-
-// =====================================================
-// DONATION SUMMARY
-// =====================================================
-
-function updateDonationSummary(data) {
-    const cashTotal =
-        Number(data.cash?.total || 0);
-
-    const inKindTotal =
-        Number(data.inKind?.total || 0);
-
-    document.getElementById("summaryCash").textContent =
-        `₱${cashTotal.toLocaleString("en-PH", {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-        })}`;
-
-    document.getElementById("summaryInKind").textContent =
-        inKindTotal.toLocaleString("en-PH");
-
-    document.getElementById("cashTotal").textContent =
-        `₱${cashTotal.toLocaleString("en-PH", {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-        })}`;
-
-    document.getElementById("inKindTotal").textContent =
-        inKindTotal.toLocaleString("en-PH");
-
-    document.getElementById("adoptedTotal").textContent =
-        data.adoptions?.total ?? 0;
-}
-
-
-// =====================================================
-// ADOPTION CHART
-// =====================================================
-
-function updateAdoptionChart(data) {
-    const canvas = document.getElementById("adoptedPetsChart");
-
+// ADOPTION BAR CHART
+function createAdoptionChart(
+    data,
+    periodLabel,
+    periodDescription
+) {
+    const canvas =
+        document.getElementById("adoptedPetsChart");
     if (!canvas) return;
-
-    const series = data.adoptions?.series || [];
-
-    const labels = series.map(row => row.period_value);
-    const values = series.map(row => Number(row.total || 0));
-
     if (adoptedPetsChart) {
         adoptedPetsChart.destroy();
     }
 
-    adoptedPetsChart = new Chart(canvas, {
-        type: "line",
+    const chartData =
+        data.adoptions.chart || [];
+    const labels = chartData.map(item => {
+        if (data.period === "day") {
+            return formatDateLabel(item.label);
+        }
+        if (data.period === "year") {
+            return formatMonthLabel(item.label);
+        }
 
-        data: {
-            labels,
+        return item.label;
+    });
+    const values =
+        chartData.map(item => Number(item.total || 0));
 
-            datasets: [{
-                label: "Approved Adoptions",
-                data: values,
-                tension: 0.3,
-                fill: true,
-                borderWidth: 2
-            }]
-        },
-
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        precision: 0
+    adoptedPetsChart =
+        new Chart(canvas, {
+            type: "bar",
+            data: {
+                labels,
+                datasets: [{
+                    label: "Approved adoptions",
+                    data: values,
+                    borderWidth: 1,
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true
+                    },
+                    tooltip: {
+                        callbacks: {
+                            title: function(items) {
+                                return items[0].label;
+                            },
+                            label: function(context) {
+                                return ` Approved adoptions: ${context.raw}`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text:
+                                data.period === "day"
+                                    ? "Hour"
+                                    : data.period === "year"
+                                        ? "Month"
+                                        : "Day"
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0
+                        },
+                        title: {
+                            display: true,
+                            text: "Number of approved adoptions"
+                        }
                     }
                 }
             }
-        }
-    });
+        });
 }
 
-
-// =====================================================
-// AVAILABLE PETS BY SPECIES
-// =====================================================
-
-function updateAvailablePetsChart(data) {
-    const canvas = document.getElementById("availablePetsChart");
-
+// AVAILABLE PETS DOUGHNUT
+function createAvailablePetsChart(data) {
+    const canvas =
+        document.getElementById("availablePetsChart");
     if (!canvas) return;
-
-    const rows = data.availableBySpecies || [];
-
-    const labels = rows.map(row => row.species);
-    const values = rows.map(row => Number(row.total || 0));
-
     if (availablePetsChart) {
         availablePetsChart.destroy();
     }
 
-    availablePetsChart = new Chart(canvas, {
-        type: "doughnut",
+    const speciesData =
+    data.availableBySpecies || [];
+    const labels =
+        speciesData.map(item => item.species);
+    const values =
+        speciesData.map(item => Number(item.total || 0));
 
-        data: {
-            labels,
-
-            datasets: [{
-                label: "Available Pets",
-                data: values,
-                borderWidth: 1
-            }]
-        },
-
-        options: {
-            responsive: true,
-            maintainAspectRatio: false
-        }
-    });
+    availablePetsChart =
+        new Chart(canvas, {
+            type: "doughnut",
+            data: {
+                labels,
+                datasets: [{
+                    label: "Available pets",
+                    data: values,
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: "bottom"
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return ` ${context.label}: ${context.raw} pets`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
 }
 
-
-// =====================================================
-// CASH CHART
-// =====================================================
-
-function updateCashChart(data) {
-    const canvas = document.getElementById("cashDonationChart");
-
+// CASH BAR CHART
+function createCashChart(
+    data,
+    periodLabel,
+    periodDescription
+) {
+    const canvas =
+        document.getElementById("cashDonationChart");
     if (!canvas) return;
-
-    const series = data.cash?.series || [];
-
-    const labels = series.map(row => row.period_value);
-    const values = series.map(row => Number(row.total || 0));
-
     if (cashDonationChart) {
         cashDonationChart.destroy();
     }
 
-    cashDonationChart = new Chart(canvas, {
-        type: "bar",
+    const chartData =
+        data.cash.chart || [];
+    const labels = chartData.map(item => {
+        if (data.period === "day") {
+            return formatDateLabel(item.label);
+        }
+        if (data.period === "year") {
+            return formatMonthLabel(item.label);
+        }
 
-        data: {
-            labels,
+        return item.label;
+    });
+    const values =
+        chartData.map(item => Number(item.total || 0));
 
-            datasets: [{
-                label: "Cash Donations",
-                data: values,
-                borderWidth: 1
-            }]
-        },
+    cashDonationChart =
+        new Chart(canvas, {
+            type: "bar",
+            data: {
+                labels,
+                datasets: [{
+                    label: "Approved cash donations (₱)",
+                    data: values,
+                    borderWidth: 1,
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
 
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-
-            scales: {
-                y: {
-                    beginAtZero: true
+                plugins: {
+                    legend: {
+                        display: true
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return ` ₱${Number(context.raw).toLocaleString("en-PH", {
+                                    minimumFractionDigits: 2
+                                })}`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text:
+                                data.period === "day"
+                                    ? "Hour"
+                                    : data.period === "year"
+                                        ? "Month"
+                                        : "Day"
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: "Amount (₱)"
+                        }
+                    }
                 }
             }
-        }
-    });
+        });
 }
-
-
 // =====================================================
-// IN-KIND CHART
+// IN-KIND BAR CHART
 // =====================================================
-
-function updateInKindChart(data) {
-    const canvas = document.getElementById("inKindDonationChart");
-
+function createInKindChart(
+    data,
+    periodLabel,
+    periodDescription
+) {
+    const canvas =
+        document.getElementById("inKindDonationChart");
     if (!canvas) return;
-
-    const items = data.inKind?.items || [];
-
-    const labels = items.map(row => row.item_name);
-    const values = items.map(row => Number(row.total || 0));
-
     if (inKindDonationChart) {
         inKindDonationChart.destroy();
     }
 
-    inKindDonationChart = new Chart(canvas, {
-        type: "bar",
+    const chartData =
+        data.inKind.chart || [];
+    const labels = chartData.map(item => {
+        if (data.period === "day") {
+            return formatDateLabel(item.label);
+        }
+        if (data.period === "year") {
+            return formatMonthLabel(item.label);
+        }
 
-        data: {
-            labels,
+        return item.label;
+    });
+    const values =
+        chartData.map(item => Number(item.quantity || 0));
 
-            datasets: [{
-                label: "Quantity",
-                data: values,
-                borderWidth: 1
-            }]
-        },
+    inKindDonationChart =
+        new Chart(canvas, {
+            type: "bar",
+            data: {
+                labels,
+                datasets: [{
+                    label: "Approved donated quantity",
+                    data: values,
+                    borderWidth: 1,
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return ` Quantity: ${context.raw}`;
+                            }
+                        }
+                    }
+                },
 
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-
-            scales: {
-                y: {
-                    beginAtZero: true
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text:
+                                data.period === "day"
+                                    ? "Hour"
+                                    : data.period === "year"
+                                        ? "Month"
+                                        : "Day"
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0
+                        },
+                        title: {
+                            display: true,
+                            text: "Quantity"
+                        }
+                    }
                 }
             }
+        });
+}
+// =====================================================
+// INITIALIZE
+// =====================================================
+document.addEventListener(
+    "DOMContentLoaded",
+    () => {
+        const periodSelect =
+            document.getElementById("analyticsPeriodType");
+        const dateContainer =
+            document.getElementById("analyticsDateContainer");
+        function createDateInput() {
+            const period =
+                periodSelect.value;
+            let inputType = "month";
+            let value =
+                new Date().toISOString().slice(0, 7);
+
+            if (period === "day") {
+                inputType = "date";
+                value =
+                    new Date().toISOString().slice(0, 10);
+            }
+
+            else if (period === "year") {
+                inputType = "number";
+                value =
+                    new Date().getFullYear();
+            }
+
+            dateContainer.innerHTML = `
+                <input
+                    id="analyticsDate"
+                    type="${inputType}"
+                    value="${value}"
+                    ${inputType === "number"
+                        ? `min="2000" max="2100"`
+                        : ""
+                    }
+                    class="bg-white border border-gray-200
+                           text-gray-700 text-sm font-semibold
+                           py-2.5 px-4 rounded-xl shadow-sm
+                           focus:outline-none focus:ring-2
+                           focus:ring-blue-100
+                           focus:border-blue-400"
+                >
+            `;
         }
-    });
-}
+        createDateInput();
+        periodSelect.addEventListener(
+            "change",
+            () => {
+                createDateInput();
+                loadAnalytics();
+            }
+        );
 
+        document
+            .getElementById("refreshAnalyticsBtn")
+            ?.addEventListener(
+                "click",
+                () => {
+                    loadAnalytics();
+                }
+            );
 
-// =====================================================
-// PERIOD LABELS
-// =====================================================
-
-function updatePeriodLabels(period, date) {
-    let label = "For selected month";
-
-    if (period === "day") {
-        label = `For ${date}`;
+        dateContainer.addEventListener(
+            "change",
+            () => {
+                loadAnalytics();
+            }
+        );
+        loadAnalytics();
     }
-
-    if (period === "year") {
-        label = `For ${date}`;
-    }
-
-    if (period === "month") {
-        label = `For ${date}`;
-    }
-
-    const cashLabel =
-        document.getElementById("cashPeriodLabel");
-
-    const inKindLabel =
-        document.getElementById("inKindPeriodLabel");
-
-    if (cashLabel) {
-        cashLabel.textContent = label;
-    }
-
-    if (inKindLabel) {
-        inKindLabel.textContent = label;
-    }
-}
+);
