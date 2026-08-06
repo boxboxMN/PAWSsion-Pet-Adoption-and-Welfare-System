@@ -490,7 +490,10 @@
                         hiddenInput.value = petId;
                     }
 
-                    window.history.replaceState({}, "", "/user/adoptionHub.html");
+                    sessionStorage.removeItem("selectedPetId");
+
+                    // Panatilihin ang malinis na URL
+                    window.history.replaceState({}, "", "/adoption-hub");
 
                     // Hide list
                     document.getElementById("list-view").classList.add("hidden");
@@ -543,24 +546,28 @@
             const applyBtn = document.getElementById('applyModalBtn');
             if (applyBtn) {
                 applyBtn.addEventListener("click", async function () {
-                const selectedPetId = window.currentPet.animal_id;
+                    const selectedPetId = window.currentPet.animal_id;
 
-                window.history.replaceState(
-                    {},
-                    "",
-                    `/user/adoptionHub.html?petId=${selectedPetId}`
-                );
+                    // I-save ang Pet ID sa JavaScript memory / Session Storage
+                    sessionStorage.setItem("selectedPetId", selectedPetId);
 
-                await loadSelectedPet(selectedPetId);
-                closePetModal();
-                document.getElementById("list-view").classList.add("hidden");
-                document.getElementById("application-view").classList.remove("hidden");
-                loadTopbar({
-                    title: "Adoption Form",
-                    subtitle: "Please fill out the form below to start your adoption journey."
+                    // PANATILIHING MALINIS ANG URL (Ise-set sa /adoption-hub nang WALANG query parameters)
+                    window.history.replaceState({}, "", "/adoption-hub");
+
+                    await loadSelectedPet(selectedPetId);
+                    closePetModal();
+
+                    // Ipakita ang Application Form View
+                    document.getElementById("list-view").classList.add("hidden");
+                    document.getElementById("application-view").classList.remove("hidden");
+
+                    if (typeof loadTopbar === "function") {
+                        loadTopbar({
+                            title: "Adoption Form",
+                            subtitle: "Please fill out the form below to start your adoption journey."
+                        });
+                    }
                 });
-
-            });
             }
 
             // 2. Kapag pinindot ang Back Button mula sa Application Form
