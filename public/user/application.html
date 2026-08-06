@@ -44,9 +44,10 @@
                         <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                             <!-- Tabs -->
                             <div class="flex gap-4 border-b border-gray-200 pb-3">
-                                <button class="tab-btn pb-2 font-semibold transition text-blue-700 border-b-2 border-blue-700" data-tab="Active">Active</button>
-                                <button class="tab-btn pb-2 font-semibold transition text-gray-600 hover:text-blue-600" data-tab="Success">Success</button>
-                                <button class="tab-btn pb-2 font-semibold transition text-gray-600 hover:text-blue-600" data-tab="Cancelled">Cancelled</button>
+                                <button class="tab-btn pb-2 font-semibold transition text-blue-700 border-b-2 border-blue-700" data-tab="Under Review">Under Review</button>
+                                <button class="tab-btn pb-2 font-semibold transition text-gray-600 hover:text-blue-600" data-tab=" Interview Scheduled">Interview Scheduled</button>
+                                <button class="tab-btn pb-2 font-semibold transition text-gray-600 hover:text-blue-600" data-tab="Approved">Approved</button>
+                                <button class="tab-btn pb-2 font-semibold transition text-gray-600 hover:text-blue-600" data-tab="Declined">Declined</button>
                             </div>
                         </div>
                     </div>
@@ -190,287 +191,575 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 </script>
 
-    <!-- ===== ADOPTION APP SCRIPT ===== -->
-    <script>
-        // ===== DATA =====
-        const applications = [{
-            id: 1,
-            petName: "Lebron",
-            status: "Active",
-            organization: "PAWSsion Benevolence Circle",
-            date: "Jan 12, 2026",
-            image: "https://placekitten.com/200/200",
-            applicant: {
-                fullName: "Juan Dela Cruz",
-                phone: "09123456789",
-                email: "juan@gmail.com",
-                address: "Legazpi City, Albay",
-                civilStatus: "Single",
-                age: "22",
-                occupation: "Student"
-            },
-            lifestyle: {
-                workHours: "8AM - 5PM",
-                timeWithPet: "6 hours"
-            },
-            intent: "I want to adopt because I love pets and can provide a safe home.",
-            emergency: {
-                name: "Maria Cruz",
-                phone: "09999999999",
-                relation: "Mother"
-            }
-        }, {
-            id: 2,
-            petName: "Sadboi",
-            status: "Success",
-            organization: "Pet Haven Shelter",
-            date: "Feb 03, 2026",
-            image: "https://placekitten.com/201/200",
-            applicant: {
-                fullName: "Pedro Santos",
-                phone: "09234567890",
-                email: "pedro@gmail.com",
-                address: "Manila, Philippines",
-                civilStatus: "Married",
-                age: "30",
-                occupation: "Engineer"
-            },
-            lifestyle: {
-                workHours: "9AM - 6PM",
-                timeWithPet: "4 hours"
-            },
-            intent: "I want a companion for my family.",
-            emergency: {
-                name: "Ana Santos",
-                phone: "09888888888",
-                relation: "Spouse"
-            }
-        }, {
-            id: 3,
-            petName: "Bloop",
-            status: "Cancelled",
-            organization: "Animal Rescue PH",
-            date: "Mar 10, 2026",
-            image: "https://placekitten.com/202/200",
-            applicant: {
-                fullName: "Maria Lopez",
-                phone: "09345678901",
-                email: "maria@gmail.com",
-                address: "Cebu City, Cebu",
-                civilStatus: "Single",
-                age: "25",
-                occupation: "Teacher"
-            },
-            lifestyle: {
-                workHours: "7AM - 4PM",
-                timeWithPet: "5 hours"
-            },
-            intent: "I want to rescue a pet in need.",
-            emergency: {
-                name: "Jose Lopez",
-                phone: "09777777777",
-                relation: "Brother"
-            }
-        }];
+<!-- ===== ADOPTION APP SCRIPT ===== -->
+<script>
+// =====================================================
+// APPLICATION PAGE
+// =====================================================
 
-        // ===== STATE =====
-        let currentTab = "Active";
-        let selectedApp = null;
+// =====================================================
+// STATE
+// =====================================================
 
-        // ===== DOM REFS =====
-        const listView = document.getElementById('list-view');
-        const detailsView = document.getElementById('details-view');
-        const tableBody = document.getElementById('table-body');
-        const tabBtns = document.querySelectorAll('.tab-btn');
-        const backBtn = document.getElementById('back-btn');
-        const detailsActions = document.getElementById('details-actions');
-        const detailStatusBadge = document.getElementById('detail-status-badge');
-        const detailRef = document.getElementById('detail-ref');
-        const detailUploadDate = document.getElementById('detail-upload-date');
-        const detailApplicant = document.getElementById('detail-applicant');
-        const detailLifestyle = document.getElementById('detail-lifestyle');
-        const detailIntent = document.getElementById('detail-intent');
-        const detailEmergency = document.getElementById('detail-emergency');
-        const stepperContainer = document.getElementById('stepper-container');
+let applications = [];
+let currentTab = "Under Review";
+let selectedApp = null;
 
-        // ===== HELPERS =====
-        function createFormalField(label, value) {
-            return `
-                        <div class="formal-field">
-                            <label>${label}</label>
-                            <div class="field-value">${value || '—'}</div>
+// =====================================================
+// DOM REFERENCES
+// =====================================================
+
+const listView = document.getElementById("list-view");
+const detailsView = document.getElementById("details-view");
+const tableBody = document.getElementById("table-body");
+const tabBtns = document.querySelectorAll(".tab-btn");
+const backBtn = document.getElementById("back-btn");
+const detailsActions = document.getElementById("details-actions");
+const detailStatusBadge = document.getElementById("detail-status-badge");
+const detailRef = document.getElementById("detail-ref");
+const detailUploadDate = document.getElementById("detail-upload-date");
+const detailApplicant = document.getElementById("detail-applicant");
+const detailLifestyle = document.getElementById("detail-lifestyle");
+const detailIntent = document.getElementById("detail-intent");
+const detailEmergency = document.getElementById("detail-emergency");
+const stepperContainer = document.getElementById("stepper-container");
+
+// =====================================================
+// FORMAT DATE
+// =====================================================
+
+function formatDate(date) {
+    if (!date) return "—";
+    try {
+        return new Date(date).toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "short",
+            day: "numeric"
+        });
+    } catch (error) {
+        return date;
+    }
+}
+
+// =====================================================
+// GET STATUS CSS CLASS
+// =====================================================
+
+function getStatusClass(status) {
+    switch (status) {
+        case "Under Review":
+            return "active";
+        case "Interview Scheduled":
+            return "active";
+        case "Approved":
+            return "success";
+        case "Declined":
+            return "cancelled";
+        default:
+            return "active";
+    }
+}
+
+// =====================================================
+// LOAD APPLICATIONS FROM DATABASE
+// =====================================================
+
+async function loadApplications() {
+    try {
+        // ---------------------------------------------
+        // SHOW LOADING
+        // ---------------------------------------------
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="5" class="p-8 text-center text-gray-500">
+                    <i class="fas fa-spinner fa-spin mr-2"></i>
+                    Loading your applications...
+                </td>
+            </tr>
+        `;
+
+        // ---------------------------------------------
+        // REQUEST CURRENT USER'S APPLICATIONS
+        // ---------------------------------------------
+        const response = await fetch("/api/user/applications");
+
+        // ---------------------------------------------
+        // CHECK RESPONSE
+        // ---------------------------------------------
+        if (!response.ok) {
+            throw new Error(`Request failed: ${response.status}`);
+        }
+
+        // ---------------------------------------------
+        // PARSE JSON
+        // ---------------------------------------------
+        const data = await response.json();
+
+        console.log("User applications:", data);
+
+        // ---------------------------------------------
+        // CHECK SUCCESS
+        // ---------------------------------------------
+        if (!data.success) {
+            throw new Error(data.message || "Failed to load applications.");
+        }
+
+        // ---------------------------------------------
+        // CONVERT DATABASE DATA
+        // ---------------------------------------------
+        applications = data.applications.map(app => ({
+            // Application
+            id: app.application_id,
+
+            // Pet
+            petId: app.animal_id,
+            petName: app.pet_name || "Unknown Pet",
+            species: app.species || "",
+            gender: app.gender || "",
+            petAge: app.pet_age || "",
+            image: app.image_path ? `/uploads/pets/${app.image_path}` : "/assets/images/no-image.png",
+
+            // Organization
+            organization: app.organization_name || "Unknown Organization",
+
+            // Status
+           status:
+            app.status === "Pending"
+                ? "Under Review"
+                : (app.status || "Under Review"),
+
+            // Date
+            date: formatDate(app.created_at),
+
+            // Applicant
+            applicant: {
+                fullName: app.full_name,
+                phone: app.contact_number,
+                email: app.email,
+                address: app.full_address,
+                civilStatus: app.civil_status,
+                age: app.age,
+                occupation: app.occupation
+            },
+
+            // Adoption intent
+            intent: app.adoption_intent,
+
+            // Emergency
+            emergency: {
+                name: app.emergency_name,
+                phone: app.emergency_phone,
+                relation: app.emergency_relation
+            },
+
+            // Document
+            documentPath: app.document_path,
+
+            // Decline reason
+            declineReason: app.decline_reason,
+
+            // Interview
+            interview: {
+                date: app.interview_date,
+                time: app.interview_time,
+                method: app.interview_method,
+                locationLink: app.interview_location_link
+            }
+        }));
+
+        // ---------------------------------------------
+        // RENDER
+        // ---------------------------------------------
+        renderTable();
+
+    } catch (error) {
+        console.error("Failed to load applications:", error);
+
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="5" class="p-8 text-center text-red-500">
+                    <i class="fas fa-circle-exclamation mr-2"></i>
+                    Failed to load your applications.
+                </td>
+            </tr>
+        `;
+    }
+}
+
+// =====================================================
+// RENDER APPLICATION TABLE
+// =====================================================
+
+function renderTable() {
+    // ---------------------------------------------
+    // FILTER BY STATUS
+    // ---------------------------------------------
+    const filtered = applications.filter(app => app.status === currentTab);
+
+    // ---------------------------------------------
+    // NO RESULTS
+    // ---------------------------------------------
+    if (filtered.length === 0) {
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="5" class="p-8 text-center text-gray-500">
+                    No applications with status "${currentTab}"
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    // ---------------------------------------------
+    // BUILD TABLE
+    // ---------------------------------------------
+    let html = "";
+
+    filtered.forEach(app => {
+        const statusClass = getStatusClass(app.status);
+
+        html += `
+            <tr class="border-t border-gray-200 hover:bg-gray-50 transition">
+                <!-- PET -->
+                <td class="p-4">
+                    <div class="flex items-center gap-3">
+                        <img src="${app.image}" alt="${app.petName}" class="w-14 h-14 rounded-lg object-cover border" onerror="this.src='/assets/images/no-image.png'" />
+                        <div>
+                            <span class="font-semibold text-gray-800">${app.petName}</span>
+                            <p class="text-xs text-gray-500">${app.species}</p>
                         </div>
-                    `;
-        }
+                    </div>
+                </td>
 
-        // ===== RENDER FUNCTIONS =====
+                <!-- STATUS -->
+                <td class="p-4">
+                    <span class="badge-status ${statusClass}">
+                        <span class="dot"></span>
+                        ${app.status}
+                    </span>
+                </td>
 
-        function renderTable() {
-            const filtered = applications.filter(app => app.status === currentTab);
-            if (filtered.length === 0) {
-                tableBody.innerHTML =
-                    `<tr><td colspan="5" class="p-6 text-center text-gray-500">No applications with status "${currentTab}"</td></tr>`;
-                return;
+                <!-- ORGANIZATION -->
+                <td class="p-4 text-sm text-gray-700">
+                    ${app.organization}
+                </td>
+
+                <!-- DATE -->
+                <td class="p-4 text-sm text-gray-700">
+                    ${app.date}
+                </td>
+
+                <!-- ACTION -->
+                <td class="p-4 text-center">
+                    <button class="view-details-btn inline-flex items-center gap-2 border border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white px-4 py-2 rounded-full text-sm font-medium transition" data-id="${app.id}">
+                        <i class="fas fa-eye"></i>
+                        View Details
+                    </button>
+                </td>
+            </tr>
+        `;
+    });
+
+    tableBody.innerHTML = html;
+
+    // ---------------------------------------------
+    // VIEW DETAILS EVENTS
+    // ---------------------------------------------
+    document.querySelectorAll(".view-details-btn").forEach(btn => {
+        btn.addEventListener("click", function () {
+            const id = Number(this.dataset.id);
+            const app = applications.find(a => a.id === id);
+
+            if (app) {
+                showDetails(app);
             }
-            let html = '';
-            filtered.forEach(app => {
-                const statusClass = app.status === 'Active' ? 'active' : app.status === 'Success' ? 'success' :
-                    'cancelled';
-                html += `
-                            <tr class="border-t border-gray-200 hover:bg-gray-50 transition">
-                                <td class="p-4">
-                                    <div class="flex items-center gap-3">
-                                        <img src="${app.image}" alt="${app.petName}" class="w-14 h-14 rounded-lg object-cover border" />
-                                        <span class="font-semibold text-gray-800">${app.petName}</span>
-                                    </div>
-                                </td>
-                                <td class="p-4">
-                                    <span class="badge-status ${statusClass}"><span class="dot"></span> ${app.status}</span>
-                                </td>
-                                <td class="p-4 text-sm text-gray-700">${app.organization}</td>
-                                <td class="p-4 text-sm text-gray-700">${app.date}</td>
-                                <td class="p-4 text-center">
-                                    <button class="view-details-btn inline-flex items-center gap-2 border border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white px-4 py-2 rounded-full text-sm font-medium transition" data-id="${app.id}">
-                                        <i class="fas fa-eye"></i> View Details
-                                    </button>
-                                </td>
-                            </tr>
-                        `;
-            });
-            tableBody.innerHTML = html;
+        });
+    });
+}
 
-            document.querySelectorAll('.view-details-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const id = parseInt(this.dataset.id);
-                    const app = applications.find(a => a.id === id);
-                    if (app) showDetails(app);
-                });
-            });
+// =====================================================
+// CREATE FORMAL FIELD
+// =====================================================
+
+function createFormalField(label, value) {
+    return `
+        <div class="formal-field">
+            <label>${label}</label>
+            <div class="field-value">
+                ${value !== null && value !== undefined && value !== "" ? value : "—"}
+            </div>
+        </div>
+    `;
+}
+
+// =====================================================
+// UPDATE STEPPER
+// =====================================================
+
+function updateStepper(status) {
+    const steps = stepperContainer.querySelectorAll(".step-item");
+    let currentStep = 1;
+
+    if (status === "Under Review") {
+        currentStep = 1;
+    } else if (status === "Interview Scheduled") {
+        currentStep = 2;
+    } else if (status === "Approved") {
+        currentStep = 5;
+    } else if (status === "Declined") {
+        currentStep = 2;
+    }
+
+    steps.forEach((step, index) => {
+        const stepNumber = index + 1;
+        step.classList.remove("active", "completed");
+
+        if (stepNumber < currentStep) {
+            step.classList.add("completed");
+        } else if (stepNumber === currentStep) {
+            step.classList.add("active");
         }
+    });
+}
 
-        // ===== UPDATE STEPPER =====
-        function updateStepper() {
-            const steps = stepperContainer.querySelectorAll('.step-item');
-            steps.forEach((step, idx) => {
-                step.classList.remove('active', 'completed');
-                if (idx === 0) step.classList.add('active');
-                else step.classList.add('completed');
-            });
+// =====================================================
+// SHOW APPLICATION DETAILS
+// =====================================================
+
+function showDetails(app) {
+    selectedApp = app;
+
+    // ---------------------------------------------
+    // SWITCH VIEWS
+    // ---------------------------------------------
+    listView.classList.add("hidden-view");
+    detailsView.style.display = "block";
+
+    // ---------------------------------------------
+    // REFERENCE NUMBER
+    // ---------------------------------------------
+    detailRef.textContent = `APP-${new Date().getFullYear()}-${String(app.id).padStart(3, "0")}`;
+
+    // ---------------------------------------------
+    // DATE
+    // ---------------------------------------------
+    detailUploadDate.textContent = app.date;
+
+    // ---------------------------------------------
+    // STATUS
+    // ---------------------------------------------
+    const statusKey = getStatusClass(app.status);
+    detailStatusBadge.className = `badge-status ${statusKey}`;
+    detailStatusBadge.innerHTML = `
+        <span class="dot"></span>
+        ${app.status}
+    `;
+
+    // ---------------------------------------------
+    // STEPPER
+    // ---------------------------------------------
+    updateStepper(app.status);
+
+    // ---------------------------------------------
+    // APPLICANT
+    // ---------------------------------------------
+    const a = app.applicant;
+    detailApplicant.innerHTML = `
+        ${createFormalField("Full Name", a.fullName)}
+        ${createFormalField("Phone", a.phone)}
+        ${createFormalField("Email", a.email)}
+        <div class="md:col-span-3">
+            ${createFormalField("Address", a.address)}
+        </div>
+        ${createFormalField("Civil Status", a.civilStatus)}
+        ${createFormalField("Age", a.age)}
+        ${createFormalField("Occupation", a.occupation)}
+    `;
+
+    // ---------------------------------------------
+    // LIFESTYLE
+    // ---------------------------------------------
+    // Your current database table does not contain lifestyle fields.
+    // So don't fake the data.
+    detailLifestyle.innerHTML = `
+        <div class="md:col-span-2">
+            ${createFormalField("Lifestyle Information", "No lifestyle information recorded.")}
+        </div>
+    `;
+
+    // ---------------------------------------------
+    // ADOPTION INTENT
+    // ---------------------------------------------
+    detailIntent.value = app.intent || "";
+
+    // ---------------------------------------------
+    // EMERGENCY CONTACT
+    // ---------------------------------------------
+    const e = app.emergency;
+    detailEmergency.innerHTML = `
+        ${createFormalField("Contact Name", e.name)}
+        ${createFormalField("Phone", e.phone)}
+        ${createFormalField("Relation", e.relation)}
+    `;
+
+    // ---------------------------------------------
+    // ACTIONS
+    // ---------------------------------------------
+    renderDetailsActions(app);
+
+    // ---------------------------------------------
+    // SCROLL TO TOP
+    // ---------------------------------------------
+    document.getElementById("app").scrollTo({
+        top: 0,
+        behavior: "smooth"
+    });
+}
+
+// =====================================================
+// RENDER ACTION BUTTONS
+// =====================================================
+
+function renderDetailsActions(app) {
+    detailsActions.innerHTML = "";
+
+    // ---------------------------------------------
+    // UNDER REVIEW
+    // ---------------------------------------------
+    if (app.status === "Under Review") {
+        detailsActions.innerHTML = `
+            <button id="cancelApplicationBtn" class="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition">
+                <i class="fas fa-times"></i>
+                Cancel Application
+            </button>
+        `;
+
+        const cancelBtn = document.getElementById("cancelApplicationBtn");
+        cancelBtn.addEventListener("click", () => {
+            alert("Cancel application functionality will be connected to the database next.");
+        });
+    }
+
+    // ---------------------------------------------
+    // INTERVIEW SCHEDULED
+    // ---------------------------------------------
+    else if (app.status === "Interview Scheduled") {
+        detailsActions.innerHTML = `
+            <span class="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-700 rounded-lg text-sm font-semibold">
+                <i class="fas fa-calendar-check"></i>
+                Interview Scheduled
+            </span>
+        `;
+    }
+
+    // ---------------------------------------------
+    // APPROVED
+    // ---------------------------------------------
+    else if (app.status === "Approved") {
+        detailsActions.innerHTML = `
+            <span class="inline-flex items-center gap-2 px-4 py-2 bg-green-50 text-green-700 rounded-lg text-sm font-semibold">
+                <i class="fas fa-circle-check"></i>
+                Application Approved
+            </span>
+        `;
+    }
+
+    // ---------------------------------------------
+    // DECLINED
+    // ---------------------------------------------
+    else if (app.status === "Declined") {
+        detailsActions.innerHTML = `
+            <span class="inline-flex items-center gap-2 px-4 py-2 bg-red-50 text-red-700 rounded-lg text-sm font-semibold">
+                <i class="fas fa-circle-xmark"></i>
+                Application Declined
+            </span>
+        `;
+
+        // Show decline reason if available
+        if (app.declineReason) {
+            detailsActions.innerHTML += `
+                <div class="w-full mt-2 p-3 rounded-lg bg-red-50 border border-red-100 text-sm text-red-700">
+                    <strong>Reason:</strong>
+                    ${app.declineReason}
+                </div>
+            `;
         }
+    }
+}
 
-        function showDetails(app) {
-            selectedApp = app;
-            listView.classList.add('hidden-view');
-            detailsView.style.display = 'block';
+// =====================================================
+// GO BACK TO APPLICATION LIST
+// =====================================================
 
-            // Reference & upload date
-            detailRef.textContent = `APP-2026-${String(app.id).padStart(3, '0')}`;
-            detailUploadDate.textContent = app.date;
+function goBack() {
+    detailsView.style.display = "none";
+    listView.classList.remove("hidden-view");
+    listView.style.display = "block";
+    selectedApp = null;
+    renderTable();
+}
 
-            // Status badge (formal)
-            const statusKey = app.status === 'Active' ? 'active' : app.status === 'Success' ? 'success' : 'cancelled';
-            detailStatusBadge.className = `badge-status ${statusKey}`;
-            detailStatusBadge.innerHTML = `<span class="dot"></span> ${app.status}`;
+// =====================================================
+// TAB SWITCHING
+// =====================================================
 
-            // Stepper
-            updateStepper();
+function setActiveTab(tab) {
+    currentTab = tab;
 
-            // Applicant – formal fields with labels
-            const a = app.applicant;
-            detailApplicant.innerHTML = `
-                        ${createFormalField('Full Name', a.fullName)}
-                        ${createFormalField('Phone', a.phone)}
-                        ${createFormalField('Email', a.email)}
-                        <div class="md:col-span-3">${createFormalField('Address', a.address)}</div>
-                        ${createFormalField('Civil Status', a.civilStatus)}
-                        ${createFormalField('Age', a.age)}
-                        ${createFormalField('Occupation', a.occupation)}
-                    `;
-
-            // Lifestyle – formal fields
-            const l = app.lifestyle;
-            detailLifestyle.innerHTML = `
-                        ${createFormalField('Work Hours', l.workHours)}
-                        ${createFormalField('Time with Pet', l.timeWithPet)}
-                    `;
-
-            // Intent
-            detailIntent.value = app.intent;
-
-            // Emergency – formal fields
-            const e = app.emergency;
-            detailEmergency.innerHTML = `
-                        ${createFormalField('Contact Name', e.name)}
-                        ${createFormalField('Phone', e.phone)}
-                        ${createFormalField('Relation', e.relation)}
-                    `;
-
-            // Actions
-            detailsActions.innerHTML = '';
-            if (app.status === 'Active') {
-                detailsActions.innerHTML = `
-                            <button class="flex items-center gap-2 px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition">
-                                <i class="fas fa-edit"></i> Edit
-                            </button>
-                            <button class="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition">
-                                <i class="fas fa-times"></i> Cancel Application
-                            </button>
-                        `;
-                // Add event listeners for demo
-                detailsActions.querySelector('.edit')?.addEventListener('click', () => {
-                    alert('Edit mode would open here.');
-                });
-                detailsActions.querySelector('.cancel')?.addEventListener('click', () => {
-                    if (confirm('Are you sure you want to cancel this application?')) {
-                        app.status = 'Cancelled';
-                        goBack();
-                        renderTable();
-                    }
-                });
-            }
+    tabBtns.forEach(btn => {
+        const tabName = btn.dataset.tab;
+        if (tabName === tab) {
+            btn.className = "tab-btn pb-2 font-semibold transition text-blue-700 border-b-2 border-blue-700";
+        } else {
+            btn.className = "tab-btn pb-2 font-semibold transition text-gray-600 hover:text-blue-600";
         }
+    });
 
-        function goBack() {
-            detailsView.style.display = 'none';
-            listView.classList.remove('hidden-view');
-            listView.style.display = 'block';
-            selectedApp = null;
-            renderTable();
-        }
+    renderTable();
+}
 
-        // ===== TAB SWITCHING =====
-        function setActiveTab(tab) {
-            currentTab = tab;
-            tabBtns.forEach(btn => {
-                const t = btn.dataset.tab;
-                if (t === tab) {
-                    btn.className =
-                        'tab-btn pb-2 font-semibold transition text-blue-700 border-b-2 border-blue-700';
-                } else {
-                    btn.className = 'tab-btn pb-2 font-semibold transition text-gray-600 hover:text-blue-600';
-                }
-            });
-            renderTable();
-        }
+// =====================================================
+// INITIALIZE PAGE
+// =====================================================
 
-        // ===== INIT =====
-        function init() {
-            setActiveTab('Active');
+async function init() {
+    // ---------------------------------------------
+    // DEFAULT TAB
+    // ---------------------------------------------
+    setActiveTab("Under Review");
 
-            tabBtns.forEach(btn => {
-                btn.addEventListener('click', function() {
-                    setActiveTab(this.dataset.tab);
-                });
-            });
+    // ---------------------------------------------
+    // TAB EVENTS
+    // ---------------------------------------------
+    tabBtns.forEach(btn => {
+        btn.addEventListener("click", function () {
+            setActiveTab(this.dataset.tab);
+        });
+    });
 
-            backBtn.addEventListener('click', goBack);
+    // ---------------------------------------------
+    // BACK BUTTON
+    // ---------------------------------------------
+    backBtn.addEventListener("click", goBack);
 
-            listView.style.display = 'block';
-            detailsView.style.display = 'none';
-        }
+    // ---------------------------------------------
+    // INITIAL VIEW
+    // ---------------------------------------------
+    listView.style.display = "block";
+    detailsView.style.display = "none";
 
-        init();
-    </script>
+    // ---------------------------------------------
+    // LOAD REAL DATA
+    // ---------------------------------------------
+    await loadApplications();
+}
+
+// =====================================================
+// START
+// =====================================================
+
+init();
+</script>
 
 </body>
 

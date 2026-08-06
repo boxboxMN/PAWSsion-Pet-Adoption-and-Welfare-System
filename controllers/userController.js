@@ -685,3 +685,109 @@ exports.checkAppliedStatus = async (req, res) => {
         return res.status(500).json({ error: "Server error" });
     }
 };
+// =====================================================
+// GET CURRENT USER'S ADOPTION APPLICATIONS
+exports.getUserApplications = async (req, res) => {
+    try {
+        // =====================================================
+        // 1. CHECK LOGIN SESSION
+        // =====================================================
+        const accountId = req.session?.accountId;
+
+        console.log("========================================");
+        console.log("GET USER APPLICATIONS");
+        console.log("Session:", req.session);
+        console.log("Account ID:", accountId);
+        console.log("========================================");
+
+        if (!accountId) {
+            return res.status(401).json({ success: false, message: "You must be logged in." });
+        }
+
+        // =====================================================
+        // 2. GET adopter_id USING account_id
+        // =====================================================
+        const [adopterRows] = await pool.query(
+            `SELECT adopter_id FROM adopters WHERE account_id = ? LIMIT 1`,
+            [accountId]
+        );
+
+        console.log("Adopter rows:", adopterRows);
+
+        if (adopterRows.length === 0) {
+            return res.status(404).json({ success: false, message: "Adopter profile not found." });
+        }
+
+        const adopterId = adopterRows[0].adopter_id;
+
+        console.log("Adopter ID:", adopterId);
+
+        // =====================================================
+        // 3. GET APPLICATIONS
+        // =====================================================
+        const [applications] = await pool.query(
+            `
+            SELECT
+                app.application_id,
+                app.adopter_id,
+                app.animal_id,
+                app.full_name,
+                app.contact_number,
+                app.email,
+                app.full_address,
+                app.civil_status,
+                app.age,
+                app.occupation,
+                app.adoption_intent,
+                app.emergency_name,
+                app.emergency_phone,
+                app.emergency_relation,
+                app.document_path,
+                app.status,
+                app.decline_reason,
+                app.created_at,
+                app.updated_at,
+                app.interview_date,
+                app.interview_time,
+                app.interview_method,
+                app.interview_location_link,
+                -- PET INFORMATION
+                animal.name AS pet_name,
+                animal.species AS species,
+                animal.gender AS gender,
+                animal.age AS pet_age,
+                animal.image_path AS image_path,
+                -- ORGANIZATION INFORMATION
+                org.organization_id,
+                org.organization_name,
+                org.profile_pic
+            FROM user_adoption_applications app
+            INNER JOIN animals animal ON app.animal_id = animal.animal_id
+            LEFT JOIN organizations org ON animal.organization_id = org.organization_id
+            WHERE app.adopter_id = ?
+            ORDER BY app.created_at DESC
+            `,
+            [adopterId]
+        );
+
+        // =====================================================
+        // 4. DEBUG
+        // =====================================================
+        console.log("Applications found:", applications);
+        console.log("Applications:", applications);
+
+        // =====================================================
+        // 5. SEND RESPONSE
+        // =====================================================
+        return res.status(200).json({ success: true, applications: applications });
+
+    } catch (error) {
+        console.error("Error fetching user adoption applications:", error);
+
+        return res.status(500).json({
+            success: false,
+            message: "Failed to load adoption applications.",
+            error: error.message
+        });
+    }
+};

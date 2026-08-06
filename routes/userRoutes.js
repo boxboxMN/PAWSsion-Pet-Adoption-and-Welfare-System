@@ -129,6 +129,8 @@ router.get("/kamustahan", (req, res) => {
 router.get("/profile", (req, res) => {
   res.sendFile(path.join(__dirname, "../public/user/userProfile.html"));
 }); 
+
+router.get("/api/user/applications", userController.getUserApplications);
 router.get("/api/user/donations", userController.getUserDonations);
 router.get("/api/user/profile", userController.getProfile);
 router.post("/api/user/profile/update", userController.updateProfile);
@@ -144,7 +146,6 @@ router.post(
   uploadDoc.single('document'), 
   userController.submitAdoptionApplication
 );
-
 // Check if the user has already applied for a specific pet
 router.get('/check-applied/:petId', userController.checkAppliedStatus);
 
