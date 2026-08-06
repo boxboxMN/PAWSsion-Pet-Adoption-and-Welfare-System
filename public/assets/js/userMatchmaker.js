@@ -91,7 +91,29 @@
             showScreen(preferenceScreen);
         }
         
+function updateMatchingProgress(percent, message) {
 
+    const progressBar =
+        document.getElementById("matchingProgressBar");
+
+    const progressText =
+        document.getElementById("matchingProgressText");
+
+    const progressPercent =
+        document.getElementById("matchingProgressPercent");
+
+    if (progressBar) {
+        progressBar.style.width = `${percent}%`;
+    }
+
+    if (progressText) {
+        progressText.textContent = message;
+    }
+
+    if (progressPercent) {
+        progressPercent.textContent = `${percent}%`;
+    }
+}
 // =========================
 // MATCH PETS
 // =========================
@@ -122,66 +144,136 @@ async function showCompatibilityScreen() {
 
     console.log(type, sex, age, behavior);
 
-    // ==============================
-    // SHOW LOADING SCREEN
-    // ==============================
-    showLoadingScreen();
+        // ==============================
+        // SHOW LOADING SCREEN
+        // ==============================
+        showLoadingScreen();
 
-    // Give the browser a moment to render
-    // the loading screen before starting the request
-    await new Promise(resolve => setTimeout(resolve, 5000));
+        // Reset progress to 0%
+        updateMatchingProgress(
+            0,
+            "Preparing your preferences..."
+        );
 
-    try {
+        // Give the browser a moment to render
+        await new Promise(resolve => setTimeout(resolve, 1000));
 
         // ==============================
-        // AI MATCHING REQUEST
+        // PROGRESS: 20%
         // ==============================
-        const response = await fetch("/api/matchmaking", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                type,
-                sex,
-                age,
-                behavior
-            })
-        });
+        updateMatchingProgress(
+            20,
+            "Analyzing your preferences..."
+        );
 
-        console.log("Response:", response.status);
+        await new Promise(resolve => setTimeout(resolve, 2000));
 
-        if (!response.ok) {
-            throw new Error(`Matching request failed: ${response.status}`);
+        // ==============================
+        // PROGRESS: 40%
+        // ==============================
+        updateMatchingProgress(
+            40,
+            "Searching through available pets..."
+        );
+
+        await new Promise(resolve => setTimeout(resolve, 2000));
+
+        // ==============================
+        // PROGRESS: 60%
+        // ==============================
+        updateMatchingProgress(
+            60,
+            "Comparing your preferences with pet profiles..."
+        );
+
+        await new Promise(resolve => setTimeout(resolve, 2000));
+
+        try {
+
+            // ==============================
+            // AI MATCHING REQUEST
+            // ==============================
+
+            updateMatchingProgress(
+                70,
+                "Our AI is calculating compatibility..."
+            );
+            await new Promise(resolve => setTimeout(resolve, 1000));
+
+            const response = await fetch("/api/matchmaking", {
+                method: "POST",
+
+                headers: {
+                    "Content-Type": "application/json"
+                },
+
+                body: JSON.stringify({
+                    type,
+                    sex,
+                    age,
+                    behavior
+                })
+            });
+
+            console.log("Response:", response.status);
+
+            if (!response.ok) {
+                throw new Error(
+                    `Matching request failed: ${response.status}`
+                );
+            }
+
+            // ==============================
+            // RESPONSE RECEIVED
+            // ==============================
+
+            updateMatchingProgress(
+                85,
+                "Ranking your best matches..."
+            );
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            const data = await response.json();
+
+            console.log(data);
+
+            // ==============================
+            // RENDER MATCHES
+            // ==============================
+
+            renderMatches(data.matches);
+
+            // ==============================
+            // COMPLETE
+            // ==============================
+
+            updateMatchingProgress(
+                100,
+                "Your matches are ready!"
+            );
+
+            // Let user see 100%
+            await new Promise(resolve => setTimeout(resolve, 1000));
+
+            // ==============================
+            // SHOW RESULTS
+            // ==============================
+
+            showScreen(compatibilityScreen);
+
+        } catch (err) {
+
+            console.error("Matching error:", err);
+
+            // If something goes wrong,
+            // return to preference screen
+            showScreen(preferenceScreen);
+
+            message.textContent =
+                "Something went wrong while finding matches. Please try again.";
+
+            message.classList.remove("hidden");
         }
-
-        const data = await response.json();
-
-        console.log(data);
-
-        // ==============================
-        // RENDER MATCHES
-        // ==============================
-        renderMatches(data.matches);
-
-        // ==============================
-        // SHOW RESULTS
-        // ==============================
-        showScreen(compatibilityScreen);
-
-    } catch (err) {
-
-        console.error("Matching error:", err);
-
-        // If something goes wrong,
-        // return to the preference screen
-        showScreen(preferenceScreen);
-
-        message.textContent =
-            "Something went wrong while finding matches. Please try again.";
-
-        message.classList.remove("hidden");
-    }
 }
 document
     .getElementById("introNextBtn")
