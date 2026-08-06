@@ -137,10 +137,27 @@ router.put("/donations/in-kind/:id/status", updateInKindDonationStatus);
 router.get("/dropoff-info", getDropoffInfo);
 router.post("/dropoff-info", uploadDropoff.single("dropoff_image"), updateDropoffInfo);
 
-// GET Single Application Details Endpoint
+// GET Single Application Details Endpoint (Protected by Organization)
 router.get('/applications/:id', async (req, res) => {
     try {
         const { id } = req.params;
+        const accountId = req.session?.accountId;
+
+        if (!accountId) {
+            return res.status(401).json({ message: "Unauthorized" });
+        }
+
+        // Kunin ang organization_id ng naka-login na account
+        const [orgRows] = await pool.query(
+            `SELECT organization_id FROM organizations WHERE account_id = ?`,
+            [accountId]
+        );
+
+        if (!orgRows.length) {
+            return res.status(404).json({ message: "Organization not found" });
+        }
+
+        const orgId = orgRows[0].organization_id;
 
         const query = `
         SELECT 
@@ -160,24 +177,24 @@ router.get('/applications/:id', async (req, res) => {
             app.emergency_relation,
             app.document_path,
             app.status,
-            app.interview_date, -- New column
-            app.interview_time, -- New column
-            app.interview_method, -- New column
-            app.interview_location_link, -- New column
+            app.interview_date,
+            app.interview_time,
+            app.interview_method,
+            app.interview_location_link,
             DATE_FORMAT(app.created_at, '%b %d, %Y • %h:%i %p') AS applied_date,
             p.name AS pet_name
         FROM user_adoption_applications app
-        LEFT JOIN animals p ON app.animal_id = p.animal_id
-        WHERE app.application_id = ?
+        INNER JOIN animals p ON app.animal_id = p.animal_id
+        WHERE app.application_id = ? AND p.organization_id = ?
     `;
     
-    const [rows] = await pool.query(query, [id]);
+    const [rows] = await pool.query(query, [id, orgId]);
     
     if (!rows || rows.length === 0) {
-        return res.status(404).json({ message: "Application not found" });
+        return res.status(404).json({ message: "Application not found or unauthorized access." });
     }
     
-    res.json(rows[0]); // Send the application details, including the new columns
+    res.json(rows[0]);
 
     } catch (err) {
         console.error("❌ SQL Error:", err);
@@ -187,6 +204,9 @@ router.get('/applications/:id', async (req, res) => {
 
 // PATCH Update Application Status (Decline, Approve, Schedule Interview)
 router.patch('/applications/:id/status', async (req, res) => {
+    // Gumamit ng connection mula sa pool para sa Transaction
+    const connection = await pool.getConnection();
+
     try {
         const { id } = req.params;
         const { status, decline_reason } = req.body;
@@ -194,12 +214,34 @@ router.patch('/applications/:id/status', async (req, res) => {
         const validStatuses = ['Under Review', 'Interview Scheduled', 'Approved', 'Declined'];
 
         if (!status || !validStatuses.includes(status)) {
+            connection.release();
             return res.status(400).json({ 
                 success: false,
                 message: `Invalid status selected. Allowed: ${validStatuses.join(', ')}` 
             });
         }
 
+        await connection.beginTransaction();
+
+        // Get the animal_id of the pet from the application 
+        const [appRows] = await connection.query(
+            `SELECT animal_id FROM user_adoption_applications WHERE application_id = ?`,
+            [id]
+        );
+
+        if (appRows.length === 0) {
+            await connection.rollback();
+            connection.release();
+            return res.status(404).json({ 
+                success: false, 
+                message: "Application not found." 
+            });
+        }
+
+        const animalId = appRows[0].animal_id;
+        const reasonValue = (status === 'Declined') ? (decline_reason || null) : null;
+
+        // Update Application Status
         const updateQuery = `
             UPDATE user_adoption_applications 
             SET 
@@ -209,16 +251,28 @@ router.patch('/applications/:id/status', async (req, res) => {
             WHERE application_id = ?
         `;
 
-        const reasonValue = (status === 'Declined') ? (decline_reason || null) : null;
-
-        const [result] = await pool.query(updateQuery, [status, reasonValue, id]);
+        const [result] = await connection.query(updateQuery, [status, reasonValue, id]);
 
         if (result.affectedRows === 0) {
+            await connection.rollback();
+            connection.release();
             return res.status(404).json({ 
                 success: false, 
-                message: "Application not found or no changes were saved." 
+                message: "No changes were saved." 
             });
         }
+
+        // If approved, change the status of the pet from "animals" table, and matanggal sa Adoption Hub
+        if (status === 'Approved') {
+            await connection.query(
+                `UPDATE animals SET adoption_status = 'Adopted' WHERE animal_id = ?`,
+                [animalId]
+            );
+        }
+
+        // save the changes in the db
+        await connection.commit();
+        connection.release();
 
         res.json({
             success: true,
@@ -227,6 +281,9 @@ router.patch('/applications/:id/status', async (req, res) => {
         });
 
     } catch (err) {
+        await connection.rollback();
+        connection.release();
+
         res.status(500).json({ 
             success: false, 
             message: "Failed to update application status due to a database error.",
@@ -272,6 +329,11 @@ router.post('/applications/:id/schedule', async (req, res) => {
         console.error("❌ Schedule Error:", err);
         return res.status(500).json({ success: false, error: err.message });
     }
+});
+
+//para magconnect kapag pinagclick ang action sa adoption to org_app-details
+router.get("/adoption-details", (req, res) => {
+    res.sendFile(path.join(__dirname, "../public/organization/org_application-details.html"));
 });
 
 module.exports = router;

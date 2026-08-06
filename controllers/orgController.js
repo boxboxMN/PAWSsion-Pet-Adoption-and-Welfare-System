@@ -214,50 +214,95 @@ exports.getPets = async (req, res) => {
     }
 };
 
+// exports.getPetDetails = async (req, res) => {
+//     try {
+//         // Get pet information
+//         const [rows] = await pool.query(
+//             `
+//             SELECT *
+//             FROM animals
+//             WHERE animal_id = ?
+//             `,
+//             [req.params.id]
+//         );
+
+//         if (!rows.length) {
+//             return res.json({
+//                 success: false,
+//                 message: "Pet not found."
+//             });
+//         }
+
+//         // Get medical history
+//         const [medical] = await pool.query(
+//             `
+//             SELECT *
+//             FROM animal_medical_history
+//             WHERE animal_id = ?
+//             ORDER BY administered_date DESC
+//             `,
+//             [req.params.id]
+//         );
+
+//         // Attach medical history to the pet object
+//         rows[0].medical_history = medical;
+
+//         res.json({
+//             success: true,
+//             pet: rows[0]
+//         });
+
+//     } catch (err) {
+//         console.error(err);
+//         res.status(500).json({
+//             success: false,
+//             message: "Server error"
+//         });
+//     }
+// };
+
+//nasa taas yung lumang code neto nakacomment, if hindi to gumana, ibalik na lang sa lumang code
+// para hindi makita or maedit ng ibang org ang pets na nasa ibang org (pets page)
 exports.getPetDetails = async (req, res) => {
     try {
-        // Get pet information
+        // 1. Kunin muna ang org_id ng naka-login
+        const [org] = await pool.query(
+            `SELECT organization_id FROM organizations WHERE account_id = ?`,
+            [req.session.accountId]
+        );
+
+        if (!org.length) {
+            return res.json({ success: false, message: "Organization not found." });
+        }
+
+        const organization_id = org[0].organization_id;
+
+        // 2. Isama ang organization_id sa query check
         const [rows] = await pool.query(
-            `
-            SELECT *
-            FROM animals
-            WHERE animal_id = ?
-            `,
-            [req.params.id]
+            `SELECT * FROM animals WHERE animal_id = ? AND organization_id = ?`,
+            [req.params.id, organization_id]
         );
 
         if (!rows.length) {
             return res.json({
                 success: false,
-                message: "Pet not found."
+                message: "Pet not found or unauthorized access."
             });
         }
 
         // Get medical history
         const [medical] = await pool.query(
-            `
-            SELECT *
-            FROM animal_medical_history
-            WHERE animal_id = ?
-            ORDER BY administered_date DESC
-            `,
+            `SELECT * FROM animal_medical_history WHERE animal_id = ? ORDER BY administered_date DESC`,
             [req.params.id]
         );
 
-        // Attach medical history to the pet object
         rows[0].medical_history = medical;
 
-        res.json({
-            success: true,
-            pet: rows[0]
-        });
+        res.json({ success: true, pet: rows[0] });
 
     } catch (err) {
         console.error(err);
-        res.status(500).json({
-            success: false,
-            message: "Server error"
-        });
+        res.status(500).json({ success: false, message: "Server error" });
     }
 };
 
@@ -300,7 +345,8 @@ exports.updatePet = async (req, res) => {
         }
 
         values.push(id);
-
+        
+        //dinagdag lang ang AND organization_id=?
         await pool.query(
             `
             UPDATE animals
@@ -317,7 +363,7 @@ exports.updatePet = async (req, res) => {
                 adoption_status=?,
                 personality_tags=?
                 ${imageSQL}
-            WHERE animal_id=?
+            WHERE animal_id=? AND organization_id=?
             `,
             values
         );
@@ -393,6 +439,7 @@ exports.updatePet = async (req, res) => {
 };
 
 exports.deletePet = async (req, res) => {
+    //dinagdag lang ang AND organization_id=?
     try {
         const id = req.params.id;
 
@@ -409,7 +456,7 @@ exports.deletePet = async (req, res) => {
         const [result] = await pool.query(
             `
             DELETE FROM animals
-            WHERE animal_id = ?
+            WHERE animal_id = ? AND organization_id = ?
             `,
             [id]
         );

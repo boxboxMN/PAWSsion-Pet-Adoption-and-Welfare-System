@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Aug 04, 2026 at 01:20 PM
+-- Generation Time: Aug 06, 2026 at 07:50 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.0.30
 
@@ -29,6 +29,7 @@ SET time_zone = "+00:00";
 
 CREATE TABLE `user_adoption_applications` (
   `application_id` int(11) NOT NULL,
+  `organization_id` int(11) DEFAULT NULL,
   `animal_id` int(11) NOT NULL,
   `adopter_id` int(11) NOT NULL,
   `full_name` varchar(150) NOT NULL,
@@ -57,11 +58,9 @@ CREATE TABLE `user_adoption_applications` (
 -- Dumping data for table `user_adoption_applications`
 --
 
-INSERT INTO `user_adoption_applications` (`application_id`, `animal_id`, `adopter_id`, `full_name`, `contact_number`, `email`, `full_address`, `civil_status`, `age`, `occupation`, `adoption_intent`, `emergency_name`, `emergency_phone`, `emergency_relation`, `document_path`, `status`, `decline_reason`, `created_at`, `updated_at`, `interview_date`, `interview_time`, `interview_method`, `interview_location_link`) VALUES
-(1, 15, 1, 'Irene Espeleta', '09331231232', 'irespeleta@my.cspc.edu.ph', 'sfdsfffffffffffffffffffffffffffffffffffffffff', 'Single', 45, 'dfgdfgdfgdfg', 'gfrgrfgrfgf', 'Irene Espeleta', '09676565666', 'fddgvdgdg', 'doc-3-1785174605742.png', 'Under Review', NULL, '2026-07-27 17:50:05', '2026-08-04 09:47:26', NULL, NULL, NULL, NULL),
-(2, 15, 1, 'Irene Espeleta', '09331231232', 'irespeleta@my.cspc.edu.ph', 'sfdsfffffffffffffffffffffffffffffffffffffffff', 'Married', 45, 'dfgdfgdfgdfg', 'hgjfhjuhjhm', 'Irene Espeleta', '09676565666', 'jfjfghjhgjg', 'doc-3-1785175113458.png', 'Under Review', NULL, '2026-07-27 17:58:33', '2026-07-31 13:42:14', NULL, NULL, NULL, NULL),
-(3, 15, 1, 'Irene Espeleta', '09331231232', 'irespeleta@my.cspc.edu.ph', 'sfdsfffffffffffffffffffffffffffffffffffffffff', 'Single', 45, 'dfgdfgdfgdfg', 'hnhnhnhn', 'Irene Espeleta', '09676565666', 'rrgrg', 'doc-3-1785175383163.png', 'Under Review', NULL, '2026-07-27 18:03:03', '2026-07-31 13:42:14', NULL, NULL, NULL, NULL),
-(4, 13, 1, 'Irene Espeleta', '09331231232', 'irespeleta@my.cspc.edu.ph', 'sfdsfffffffffffffffffffffffffffffffffffffffff', 'Single', 67, 'dfgdfgdfgdfg', 'yujyjyhj', 'Irene Espeleta', '09676565666', 'fddgvdgdg', 'doc-3-1785178265448.png', 'Interview Scheduled', NULL, '2026-07-27 18:51:05', '2026-08-04 10:33:27', '2026-08-05', '06:32:00', 'virtual', 'https://meet.google.com/abc-defg-hij');
+INSERT INTO `user_adoption_applications` (`application_id`, `organization_id`, `animal_id`, `adopter_id`, `full_name`, `contact_number`, `email`, `full_address`, `civil_status`, `age`, `occupation`, `adoption_intent`, `emergency_name`, `emergency_phone`, `emergency_relation`, `document_path`, `status`, `decline_reason`, `created_at`, `updated_at`, `interview_date`, `interview_time`, `interview_method`, `interview_location_link`) VALUES
+(1, 1, 15, 1, 'Irene Espeleta', '09331231232', 'irespeleta@my.cspc.edu.ph', 'sfdsfffffffffffffffffffffffffffffffffffffffff', 'Single', 45, 'dfgdfgdfgdfg', 'gfrgrfgrfgf', 'Irene Espeleta', '09676565666', 'fddgvdgdg', 'doc-3-1785174605742.png', 'Approved', NULL, '2026-07-27 17:50:05', '2026-08-06 05:49:55', NULL, NULL, NULL, NULL),
+(4, 1, 13, 1, 'Irene Espeleta', '09331231232', 'irespeleta@my.cspc.edu.ph', 'sfdsfffffffffffffffffffffffffffffffffffffffff', 'Single', 67, 'dfgdfgdfgdfg', 'yujyjyhj', 'Irene Espeleta', '09676565666', 'fddgvdgdg', 'doc-3-1785178265448.png', 'Interview Scheduled', NULL, '2026-07-27 18:51:05', '2026-08-06 05:49:55', '2026-08-05', '06:32:00', 'virtual', 'https://meet.google.com/abc-defg-hij');
 
 --
 -- Indexes for dumped tables
@@ -73,7 +72,8 @@ INSERT INTO `user_adoption_applications` (`application_id`, `animal_id`, `adopte
 ALTER TABLE `user_adoption_applications`
   ADD PRIMARY KEY (`application_id`),
   ADD KEY `fk_app_animal` (`animal_id`),
-  ADD KEY `fk_app_adopter` (`adopter_id`);
+  ADD KEY `fk_app_adopter` (`adopter_id`),
+  ADD KEY `fk_user_applications_org` (`organization_id`);
 
 --
 -- AUTO_INCREMENT for dumped tables
@@ -94,7 +94,8 @@ ALTER TABLE `user_adoption_applications`
 --
 ALTER TABLE `user_adoption_applications`
   ADD CONSTRAINT `fk_app_adopter` FOREIGN KEY (`adopter_id`) REFERENCES `adopters` (`adopter_id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `fk_app_animal` FOREIGN KEY (`animal_id`) REFERENCES `animals` (`animal_id`) ON DELETE CASCADE;
+  ADD CONSTRAINT `fk_app_animal` FOREIGN KEY (`animal_id`) REFERENCES `animals` (`animal_id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `fk_user_applications_org` FOREIGN KEY (`organization_id`) REFERENCES `organizations` (`organization_id`) ON DELETE CASCADE ON UPDATE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

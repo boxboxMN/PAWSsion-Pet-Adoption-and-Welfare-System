@@ -351,10 +351,27 @@ app.get("/api/pets", async (req, res) => {
     }
 });
 
-//Fetching the adoption applications for the organization adoption dashboard
+// Fetching adoption applications FOR LOGGED-IN ORGANIZATION ONLY
 app.get('/api/organization/applications', async (req, res) => {
     try {
-        // Query na kumukuha sa user_adoption_applications table
+        const accountId = req.session?.accountId;
+        if (!accountId) {
+            return res.status(401).json({ error: "Unauthorized access." });
+        }
+
+        // 1. Kunin ang organization_id gamit ang account_id ng session
+        const [orgRows] = await pool.query(
+            `SELECT organization_id FROM organizations WHERE account_id = ?`,
+            [accountId]
+        );
+
+        if (!orgRows.length) {
+            return res.status(404).json({ error: "Organization not found." });
+        }
+
+        const orgId = orgRows[0].organization_id;
+
+        // 2. Query na may WHERE clause para sa naka-login na Organization lang
         const query = `
            SELECT 
                 app.application_id AS id,
@@ -368,18 +385,15 @@ app.get('/api/organization/applications', async (req, res) => {
                 DATE_FORMAT(app.created_at, '%b %d, %Y') AS applied_date,
                 DATE_FORMAT(app.created_at, '%h:%i %p') AS applied_time
             FROM user_adoption_applications app
-            -- 1. Kukunin ang Pangalan mula sa 'adopters' table
             LEFT JOIN adopters adopt ON app.adopter_id = adopt.adopter_id
-            -- 2. Kukunin ang Email mula sa 'accounts' table gamit ang account_id sa adopters
             LEFT JOIN accounts acc ON adopt.account_id = acc.account_id
-            -- 3. Kukunin ang Pet Info mula sa 'animals' table
-            LEFT JOIN animals p ON app.animal_id = p.animal_id
+            INNER JOIN animals p ON app.animal_id = p.animal_id
+            WHERE p.organization_id = ?
             ORDER BY app.created_at DESC;
         `;
 
-        const [rows] = await pool.query(query);
+        const [rows] = await pool.query(query, [orgId]);
 
-        // Ipadala ang data pabalik sa Frontend
         res.status(200).json(rows);
     } catch (error) {
         console.error("Database Error:", error);
