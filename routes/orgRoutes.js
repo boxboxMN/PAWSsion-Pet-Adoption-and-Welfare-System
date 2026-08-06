@@ -128,10 +128,27 @@ router.put("/donations/in-kind/:id/status", updateInKindDonationStatus);
 router.get("/dropoff-info", getDropoffInfo);
 router.post("/dropoff-info", uploadDropoff.single("dropoff_image"), updateDropoffInfo);
 
-// GET Single Application Details Endpoint
+// GET Single Application Details Endpoint (Protected by Organization)
 router.get('/applications/:id', async (req, res) => {
     try {
         const { id } = req.params;
+        const accountId = req.session?.accountId;
+
+        if (!accountId) {
+            return res.status(401).json({ message: "Unauthorized" });
+        }
+
+        // Kunin ang organization_id ng naka-login na account
+        const [orgRows] = await pool.query(
+            `SELECT organization_id FROM organizations WHERE account_id = ?`,
+            [accountId]
+        );
+
+        if (!orgRows.length) {
+            return res.status(404).json({ message: "Organization not found" });
+        }
+
+        const orgId = orgRows[0].organization_id;
 
         const query = `
         SELECT 
@@ -151,24 +168,24 @@ router.get('/applications/:id', async (req, res) => {
             app.emergency_relation,
             app.document_path,
             app.status,
-            app.interview_date, -- New column
-            app.interview_time, -- New column
-            app.interview_method, -- New column
-            app.interview_location_link, -- New column
+            app.interview_date,
+            app.interview_time,
+            app.interview_method,
+            app.interview_location_link,
             DATE_FORMAT(app.created_at, '%b %d, %Y • %h:%i %p') AS applied_date,
             p.name AS pet_name
         FROM user_adoption_applications app
-        LEFT JOIN animals p ON app.animal_id = p.animal_id
-        WHERE app.application_id = ?
+        INNER JOIN animals p ON app.animal_id = p.animal_id
+        WHERE app.application_id = ? AND p.organization_id = ?
     `;
     
-    const [rows] = await pool.query(query, [id]);
+    const [rows] = await pool.query(query, [id, orgId]);
     
     if (!rows || rows.length === 0) {
-        return res.status(404).json({ message: "Application not found" });
+        return res.status(404).json({ message: "Application not found or unauthorized access." });
     }
     
-    res.json(rows[0]); // Send the application details, including the new columns
+    res.json(rows[0]);
 
     } catch (err) {
         console.error("❌ SQL Error:", err);
