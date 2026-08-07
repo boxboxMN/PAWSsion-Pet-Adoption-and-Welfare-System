@@ -143,7 +143,18 @@ router.post('/api/user/donation/in-kind', userController.submitInKindDonation);
 //for user adoption application submission
 router.post(
   '/api/adoptions/submit-application', 
-  uploadDoc.single('document'), 
+  (req, res, next) => {
+    uploadDoc.single('document')(req, res, (err) => {
+      if (err) {
+        // Huliin at ibalik ang eksaktong Multer validation error
+        return res.status(400).json({
+          status: 'error',
+          message: err.message || 'Invalid file format uploaded.'
+        });
+      }
+      next();
+    });
+  }, 
   userController.submitAdoptionApplication
 );
 // Check if the user has already applied for a specific pet

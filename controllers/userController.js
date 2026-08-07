@@ -672,11 +672,21 @@ exports.checkAppliedStatus = async (req, res) => {
 
         const adopterId = adopterRows[0].adopter_id;
 
-        // 2. I-check ang user_adoption_applications table
-        const application = await AdoptionModel.checkUserApplication(adopterId, petId);
+        // Query application with decline_reason included
+        const [rows] = await pool.query(
+            `SELECT application_id, status, decline_reason 
+             FROM user_adoption_applications 
+             WHERE adopter_id = ? AND animal_id = ? 
+             ORDER BY created_at DESC LIMIT 1`,
+            [adopterId, petId]
+        );
 
-        if (application) {
-            return res.json({ hasApplied: true, status: application.status });
+        if (rows.length > 0) {
+            return res.json({ 
+                hasApplied: true, 
+                status: rows[0].status,
+                declineReason: rows[0].decline_reason || "No specific reason provided."
+            });
         }
 
         return res.json({ hasApplied: false });

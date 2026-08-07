@@ -212,13 +212,40 @@ async function checkPetApplicationStatus(petId) {
         const data = await res.json();
 
         if (data.hasApplied) {
-            // I-disable ang button at baguhin ang styling at text
-            applyBtn.disabled = true;
-            applyBtn.className = "w-full bg-gray-400 text-white py-3 rounded-xl font-bold text-xs shadow-none cursor-not-allowed flex items-center justify-center gap-2";
-            applyBtn.innerHTML = `
-                <i class="fa-solid fa-circle-check text-sm"></i>
-                <span>Application Already Submitted (${data.status || 'Pending'})</span>
-            `;
+            const statusUpper = (data.status || '').toUpperCase();
+
+            if (statusUpper === 'DECLINED' || statusUpper === 'REJECTED') {
+                // KAPAG DECLINED: Clickable Button na nagpapakita ng reason
+                applyBtn.disabled = false;
+                applyBtn.className = "w-full bg-red-600 hover:bg-red-700 text-white py-3 rounded-xl font-bold text-xs shadow-md transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99]";
+                applyBtn.innerHTML = `
+                    <i class="fa-solid fa-circle-xmark text-sm"></i>
+                    <span>Application Declined (View Details)</span>
+                `;
+
+                // Set click action para lumabas ang popup kung bakit na-decline
+                applyBtn.onclick = (e) => {
+                    e.preventDefault();
+                    if (typeof showModal === 'function') {
+                        showModal(
+                            'Application Declined', 
+                            `Reason: ${data.declineReason || 'No specific reason provided by the organization.'}`, 
+                            false
+                        );
+                    } else {
+                        alert(`Application Declined\n\nReason: ${data.declineReason}`);
+                    }
+                };
+            } else {
+                // KAPAG PENDING / APPROVED: Disabled Button
+                applyBtn.disabled = true;
+                applyBtn.onclick = null;
+                applyBtn.className = "w-full bg-gray-400 text-white py-3 rounded-xl font-bold text-xs shadow-none cursor-not-allowed flex items-center justify-center gap-2";
+                applyBtn.innerHTML = `
+                    <i class="fa-solid fa-circle-check text-sm"></i>
+                    <span>Application Submitted (${data.status || 'Pending'})</span>
+                `;
+            }
         } else {
             // Ibalik sa active state
             applyBtn.disabled = false;

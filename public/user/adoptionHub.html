@@ -546,6 +546,9 @@
             const applyBtn = document.getElementById('applyModalBtn');
             if (applyBtn) {
                 applyBtn.addEventListener("click", async function () {
+                    // Kung may sariling onclick function (tulad ng view decline reason), huwag buksan ang form
+                    if (this.onclick) return;
+                    
                     const selectedPetId = window.currentPet.animal_id;
 
                     // I-save ang Pet ID sa JavaScript memory / Session Storage
@@ -633,15 +636,19 @@
                         const result = await response.json();
 
                         if (response.ok) {
-                            // Call our Tailwind Modal!
                             showModal('Success!', result.message, true, () => {
-                                window.location.href = "/user/adoptionHub.html";
+                                window.location.href = "/adoption-hub";
                             });
                         } else {
-                            showModal('Error!', result.message || result.error, false);
+                            // Ipapakita na ngayon ang mismong error mula sa Multer o Database!
+                            showModal('Upload Error', result.message || result.error || 'Failed to submit application.', false);
                         }
                     } catch (error) {
-                        showModal('Server Error', 'Unable to connect to the server. Please try again.', false);
+                        console.error("Submission catch error:", error);
+                        showModal('Connection Error', 'Unable to reach the server. Please check your network connection.', false);
+                    } finally {
+                        submitBtn.disabled = false;
+                        submitBtn.innerText = "Submit Application";
                     }
                 });
             }
