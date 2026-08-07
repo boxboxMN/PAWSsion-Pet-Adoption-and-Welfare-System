@@ -232,3 +232,7 @@ ADMIN:
 Di ko pa navivisit
 
 	
+# I run nyo to sa db:
+
+ALTER TABLE user_adoption_applications 
+MODIFY COLUMN status VARCHAR(50) NOT NULL DEFAULT 'Under Review';
