@@ -6,6 +6,7 @@
     <title>Organization Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    
     <script src="../assets/js/orgSidebar.js"></script>
     <script src="../assets/js/orgTopbar.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -43,14 +44,33 @@
                     </select>
                     <i class="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-[10px] pointer-events-none"></i>
                 </div>
-
-                <!-- DYNAMIC DATE -->
-                <div id="analyticsDateContainer"></div>
+                
+                <!-- DYNAMIC DATE --> 
+                 <div id="analyticsDateContainer"></div>
 
                 <!-- REFRESH -->
                 <button id="refreshAnalyticsBtn" type="button" class="flex items-center justify-center gap-2 bg-white border border-gray-200 text-gray-700 text-sm font-semibold py-2.5 px-4 rounded-xl shadow-sm hover:bg-gray-50 hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-100 transition">
                     <i id="refreshIcon" class="fa-solid fa-rotate-right text-sm"></i> Refresh
                 </button>
+
+                <!-- EXPORT -->
+                <div class="relative">
+                    <button id="exportAnalyticsBtn" type="button" class="flex items-center justify-center gap-2 bg-blue-700 text-white text-sm font-semibold py-2.5 px-4 rounded-xl shadow-sm hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-200 transition">
+                        <i class="fa-solid fa-file-export text-sm"></i> Export
+                        <i class="fa-solid fa-chevron-down text-[10px]"></i>
+                    </button>
+
+                    <!-- EXPORT MENU -->
+                    <div id="exportAnalyticsMenu" class="hidden absolute right-0 mt-2 w-44 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden z-50">
+                        <button id="exportExcelBtn" type="button" class="w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition">
+                            <i class="fa-solid fa-file-excel text-green-600"></i>Export Excel
+                        </button>
+
+                        <button id="exportPdfBtn" type="button" class="w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition">
+                            <i class="fa-solid fa-file-pdf text-red-600"></i> Export PDF
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -182,7 +202,6 @@
 
           </div>
 
-
           <!-- =====================================================
               AVAILABLE PETS
           ====================================================== -->
@@ -219,9 +238,7 @@
                       0
                   </span>
               </div>
-
           </div>
-
 
           <!-- =====================================================
               CASH DONATIONS
@@ -261,7 +278,6 @@
               </div>
 
           </div>
-
 
           <!-- =====================================================
               IN-KIND DONATIONS
@@ -319,6 +335,14 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 </script>
 
+<!-- Excel Export Library -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+<!-- PDF Export Libraries -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+
+<!-- YOUR ANALYTICS JS - MUST BE LAST -->
 <script src="/assets/js/orgCharts-logic.js"></script>
 <script src="/assets/js/orgProfile.js"></script> 
 </body>

@@ -71,6 +71,9 @@ async function loadAnalytics() {
 
         console.log("Analytics DB response:", data);
 
+        // Save latest response for export
+        latestAnalyticsData = data;
+
         if (!data.success) {
             throw new Error(
                 data.message || "Failed to load analytics."
@@ -551,15 +554,19 @@ document.addEventListener(
 // ANALYTICS EXPORT
 // =====================================================
 
-// FORMAT CURRENT ANALYTICS PERIOD
+// Store the latest analytics response
+let latestAnalyticsData = null;
+
+
+// =====================================================
+// FORMAT REPORT PERIOD
+// =====================================================
+
 function getExportPeriodLabel() {
-    const period =
-        document.getElementById("analyticsPeriodType")?.value || "year";
+    const period = document.getElementById("analyticsPeriodType")?.value || "year";
+    const date = document.getElementById("analyticsDate")?.value || new Date().getFullYear().toString();
 
-    const date =
-        document.getElementById("analyticsDate")?.value ||
-        new Date().getFullYear().toString();
-
+    // DAY
     if (period === "day") {
         const selectedDate = new Date(`${date}T00:00:00`);
 
@@ -570,11 +577,10 @@ function getExportPeriodLabel() {
         });
     }
 
+    // MONTH
     if (period === "month") {
         const [year, month] = date.split("-");
-
-        const selectedDate =
-            new Date(Number(year), Number(month) - 1, 1);
+        const selectedDate = new Date(Number(year), Number(month) - 1, 1);
 
         return selectedDate.toLocaleDateString("en-US", {
             month: "long",
@@ -582,39 +588,379 @@ function getExportPeriodLabel() {
         });
     }
 
+    // YEAR
     return date;
 }
 
+
+// =====================================================
+// FORMAT GENERATED DATE
+// =====================================================
+
+function getGeneratedDate() {
+    return new Date().toLocaleDateString("en-US", {
+        month: "long",
+        day: "numeric",
+        year: "numeric"
+    });
+}
+
+
+// =====================================================
 // GET CURRENT ANALYTICS SUMMARY
+// =====================================================
+
 function getAnalyticsExportData() {
-    const period =
-        document.getElementById("analyticsPeriodType")?.value || "year";
-    const periodLabel =
-        getExportPeriodLabel();
+    const period = document.getElementById("analyticsPeriodType")?.value || "year";
+    const periodLabel = getExportPeriodLabel();
+    const organizationName = latestAnalyticsData?.organization?.name || "Organization";
+
     return {
+        organizationName,
         period,
         periodLabel,
-
+        generatedDate: getGeneratedDate(),
         pets: {
-            available:
-                document.getElementById("petAvailable")?.textContent || "0",
-            pending:
-                document.getElementById("petPending")?.textContent || "0",
-            adopted:
-                document.getElementById("petAdopted")?.textContent || "0",
-            archived:
-                document.getElementById("petArchived")?.textContent || "0",
-            total:
-                document.getElementById("petTotal")?.textContent || "0"
+            available: document.getElementById("petAvailable")?.textContent || "0",
+            pending: document.getElementById("petPending")?.textContent || "0",
+            adopted: document.getElementById("petAdopted")?.textContent || "0",
+            archived: document.getElementById("petArchived")?.textContent || "0",
+            total: document.getElementById("petTotal")?.textContent || "0"
         },
-
-        cash:
-            document.getElementById("summaryCash")?.textContent || "₱0.00",
-        inKind:
-            document.getElementById("summaryInKind")?.textContent || "0",
-        adoptionTotal:
-            document.getElementById("adoptedTotal")?.textContent || "0",
-        availableTotal:
-            document.getElementById("availableTotal")?.textContent || "0"
+        cash: document.getElementById("summaryCash")?.textContent || "₱0.00",
+        inKind: document.getElementById("summaryInKind")?.textContent || "0",
+        adoptionTotal: document.getElementById("adoptedTotal")?.textContent || "0",
+        availableTotal: document.getElementById("availableTotal")?.textContent || "0"
     };
 }
+
+
+// =====================================================
+// EXPORT TO EXCEL
+// =====================================================
+
+function exportAnalyticsToExcel() {
+    const data = getAnalyticsExportData();
+
+    // =================================================
+    // EXCEL DATA
+    // =================================================
+
+    const rows = [
+        // HEADER
+        ["PAWPON SYSTEM ANALYTICS"],
+        ["Organization Name: ", data.organizationName],
+        [],
+        ["Report Period: ", data.periodLabel],
+        ["Generated Date: ", data.generatedDate],
+        [],
+        ["Generated from", "Pawpon System Analytics"],
+        [],
+
+        // PET OVERVIEW
+        ["PET OVERVIEW", ""],
+        ["Available Pets: ", data.pets.available],
+        ["Pending Pets: ", data.pets.pending],
+        ["Adopted Pets: ", data.pets.adopted],
+        ["Archived Pets: ", data.pets.archived],
+        ["Total Pets: ", data.pets.total],
+        [],
+
+        // DONATION SUMMARY
+        ["DONATION SUMMARY", ""],
+        ["Approved Cash Donations: ", data.cash],
+        ["Approved In-Kind Donations: ", data.inKind],
+        [],
+
+        // ADOPTION SUMMARY
+        ["ADOPTION SUMMARY", ""],
+        ["Approved Adoptions: ", data.adoptionTotal],
+        [],
+
+        // AVAILABLE PETS
+        ["AVAILABLE PETS", ""],
+        ["Currently Available: ", data.availableTotal]
+    ];
+
+    // =================================================
+    // CREATE WORKSHEET
+    // =================================================
+
+    const worksheet = XLSX.utils.aoa_to_sheet(rows);
+
+    // =================================================
+    // COLUMN WIDTHS
+    // =================================================
+
+    worksheet["!cols"] = [
+        { wch: 32 },
+        { wch: 30 }
+    ];
+
+    // =================================================
+    // CREATE WORKBOOK
+    // =================================================
+
+    const workbook = XLSX.utils.book_new();
+
+    XLSX.utils.book_append_sheet(
+        workbook,
+        worksheet,
+        "Analytics"
+    );
+
+    // =================================================
+    // FILE NAME
+    // =================================================
+
+    const safeOrganizationName = data.organizationName
+        .replace(/[^a-zA-Z0-9]+/g, "_")
+        .replace(/^_+|_+$/g, "");
+
+    const safePeriod = data.periodLabel
+        .replace(/[^a-zA-Z0-9]+/g, "_")
+        .replace(/^_+|_+$/g, "");
+
+    const fileName = `Pawpon_Analytics_${safeOrganizationName}_${safePeriod}.xlsx`;
+
+    // =================================================
+    // DOWNLOAD
+    // =================================================
+
+    XLSX.writeFile(
+        workbook,
+        fileName
+    );
+}
+
+
+// =====================================================
+// EXPORT TO PDF
+// =====================================================
+
+function exportAnalyticsToPDF() {
+    const data = getAnalyticsExportData();
+
+    // =================================================
+    // CHECK JSPDF
+    // =================================================
+
+    if (!window.jspdf) {
+        console.error("jsPDF library is not loaded.");
+        alert("PDF export is currently unavailable. Please refresh the page and try again.");
+        return;
+    }
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+
+    // =================================================
+    // HEADER
+    // =================================================
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(18);
+    doc.text("PAWPON SYSTEM ANALYTICS", 14, 20);
+
+    // ORGANIZATION NAME
+    doc.setFontSize(13);
+    doc.setFont("helvetica", "bold");
+    doc.text(`Organization Name: ${data.organizationName}`, 14, 29);
+
+    // REPORT DETAILS
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    doc.text(`Report Period: ${data.periodLabel}`, 14, 37);
+    doc.text(`Generated Date: ${data.generatedDate}`, 14, 43);
+
+    // =================================================
+    // PET OVERVIEW
+    // =================================================
+
+    doc.setFontSize(13);
+    doc.setFont("helvetica", "bold");
+    doc.text("Pet Overview", 14, 55);
+
+    doc.autoTable({
+        startY: 59,
+        head: [
+            [
+                "Available",
+                "Pending",
+                "Adopted",
+                "Archived",
+                "Total"
+            ]
+        ],
+        body: [
+            [
+                data.pets.available,
+                data.pets.pending,
+                data.pets.adopted,
+                data.pets.archived,
+                data.pets.total
+            ]
+        ],
+        theme: "grid",
+        styles: {
+            fontSize: 10,
+            halign: "center"
+        },
+        headStyles: {
+            fontStyle: "bold"
+        }
+    });
+
+    // =================================================
+    // DONATION SUMMARY
+    // =================================================
+
+    let currentY = doc.lastAutoTable.finalY + 15;
+
+    doc.setFontSize(13);
+    doc.setFont("helvetica", "bold");
+    doc.text("Donation Summary", 14, currentY);
+
+    doc.autoTable({
+        startY: currentY + 4,
+        head: [
+            [
+                "Approved Cash Donations",
+                "Approved In-Kind Donations"
+            ]
+        ],
+        body: [
+            [
+                data.cash,
+                data.inKind
+            ]
+        ],
+        theme: "grid",
+        styles: {
+            fontSize: 10,
+            halign: "center"
+        },
+        headStyles: {
+            fontStyle: "bold"
+        }
+    });
+
+    // =================================================
+    // ADOPTION SUMMARY
+    // =================================================
+
+    currentY = doc.lastAutoTable.finalY + 15;
+
+    doc.setFontSize(13);
+    doc.setFont("helvetica", "bold");
+    doc.text("Adoption Summary", 14, currentY);
+
+    doc.autoTable({
+        startY: currentY + 4,
+        head: [
+            [
+                "Approved Adoptions",
+                "Currently Available Pets"
+            ]
+        ],
+        body: [
+            [
+                data.adoptionTotal,
+                data.availableTotal
+            ]
+        ],
+        theme: "grid",
+        styles: {
+            fontSize: 10,
+            halign: "center"
+        },
+        headStyles: {
+            fontStyle: "bold"
+        }
+    });
+
+    // =================================================
+    // FOOTER
+    // =================================================
+
+    const pageHeight = doc.internal.pageSize.height;
+
+    doc.setFontSize(8);
+    doc.setFont("helvetica", "normal");
+    doc.text("Generated from Pawpon System Analytics", 14, pageHeight - 15);
+    doc.text(`Generated on ${data.generatedDate}`, 14, pageHeight - 9);
+
+    // =================================================
+    // FILE NAME
+    // =================================================
+
+    const safeOrganizationName = data.organizationName
+        .replace(/[^a-zA-Z0-9]+/g, "_")
+        .replace(/^_+|_+$/g, "");
+
+    const safePeriod = data.periodLabel
+        .replace(/[^a-zA-Z0-9]+/g, "_")
+        .replace(/^_+|_+$/g, "");
+
+    const fileName = `Pawpon_Analytics_${safeOrganizationName}_${safePeriod}.pdf`;
+
+    // =================================================
+    // DOWNLOAD
+    // =================================================
+
+    doc.save(fileName);
+}
+
+
+// =====================================================
+// EXPORT MENU
+// =====================================================
+
+document.addEventListener("DOMContentLoaded", () => {
+    const exportBtn = document.getElementById("exportAnalyticsBtn");
+    const exportMenu = document.getElementById("exportAnalyticsMenu");
+    const exportExcelBtn = document.getElementById("exportExcelBtn");
+    const exportPdfBtn = document.getElementById("exportPdfBtn");
+
+    // =================================================
+    // OPEN / CLOSE EXPORT MENU
+    // =================================================
+
+    exportBtn?.addEventListener("click", (event) => {
+        event.stopPropagation();
+        exportMenu?.classList.toggle("hidden");
+    });
+
+    // =================================================
+    // EXPORT EXCEL
+    // =================================================
+
+    exportExcelBtn?.addEventListener("click", () => {
+        exportAnalyticsToExcel();
+        exportMenu?.classList.add("hidden");
+    });
+
+    // =================================================
+    // EXPORT PDF
+    // =================================================
+
+    exportPdfBtn?.addEventListener("click", () => {
+        exportAnalyticsToPDF();
+        exportMenu?.classList.add("hidden");
+    });
+
+    // =================================================
+    // CLOSE MENU WHEN CLICKING OUTSIDE
+    // =================================================
+
+    document.addEventListener("click", (event) => {
+        if (
+            exportMenu &&
+            exportBtn &&
+            !exportMenu.contains(event.target) &&
+            !exportBtn.contains(event.target)
+        ) {
+            exportMenu.classList.add("hidden");
+        }
+    });
+});

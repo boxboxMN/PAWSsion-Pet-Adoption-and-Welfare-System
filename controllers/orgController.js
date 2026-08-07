@@ -1279,7 +1279,9 @@ exports.getAnalyticsData = async (req, res) => {
         // =====================================================
         const [orgRows] = await pool.query(
             `
-            SELECT organization_id
+            SELECT
+                organization_id,
+                organization_name
             FROM organizations
             WHERE account_id = ?
             LIMIT 1
@@ -1295,6 +1297,7 @@ exports.getAnalyticsData = async (req, res) => {
         }
 
         const organizationId = orgRows[0].organization_id;
+        const organizationName = orgRows[0].organization_name;
 
         // =====================================================
         // GET FILTER VALUES FIRST
@@ -1599,12 +1602,18 @@ exports.getAnalyticsData = async (req, res) => {
         // =====================================================
         res.json({
             success: true,
+            organization: {
+                id: organizationId,
+                name: organizationName
+            },
+            
             period: period,
             date: displayDate,
             range: {
                 start: startDate,
                 end: endDate
             },
+            
             pets: {
                 total: Number(petSummary.totalPets || 0),
                 available: Number(petSummary.availablePets || 0),
