@@ -168,12 +168,15 @@ My Application:
 	Ayusin sa Adoption Applications under view
 	Dapat nakikita yung mga info sa application pati na din ang interview schedule
 	Ayusin yung sa may number
-
+	Dapat kapag may bagong update is may notif like parang read or unread samay under review, interview sched, pending, declined
 	What if, once na yung applicaiton is under interview schedule is pwedeng magrequest ang adopter to change date once na hindi sila available
+	kapag nadecline sa view details dapat may reapply button if gusto pang mag apply yung user sa same pet na yun
 
 Adoption-hub: 	
 	
-	Once na adopted na yung pet is hindi na sya makikita ng ibang user sa adoption page
+	- Once na adopted na yung pet is hindi na sya makikita ng ibang user sa adoption page
+
+    ✓ Kapag nadecline, kapag pinag view yung details is nakalagay doon is decline view details kung   bakit nadecline then mapupunta doon sa applications
 
 Notes: 
 Mga ned iconfirm kay jhy: donation side, profile yung sa pagchange ng pass, kamustahan
@@ -203,6 +206,10 @@ Adoption:
 	Export Summary
 
 	lagyan ng edit schedule ang application details
+
+    kapag nagrequest ang adopter ng resched of interview dapat nasa notif and makikita ng org
+
+    ✓ kapag decline, instead of idisable ang declined button dapat auto na napapalitan ng view declined details
 
 Settings & Support:
 	

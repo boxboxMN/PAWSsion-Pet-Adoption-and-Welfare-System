@@ -184,6 +184,31 @@
         </div>
     </div>
 
+    <!-- VIEW DECLINE REASON MODAL -->
+    <div id="viewDeclineReasonModal" class="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl p-6 max-w-md w-full shadow-xl transform transition-all space-y-4">
+            <div class="border-b border-gray-100 pb-3">
+                <h3 class="text-lg font-bold text-gray-900 flex items-center gap-2">
+                    <i class="fa-solid fa-circle-info text-amber-500"></i> Decline Reason
+                </h3>
+            </div>
+            
+            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Reason provided for declining:</p>
+
+            <div class="p-4 bg-amber-50/60 border border-amber-100 rounded-xl">
+                <p id="viewDeclineReasonText" class="text-sm text-gray-700 leading-relaxed break-words whitespace-pre-line italic">
+                    No reason provided.
+                </p>
+            </div>
+
+            <div class="flex items-center justify-end pt-2">
+                <button onclick="closeViewDeclineModal()" class="px-5 py-2 rounded-xl bg-gray-800 hover:bg-gray-900 text-white text-sm font-semibold transition">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- APPROVE MODAL -->
     <div id="approveModal" class="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl p-6 max-w-md w-full shadow-xl transform transition-all space-y-4">
@@ -353,7 +378,10 @@
                 console.error("❌ Error loading application detail:", err);
             }
         }
-    
+        
+        // Variable na magtatago ng decline reason para madaling mai-display sa modal
+        let currentDeclineReason = "";
+
         function populateDetailsUI(app) {
             const val = (v, fallback = "N/A") => (v !== undefined && v !== null && v !== "") ? v : fallback;
 
@@ -384,16 +412,35 @@
                     statusBadge.className = "inline-flex px-4 py-1.5 rounded-full text-sm font-medium bg-amber-100 text-amber-600";
                 }
             }
+
+            currentDeclineReason = app.decline_reason || app.rejection_reason || "No decline reason specified.";
     
             // 2. Disable buttons kapag Finalized na (Approved, Declined, or Rejected)
             const declineBtn = document.getElementById("declineBtn");
             const scheduleBtn = document.getElementById("scheduleBtn");
             const approveBtn = document.getElementById("approveBtn");
-    
-            const isFinalized = ["approved", "declined", "rejected"].includes(lowerStatus);
+            
+            const isDeclined = ["declined", "rejected"].includes(lowerStatus);
+            const isApproved = lowerStatus === "approved";
+            const isFinalized = isApproved || isDeclined;
             const isInterviewScheduled = lowerStatus.includes("interview") || lowerStatus.includes("scheduled");
 
-            if (declineBtn) declineBtn.disabled = isFinalized;
+            if (declineBtn) {
+                if (isDeclined) {
+                    // Palitan ang button text, kulay, at gawing ACTIVE (enabled) para ma-click
+                    declineBtn.disabled = false;
+                    declineBtn.textContent = "View Decline Reason";
+                    declineBtn.className = "px-5 py-2.5 rounded-xl border border-amber-500 bg-amber-50 text-amber-700 hover:bg-amber-100 text-sm font-semibold transition cursor-pointer";
+                    declineBtn.onclick = handleViewDeclineReason;
+                } else {
+                    // Ibalik sa default na Decline Application state
+                    declineBtn.disabled = isFinalized;
+                    declineBtn.textContent = "Decline Application";
+                    declineBtn.className = "px-5 py-2.5 rounded-xl border border-red-500 text-red-500 hover:bg-red-50 text-sm font-semibold transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent";
+                    declineBtn.onclick = handleDecline;
+                }
+            }
+
             if (approveBtn) approveBtn.disabled = isFinalized;
             //the schedule interview button will be disable if the status is interview Scheduled
             if (scheduleBtn) scheduleBtn.disabled = isFinalized || isInterviewScheduled;
@@ -484,6 +531,26 @@
             } finally {
                 confirmBtn.disabled = false;
                 confirmBtn.innerHTML = `<span>Confirm Decline</span>`;
+            }
+        }
+
+        function handleViewDeclineReason() {
+            const modal = document.getElementById("viewDeclineReasonModal");
+            const reasonText = document.getElementById("viewDeclineReasonText");
+            
+            if (reasonText) {
+                reasonText.textContent = currentDeclineReason || "No reason specified.";
+            }
+            
+            if (modal) {
+                modal.classList.remove("hidden");
+            }
+        }
+
+        function closeViewDeclineModal() {
+            const modal = document.getElementById("viewDeclineReasonModal");
+            if (modal) {
+                modal.classList.add("hidden");
             }
         }
     

@@ -177,6 +177,7 @@ router.get('/applications/:id', async (req, res) => {
             app.emergency_relation,
             app.document_path,
             app.status,
+            app.decline_reason,
             app.interview_date,
             app.interview_time,
             app.interview_method,
