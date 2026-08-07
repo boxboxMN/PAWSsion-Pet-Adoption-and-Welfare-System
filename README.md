@@ -140,3 +140,86 @@ HOW TO RUN WITH WORKING MATCHMAKING FEATURE
 # August 4, 2026
 
 # Paimport na lang ng user_adoption_applications sa db nyo may nabago lang doon
+
+
+# Mga need pa ayusin:
+
+Not working:
+
+USER SIDE:
+
+Dashboard:
+	
+	Make it Real-time!
+	Quick Actions: Upcoming Interview
+	Recent Activities
+	Upcoming Schedule
+
+Notification:
+
+	Dapat nakikita ang lahat ng changes sa notif and dapat sa sidebar is kapag may changes may pula na bilog na nagaappear
+
+Profile: 
+	
+	Dapat nakikita yung picture sa lahat ng page, Hindi lang profile nakalagay
+
+My Application: 
+
+	Ayusin sa Adoption Applications under view
+	Dapat nakikita yung mga info sa application pati na din ang interview schedule
+	Ayusin yung sa may number
+
+	What if, once na yung applicaiton is under interview schedule is pwedeng magrequest ang adopter to change date once na hindi sila available
+
+Adoption-hub: 	
+	
+	Once na adopted na yung pet is hindi na sya makikita ng ibang user sa adoption page
+
+Notes: 
+Mga ned iconfirm kay jhy: donation side, profile yung sa pagchange ng pass, kamustahan
+
+ORGANIZATION:
+
+Pets: 
+	
+	Sa available, makikia pa din yung all status, all species and add pet
+	Sa adopted, dapat makikita pa din yung all species
+	Sa Add new pet, alisin yung archive sa adoption status & ilagay na lang sa gilid (checkbox)
+	Ayusin yung mga error
+	Sa view Profile, alisin ang birth date, date sa medical history
+	
+	OPTION 1:
+	Iseparate ang available sa adopted para hindi malito ang orgs
+	Iseparate ang archive pero tignan sa controller dapat gumagana pa din yung ibang functions
+	Dapat once na adopted, pending na yung pet is may edit record, and archive button sya wala ng delete
+	Once available, walang archive pero nandoon yung edit & delete buttons
+	
+	OPTION 2:
+	once adopted and pending na is automatic na nasa archive na sila pero dapat may notice pa din sa org
+
+
+Adoption:
+
+	Export Summary
+
+	lagyan ng edit schedule ang application details
+
+Settings & Support:
+	
+	Hindi pa final
+
+Notification:
+
+	Dapat nakikita ang lahat ng changes sa notif and dapat sa sidebar is kapag may changes may pula na bilog na nagaappear
+	
+
+
+NOTES:
+
+Itanong kay jhy if ok na yung donation, kamustahan
+
+ADMIN:
+
+Di ko pa navivisit
+
+	
