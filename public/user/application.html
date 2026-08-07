@@ -237,6 +237,25 @@ function formatDate(date) {
 }
 
 // =====================================================
+// FORMAT TIME (12-Hour AM/PM Format)
+// =====================================================
+
+function formatTime(timeStr) {
+    if (!timeStr) return "—";
+    const timeParts = timeStr.split(':');
+    if (timeParts.length >= 2) {
+        let hours = parseInt(timeParts[0], 10);
+        const minutes = timeParts[1];
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        hours = hours % 12;
+        hours = hours ? hours : 12; // Kapag 0 (12 AM), gawing 12
+        const formattedHours = hours < 10 ? `0${hours}` : hours;
+        return `${formattedHours}:${minutes} ${ampm}`;
+    }
+    return timeStr;
+}
+
+// =====================================================
 // GET STATUS CSS CLASS
 // =====================================================
 
@@ -579,7 +598,7 @@ function showDetails(app) {
 
         interviewContent.innerHTML = `
             ${createFormalField("Interview Date", app.interview.date ? formatDate(app.interview.date) : "—")}
-            ${createFormalField("Interview Time", app.interview.time || "—")}
+            ${createFormalField("Interview Time", formatTime(app.interview.time))}
             ${createFormalField("Method", app.interview.method ? app.interview.method.toUpperCase() : "—")}
             <div class="md:col-span-3">
                 ${createFormalField("Venue / Meeting Link", linkDisplay)}

@@ -795,81 +795,81 @@
     
         function renderApplicationStatusDetails(app) {
             const container = document.getElementById("interviewDetailsCard");
-            if (!container) return;
+    if (!container) return;
 
-            // Suriin kung may nakatakdang schedule
-            const hasSchedule = app.interview_date || app.interview_time || app.interview_location_link;
+    // Suriin kung may nakatakdang schedule
+    const hasSchedule = app.interview_date || app.interview_time || app.interview_location_link;
 
-            if (!hasSchedule) {
-                container.classList.add("hidden");
-                return;
-            }
+    if (!hasSchedule) {
+        container.classList.add("hidden");
+        return;
+    }
 
-            // 1. FORMAT DATE (Nakahandle sa NULL values)
-            let formattedDate = "No Date Set";
-            if (app.interview_date) {
-                const d = new Date(app.interview_date);
-                if (!isNaN(d.getTime())) {
-                    formattedDate = d.toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric',
-                        timeZone: 'UTC' // Gamitin ang UTC para iwas timezone display shift sa SQL DATE
-                    });
-                }
-            }
+    // 1. FORMAT DATE (Kaparehong-kapareho ng User Side formatDate function)
+    let formattedDate = "—";
+    if (app.interview_date) {
+        try {
+            formattedDate = new Date(app.interview_date).toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "short",
+                day: "numeric"
+            });
+        } catch (error) {
+            formattedDate = app.interview_date;
+        }
+    }
 
-            // 2. FORMAT TIME (Mula SQL TIME na "14:30:00" patungong "02:30 PM")
-            let formattedTime = "No Time Set";
-            if (app.interview_time) {
-                const timeParts = app.interview_time.split(':');
-                if (timeParts.length >= 2) {
-                    let hours = parseInt(timeParts[0], 10);
-                    const minutes = timeParts[1];
-                    const ampm = hours >= 12 ? 'PM' : 'AM';
-                    hours = hours % 12;
-                    hours = hours ? hours : 12; // ang oras na '0' ay gagawing '12'
-                    formattedTime = `${hours}:${minutes} ${ampm}`;
-                } else {
-                    formattedTime = app.interview_time;
-                }
-            }
+    // 2. FORMAT TIME (Mula SQL TIME na "14:30:00" patungong "02:30 PM")
+    let formattedTime = "No Time Set";
+    if (app.interview_time) {
+        const timeParts = app.interview_time.split(':');
+        if (timeParts.length >= 2) {
+            let hours = parseInt(timeParts[0], 10);
+            const minutes = timeParts[1];
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12;
+            hours = hours ? hours : 12;
+            formattedTime = `${hours}:${minutes} ${ampm}`;
+        } else {
+            formattedTime = app.interview_time;
+        }
+    }
 
-            const interviewMethod = app.interview_method ? app.interview_method.toUpperCase() : "N/A";
-            const locationLink = app.interview_location_link || "N/A";
+    const interviewMethod = app.interview_method ? app.interview_method.toUpperCase() : "N/A";
+    const locationLink = app.interview_location_link || "N/A";
 
-            // 3. RENDER SA UI CARD (May kasamang 'break-all' para maiwasan ang overflow)
-            container.innerHTML = `
-                <div class="bg-white p-6 rounded-2xl border border-blue-100 shadow-sm">
-                    <h3 class="text-blue-600 font-semibold text-base mb-3 flex items-center gap-2">
-                        <i class="fa-solid fa-calendar-check text-blue-500"></i> Interview Schedule Details
-                    </h3>
-                    <div class="p-4 bg-blue-50/50 rounded-xl border border-blue-100 grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-gray-700">
-                        <div class="min-w-0">
-                            <span class="text-xs text-gray-400 block mb-0.5">Method</span>
-                            <span class="font-bold text-gray-800 break-words">${interviewMethod}</span>
-                        </div>
-                        <div class="min-w-0">
-                            <span class="text-xs text-gray-400 block mb-0.5">Date</span>
-                            <span class="font-bold text-gray-800 break-words">${formattedDate}</span>
-                        </div>
-                        <div class="min-w-0">
-                            <span class="text-xs text-gray-400 block mb-0.5">Time</span>
-                            <span class="font-bold text-gray-800 break-all block">${formattedTime}</span>
-                        </div>
-                        <div class="sm:col-span-2 pt-2 border-t border-blue-100/60 min-w-0">
-                            <span class="text-xs text-gray-400 block mb-0.5">Location / Link</span>
-                            <span class="font-semibold text-gray-800 break-all block">
-                                ${locationLink.startsWith('http') 
-                                    ? `<a href="${locationLink}" target="_blank" class="text-blue-600 hover:underline inline-flex items-center gap-1 break-all"><i class="fa-solid fa-arrow-up-right-from-square text-xs shrink-0"></i> <span>${locationLink}</span></a>` 
-                                    : locationLink}
-                            </span>
-                        </div>
-                    </div>
+    // 3. RENDER SA UI CARD
+    container.innerHTML = `
+        <div class="bg-white p-6 rounded-2xl border border-blue-100 shadow-sm">
+            <h3 class="text-blue-600 font-semibold text-base mb-3 flex items-center gap-2">
+                <i class="fa-solid fa-calendar-check text-blue-500"></i> Interview Schedule Details
+            </h3>
+            <div class="p-4 bg-blue-50/50 rounded-xl border border-blue-100 grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-gray-700">
+                <div class="min-w-0">
+                    <span class="text-xs text-gray-400 block mb-0.5">Method</span>
+                    <span class="font-bold text-gray-800 break-words">${interviewMethod}</span>
                 </div>
-            `;
-            
-            container.classList.remove("hidden");
+                <div class="min-w-0">
+                    <span class="text-xs text-gray-400 block mb-0.5">Date</span>
+                    <span class="font-bold text-gray-800 break-words">${formattedDate}</span>
+                </div>
+                <div class="min-w-0">
+                    <span class="text-xs text-gray-400 block mb-0.5">Time</span>
+                    <span class="font-bold text-gray-800 break-all block">${formattedTime}</span>
+                </div>
+                <div class="sm:col-span-2 pt-2 border-t border-blue-100/60 min-w-0">
+                    <span class="text-xs text-gray-400 block mb-0.5">Location / Link</span>
+                    <span class="font-semibold text-gray-800 break-all block">
+                        ${locationLink.startsWith('http') 
+                            ? `<a href="${locationLink}" target="_blank" class="text-blue-600 hover:underline inline-flex items-center gap-1 break-all"><i class="fa-solid fa-arrow-up-right-from-square text-xs shrink-0"></i> <span>${locationLink}</span></a>` 
+                            : locationLink}
+                    </span>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    container.classList.remove("hidden");
         }
     
         function previewIdProof() {
