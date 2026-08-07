@@ -165,10 +165,12 @@ Profile:
 
 My Application: 
 
-	Ayusin sa Adoption Applications under view
+	✓ Ayusin sa Adoption Applications under view
 	✓ Dapat nakikita yung mga info sa application pati na din ang interview schedule
-	Ayusin yung sa may number
+	✓ Ayusin yung sa may number
+
 	Dapat kapag may bagong update is may notif like parang read or unread sa may under review, interview sched, pending, declined
+    
 	What if, once na yung applicaiton is under interview schedule is pwedeng magrequest ang adopter to change date once na hindi sila available
 	kapag nadecline sa view details dapat may reapply button if gusto pang mag apply yung user sa same pet na yun
 
@@ -192,6 +194,7 @@ Pets:
 	Sa Add new pet, alisin yung archive sa adoption status & ilagay na lang sa gilid (checkbox)
 	Ayusin yung mga error
 	Sa view Profile, alisin ang birth date, date sa medical history
+    Edit Record may bug pet_desciption = behavior_description
 	
 	OPTION 1:
 	Iseparate ang available sa adopted para hindi malito ang orgs
@@ -212,6 +215,8 @@ Adoption:
     kapag nagrequest ang adopter ng resched of interview dapat nasa notif and makikita ng org
 
     ✓ kapag decline, instead of idisable ang declined button dapat auto na napapalitan ng view declined details
+
+    Under Interview nschedule, yung date is hindi tugma doon sa napiliing date, ang inistore is yung kung kailan ka nag sched ng interview
 
 Settings & Support:
 	
