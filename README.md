@@ -178,6 +178,8 @@ Adoption-hub:
 
     ✓ Kapag nadecline, kapag pinag view yung details is nakalagay doon is decline view details kung   bakit nadecline then mapupunta doon sa applications
 
+    may bug kapag binubuksan ang reason kapag declined
+
 Notes: 
 Mga ned iconfirm kay jhy: donation side, profile yung sa pagchange ng pass, kamustahan
 

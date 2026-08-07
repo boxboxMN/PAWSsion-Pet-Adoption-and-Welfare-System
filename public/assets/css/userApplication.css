@@ -217,6 +217,15 @@
             background: #ef4444;
         }
 
+        .badge-status.scheduled {
+            background-color: #dbeafe; /* Light Blue background */
+            color: #1d4ed8;            /* Dark Blue text */
+        }
+        
+        .badge-status.scheduled .dot {
+            background-color: #2563eb; /* Blue dot */
+        }
+
         @media (max-width: 640px) {
             .stepper-wrapper::before {
                 left: 1.5rem;
