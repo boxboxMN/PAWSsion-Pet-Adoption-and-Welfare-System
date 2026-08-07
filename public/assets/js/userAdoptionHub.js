@@ -223,19 +223,13 @@ async function checkPetApplicationStatus(petId) {
                     <span>Application Declined (View Details)</span>
                 `;
 
-                // Set click action para lumabas ang popup kung bakit na-decline
-                applyBtn.onclick = (e) => {
-                    e.preventDefault();
-                    if (typeof showModal === 'function') {
-                        showModal(
-                            'Application Declined', 
-                            `Reason: ${data.declineReason || 'No specific reason provided by the organization.'}`, 
-                            false
-                        );
-                    } else {
-                        alert(`Application Declined\n\nReason: ${data.declineReason}`);
-                    }
-                };
+            // PAG-CLICK: I-save sa session storage at pumunta sa /application nang walang URL query
+            applyBtn.onclick = (e) => {
+                e.preventDefault();
+                sessionStorage.setItem("targetAppTab", "Declined");
+                sessionStorage.setItem("targetPetId", petId); // I-save ang Pet ID
+                window.location.href = "/application";
+            };
             } else {
                 // KAPAG PENDING / APPROVED: Disabled Button
                 applyBtn.disabled = true;

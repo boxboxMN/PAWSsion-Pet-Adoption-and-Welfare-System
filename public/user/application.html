@@ -131,14 +131,6 @@
                         </div>
                     </div>
 
-                    <!-- Lifestyle -->
-                    <div class="card">
-                        <h2 class="section-title"><i class="fas fa-home"></i> Lifestyle &amp; Home Assessment</h2>
-                        <div class="grid md:grid-cols-2 gap-5" id="detail-lifestyle">
-                            <!-- filled by JS -->
-                        </div>
-                    </div>
-
                     <!-- Adoption Intent -->
                     <div class="card">
                         <h2 class="section-title"><i class="fas fa-heart"></i> Adoption Intent</h2>
@@ -151,6 +143,18 @@
                         <div class="grid md:grid-cols-3 gap-5" id="detail-emergency">
                             <!-- filled by JS -->
                         </div>
+                    </div>
+
+                    <!-- Interview Details Card (Lalabas lang kapag Interview Scheduled) -->
+                    <div id="detail-interview-card" class="card hidden">
+                        <h2 class="section-title"><i class="fas fa-calendar-alt text-blue-600"></i> Interview Schedule</h2>
+                        <div class="grid md:grid-cols-3 gap-5" id="detail-interview-content"></div>
+                    </div>
+
+                    <!-- Decline Reason Card (Lalabas lang kapag Declined) -->
+                    <div id="detail-decline-card" class="card hidden">
+                        <h2 class="section-title"><i class="fas fa-circle-xmark text-red-600"></i> Reason for Decline</h2>
+                        <div class="p-4 bg-red-50/60 border border-red-200 rounded-xl text-sm text-red-800" id="detail-decline-content"></div>
                     </div>
 
                     <!-- Requirement -->
@@ -219,7 +223,6 @@ const detailStatusBadge = document.getElementById("detail-status-badge");
 const detailRef = document.getElementById("detail-ref");
 const detailUploadDate = document.getElementById("detail-upload-date");
 const detailApplicant = document.getElementById("detail-applicant");
-const detailLifestyle = document.getElementById("detail-lifestyle");
 const detailIntent = document.getElementById("detail-intent");
 const detailEmergency = document.getElementById("detail-emergency");
 const stepperContainer = document.getElementById("stepper-container");
@@ -308,65 +311,43 @@ async function loadApplications() {
         // CONVERT DATABASE DATA
         // ---------------------------------------------
         applications = data.applications.map(app => ({
-            // Application
-            id: app.application_id,
-
-            // Pet
-            petId: app.animal_id,
-            petName: app.pet_name || "Unknown Pet",
-            species: app.species || "",
-            gender: app.gender || "",
-            petAge: app.pet_age || "",
-            image: app.image_path ? `/uploads/pets/${app.image_path}` : "/assets/images/no-image.png",
-
-            // Organization
-            organization: app.organization_name || "Unknown Organization",
-
-            // Status
-           status:
-            app.status === "Pending"
-                ? "Under Review"
-                : (app.status || "Under Review"),
-
-            // Date
-            date: formatDate(app.created_at),
-
-            // Applicant
-            applicant: {
-                fullName: app.full_name,
-                phone: app.contact_number,
-                email: app.email,
-                address: app.full_address,
-                civilStatus: app.civil_status,
-                age: app.age,
-                occupation: app.occupation
-            },
-
-            // Adoption intent
-            intent: app.adoption_intent,
-
-            // Emergency
-            emergency: {
-                name: app.emergency_name,
-                phone: app.emergency_phone,
-                relation: app.emergency_relation
-            },
-
-            // Document
-            documentPath: app.document_path,
-
-            // Decline reason
-            declineReason: app.decline_reason,
-
-            // Interview
-            interview: {
-                date: app.interview_date,
-                time: app.interview_time,
-                method: app.interview_method,
-                locationLink: app.interview_location_link
-            }
-        }));
-
+        id: app.application_id,
+        petId: app.animal_id,
+        petName: app.pet_name || "Unknown Pet",
+        species: app.species || "N/A",
+        gender: app.gender || "N/A",
+        petAge: app.pet_age || "N/A",
+        image: app.image_path ? `/uploads/pets/${app.image_path}` : "/assets/images/no-image.png",
+        organization: app.organization_name || "Unknown Organization",
+        status: app.status === "Pending" ? "Under Review" : (app.status || "Under Review"),
+        date: formatDate(app.created_at),
+        rawDate: app.created_at,
+        
+        // Applicant Info mula sa Form
+        applicant: {
+            fullName: app.full_name,
+            phone: app.contact_number,
+            email: app.email,
+            address: app.full_address,
+            civilStatus: app.civil_status,
+            age: app.age,
+            occupation: app.occupation
+        },
+        intent: app.adoption_intent,
+        emergency: {
+            name: app.emergency_name,
+            phone: app.emergency_phone,
+            relation: app.emergency_relation
+        },
+        documentPath: app.document_path,
+        declineReason: app.decline_reason,
+        interview: {
+            date: app.interview_date,
+            time: app.interview_time,
+            method: app.interview_method,
+            locationLink: app.interview_location_link
+        }
+    }));
         // ---------------------------------------------
         // RENDER
         // ---------------------------------------------
@@ -531,162 +512,121 @@ function updateStepper(status) {
 function showDetails(app) {
     selectedApp = app;
 
-    // ---------------------------------------------
-    // SWITCH VIEWS
-    // ---------------------------------------------
     listView.classList.add("hidden-view");
     detailsView.style.display = "block";
 
-    // ---------------------------------------------
-    // REFERENCE NUMBER
-    // ---------------------------------------------
-    detailRef.textContent = `APP-${new Date().getFullYear()}-${String(app.id).padStart(3, "0")}`;
-
-    // ---------------------------------------------
-    // DATE
-    // ---------------------------------------------
+    detailRef.textContent = `APP-${new Date(app.rawDate).getFullYear() || 2026}-${String(app.id).padStart(3, "0")}`;
     detailUploadDate.textContent = app.date;
 
-    // ---------------------------------------------
-    // STATUS
-    // ---------------------------------------------
     const statusKey = getStatusClass(app.status);
     detailStatusBadge.className = `badge-status ${statusKey}`;
-    detailStatusBadge.innerHTML = `
-        <span class="dot"></span>
-        ${app.status}
-    `;
+    detailStatusBadge.innerHTML = `<span class="dot"></span> ${app.status}`;
 
-    // ---------------------------------------------
-    // STEPPER
-    // ---------------------------------------------
     updateStepper(app.status);
 
-    // ---------------------------------------------
-    // APPLICANT
-    // ---------------------------------------------
+    // 1. PET CARD SUMMARY (Ipakita ang in-applyan na Pet)
+    let petHeaderCard = document.getElementById("detail-pet-card");
+    if (!petHeaderCard) {
+        petHeaderCard = document.createElement("div");
+        petHeaderCard.id = "detail-pet-card";
+        petHeaderCard.className = "card mb-6 bg-blue-50/50 border border-blue-100 p-4 rounded-xl flex items-center gap-4";
+        detailsView.insertBefore(petHeaderCard, stepperContainer.parentElement);
+    }
+    petHeaderCard.innerHTML = `
+        <img src="${app.image}" alt="${app.petName}" class="w-20 h-20 rounded-xl object-cover border border-blue-200" onerror="this.onerror=null; this.src='/assets/images/no-image.png';" />
+        <div>
+            <h2 class="text-lg font-bold text-gray-800">${app.petName}</h2>
+            <p class="text-xs text-gray-500">${app.species} • ${app.gender} • ${app.petAge}</p>
+            <span class="inline-block mt-2 px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-semibold">
+                <i class="fas fa-building mr-1"></i> ${app.organization}
+            </span>
+        </div>
+    `;
+
+    // 2. APPLICANT INFO
     const a = app.applicant;
     detailApplicant.innerHTML = `
         ${createFormalField("Full Name", a.fullName)}
-        ${createFormalField("Phone", a.phone)}
-        ${createFormalField("Email", a.email)}
+        ${createFormalField("Contact Number", a.phone)}
+        ${createFormalField("Email Address", a.email)}
         <div class="md:col-span-3">
-            ${createFormalField("Address", a.address)}
+            ${createFormalField("Full Address", a.address)}
         </div>
         ${createFormalField("Civil Status", a.civilStatus)}
         ${createFormalField("Age", a.age)}
-        ${createFormalField("Occupation", a.occupation)}
+        ${createFormalField("Occupation / Source of Income", a.occupation)}
     `;
 
-    // ---------------------------------------------
-    // LIFESTYLE
-    // ---------------------------------------------
-    // Your current database table does not contain lifestyle fields.
-    // So don't fake the data.
-    detailLifestyle.innerHTML = `
-        <div class="md:col-span-2">
-            ${createFormalField("Lifestyle Information", "No lifestyle information recorded.")}
-        </div>
-    `;
+    // 3. ADOPTION INTENT
+    detailIntent.value = app.intent || "No reason specified.";
 
-    // ---------------------------------------------
-    // ADOPTION INTENT
-    // ---------------------------------------------
-    detailIntent.value = app.intent || "";
-
-    // ---------------------------------------------
-    // EMERGENCY CONTACT
-    // ---------------------------------------------
+    // 4. EMERGENCY CONTACT
     const e = app.emergency;
     detailEmergency.innerHTML = `
-        ${createFormalField("Contact Name", e.name)}
-        ${createFormalField("Phone", e.phone)}
-        ${createFormalField("Relation", e.relation)}
+        ${createFormalField("Contact Person Name", e.name)}
+        ${createFormalField("Emergency Phone Number", e.phone)}
+        ${createFormalField("Relationship", e.relation)}
     `;
 
-    // ---------------------------------------------
-    // ACTIONS
-    // ---------------------------------------------
-    renderDetailsActions(app);
+    // 5. INTERVIEW SCHEDULE CARD (Gaya ng ibang Card)
+    const interviewCard = document.getElementById("detail-interview-card");
+    const interviewContent = document.getElementById("detail-interview-content");
+    if (app.status === "Interview Scheduled") {
+        interviewCard.classList.remove("hidden");
+        let locationOrLink = app.interview.locationLink || "N/A";
+        let linkDisplay = locationOrLink.startsWith("http")
+            ? `<a href="${locationOrLink}" target="_blank" class="text-blue-600 underline font-semibold break-all">${locationOrLink}</a>`
+            : locationOrLink;
 
-    // ---------------------------------------------
-    // SCROLL TO TOP
-    // ---------------------------------------------
-    document.getElementById("app").scrollTo({
-        top: 0,
-        behavior: "smooth"
-    });
-}
-
-// =====================================================
-// RENDER ACTION BUTTONS
-// =====================================================
-
-function renderDetailsActions(app) {
-    detailsActions.innerHTML = "";
-
-    // ---------------------------------------------
-    // UNDER REVIEW
-    // ---------------------------------------------
-    if (app.status === "Under Review") {
-        detailsActions.innerHTML = `
-            <button id="cancelApplicationBtn" class="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition">
-                <i class="fas fa-times"></i>
-                Cancel Application
-            </button>
+        interviewContent.innerHTML = `
+            ${createFormalField("Interview Date", app.interview.date ? formatDate(app.interview.date) : "—")}
+            ${createFormalField("Interview Time", app.interview.time || "—")}
+            ${createFormalField("Method", app.interview.method ? app.interview.method.toUpperCase() : "—")}
+            <div class="md:col-span-3">
+                ${createFormalField("Venue / Meeting Link", linkDisplay)}
+            </div>
         `;
-
-        const cancelBtn = document.getElementById("cancelApplicationBtn");
-        cancelBtn.addEventListener("click", () => {
-            alert("Cancel application functionality will be connected to the database next.");
-        });
+    } else {
+        interviewCard.classList.add("hidden");
     }
 
-    // ---------------------------------------------
-    // INTERVIEW SCHEDULED
-    // ---------------------------------------------
-    else if (app.status === "Interview Scheduled") {
-        detailsActions.innerHTML = `
-            <span class="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-700 rounded-lg text-sm font-semibold">
-                <i class="fas fa-calendar-check"></i>
-                Interview Scheduled
-            </span>
+    // 6. DECLINE REASON CARD (Gaya ng ibang Card)
+    const declineCard = document.getElementById("detail-decline-card");
+    const declineContent = document.getElementById("detail-decline-content");
+    if (app.status === "Declined") {
+        declineCard.classList.remove("hidden");
+        declineContent.innerHTML = `
+            <p class="italic text-gray-800 leading-relaxed break-words whitespace-pre-line">
+                ${app.declineReason ? app.declineReason : 'No specific reason provided by the organization.'}
+            </p>
         `;
+    } else {
+        declineCard.classList.add("hidden");
     }
 
-    // ---------------------------------------------
-    // APPROVED
-    // ---------------------------------------------
-    else if (app.status === "Approved") {
-        detailsActions.innerHTML = `
-            <span class="inline-flex items-center gap-2 px-4 py-2 bg-green-50 text-green-700 rounded-lg text-sm font-semibold">
-                <i class="fas fa-circle-check"></i>
-                Application Approved
-            </span>
-        `;
-    }
-
-    // ---------------------------------------------
-    // DECLINED
-    // ---------------------------------------------
-    else if (app.status === "Declined") {
-        detailsActions.innerHTML = `
-            <span class="inline-flex items-center gap-2 px-4 py-2 bg-red-50 text-red-700 rounded-lg text-sm font-semibold">
-                <i class="fas fa-circle-xmark"></i>
-                Application Declined
-            </span>
-        `;
-
-        // Show decline reason if available
-        if (app.declineReason) {
-            detailsActions.innerHTML += `
-                <div class="w-full mt-2 p-3 rounded-lg bg-red-50 border border-red-100 text-sm text-red-700">
-                    <strong>Reason:</strong>
-                    ${app.declineReason}
-                </div>
+    // 7. UPLOADED DOCUMENT (Ipakita ang totoong PDF/Image link na in-upload)
+    const docContainer = document.querySelector('#details-view .border-dashed');
+    if (docContainer) {
+        if (app.documentPath) {
+            let docUrl = app.documentPath.startsWith('/') ? app.documentPath : `/uploads/documents/${app.documentPath}`;
+            docContainer.innerHTML = `
+                <i class="fas fa-file-alt text-3xl text-blue-500 mb-2 block"></i>
+                <span class="font-semibold text-gray-800 text-sm block break-all">${app.documentPath}</span>
+                <p class="text-xs text-gray-400 mt-1 mb-3">Submitted Requirement Proof (Uploaded on ${app.date})</p>
+                <a href="${docUrl}" target="_blank" class="inline-flex items-center gap-2 px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg transition">
+                    <i class="fas fa-external-link-alt"></i> View Uploaded File
+                </a>
+            `;
+        } else {
+            docContainer.innerHTML = `
+                <i class="fas fa-exclamation-triangle text-2xl text-amber-500 mb-2 block"></i>
+                <span class="font-medium text-gray-500 text-sm">No requirement document attached.</span>
             `;
         }
     }
+
+    renderDetailsActions(app);
+    document.getElementById("app").scrollTo({ top: 0, behavior: "smooth" });
 }
 
 // =====================================================
@@ -725,35 +665,43 @@ function setActiveTab(tab) {
 // =====================================================
 
 async function init() {
-    // ---------------------------------------------
-    // DEFAULT TAB
-    // ---------------------------------------------
-    setActiveTab("Under Review");
+    // 1. Tignan kung may nakatagong tab mula sa Adoption Hub
+    const savedTab = sessionStorage.getItem("targetAppTab");
+    const savedPetId = sessionStorage.getItem("targetPetId");
+    
+    const defaultTab = savedTab ? savedTab : "Under Review";
 
-    // ---------------------------------------------
-    // TAB EVENTS
-    // ---------------------------------------------
+    // 2. I-clear agad ang sessionStorage
+    sessionStorage.removeItem("targetAppTab");
+    sessionStorage.removeItem("targetPetId");
+
+    // 3. I-set ang active tab
+    setActiveTab(defaultTab);
+
+    // 4. Tab click events
     tabBtns.forEach(btn => {
         btn.addEventListener("click", function () {
             setActiveTab(this.dataset.tab);
         });
     });
 
-    // ---------------------------------------------
-    // BACK BUTTON
-    // ---------------------------------------------
+    // 5. Back button event
     backBtn.addEventListener("click", goBack);
 
-    // ---------------------------------------------
-    // INITIAL VIEW
-    // ---------------------------------------------
+    // 6. Initial view display
     listView.style.display = "block";
     detailsView.style.display = "none";
 
-    // ---------------------------------------------
-    // LOAD REAL DATA
-    // ---------------------------------------------
+    // 7. I-load ang applications mula sa Database
     await loadApplications();
+
+    // 8. KUNG NGALING SA ADOPTION HUB: Awtomatikong buksan ang mismong View Details page
+    if (savedPetId) {
+        const targetApp = applications.find(app => Number(app.petId) === Number(savedPetId));
+        if (targetApp) {
+            showDetails(targetApp);
+        }
+    }
 }
 
 // =====================================================
