@@ -190,9 +190,10 @@ function createAdoptionChart(
     const chartData =
         data.adoptions.chart || [];
     const labels = chartData.map(item => {
-        if (data.period === "day") {
+        if (data.period === "month") {
             return formatDateLabel(item.label);
         }
+
         if (data.period === "year") {
             return formatMonthLabel(item.label);
         }
@@ -321,9 +322,10 @@ function createCashChart(
     const chartData =
         data.cash.chart || [];
     const labels = chartData.map(item => {
-        if (data.period === "day") {
+        if (data.period === "month") {
             return formatDateLabel(item.label);
         }
+
         if (data.period === "year") {
             return formatMonthLabel(item.label);
         }
@@ -404,9 +406,10 @@ function createInKindChart(
     const chartData =
         data.inKind.chart || [];
     const labels = chartData.map(item => {
-        if (data.period === "day") {
+        if (data.period === "month") {
             return formatDateLabel(item.label);
         }
+
         if (data.period === "year") {
             return formatMonthLabel(item.label);
         }
@@ -544,3 +547,74 @@ document.addEventListener(
         loadAnalytics();
     }
 );
+// =====================================================
+// ANALYTICS EXPORT
+// =====================================================
+
+// FORMAT CURRENT ANALYTICS PERIOD
+function getExportPeriodLabel() {
+    const period =
+        document.getElementById("analyticsPeriodType")?.value || "year";
+
+    const date =
+        document.getElementById("analyticsDate")?.value ||
+        new Date().getFullYear().toString();
+
+    if (period === "day") {
+        const selectedDate = new Date(`${date}T00:00:00`);
+
+        return selectedDate.toLocaleDateString("en-US", {
+            month: "long",
+            day: "numeric",
+            year: "numeric"
+        });
+    }
+
+    if (period === "month") {
+        const [year, month] = date.split("-");
+
+        const selectedDate =
+            new Date(Number(year), Number(month) - 1, 1);
+
+        return selectedDate.toLocaleDateString("en-US", {
+            month: "long",
+            year: "numeric"
+        });
+    }
+
+    return date;
+}
+
+// GET CURRENT ANALYTICS SUMMARY
+function getAnalyticsExportData() {
+    const period =
+        document.getElementById("analyticsPeriodType")?.value || "year";
+    const periodLabel =
+        getExportPeriodLabel();
+    return {
+        period,
+        periodLabel,
+
+        pets: {
+            available:
+                document.getElementById("petAvailable")?.textContent || "0",
+            pending:
+                document.getElementById("petPending")?.textContent || "0",
+            adopted:
+                document.getElementById("petAdopted")?.textContent || "0",
+            archived:
+                document.getElementById("petArchived")?.textContent || "0",
+            total:
+                document.getElementById("petTotal")?.textContent || "0"
+        },
+
+        cash:
+            document.getElementById("summaryCash")?.textContent || "₱0.00",
+        inKind:
+            document.getElementById("summaryInKind")?.textContent || "0",
+        adoptionTotal:
+            document.getElementById("adoptedTotal")?.textContent || "0",
+        availableTotal:
+            document.getElementById("availableTotal")?.textContent || "0"
+    };
+}
