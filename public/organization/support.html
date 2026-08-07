@@ -3,342 +3,522 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Organization Dashboard</title>
+    <title>Organization Support | Pawpon</title>
+
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+    <!-- Shared Components -->
     <script src="../assets/js/orgSidebar.js"></script>
     <script src="../assets/js/orgTopbar.js"></script>
 </head>
-<body class="bg-slate-100 font-['Inter',_sans-serif] min-h-screen">
+<body class="bg-slate-100 font-['Inter',_sans-serif] text-slate-700 min-h-screen">
 
-    <!-- HEADER & SIDEBAR CONTAINERS -->
+    <!-- =====================================================
+         HEADER & SIDEBAR
+    ====================================================== -->
     <div id="headerContainer"></div>
     <div id="sidebarContainer"></div>
 
-    <!-- MAIN CONTENT – intentionally left empty (no cards, no stats, no styling) -->
-    <main id="mainContent"
-    data-sidebar-collapsed="false"
-    class="pt-28 pb-12 px-4 md:px-8 transition-all duration-200 ease-in-out left-0 md:ml-[280px] data-[sidebar-collapsed=true]:md:ml-20">
-    
+    <!-- =====================================================
+         MAIN CONTENT
+    ====================================================== -->
+    <main id="mainContent" data-sidebar-collapsed="false" class="pt-28 pb-12 px-4 md:px-8 transition-all duration-200 ease-in-out left-0 md:ml-[280px] data-[sidebar-collapsed=true]:md:ml-20">
+        <div class="max-w-7xl mx-auto space-y-6">
 
-    <div class="max-w-7xl mx-auto">
-        <!-- Hero -->
-        <div class="bg-gradient-to-r from-blue-900 to-indigo-900 rounded-3xl p-8 text-white shadow-lg">
-            <div class="flex items-center gap-5">
-                <div class="w-20 h-20 rounded-2xl bg-white/10 flex items-center justify-center text-4xl">
-                    <i class="fa-solid fa-headset"></i>
-                </div>
+            <!-- =================================================
+                 HERO
+            ================================================== -->
+            <section class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900 p-7 md:p-9 text-white shadow-lg">
+                <!-- Decorative Background -->
+                <div class="absolute -right-16 -top-16 w-52 h-52 rounded-full bg-white/5"></div>
+                <div class="absolute -right-5 -bottom-24 w-64 h-64 rounded-full bg-indigo-400/10"></div>
 
-                <div>
-                    <h1 class="text-3xl font-bold"> Organization Support Center </h1>
-                    <p class="text-blue-100 mt-2 max-w-3xl leading-relaxed"> Need assistance? Browse frequently asked questions, find our contact information, or send us a message. We're here to help you manage your organization efficiently.</p>
-                </div>
-            </div>
-
-        </div>
-
-        <!-- Quick Help -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-5">
-            <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
-                <div class="flex items-center gap-4 mb-5">
-                    <div class="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center text-blue-700 text-xl">
-                        <i class="fa-solid fa-book-open"></i>
-                    </div>
-                    <h3 class="font-bold text-lg text-gray-800"> User Guide </h3>
-                </div>
-                    <p class="text-gray-500 text-sm mt-2 leading-6">Learn how to manage pets, donations, and adoption requests using Pawpon. </p>
-            </div>
-
-            <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
-                <div class="flex items-center gap-4 mb-5">
-                    <div class="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center text-green-700 text-xl">
-                        <i class="fa-solid fa-phone"></i>
-                    </div>
-                    <h3 class="font-bold text-lg text-gray-800"> Contact Us </h3>
-                </div>
-                    <p class="text-gray-500 text-sm leading-6"> Reach our support team through email or phone whenever you need assistance.  </p>
-            </div>
-
-            <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
-
-            <div class="flex items-center gap-4 mb-5">
-                <div class="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center text-amber-700 text-xl">
-                    <i class="fa-solid fa-comments"></i>
-                </div>
-                    <h3 class="font-bold text-lg text-gray-800"> Send Feedback </h3>
-                </div>
-                <p class="text-gray-500 text-sm leading-6"> Help us improve Pawpon by reporting issues or suggesting new features. </p>
-            </div>
-
-        </div> 
-
-        <!-- FAQ + Contact -->
-        <div class="grid grid-cols-1 xl:grid-cols-2 gap-6 mt-5">
-            <!-- Frequently Asked Questions -->
-            <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-7">
-                <div class="flex items-center gap-3 mb-6">
-                    <div class="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center text-blue-700 text-xl">
-                        <i class="fa-solid fa-circle-question"></i>
+                <div class="relative flex flex-col md:flex-row md:items-center gap-6">
+                    <!-- Icon -->
+                    <div class="w-20 h-20 shrink-0 rounded-2xl bg-white/10 border border-white/10 backdrop-blur-sm flex items-center justify-center shadow-inner">
+                        <i class="fa-solid fa-headset text-4xl"></i>
                     </div>
 
-                    <div>
-                        <h2 class="text-xl font-bold text-gray-800">Frequently Asked Questions</h2>
-                        <p class="text-sm text-gray-500">Common questions from organizations.</p>
+                    <!-- Content -->
+                    <div class="max-w-3xl">
+                        <div class="flex flex-wrap items-center gap-2 mb-2">
+                            <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/10 text-xs font-semibold text-blue-100">
+                                <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                                Pawpon Support
+                            </span>
+
+                            <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/10 text-xs font-semibold text-blue-100">
+                                <i class="fa-solid fa-bolt text-amber-300"></i>
+                                Fast Issue Resolution
+                            </span>
+                        </div>
+
+                        <h1 class="text-3xl md:text-4xl font-extrabold tracking-tight">Organization Support Center</h1>
+
+                        <p class="mt-3 text-blue-100 leading-7 text-sm md:text-base">
+                            Need help managing your organization? Browse common solutions, contact the Pawpon support team, or send us a message about an issue you're experiencing.
+                        </p>
                     </div>
                 </div>
+            </section>
 
-                <div class="space-y-3">
-                    <!-- FAQ 1 -->
-                    <div class="border border-gray-200 rounded-xl overflow-hidden">
-                        <button class="faq-btn w-full flex justify-between items-center px-5 py-4 text-left hover:bg-gray-50 transition">
-                            <span class="font-semibold text-gray-800">How do I add a new pet?</span>
-                            <i class="fa-solid fa-chevron-down transition-transform duration-300"></i>
-                        </button>
-                        <div class="faq-content hidden px-5 pb-5 text-sm text-gray-500 leading-6">
-                            Go to the <strong>Pets</strong> module and click <strong>Add Pet</strong>. Complete all required information and save the pet profile.
+            <!-- =================================================
+                 QUICK HELP
+            ================================================== -->
+            <section class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                <!-- User Guide -->
+                <div class="group bg-white rounded-2xl border border-slate-200 p-6 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
+                    <div class="flex items-start justify-between mb-5">
+                        <div class="w-12 h-12 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-700">
+                            <i class="fa-solid fa-book-open text-lg"></i>
                         </div>
                     </div>
 
-                    <!-- FAQ 2 -->
-                    <div class="border border-gray-200 rounded-xl overflow-hidden">
-                        <button class="faq-btn w-full flex justify-between items-center px-5 py-4 text-left hover:bg-gray-50 transition">
-                            <span class="font-semibold text-gray-800">Why isn't my pet visible to adopters?</span>
-                            <i class="fa-solid fa-chevron-down transition-transform duration-300"></i>
-                        </button>
-                        <div class="faq-content hidden px-5 pb-5 text-sm text-gray-500 leading-6">
-                            Make sure the pet profile is complete, has an uploaded image, and its status is marked as <strong>Available</strong>.
-                        </div>
-                    </div>
-
-                    <!-- FAQ 3 -->
-                    <div class="border border-gray-200 rounded-xl overflow-hidden">
-                        <button class="faq-btn w-full flex justify-between items-center px-5 py-4 text-left hover:bg-gray-50 transition">
-                            <span class="font-semibold text-gray-800">How can I receive donations?</span>
-                            <i class="fa-solid fa-chevron-down transition-transform duration-300"></i>
-                        </button>
-                        <div class="faq-content hidden px-5 pb-5 text-sm text-gray-500 leading-6">
-                            Configure your organization's donation information in the <strong>Donation</strong> module, including payment methods and QR codes.
-                        </div>
-                    </div>
-
-                    <!-- FAQ 4 -->
-                    <div class="border border-gray-200 rounded-xl overflow-hidden">
-                        <button class="faq-btn w-full flex justify-between items-center px-5 py-4 text-left hover:bg-gray-50 transition">
-                            <span class="font-semibold text-gray-800">How does the pet matching feature work?</span>
-                            <i class="fa-solid fa-chevron-down transition-transform duration-300"></i>
-                        </button>
-                        <div class="faq-content hidden px-5 pb-5 text-sm text-gray-500 leading-6">
-                            Pawpon compares adopter preferences with your pet's profile and personality information to recommend suitable matches.
-                        </div>
-                    </div>
+                    <h3 class="text-base font-bold text-slate-800">User Guide</h3>
+                    <p class="text-sm text-slate-500 leading-6 mt-2">
+                        Learn how to manage pets, donations, adoption requests, and other organization features in Pawpon.
+                    </p>
                 </div>
 
-            </div>
-           
-            <!-- Contact Support -->
-            <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-7">
-                <div class="flex items-center gap-3 mb-6">
-                    <div class="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center text-green-700 text-xl">
-                        <i class="fa-solid fa-headset"></i>
+                <!-- Contact Us -->
+                <div class="group bg-white rounded-2xl border border-slate-200 p-6 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
+                    <div class="flex items-start justify-between mb-5">
+                        <div class="w-12 h-12 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-700">
+                            <i class="fa-solid fa-headset text-lg"></i>
+                        </div>
                     </div>
-                    <div>
-                        <h2 class="text-xl font-bold text-gray-800">Contact Support</h2>
-                        <p class="text-sm text-gray-500">Reach our support team using the information below.</p>
-                    </div>
+
+                    <h3 class="text-base font-bold text-slate-800">Contact Us</h3>
+                    <p class="text-sm text-slate-500 leading-6 mt-2">
+                        Reach the Pawpon support team whenever you need assistance with your organization.
+                    </p>
                 </div>
 
-                <div class="space-y-6">
-                    <div class="flex gap-4">
-                        <div class="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center text-blue-700">
-                            <i class="fa-solid fa-envelope"></i>
-                        </div>
-                        <div>
-                            <p class="font-semibold text-gray-800">Email Address</p>
-                            <p class="text-sm text-gray-500 mt-1">support@pawpon.com</p>
+                <!-- Feedback -->
+                <div class="group bg-white rounded-2xl border border-slate-200 p-6 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
+                    <div class="flex items-start justify-between mb-5">
+                        <div class="w-12 h-12 rounded-xl bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-700">
+                            <i class="fa-solid fa-comments text-lg"></i>
                         </div>
                     </div>
 
-                    <div class="flex gap-4">
-                        <div class="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-700">
-                            <i class="fa-solid fa-phone"></i>
-                        </div>
-                        <div>
-                            <p class="font-semibold text-gray-800">Contact Number</p>
-                            <p class="text-sm text-gray-500 mt-1">(+63) 912 345 6789</p>
-                        </div>
-                    </div>
-
-                    <div class="flex gap-4">
-                        <div class="w-12 h-12 rounded-xl bg-orange-50 flex items-center justify-center text-orange-600">
-                            <i class="fa-solid fa-clock"></i>
-                        </div>
-                        <div>
-                            <p class="font-semibold text-gray-800">Support Hours</p>
-                            <p class="text-sm text-gray-500 mt-1">Monday – Friday<br>8:00 AM – 5:00 PM</p>
-                        </div>
-                    </div>
-
-                    <div class="flex gap-4">
-                        <div class="w-12 h-12 rounded-xl bg-purple-50 flex items-center justify-center text-purple-600">
-                            <i class="fa-solid fa-location-dot"></i>
-                        </div>
-                        <div>
-                            <p class="font-semibold text-gray-800">Office</p>
-                            <p class="text-sm text-gray-500 mt-1">Pawpon Support Center<br>Philippines</p>
-                        </div>
-                    </div>
+                    <h3 class="text-base font-bold text-slate-800">Send Feedback</h3>
+                    <p class="text-sm text-slate-500 leading-6 mt-2">
+                        Report issues or share suggestions that can help improve the Pawpon experience.
+                    </p>
                 </div>
-            </div>
+            </section>
+
+            <!-- =================================================
+                 FAQ + CONTACT SUPPORT
+            ================================================== -->
+            <section class="grid grid-cols-1 xl:grid-cols-2 gap-5">
             
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 md:p-7">
+
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-11 h-11 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-700">
+                            <i class="fa-solid fa-circle-question"></i>
+                        </div>
+
+                        <div>
+                            <h2 class="text-lg font-bold text-slate-800">
+                                Frequently Asked Questions
+                            </h2>
+                            <p class="text-xs text-slate-500 mt-0.5">
+                                Common questions from organizations.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-3">
+
+                        <!-- =================================================
+                            FAQ 1 — PETS
+                        ================================================== -->
+                        <div class="border border-slate-200 rounded-xl overflow-hidden">
+                            <button
+                                type="button"
+                                class="faq-btn w-full flex justify-between items-center gap-4 px-5 py-4 text-left hover:bg-slate-50 transition"
+                            >
+                                <span class="font-semibold text-sm text-slate-700">
+                                    How do I add and manage a pet?
+                                </span>
+
+                                <i class="fa-solid fa-chevron-down text-xs text-slate-400 transition-transform duration-300"></i>
+                            </button>
+
+                            <div class="faq-content hidden px-5 pb-5 text-sm text-slate-500 leading-6">
+                                Go to the <strong>Pets</strong> module to add new pets and
+                                manage existing profiles. You can update basic information,
+                                descriptions, images, health and vaccination status,
+                                personality tags, adoption status, and medical history.
+                            </div>
+                        </div>
+
+                        <!-- =================================================
+                            FAQ 3 — DONATIONS
+                        ================================================== -->
+                        <div class="border border-slate-200 rounded-xl overflow-hidden">
+                            <button
+                                type="button"
+                                class="faq-btn w-full flex justify-between items-center gap-4 px-5 py-4 text-left hover:bg-slate-50 transition"
+                            >
+                                <span class="font-semibold text-sm text-slate-700">
+                                    How can our organization manage donations?
+                                </span>
+
+                                <i class="fa-solid fa-chevron-down text-xs text-slate-400 transition-transform duration-300"></i>
+                            </button>
+
+                            <div class="faq-content hidden px-5 pb-5 text-sm text-slate-500 leading-6">
+                                Use the <strong>Donations</strong> module to manage your
+                                organization's donation information and review donation
+                                records. Make sure your payment details and donation
+                                instructions are kept accurate and up to date.
+                            </div>
+                        </div>
+
+
+                        <!-- =================================================
+                            FAQ 4 — PET MATCHING
+                        ================================================== -->
+                        <div class="border border-slate-200 rounded-xl overflow-hidden">
+                            <button
+                                type="button"
+                                class="faq-btn w-full flex justify-between items-center gap-4 px-5 py-4 text-left hover:bg-slate-50 transition"
+                            >
+                                <span class="font-semibold text-sm text-slate-700">
+                                    How does the pet matching feature work?
+                                </span>
+
+                                <i class="fa-solid fa-chevron-down text-xs text-slate-400 transition-transform duration-300"></i>
+                            </button>
+
+                            <div class="faq-content hidden px-5 pb-5 text-sm text-slate-500 leading-6">
+                                Pawpon compares an adopter's preferences with available pet
+                                information, including behavior, personality, age, and sex.
+                                The system then generates matching scores to help identify
+                                pets that may be suitable for the adopter.
+                            </div>
+                        </div>
+
+                        <!-- =================================================
+                            FAQ 6 — ORGANIZATION PROFILE
+                        ================================================== -->
+                        <div class="border border-slate-200 rounded-xl overflow-hidden">
+                            <button
+                                type="button"
+                                class="faq-btn w-full flex justify-between items-center gap-4 px-5 py-4 text-left hover:bg-slate-50 transition"
+                            >
+                                <span class="font-semibold text-sm text-slate-700">
+                                    How do I update our organization's profile?
+                                </span>
+
+                                <i class="fa-solid fa-chevron-down text-xs text-slate-400 transition-transform duration-300"></i>
+                            </button>
+
+                            <div class="faq-content hidden px-5 pb-5 text-sm text-slate-500 leading-6">
+                                Go to your organization's <strong>Profile</strong> section
+                                to update available information such as your organization
+                                name, description, contact details, and profile information.
+                                Keeping these details accurate helps adopters and supporters
+                                identify and contact your organization.
+                            </div>
+                        </div>
+
+                        <!-- =================================================
+                            FAQ 8 — SUPPORT
+                        ================================================== -->
+                        <div class="border border-slate-200 rounded-xl overflow-hidden">
+                            <button
+                                type="button"
+                                class="faq-btn w-full flex justify-between items-center gap-4 px-5 py-4 text-left hover:bg-slate-50 transition"
+                            >
+                                <span class="font-semibold text-sm text-slate-700">
+                                    What should I include when reporting a problem?
+                                </span>
+
+                                <i class="fa-solid fa-chevron-down text-xs text-slate-400 transition-transform duration-300"></i>
+                            </button>
+
+                            <div class="faq-content hidden px-5 pb-5 text-sm text-slate-500 leading-6">
+                                When contacting <strong>Pawpon Support</strong>, describe the
+                                problem clearly and mention which module is affected. Include
+                                what you were trying to do and what happened instead. Providing
+                                specific details helps the support team resolve the issue
+                                faster.
+                            </div>
+                        </div>
+
+
+                        <!-- =================================================
+                            FAQ 9 — PET VISIBILITY
+                        ================================================== -->
+                        <div class="border border-slate-200 rounded-xl overflow-hidden">
+                            <button
+                                type="button"
+                                class="faq-btn w-full flex justify-between items-center gap-4 px-5 py-4 text-left hover:bg-slate-50 transition"
+                            >
+                                <span class="font-semibold text-sm text-slate-700">
+                                    Why isn't my pet visible to adopters?
+                                </span>
+
+                                <i class="fa-solid fa-chevron-down text-xs text-slate-400 transition-transform duration-300"></i>
+                            </button>
+
+                            <div class="faq-content hidden px-5 pb-5 text-sm text-slate-500 leading-6">
+                                Make sure the pet's profile is complete and its
+                                <strong>Adoption Status</strong> is set appropriately. Also
+                                check that the pet has the necessary information and image
+                                required for display. Keeping the pet's profile updated helps
+                                ensure accurate information is shown to adopters.
+                            </div>
+                        </div>
+
+
+                        <!-- =================================================
+                            FAQ 10 — SYSTEM ISSUES
+                        ================================================== -->
+                        <div class="border border-slate-200 rounded-xl overflow-hidden">
+                            <button
+                                type="button"
+                                class="faq-btn w-full flex justify-between items-center gap-4 px-5 py-4 text-left hover:bg-slate-50 transition"
+                            >
+                                <span class="font-semibold text-sm text-slate-700">
+                                    What should I do if a Pawpon feature isn't working?
+                                </span>
+
+                                <i class="fa-solid fa-chevron-down text-xs text-slate-400 transition-transform duration-300"></i>
+                            </button>
+
+                            <div class="faq-content hidden px-5 pb-5 text-sm text-slate-500 leading-6">
+                                First, check that the information you entered is complete and
+                                try the action again. If the issue continues, contact
+                                <strong>Pawpon Support</strong> and provide the affected
+                                module, the action you were performing, and a description of
+                                what happened so the support team can investigate and resolve
+                                the issue quickly.
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+                <!-- =================================================
+                     UNIQUE CONTACT SUPPORT
+                ================================================== -->
+                <div class="relative overflow-hidden bg-gradient-to-br from-white via-white to-blue-50 rounded-2xl border border-slate-200 shadow-sm p-6 md:p-7">
+                    <!-- Decorative Paw -->
+                    <div class="absolute -right-7 -top-7 w-28 h-28 rounded-full bg-blue-100/50 flex items-end justify-start p-7">
+                        <i class="fa-solid fa-paw text-blue-200 text-3xl rotate-12"></i>
+                    </div>
+
+                    <!-- Header -->
+                    <div class="relative flex items-start justify-between gap-4 mb-7">
+                        <div class="flex items-center gap-3">
+                            <div class="w-11 h-11 rounded-xl bg-blue-600 text-white flex items-center justify-center shadow-sm">
+                                <i class="fa-solid fa-headset"></i>
+                            </div>
+                            <div>
+                                <h2 class="text-lg font-bold text-slate-800">Contact Support</h2>
+                                <p class="text-xs text-slate-500 mt-0.5">Let's solve your issue quickly.</p>
+                            </div>
+                        </div>
+
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-emerald-50 border border-emerald-100 text-[10px] font-bold uppercase tracking-wide text-emerald-700">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                            Support Active
+                        </span>
+                    </div>
+
+                    <!-- Fast Resolution Banner -->
+                    <div class="relative rounded-xl bg-blue-600 p-4 text-white mb-6 overflow-hidden">
+                        <div class="absolute right-0 top-0 opacity-10">
+                            <i class="fa-solid fa-bolt text-7xl"></i>
+                        </div>
+
+                        <div class="relative flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-lg bg-white/15 flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-bolt text-amber-300"></i>
+                            </div>
+                            <div>
+                                <p class="text-sm font-bold">Need help fast?</p>
+                                <p class="text-xs text-blue-100 mt-0.5 leading-5">
+                                    Send us your concern and provide as much detail as possible for faster resolution.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Contact Items -->
+                    <div class="space-y-3">
+                        <!-- Email -->
+                        <div class="flex items-center gap-4 p-3.5 rounded-xl border border-slate-200 bg-white hover:border-blue-200 hover:bg-blue-50/40 transition">
+                            <div class="w-10 h-10 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-envelope"></i>
+                            </div>
+                            <div class="min-w-0">
+                                <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Email</p>
+                                <p class="text-sm font-semibold text-slate-700 mt-0.5 truncate">pawssion_admin@gmail.com</p>
+                            </div>
+                        </div>
+
+                        <!-- Phone -->
+                        <div class="flex items-center gap-4 p-3.5 rounded-xl border border-slate-200 bg-white hover:border-emerald-200 hover:bg-emerald-50/40 transition">
+                            <div class="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-phone"></i>
+                            </div>
+                            <div>
+                                <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Contact Number</p>
+                                <p class="text-sm font-semibold text-slate-700 mt-0.5">(+63) 951 450 1937</p>
+                            </div>
+                        </div>
+
+                        <!-- Support Hours -->
+                        <div class="flex items-center gap-4 p-3.5 rounded-xl border border-slate-200 bg-white hover:border-amber-200 hover:bg-amber-50/40 transition">
+                            <div class="w-10 h-10 rounded-lg bg-amber-50 text-amber-700 flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-clock"></i>
+                            </div>
+                            <div>
+                                <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Support Hours</p>
+                                <p class="text-sm font-semibold text-slate-700 mt-0.5">Monday – Friday</p>
+                                <p class="text-xs text-slate-500">8:00 AM – 5:00 PM</p>
+                            </div>
+                        </div>
+
+                        <!-- Office -->
+                        <div class="flex items-center gap-4 p-3.5 rounded-xl border border-slate-200 bg-white hover:border-purple-200 hover:bg-purple-50/40 transition">
+                            <div class="w-10 h-10 rounded-lg bg-purple-50 text-purple-700 flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-location-dot"></i>
+                            </div>
+                            <div>
+                                <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Office</p>
+                                <p class="text-sm font-semibold text-slate-700 mt-0.5">Pawpon Support Center</p>
+                                <p class="text-xs text-slate-500">Philippines</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </section>
+
+            <!-- =================================================
+                 BOTTOM HELP BANNER
+            ================================================== -->
+            <section class="relative overflow-hidden rounded-2xl border border-blue-200 bg-blue-50 p-5 md:p-6">
+                <div class="absolute right-0 bottom-0 opacity-5">
+                    <i class="fa-solid fa-paw text-blue-900 text-8xl"></i>
+                </div>
+
+                <div class="relative flex flex-col sm:flex-row items-start gap-4">
+                    <div class="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-sm">
+                        <i class="fa-solid fa-lightbulb text-sm"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold text-blue-900">Looking for a quick solution?</h3>
+                        <p class="text-sm text-slate-600 mt-1.5 leading-6 max-w-4xl">
+                            Check the Frequently Asked Questions above before contacting support. If your concern isn't covered, send us a message with the details of your issue so our team can help resolve it as quickly as possible.
+                        </p>
+                    </div>
+                </div>
+            </section>
+
         </div>
 
-        <!-- Send Message -->
-        <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 mt-6">
-
-            <!-- Header -->
-            <div class="flex items-center gap-3 mb-5">
-                <div class="w-11 h-11 rounded-xl bg-blue-100 flex items-center justify-center text-blue-700">
-                    <i class="fa-solid fa-paper-plane text-lg"></i>
-                </div>
-
-                <div>
-                    <h2 class="text-lg font-bold text-gray-800">Send Us a Message</h2>
-                    <p class="text-sm text-gray-500">Can't find what you're looking for? Send us your concern and we'll respond as soon as possible.</p>
-                </div>
-            </div>
-
-            <form class="space-y-5">
-
-                <!-- Subject + Category -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Subject</label>
-                        <input type="text" placeholder="Enter subject" class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <!-- =====================================================
+             LOGOUT MODAL
+        ====================================================== -->
+        <div
+            id="logoutModal"
+            class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/45 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-200"
+        >
+            <div class="bg-white rounded-2xl max-w-sm w-full mx-4 p-6 shadow-2xl scale-95 transition-transform duration-200">
+                <div class="text-center">
+                    <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-50 mb-4">
+                        <i class="fa-solid fa-right-from-bracket text-red-600 text-lg"></i>
                     </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Category</label>
-                        <select class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <option>General Inquiry</option>
-                            <option>Technical Issue</option>
-                            <option>Pet Management</option>
-                            <option>Donations</option>
-                            <option>Adoption Requests</option>
-                            <option>Other</option>
-                        </select>
-                    </div>
+                    <h3 class="text-lg font-bold text-slate-900">Logging Out?</h3>
+                    <p class="text-sm text-slate-500 mt-2">Are you sure you want to leave the Pawpon Org Portal?</p>
                 </div>
 
-                <!-- Message -->
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Message</label>
-                    <textarea rows="5" placeholder="Describe your concern or question..." class="w-full border border-gray-300 rounded-lg px-3 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
-                </div>
-
-                <!-- Button -->
-                <div class="flex justify-end">
-                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 transition text-white px-6 py-2.5 rounded-lg font-semibold text-sm shadow-sm">
-                        <i class="fa-solid fa-paper-plane mr-2"></i>Send Message
+                <div class="mt-6 flex gap-3">
+                    <button
+                        id="cancelLogoutBtn"
+                        type="button"
+                        class="flex-1 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded-xl transition text-sm"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        id="confirmLogoutBtn"
+                        type="button"
+                        class="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white font-medium rounded-xl transition shadow-sm"
+                    >
+                        Yes, Logout
                     </button>
                 </div>
-
-            </form>
-
-        </div>
-
-        <!-- Bottom Note -->
-        <div class="mt-5 bg-blue-50 border border-blue-200 rounded-xl p-5">
-
-            <div class="flex items-start gap-3">
-                <div class="w-10 h-10 rounded-lg bg-blue-600 text-white flex items-center justify-center flex-shrink-0">
-                    <i class="fa-solid fa-lightbulb text-sm"></i>
-                </div>
-
-                <div>
-                    <h3 class="text-base font-bold text-blue-900">Need Immediate Assistance?</h3>
-                    <p class="text-sm text-gray-600 mt-1 leading-6">Before contacting support, check the <strong>Frequently Asked Questions</strong> above. They cover the most common concerns about managing pets, adoption requests, and donations. If you still need assistance, feel free to send us a message or contact our support team.</p>
-                </div>
-            </div>
-
-        </div>
-
-    </div>
-
-    <!--Logout Modal-->
-    <div id="logoutModal" class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/45 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-200">
-        <div class="bg-white rounded-2xl max-w-sm w-full mx-4 p-6 shadow-2xl scale-95 transition-transform duration-200">
-            <div class="text-center">
-                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-50 mb-4">
-                    <i class="fa-solid fa-right-from-bracket text-red-600 text-lg"></i>
-                </div>
-                <h3 class="text-lg font-bold text-gray-900">Logging Out?</h3>
-                <p class="text-sm text-gray-500 mt-2">Are you sure you want to leave the Pawpon Org Portal?</p>
-            </div>
-            <div class="mt-6 flex gap-3">
-                <button id="cancelLogoutBtn" class="flex-1 px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-xl transition text-sm">
-                    Cancel
-                </button>
-                <button id="confirmLogoutBtn" class="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white font-medium rounded-xl transition shadow-sm shadow-red-200 text-sm">
-                    Yes, Logout
-                </button>
             </div>
         </div>
-    </div>
-</main>
 
-    <!-- 3. INTERACTION SCRIPT WITH ASYNC FETCH -->
-<script>
-document.addEventListener("DOMContentLoaded", async () => {
+    </main>
 
-    // ==========================
-    // Load Shared Components
-    // =========================
+    <!-- =====================================================
+         PAGE SCRIPT
+    ====================================================== -->
+    <script>
+        document.addEventListener("DOMContentLoaded", async () => {
+            // =============================================
+            // LOAD SHARED COMPONENTS
+            // =============================================
+            await loadTopbar({
+                title: "Support",
+                subtitle: "Get help and support for your organization"
+            });
 
-    await loadTopbar({
-        title: "Support",
-        subtitle: "Get help and support for your organization"
-    });
+            await loadSidebar("support");
 
-   await loadSidebar("support");
-
-    // ==========================
-    // Load Organization Name
-    // ==========================
-    try {
-        const response = await fetch("/api/organization/profile");
-
-        if (response.ok) {
-            const organization = await response.json();
-
-            const organizationName = document.getElementById("organizationName");
-
-            if (organizationName) {
-                organizationName.textContent =
-                    organization.organization_name;
+            // =============================================
+            // LOAD ORGANIZATION NAME
+            // =============================================
+            try {
+                const response = await fetch("/api/organization/profile");
+                if (response.ok) {
+                    const organization = await response.json();
+                    const organizationName = document.getElementById("organizationName");
+                    if (organizationName) {
+                        organizationName.textContent = organization.organization_name;
+                    }
+                }
+            } catch (error) {
+                console.error("Unable to load organization:", error);
             }
-        }
-    } catch (error) {
-        console.error("Unable to load organization:", error);
-    }
 
-    // ==========================
-    // Load Dashboard Statistics
-    // ==========================
-    if (typeof loadDashboardStats === "function") {
-        loadDashboardStats();
-    }
+            // =============================================
+            // LOAD DASHBOARD STATISTICS
+            // =============================================
+            if (typeof loadDashboardStats === "function") {
+                loadDashboardStats();
+            }
+        });
 
-});
-document.querySelectorAll(".faq-btn").forEach(button => {
-    button.addEventListener("click", () => {
-        const content = button.nextElementSibling;
-        const icon = button.querySelector("i");
-        content.classList.toggle("hidden");
-        icon.classList.toggle("rotate-180");
-    });
-});
+        // =============================================
+        // FAQ ACCORDION
+        // =============================================
+        document.querySelectorAll(".faq-btn").forEach(button => {
+            button.addEventListener("click", () => {
+                const content = button.nextElementSibling;
+                const icon = button.querySelector("i");
+                content.classList.toggle("hidden");
+                icon.classList.toggle("rotate-180");
+            });
+        });
+    </script>
 
-</script>
-<script src="/assets/js/orgProfile.js"></script> 
+    <!-- Organization Profile -->
+    <script src="/assets/js/orgProfile.js"></script>
 </body>
 </html>
