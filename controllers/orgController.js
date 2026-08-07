@@ -309,6 +309,7 @@ exports.getPetDetails = async (req, res) => {
 exports.updatePet = async (req, res) => {
     try {
         const id = req.params.id;
+
         const {
             name,
             species,
@@ -324,8 +325,35 @@ exports.updatePet = async (req, res) => {
             medical_history
         } = req.body;
 
+        // =====================================================
+        // GET LOGGED-IN ORGANIZATION
+        // =====================================================
+
+        const [organizations] = await pool.query(
+            `
+            SELECT organization_id
+            FROM organizations
+            WHERE account_id = ?
+            `,
+            [req.session.accountId]
+        );
+
+        if (!organizations.length) {
+            return res.status(403).json({
+                success: false,
+                message: "Organization not found."
+            });
+        }
+
+        const organizationId = organizations[0].organization_id;
+
+        // =====================================================
+        // PREPARE UPDATE
+        // =====================================================
+
         let imageSQL = "";
-        let values = [
+
+        const values = [
             name,
             species,
             gender,
@@ -339,15 +367,27 @@ exports.updatePet = async (req, res) => {
             personality_tags || null
         ];
 
+        // =====================================================
+        // UPDATE IMAGE IF NEW IMAGE WAS UPLOADED
+        // =====================================================
+
         if (req.file) {
             imageSQL = ", image_path=?";
             values.push(req.file.filename);
         }
 
+        // =====================================================
+        // ADD IDs FOR WHERE CLAUSE
+        // =====================================================
+
         values.push(id);
-        
-        //dinagdag lang ang AND organization_id=?
-        await pool.query(
+        values.push(organizationId);
+
+        // =====================================================
+        // UPDATE PET
+        // =====================================================
+
+        const [result] = await pool.query(
             `
             UPDATE animals
             SET
@@ -363,34 +403,45 @@ exports.updatePet = async (req, res) => {
                 adoption_status=?,
                 personality_tags=?
                 ${imageSQL}
-            WHERE animal_id=? AND organization_id=?
+            WHERE animal_id=?
+              AND organization_id=?
             `,
             values
         );
-        const embedding = await generateEmbedding(
-            pet_description || ""
-        );
+
+        // =====================================================
+        // CHECK IF PET EXISTS / BELONGS TO ORGANIZATION
+        // =====================================================
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "Pet not found or does not belong to your organization."
+            });
+        }
+
+        // =====================================================
+        // UPDATE PET EMBEDDING
+        // =====================================================
+
+        const embedding = await generateEmbedding(pet_description || "");
+
         await pool.query(
             `
-            INSERT INTO animal_embeddings
-            (
-                animal_id,
-                embedding
-            )
+            INSERT INTO animal_embeddings (animal_id, embedding)
             VALUES (?, ?)
             ON DUPLICATE KEY UPDATE
-            embedding = VALUES(embedding),
-            updated_at = CURRENT_TIMESTAMP
+                embedding = VALUES(embedding),
+                updated_at = CURRENT_TIMESTAMP
             `,
-            [
-                id,
-                JSON.stringify(embedding)
-            ]
+            [id, JSON.stringify(embedding)]
         );
 
-        const medical = medical_history
-            ? JSON.parse(medical_history)
-            : [];
+        // =====================================================
+        // UPDATE MEDICAL HISTORY
+        // =====================================================
+
+        const medical = medical_history ? JSON.parse(medical_history) : [];
 
         // Delete old records
         await pool.query(
@@ -412,7 +463,7 @@ exports.updatePet = async (req, res) => {
                     administered_date,
                     administered_by
                 )
-                VALUES (?,?,?,?)
+                VALUES (?, ?, ?, ?)
                 `,
                 [
                     id,
@@ -421,8 +472,11 @@ exports.updatePet = async (req, res) => {
                     m.administered_by
                 ]
             );
-
         }
+
+        // =====================================================
+        // SUCCESS
+        // =====================================================
 
         res.json({
             success: true,
@@ -430,7 +484,8 @@ exports.updatePet = async (req, res) => {
         });
 
     } catch (err) {
-        console.error(err);
+        console.error("UPDATE PET ERROR:", err);
+
         res.status(500).json({
             success: false,
             message: err.message
@@ -1606,7 +1661,7 @@ exports.getAnalyticsData = async (req, res) => {
                 id: organizationId,
                 name: organizationName
             },
-            
+
             period: period,
             date: displayDate,
             range: {
