@@ -721,12 +721,6 @@ exports.getUserApplications = async (req, res) => {
         // =====================================================
         const accountId = req.session?.accountId;
 
-        console.log("========================================");
-        console.log("GET USER APPLICATIONS");
-        console.log("Session:", req.session);
-        console.log("Account ID:", accountId);
-        console.log("========================================");
-
         if (!accountId) {
             return res.status(401).json({ success: false, message: "You must be logged in." });
         }
@@ -739,15 +733,12 @@ exports.getUserApplications = async (req, res) => {
             [accountId]
         );
 
-        console.log("Adopter rows:", adopterRows);
 
         if (adopterRows.length === 0) {
             return res.status(404).json({ success: false, message: "Adopter profile not found." });
         }
 
         const adopterId = adopterRows[0].adopter_id;
-
-        console.log("Adopter ID:", adopterId);
 
         // =====================================================
         // 3. GET APPLICATIONS
@@ -796,12 +787,6 @@ exports.getUserApplications = async (req, res) => {
             `,
             [adopterId]
         );
-
-        // =====================================================
-        // 4. DEBUG
-        // =====================================================
-        console.log("Applications found:", applications);
-        console.log("Applications:", applications);
 
         // =====================================================
         // 5. SEND RESPONSE

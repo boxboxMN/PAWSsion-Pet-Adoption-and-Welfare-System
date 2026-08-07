@@ -418,12 +418,14 @@ function renderTable() {
     filtered.forEach(app => {
         const statusClass = getStatusClass(app.status);
 
+        const petImageSrc = app.image && app.image.trim() !== "" ? app.image : "/assets/images/no-image.png";
+
         html += `
             <tr class="border-t border-gray-200 hover:bg-gray-50 transition">
                 <!-- PET -->
-                <td class="p-4">
+               <td class="p-4">
                     <div class="flex items-center gap-3">
-                        <img src="${app.image}" alt="${app.petName}" class="w-14 h-14 rounded-lg object-cover border" onerror="this.src='/assets/images/no-image.png'" />
+                        <img src="${petImageSrc}" alt="${app.petName}" class="w-14 h-14 rounded-lg object-cover border" onerror="this.onerror=null; this.src='/assets/images/no-image.png';" />
                         <div>
                             <span class="font-semibold text-gray-800">${app.petName}</span>
                             <p class="text-xs text-gray-500">${app.species}</p>
