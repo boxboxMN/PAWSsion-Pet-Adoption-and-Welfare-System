@@ -102,23 +102,15 @@
                         <div class="stepper-wrapper" id="stepper-container">
                             <div class="step-item active" data-step="1">
                                 <div class="circle">1</div>
-                                <span class="label">Applicant</span>
+                                <span class="label">Submitted</span>
                             </div>
                             <div class="step-item" data-step="2">
                                 <div class="circle">2</div>
-                                <span class="label">Lifestyle</span>
+                                <span class="label">Interview</span>
                             </div>
                             <div class="step-item" data-step="3">
                                 <div class="circle">3</div>
-                                <span class="label">Intent</span>
-                            </div>
-                            <div class="step-item" data-step="4">
-                                <div class="circle">4</div>
-                                <span class="label">Emergency</span>
-                            </div>
-                            <div class="step-item" data-step="5">
-                                <div class="circle">5</div>
-                                <span class="label">Requirement</span>
+                                <span class="label">Approved</span>
                             </div>
                         </div>
                     </div>
@@ -483,14 +475,21 @@ function updateStepper(status) {
     const steps = stepperContainer.querySelectorAll(".step-item");
     let currentStep = 1;
 
+    // 1. Submitted / Under Review
     if (status === "Under Review") {
         currentStep = 1;
-    } else if (status === "Interview Scheduled") {
+    } 
+    // 2. Interview Scheduled
+    else if (status === "Interview Scheduled") {
         currentStep = 2;
-    } else if (status === "Approved") {
-        currentStep = 5;
-    } else if (status === "Declined") {
-        currentStep = 2;
+    } 
+    // 3. Approved
+    else if (status === "Approved") {
+        currentStep = 3;
+    } 
+    // Kapag Declined: Ipapakita hanggang step 1 o 2 batay sa status kung kailan na-decline
+    else if (status === "Declined") {
+        currentStep = 1; 
     }
 
     steps.forEach((step, index) => {
@@ -625,7 +624,6 @@ function showDetails(app) {
         }
     }
 
-    renderDetailsActions(app);
     document.getElementById("app").scrollTo({ top: 0, behavior: "smooth" });
 }
 
