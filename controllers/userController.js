@@ -596,9 +596,24 @@ exports.submitAdoptionApplication = async (req, res) => {
             emergency_relation
         } = req.body;
 
+        const [petRows] = await pool.query(
+            `SELECT organization_id FROM animals WHERE animal_id = ?`,
+            [animal_id]
+        );
+
+        if (!petRows.length) {
+            return res.status(404).json({
+                status: 'error',
+                message: 'Selected pet not found.'
+            });
+        }
+
+        const organizationId = petRows[0].organization_id;
+        
         // 4. Save sa Database
         const query = `
             INSERT INTO user_adoption_applications (
+                organization_id,
                 adopter_id,
                 animal_id,
                 full_name,
@@ -614,10 +629,11 @@ exports.submitAdoptionApplication = async (req, res) => {
                 emergency_relation,
                 document_path,
                 status
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pending')
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
 
         const values = [
+            organizationId,
             adopterId || null,
             animal_id ? parseInt(animal_id, 10) : null,
             full_name || null,
@@ -631,7 +647,8 @@ exports.submitAdoptionApplication = async (req, res) => {
             emergency_name || null,
             emergency_phone || null,
             emergency_relation || null,
-            documentPath || null
+            documentPath || null,
+            'Under Review'
         ];
 
         await pool.query(query, values);
