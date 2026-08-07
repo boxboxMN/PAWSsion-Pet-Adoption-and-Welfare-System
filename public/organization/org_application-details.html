@@ -312,16 +312,21 @@
             if (typeof loadSidebar === "function") {
                 await loadSidebar("adoption"); 
             }
-    
-            const urlParams = new URLSearchParams(window.location.search);
-            // Kunin ang ID mula sa sessionStorage sa halip na URL query string
-            const currentAppId = sessionStorage.getItem("selectedApplicationId");
+
+            // TAMA: Gamitin ang umiiral na global 'currentAppId' (huwag lagyan ng 'const' o 'let')
+            currentAppId = sessionStorage.getItem("selectedApplicationId");
 
             if (currentAppId) {
                 await fetchApplicationDetail(currentAppId);
             } else {
-                alert("There's no chjosen application.'");
-                window.location.href = "/org/adoption";
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'No Application Selected',
+                    text: 'Please select an application from the list.',
+                    confirmButtonColor: '#2563EB'
+                }).then(() => {
+                    window.location.href = "/org/adoption";
+                });
             }
         });
     

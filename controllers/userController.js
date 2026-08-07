@@ -618,20 +618,20 @@ exports.submitAdoptionApplication = async (req, res) => {
         `;
 
         const values = [
-            adopterId,
-            animal_id,
-            full_name,
-            contact_number,
-            email,
-            full_address,
-            civil_status,
-            age,
-            occupation,
-            adoption_intent,
-            emergency_name,
-            emergency_phone,
-            emergency_relation,
-            documentPath
+            adopterId || null,
+            animal_id ? parseInt(animal_id, 10) : null,
+            full_name || null,
+            contact_number || null,
+            email || null,
+            full_address || null,
+            civil_status || null,
+            age ? parseInt(age, 10) : null,
+            occupation || null,
+            adoption_intent || null,
+            emergency_name || null,
+            emergency_phone || null,
+            emergency_relation || null,
+            documentPath || null
         ];
 
         await pool.query(query, values);
