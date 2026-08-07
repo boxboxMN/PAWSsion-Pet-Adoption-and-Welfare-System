@@ -170,8 +170,9 @@ My Application:
 	✓ Ayusin yung sa may number
 
 	Dapat kapag may bagong update is may notif like parang read or unread sa may under review, interview sched, pending, declined
-    
+
 	What if, once na yung applicaiton is under interview schedule is pwedeng magrequest ang adopter to change date once na hindi sila available
+    
 	kapag nadecline sa view details dapat may reapply button if gusto pang mag apply yung user sa same pet na yun
 
 Adoption-hub: 	

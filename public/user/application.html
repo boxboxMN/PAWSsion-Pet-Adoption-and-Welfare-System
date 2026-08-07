@@ -540,6 +540,19 @@ function showDetails(app) {
     detailStatusBadge.className = `badge-status ${statusKey}`;
     detailStatusBadge.innerHTML = `<span class="dot"></span> ${app.status}`;
 
+    // Maglagay ng Cancel Application Button sa Header kapag "Under Review" ang status
+    if (detailsActions) {
+        if (app.status === "Under Review") {
+            detailsActions.innerHTML = `
+                <button onclick="handleCancelApplication(${app.id})" class="px-4 py-2 text-xs font-semibold border border-red-500 text-red-600 hover:bg-red-50 rounded-lg transition inline-flex items-center gap-1.5 cursor-pointer">
+                    <i class="fas fa-ban"></i> Cancel Application
+                </button>
+            `;
+        } else {
+            detailsActions.innerHTML = "";
+        }
+    }
+
     updateStepper(app.status);
 
     // 1. PET CARD SUMMARY (Ipakita ang in-applyan na Pet)
@@ -591,6 +604,21 @@ function showDetails(app) {
     const interviewContent = document.getElementById("detail-interview-content");
     if (app.status === "Interview Scheduled") {
         interviewCard.classList.remove("hidden");
+
+        // I-update ang Card Header para magkaroon ng Request Reschedule button sa kanang bahagi
+        const cardHeader = interviewCard.querySelector(".section-title");
+        if (cardHeader) {
+            cardHeader.className = "section-title flex flex-wrap items-center justify-between gap-2 mb-4";
+            cardHeader.innerHTML = `
+                <span class="flex items-center gap-2">
+                    <i class="fas fa-calendar-alt text-blue-600"></i> Interview Schedule
+                </span>
+                <button onclick="handleRequestReschedule(${app.id})" class="text-xs font-semibold px-3 py-1.5 border border-amber-500 text-amber-600 hover:bg-amber-50 rounded-lg transition inline-flex items-center gap-1.5 cursor-pointer">
+                    <i class="fas fa-calendar-minus"></i> Request Reschedule
+                </button>
+            `;
+        }
+
         let locationOrLink = app.interview.locationLink || "N/A";
         let linkDisplay = locationOrLink.startsWith("http")
             ? `<a href="${locationOrLink}" target="_blank" class="text-blue-600 underline font-semibold break-all">${locationOrLink}</a>`
@@ -613,6 +641,21 @@ function showDetails(app) {
     const declineContent = document.getElementById("detail-decline-content");
     if (app.status === "Declined") {
         declineCard.classList.remove("hidden");
+
+        // Header na may Re-apply button
+        const declineHeader = declineCard.querySelector(".section-title");
+        if (declineHeader) {
+            declineHeader.className = "section-title flex flex-wrap items-center justify-between gap-2 mb-4";
+            declineHeader.innerHTML = `
+                <span class="flex items-center gap-2">
+                    <i class="fas fa-circle-xmark text-red-600"></i> Reason for Decline
+                </span>
+                <button onclick="handleReapply(${app.petId})" class="text-xs font-semibold px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition inline-flex items-center gap-1.5 shadow-sm cursor-pointer">
+                    <i class="fas fa-rotate-right"></i> Re-apply for Adoption
+                </button>
+            `;
+        }
+
         declineContent.innerHTML = `
             <p class="italic text-gray-800 leading-relaxed break-words whitespace-pre-line">
                 ${app.declineReason ? app.declineReason : 'No specific reason provided by the organization.'}
@@ -645,6 +688,107 @@ function showDetails(app) {
 
     document.getElementById("app").scrollTo({ top: 0, behavior: "smooth" });
 }
+
+// =====================================================
+// REQUEST RESCHEDULE BUTTON HANDLER
+// =====================================================
+function handleRequestReschedule(appId) {
+    console.log("Requesting reschedule for Application ID:", appId);
+    
+    // Placeholder alert muna
+    if (typeof Swal !== "undefined") {
+        Swal.fire({
+            icon: 'info',
+            title: 'Request Reschedule',
+            text: 'Reschedule request feature will be available soon.',
+            confirmButtonColor: '#2563EB'
+        });
+    } else {
+        alert("Request Reschedule button clicked for Application #" + appId);
+    }
+}
+
+// =====================================================
+// RE-APPLY BUTTON HANDLER
+// =====================================================
+function handleReapply(petId) {
+    if (!petId) {
+        alert("Pet ID not found.");
+        return;
+    }
+
+    // Direct redirect sa adoption form para sa napiling pet
+    window.location.href = `/user/adoption-form?petId=${petId}`;
+}
+
+// =====================================================
+// CANCEL APPLICATION HANDLER
+// =====================================================
+function handleCancelApplication(appId) {
+    if (!appId) return;
+
+    // Gamit ang SweetAlert2 kung mayroon, o standard confirmation dialog
+    if (typeof Swal !== "undefined") {
+        Swal.fire({
+            title: 'Cancel Application?',
+            text: "Are you sure you want to cancel this adoption application? This action cannot be undone.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#EF4444',
+            cancelButtonColor: '#6B7280',
+            confirmButtonText: 'Yes, Cancel it!'
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                await processCancelApplication(appId);
+            }
+        });
+    } else {
+        if (confirm("Are you sure you want to cancel this adoption application?")) {
+            processCancelApplication(appId);
+        }
+    }
+}
+
+async function processCancelApplication(appId) {
+    try {
+        const response = await fetch(`/api/user/applications/${appId}/cancel`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' }
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+            if (typeof Swal !== "undefined") {
+                await Swal.fire({
+                    icon: 'success',
+                    title: 'Cancelled!',
+                    text: 'Your application has been cancelled.',
+                    confirmButtonColor: '#2563EB'
+                });
+            } else {
+                alert("Application cancelled successfully.");
+            }
+            goBack();
+            await loadApplications();
+        } else {
+            throw new Error(data.message || "Failed to cancel application.");
+        }
+    } catch (err) {
+        console.error("❌ Error cancelling application:", err);
+        if (typeof Swal !== "undefined") {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: err.message || 'Unable to cancel application. Please try again.',
+                confirmButtonColor: '#EF4444'
+            });
+        } else {
+            alert(err.message || "Error cancelling application.");
+        }
+    }
+}
+
 
 // =====================================================
 // GO BACK TO APPLICATION LIST
