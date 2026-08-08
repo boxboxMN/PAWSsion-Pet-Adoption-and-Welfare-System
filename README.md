@@ -252,3 +252,6 @@ MODIFY COLUMN status VARCHAR(50) NOT NULL DEFAULT 'Under Review';
 # install this in project folder
 npm install nodemailer
 
+# Aug 08, 2026
+Import nyo na lang yung user adoption applicationsn table may additional columns don
+
