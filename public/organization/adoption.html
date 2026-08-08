@@ -87,6 +87,7 @@
                     <option value="INTERVIEW_SCHEDULED">Interview Scheduled</option>
                     <option value="APPROVED">Approved</option>
                     <option value="DECLINED">Declined</option>
+                    <option value="CANCELLED">Cancelled by Adopter</option>
                 </select>
 
                 <button id="exportBtn" class="bg-white border border-gray-200 text-gray-700 px-4 py-2.5 rounded-lg text-sm font-medium inline-flex items-center gap-2 hover:bg-gray-50">
@@ -291,6 +292,8 @@
                 matchesStatus = true;
             } else if (statusVal === "declined" && (rawStatus.includes("declined") || rawStatus.includes("rejected"))) {
                 matchesStatus = true;
+            } else if (statusVal === "cancelled" && rawStatus.includes("cancelled")) {
+                matchesStatus = true;
             }
 
             return matchesSearch && matchesStatus;
@@ -448,6 +451,9 @@
     } 
     else if (cleanStatus.includes('review') || cleanStatus.includes('pending') || cleanStatus === '') {
         return `<span class="px-3 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-600">Under Review</span>`;
+    } 
+    else if (cleanStatus.includes('cancelled')) {
+        return `<span class="px-3 py-1 rounded-full text-xs font-medium bg-gray-200 text-gray-700">Cancelled by Adopter</span>`;
     } 
     else {
         // Fallback lang para sa hindi kilalang status

@@ -383,16 +383,18 @@
         let currentDeclineReason = "";
 
         function populateDetailsUI(app) {
+             //for rescheduling interview
+             currentAppDetails = app;
+
             const val = (v, fallback = "N/A") => (v !== undefined && v !== null && v !== "") ? v : fallback;
 
             // 1. Matalinong Status Check
-            let status = app.status;
+           let status = app.status;
 
-            // Kung blanko ang status SA DATABASE pero may nai-save nang interview date/time:
             if ((!status || status.trim() === "") && (app.interview_date || app.interview_time)) {
                 status = "Interview Scheduled";
             } else if (!status || status.trim() === "") {
-                status = "Under Review"; // Default fallback kapag talagang walang interview schedule
+                status = "Under Review";
             }
 
             const lowerStatus = status.toLowerCase();
@@ -407,33 +409,36 @@
                     statusBadge.className = "inline-flex px-4 py-1.5 rounded-full text-sm font-medium bg-red-100 text-red-600";
                 } else if (lowerStatus.includes("interview") || lowerStatus.includes("scheduled")) {
                     statusBadge.className = "inline-flex px-4 py-1.5 rounded-full text-sm font-medium bg-blue-100 text-blue-600";
+                } else if (lowerStatus.includes("cancelled")) {
+                    // Kulay ng badge kapag kinansela ng adopter
+                    statusBadge.className = "inline-flex px-4 py-1.5 rounded-full text-sm font-medium bg-gray-200 text-gray-700";
                 } else {
-                    // Under Review (Default)
                     statusBadge.className = "inline-flex px-4 py-1.5 rounded-full text-sm font-medium bg-amber-100 text-amber-600";
                 }
             }
 
             currentDeclineReason = app.decline_reason || app.rejection_reason || "No decline reason specified.";
-    
-            // 2. Disable buttons kapag Finalized na (Approved, Declined, or Rejected)
+
+            // 2. DISABLE BUTTONS KAPAG FINALIZED NA O CANCELLED BY ADOPTER
             const declineBtn = document.getElementById("declineBtn");
             const scheduleBtn = document.getElementById("scheduleBtn");
             const approveBtn = document.getElementById("approveBtn");
-            
+
             const isDeclined = ["declined", "rejected"].includes(lowerStatus);
             const isApproved = lowerStatus === "approved";
-            const isFinalized = isApproved || isDeclined;
+            const isCancelled = lowerStatus.includes("cancelled"); // Check kung kinansela ng adopter
+
+            const isFinalized = isApproved || isDeclined || isCancelled; // Kasama na ang Cancelled sa Finalized
             const isInterviewScheduled = lowerStatus.includes("interview") || lowerStatus.includes("scheduled");
 
             if (declineBtn) {
                 if (isDeclined) {
-                    // Palitan ang button text, kulay, at gawing ACTIVE (enabled) para ma-click
                     declineBtn.disabled = false;
                     declineBtn.textContent = "View Decline Reason";
                     declineBtn.className = "px-5 py-2.5 rounded-xl border border-amber-500 bg-amber-50 text-amber-700 hover:bg-amber-100 text-sm font-semibold transition cursor-pointer";
                     declineBtn.onclick = handleViewDeclineReason;
                 } else {
-                    // Ibalik sa default na Decline Application state
+                    // Naka-disable kapag Approved, Declined, o Cancelled
                     declineBtn.disabled = isFinalized;
                     declineBtn.textContent = "Decline Application";
                     declineBtn.className = "px-5 py-2.5 rounded-xl border border-red-500 text-red-500 hover:bg-red-50 text-sm font-semibold transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent";
@@ -441,9 +446,20 @@
                 }
             }
 
+            if (scheduleBtn) {
+                if (isInterviewScheduled) {
+                    scheduleBtn.disabled = false; // Naka-enable pa rin para ma-click at ma-edit
+                    scheduleBtn.textContent = "Reschedule Interview"; // Binago ang text para malinaw
+                    scheduleBtn.className = "px-5 py-2.5 rounded-xl border border-blue-500 bg-blue-50 text-blue-600 hover:bg-blue-100 text-sm font-semibold transition cursor-pointer";
+                } else {
+                    scheduleBtn.disabled = isFinalized; // Disable lang kung Finalized o Cancelled
+                    scheduleBtn.textContent = "Schedule Interview";
+                    scheduleBtn.className = "px-5 py-2.5 rounded-xl border border-gray-300 text-gray-700 hover:bg-gray-100 text-sm font-semibold transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent";
+                }
+            }
+
+            // I-disable ang Approve at Schedule Interview buttons kapag Cancelled o Finalized na
             if (approveBtn) approveBtn.disabled = isFinalized;
-            //the schedule interview button will be disable if the status is interview Scheduled
-            if (scheduleBtn) scheduleBtn.disabled = isFinalized || isInterviewScheduled;
     
             // 3. Applied Date
             document.getElementById("appSubmittedDate").textContent = app.applied_date ? `Submitted on ${app.applied_date}` : 'Submitted on N/A';
@@ -625,6 +641,8 @@
     
         // ================= INTERVIEW SCHEDULE LOGIC =================
         let selectedMethod = 'virtual';
+        //for rescheduling 
+        let currentAppDetails = null;
     
         function handleScheduleInterview() {
             if (!currentAppId) {
@@ -638,11 +656,40 @@
             
             selectInterviewMethod('virtual');
 
-            // 1. I-DISALLOW ANG NAKALIPAS NA PETSA (Disable Past Dates)
+            // Disable past dates
             const dateInput = document.getElementById("interviewDate");
             if (dateInput) {
-                const today = new Date().toISOString().split('T')[0];
-                dateInput.min = today; // Hindi na pwedeng i-click/i-select ang mga lumipas na araw
+                const today = new Date().toISOString().split("T")[0];
+                dateInput.min = today; // Disable past dates
+            }
+
+            // Load existing interview details into modal inputs
+            if (currentAppDetails && (currentAppDetails.interview_date || currentAppDetails.interview_time)) {
+                if (currentAppDetails.interview_date) {
+                    let rawDate = currentAppDetails.interview_date;
+
+                    // Isalin sa Totoong Local Timezone (Asia/Manila GMT+8)
+                    const d = new Date(rawDate);
+                    const year = d.getFullYear(); // Local Year
+                    const month = String(d.getMonth() + 1).padStart(2, "0"); // Local Month
+                    const day = String(d.getDate()).padStart(2, "0"); // Local Day (lalabas na 14)
+                    
+                    const formattedInputDate = `${year}-${month}-${day}`;
+
+                    console.log("Corrected Local Date:", formattedInputDate);
+                    dateInput.value = formattedInputDate;
+                }
+
+                if (currentAppDetails.interview_time) {
+                    document.getElementById("interviewTime").value = currentAppDetails.interview_time;
+                }
+                
+                const method = (currentAppDetails.interview_method || 'virtual').toLowerCase();
+                selectInterviewMethod(method);
+                
+                document.getElementById("interviewLocationLink").value = currentAppDetails.interview_location_link || '';
+            } else {
+                selectInterviewMethod('virtual');
             }
           
             const modal = document.getElementById("scheduleModal");

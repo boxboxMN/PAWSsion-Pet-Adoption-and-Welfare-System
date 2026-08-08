@@ -803,3 +803,56 @@ exports.getUserApplications = async (req, res) => {
         });
     }
 };
+
+// =====================================================
+// CANCEL ADOPTION APPLICATION (USER SIDE)
+// =====================================================
+exports.cancelAdoptionApplication = async (req, res) => {
+    try {
+        const accountId = req.session?.accountId;
+        const applicationId = req.params.id;
+
+        if (!accountId) {
+            return res.status(401).json({ success: false, message: "Unauthorized access." });
+        }
+
+        // 1. Kuhanin muna ang adopter_id ng naka-login na user
+        const [adopterRows] = await pool.query(
+            `SELECT adopter_id FROM adopters WHERE account_id = ? LIMIT 1`,
+            [accountId]
+        );
+
+        if (!adopterRows.length) {
+            return res.status(404).json({ success: false, message: "Adopter profile not found." });
+        }
+
+        const adopterId = adopterRows[0].adopter_id;
+
+        // 2. I-update lamang kapag ang application ay naka-'Under Review' pa at pagmamay-ari ng user
+        const [result] = await pool.query(
+            `UPDATE user_adoption_applications 
+             SET status = 'Cancelled', updated_at = NOW() 
+             WHERE application_id = ? AND adopter_id = ? AND status = 'Under Review'`,
+            [applicationId, adopterId]
+        );
+
+        if (result.affectedRows === 0) {
+            return res.status(400).json({ 
+                success: false, 
+                message: "Unable to cancel application. It may already be processed or not found." 
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "Application cancelled successfully."
+        });
+
+    } catch (error) {
+        console.error("Error cancelling application:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Failed to cancel application: " + error.message
+        });
+    }
+};

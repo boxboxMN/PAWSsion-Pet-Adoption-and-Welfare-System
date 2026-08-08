@@ -16,6 +16,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet" />
    <link rel="stylesheet" href="../assets/css/userApplication.css" />
+   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
    <script src="../assets/js/userSidebar.js" ></script>
 </head>
 
@@ -48,6 +49,7 @@
                                 <button class="tab-btn pb-2 font-semibold transition text-gray-600 hover:text-blue-600" data-tab="Interview Scheduled">Interview Scheduled</button>
                                 <button class="tab-btn pb-2 font-semibold transition text-gray-600 hover:text-blue-600" data-tab="Approved">Approved</button>
                                 <button class="tab-btn pb-2 font-semibold transition text-gray-600 hover:text-blue-600" data-tab="Declined">Declined</button>
+                                <button class="tab-btn pb-2 font-semibold transition text-gray-600 hover:text-blue-600" data-tab="Cancelled">Cancelled</button>
                             </div>
                         </div>
                     </div>
@@ -163,6 +165,33 @@
             </div>
         </div>
 
+        <!-- CANCEL APPLICATION MODAL -->
+        <div id="cancelAppModal" class="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+            <div class="bg-white rounded-2xl p-6 max-w-md w-full shadow-xl transform transition-all space-y-4">
+                <div class="flex items-center justify-between border-b border-gray-100 pb-3">
+                    <h3 class="text-lg font-bold text-gray-900 flex items-center gap-2">
+                        <i class="fa-solid fa-triangle-exclamation text-red-500"></i> Cancel Application
+                    </h3>
+                    <button onclick="closeCancelModal()" class="text-gray-400 hover:text-gray-600 transition">
+                        <i class="fa-solid fa-xmark text-lg"></i>
+                    </button>
+                </div>
+                
+                <p class="text-sm text-gray-600">
+                    Are you sure you want to cancel this adoption application? Once cancelled, the organization will be notified and this action cannot be undone.
+                </p>
+
+                <div class="flex items-center justify-end gap-3 pt-2">
+                    <button onclick="closeCancelModal()" class="px-4 py-2 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50 text-sm font-semibold transition">
+                        Keep Application
+                    </button>
+                    <button id="confirmCancelBtn" onclick="submitCancelApplication()" class="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-sm font-semibold transition flex items-center gap-2">
+                        <span>Confirm Cancel</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
     </main>
 
     <!-- ===== LOAD SIDEBAR & HEADER ===== -->
@@ -268,6 +297,8 @@ function getStatusClass(status) {
         case "Approved":
             return "success";
         case "Declined":
+            return "declined";
+        case "Cancelled":
             return "cancelled";
         default:
             return "active";
@@ -724,34 +755,58 @@ function handleReapply(petId) {
 // =====================================================
 // CANCEL APPLICATION HANDLER
 // =====================================================
+let pendingCancelAppId = null;
+
 function handleCancelApplication(appId) {
     if (!appId) return;
+    pendingCancelAppId = appId;
 
-    // Gamit ang SweetAlert2 kung mayroon, o standard confirmation dialog
+    // Subukang gamitin ang SweetAlert2 popup modal kapag available
     if (typeof Swal !== "undefined") {
         Swal.fire({
             title: 'Cancel Application?',
-            text: "Are you sure you want to cancel this adoption application? This action cannot be undone.",
+            text: "Are you sure you want to cancel this adoption application? The organization will be notified, and this action cannot be undone.",
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#EF4444',
+            confirmButtonColor: '#DC2626',
             cancelButtonColor: '#6B7280',
-            confirmButtonText: 'Yes, Cancel it!'
+            confirmButtonText: 'Yes, Cancel Application',
+            cancelButtonText: 'Keep Application',
+            customClass: {
+                popup: 'rounded-2xl',
+                confirmButton: 'rounded-xl font-semibold px-4 py-2',
+                cancelButton: 'rounded-xl font-semibold px-4 py-2'
+            }
         }).then(async (result) => {
             if (result.isConfirmed) {
-                await processCancelApplication(appId);
+                await submitCancelApplication(appId);
             }
         });
     } else {
-        if (confirm("Are you sure you want to cancel this adoption application?")) {
-            processCancelApplication(appId);
-        }
+        // Fallback sa custom HTML modal kung walang SweetAlert2
+        const modal = document.getElementById("cancelAppModal");
+        if (modal) modal.classList.remove("hidden");
     }
 }
 
-async function processCancelApplication(appId) {
+function closeCancelModal() {
+    const modal = document.getElementById("cancelAppModal");
+    if (modal) modal.classList.add("hidden");
+    pendingCancelAppId = null;
+}
+
+async function submitCancelApplication(appId = null) {
+    const targetId = appId || pendingCancelAppId;
+    if (!targetId) return;
+
+    const confirmBtn = document.getElementById("confirmCancelBtn");
+    if (confirmBtn) {
+        confirmBtn.disabled = true;
+        confirmBtn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> Cancelling...`;
+    }
+
     try {
-        const response = await fetch(`/api/user/applications/${appId}/cancel`, {
+        const response = await fetch(`/api/user/applications/${targetId}/cancel`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' }
         });
@@ -759,16 +814,20 @@ async function processCancelApplication(appId) {
         const data = await response.json();
 
         if (response.ok && data.success) {
+            closeCancelModal();
+
             if (typeof Swal !== "undefined") {
                 await Swal.fire({
                     icon: 'success',
-                    title: 'Cancelled!',
-                    text: 'Your application has been cancelled.',
-                    confirmButtonColor: '#2563EB'
+                    title: 'Application Cancelled',
+                    text: 'Your application has been cancelled and updated.',
+                    confirmButtonColor: '#2563EB',
+                    customClass: { popup: 'rounded-2xl' }
                 });
             } else {
                 alert("Application cancelled successfully.");
             }
+
             goBack();
             await loadApplications();
         } else {
@@ -779,16 +838,21 @@ async function processCancelApplication(appId) {
         if (typeof Swal !== "undefined") {
             Swal.fire({
                 icon: 'error',
-                title: 'Error',
+                title: 'Cancellation Failed',
                 text: err.message || 'Unable to cancel application. Please try again.',
-                confirmButtonColor: '#EF4444'
+                confirmButtonColor: '#EF4444',
+                customClass: { popup: 'rounded-2xl' }
             });
         } else {
             alert(err.message || "Error cancelling application.");
         }
+    } finally {
+        if (confirmBtn) {
+            confirmBtn.disabled = false;
+            confirmBtn.innerHTML = `<span>Confirm Cancel</span>`;
+        }
     }
 }
-
 
 // =====================================================
 // GO BACK TO APPLICATION LIST
