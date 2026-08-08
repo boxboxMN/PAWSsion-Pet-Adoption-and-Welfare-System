@@ -842,6 +842,7 @@ exports.getUserApplications = async (req, res) => {
             FROM user_adoption_applications app
             INNER JOIN animals animal ON app.animal_id = animal.animal_id
             LEFT JOIN organizations org ON animal.organization_id = org.organization_id
+            LEFT JOIN application_interviews i ON app.application_id = i.application_id
             WHERE app.adopter_id = ?
             ORDER BY app.created_at DESC
             `,

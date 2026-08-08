@@ -418,20 +418,21 @@ app.post('/api/user/applications/:id/reschedule-request', async (req, res) => {
 
     try {
         const query = `
-            UPDATE user_adoption_applications 
-            SET 
-                requested_interview_date = ?, 
-                requested_interview_time = ?, 
-                reschedule_reason = ?,
+            INSERT INTO application_interviews 
+                (application_id, requested_interview_date, requested_interview_time, reschedule_reason, resched_status)
+            VALUES (?, ?, ?, ?, 'Pending')
+            ON DUPLICATE KEY UPDATE 
+                requested_interview_date = VALUES(requested_interview_date),
+                requested_interview_time = VALUES(requested_interview_time),
+                reschedule_reason = VALUES(reschedule_reason),
                 resched_status = 'Pending'
-            WHERE application_id = ?
         `;
 
         const [result] = await pool.query(query, [
+            applicationId,
             preferred_date, 
             preferred_time, 
-            reason, 
-            applicationId
+            reason
         ]);
 
         if (result.affectedRows === 0) {

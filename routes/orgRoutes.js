@@ -190,6 +190,7 @@ router.get('/applications/:id', async (req, res) => {
             p.name AS pet_name
         FROM user_adoption_applications app
         INNER JOIN animals p ON app.animal_id = p.animal_id
+        LEFT JOIN application_interviews i ON app.application_id = i.application_id
         WHERE app.application_id = ? AND p.organization_id = ?
     `;
     
@@ -303,30 +304,34 @@ router.post('/applications/:id/schedule', async (req, res) => {
         const { id } = req.params;
         let { interview_date, interview_time, interview_method, interview_location_link } = req.body;
 
-        // SIGURADUHING EXACT MATCH SA ENUM MO SA DB ('Interview Scheduled')
-        const exactStatus = "Interview Scheduled"; 
-
         // Siguraduhing lowercase 'virtual' o 'onsite' para tumugma sa ENUM ng interview_method
         const cleanMethod = (interview_method && interview_method.toLowerCase() === 'onsite') ? 'onsite' : 'virtual';
 
-        const query = `
-            UPDATE user_adoption_applications 
-            SET 
-                status = ?,
-                interview_date = ?,
-                interview_time = ?,
-                interview_method = ?,
-                interview_location_link = ?
-            WHERE application_id = ?
+        // 1. Update main application status
+        await pool.query(
+            `UPDATE user_adoption_applications SET status = 'Interview Scheduled', updated_at = NOW() WHERE application_id = ?`,
+            [id]
+        );
+
+        // 2. Upsert (Insert or Update) into application_interviews
+        const scheduleQuery = `
+            INSERT INTO application_interviews 
+                (application_id, interview_date, interview_time, interview_method, interview_location_link, resched_status)
+            VALUES (?, ?, ?, ?, ?, 'Approved')
+            ON DUPLICATE KEY UPDATE 
+                interview_date = VALUES(interview_date),
+                interview_time = VALUES(interview_time),
+                interview_method = VALUES(interview_method),
+                interview_location_link = VALUES(interview_location_link),
+                resched_status = 'Approved'
         `;
 
-        await pool.query(query, [
-            exactStatus,
+        await pool.query(scheduleQuery, [
+            id,
             interview_date,
             interview_time,
             cleanMethod,
-            interview_location_link,
-            id
+            interview_location_link
         ]);
 
         return res.json({ success: true, message: "Interview scheduled!" });
@@ -348,7 +353,7 @@ router.patch('/applications/:id/approve-reschedule', async (req, res) => {
 
         // 1. Kunin ang requested date at time
         const [rows] = await pool.query(
-            `SELECT requested_interview_date, requested_interview_time FROM user_adoption_applications WHERE application_id = ?`,
+            `SELECT requested_interview_date, requested_interview_time FROM application_interviews WHERE application_id = ?`,
             [id]
         );
 
@@ -361,7 +366,7 @@ router.patch('/applications/:id/approve-reschedule', async (req, res) => {
 
         // 2. I-update ang main interview_date at interview_time tapos i-clear ang request columns
         await pool.query(
-            `UPDATE user_adoption_applications 
+            `UPDATE application_interviews 
              SET 
                  interview_date = ?, 
                  interview_time = ?, 
@@ -387,7 +392,7 @@ router.patch('/applications/:id/reject-reschedule', async (req, res) => {
         const { id } = req.params;
 
         await pool.query(
-            `UPDATE user_adoption_applications 
+            `UPDATE application_interviews 
              SET 
                  requested_interview_date = NULL, 
                  requested_interview_time = NULL, 
