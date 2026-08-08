@@ -405,6 +405,49 @@ app.get('/api/organization/applications', async (req, res) => {
 // Adoption routes
 app.use('/api/userAdoptions', userRoutes);
 
+// =====================================================
+// USER INTERVIEW RESCHEDULE REQUEST ENDPOINT
+// =====================================================
+app.post('/api/user/applications/:id/reschedule-request', async (req, res) => {
+    if (!req.session?.accountId) {
+        return res.status(401).json({ success: false, message: "Unauthorized access." });
+    }
+
+    const applicationId = req.params.id;
+    const { preferred_date, preferred_time, reason } = req.body;
+
+    try {
+        const query = `
+            UPDATE user_adoption_applications 
+            SET 
+                requested_interview_date = ?, 
+                requested_interview_time = ?, 
+                reschedule_reason = ?,
+                resched_status = 'Pending'
+            WHERE application_id = ?
+        `;
+
+        const [result] = await pool.query(query, [
+            preferred_date, 
+            preferred_time, 
+            reason, 
+            applicationId
+        ]);
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ success: false, message: "Application not found." });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "Reschedule request submitted for organization review."
+        });
+    } catch (error) {
+        console.error("Reschedule Error:", error);
+        return res.status(500).json({ success: false, message: "Server error." });
+    }
+});
+
 const PORT = 3000;
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);

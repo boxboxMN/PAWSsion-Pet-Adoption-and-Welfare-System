@@ -172,6 +172,8 @@ My Application:
 	✓ Dapat nakikita yung mga info sa application pati na din ang interview schedule
 	✓ Ayusin yung sa may number
 
+    Dapat kapagg nag resched ang org nanotif doon sa application ng user
+
 	Dapat kapag may bagong update is may notif like parang read or unread sa may under review, interview sched, pending, declined
 
 	What if, once na yung applicaiton is under interview schedule is pwedeng magrequest ang adopter to change date once na hindi sila available
