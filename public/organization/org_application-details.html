@@ -842,81 +842,234 @@
     
         function renderApplicationStatusDetails(app) {
             const container = document.getElementById("interviewDetailsCard");
-    if (!container) return;
+            if (!container) return;
 
-    // Suriin kung may nakatakdang schedule
-    const hasSchedule = app.interview_date || app.interview_time || app.interview_location_link;
+            // Suriin kung may nakatakdang schedule
+            const hasSchedule = app.interview_date || app.interview_time || app.interview_location_link;
 
-    if (!hasSchedule) {
-        container.classList.add("hidden");
-        return;
-    }
+            if (!hasSchedule) {
+                container.classList.add("hidden");
+                return;
+            }
 
-    // 1. FORMAT DATE (Kaparehong-kapareho ng User Side formatDate function)
-    let formattedDate = "—";
-    if (app.interview_date) {
-        try {
-            formattedDate = new Date(app.interview_date).toLocaleDateString("en-US", {
-                year: "numeric",
-                month: "short",
-                day: "numeric"
+            // 1. FORMAT DATE (Kaparehong-kapareho ng User Side formatDate function)
+            let formattedDate = "—";
+            if (app.interview_date) {
+                try {
+                    formattedDate = new Date(app.interview_date).toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric"
+                    });
+                } catch (error) {
+                    formattedDate = app.interview_date;
+                }
+            }
+
+            // 2. FORMAT TIME (Mula SQL TIME na "14:30:00" patungong "02:30 PM")
+            let formattedTime = "No Time Set";
+            if (app.interview_time) {
+                const timeParts = app.interview_time.split(':');
+                if (timeParts.length >= 2) {
+                    let hours = parseInt(timeParts[0], 10);
+                    const minutes = timeParts[1];
+                    const ampm = hours >= 12 ? 'PM' : 'AM';
+                    hours = hours % 12;
+                    hours = hours ? hours : 12;
+                    formattedTime = `${hours}:${minutes} ${ampm}`;
+                } else {
+                    formattedTime = app.interview_time;
+                }
+            }
+
+            const interviewMethod = app.interview_method ? app.interview_method.toUpperCase() : "N/A";
+            const locationLink = app.interview_location_link || "N/A";
+
+            // 2. CHECK FOR PENDING RESCHEDULE REQUEST
+            const isReschedPending = app.resched_status === 'Pending' || (app.requested_interview_date && app.resched_status !== 'Approved');
+
+            let reqFormattedDate = "—";
+            if (app.requested_interview_date) {
+                try {
+                    reqFormattedDate = new Date(app.requested_interview_date).toLocaleDateString("en-US", {
+                        year: "numeric", month: "short", day: "numeric"
+                    });
+                } catch (e) { reqFormattedDate = app.requested_interview_date; }
+            }
+
+            let reqFormattedTime = "—";
+            if (app.requested_interview_time) {
+                const tParts = app.requested_interview_time.split(':');
+                if (tParts.length >= 2) {
+                    let h = parseInt(tParts[0], 10);
+                    const m = tParts[1];
+                    const ampm = h >= 12 ? 'PM' : 'AM';
+                    h = h % 12 || 12;
+                    reqFormattedTime = `${h}:${m} ${ampm}`;
+                }
+            }
+
+            // 3. RENDER SA UI CARD
+            let reschedBannerHTML = "";
+            if (isReschedPending) {
+                reschedBannerHTML = `
+                    <div class="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-xl space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold text-amber-800 uppercase tracking-wide flex items-center gap-1.5">
+                                <i class="fa-solid fa-clock text-amber-600"></i> User Requested Reschedule
+                            </span>
+                            <span class="px-2.5 py-0.5 bg-amber-200/70 text-amber-800 text-[11px] font-bold rounded-md">ACTION REQUIRED</span>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+                            <div>
+                                <span class="text-xs text-gray-400 block">Requested Date:</span>
+                                <span class="font-bold text-gray-800">${reqFormattedDate}</span>
+                            </div>
+                            <div>
+                                <span class="text-xs text-gray-400 block">Requested Time:</span>
+                                <span class="font-bold text-gray-800">${reqFormattedTime}</span>
+                            </div>
+                            ${app.reschedule_reason ? `
+                                <div class="sm:col-span-2 pt-1">
+                                    <span class="text-xs text-gray-400 block">Reason:</span>
+                                    <span class="text-xs text-gray-700 italic">${app.reschedule_reason}</span>
+                                </div>
+                            ` : ''}
+                        </div>
+
+                        <div class="flex items-center gap-2 pt-2 border-t border-amber-200/60">
+                            <button onclick="approveReschedule('${app.application_id}')" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg transition">
+                                <i class="fa-solid fa-check mr-1"></i> Accept Reschedule
+                            </button>
+                            <button onclick="rejectReschedule('${app.application_id}')" class="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-lg transition">
+                                <i class="fa-solid fa-xmark mr-1"></i> Reject Request
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+
+            container.innerHTML = `
+                <div class="bg-white p-6 rounded-2xl border border-blue-100 shadow-sm">
+                    <h3 class="text-blue-600 font-semibold text-base mb-3 flex items-center gap-2">
+                        <i class="fa-solid fa-calendar-check text-blue-500"></i> Interview Schedule Details
+                    </h3>
+                    <div class="p-4 bg-blue-50/50 rounded-xl border border-blue-100 grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-gray-700">
+                        <div class="min-w-0">
+                            <span class="text-xs text-gray-400 block mb-0.5">Method</span>
+                            <span class="font-bold text-gray-800 break-words">${interviewMethod}</span>
+                        </div>
+                        <div class="min-w-0">
+                            <span class="text-xs text-gray-400 block mb-0.5">Current Date</span>
+                            <span class="font-bold text-gray-800 break-words">${formattedDate}</span>
+                        </div>
+                        <div class="min-w-0">
+                            <span class="text-xs text-gray-400 block mb-0.5">Current Time</span>
+                            <span class="font-bold text-gray-800 break-all block">${formattedTime}</span>
+                        </div>
+                        <div class="sm:col-span-2 pt-2 border-t border-blue-100/60 min-w-0">
+                            <span class="text-xs text-gray-400 block mb-0.5">Location / Link</span>
+                            <span class="font-semibold text-gray-800 break-all block">
+                                ${locationLink.startsWith('http') 
+                                    ? `<a href="${locationLink}" target="_blank" class="text-blue-600 hover:underline inline-flex items-center gap-1 break-all"><i class="fa-solid fa-arrow-up-right-from-square text-xs shrink-0"></i> <span>${locationLink}</span></a>` 
+                                    : locationLink}
+                            </span>
+                        </div>
+                    </div>
+
+                    ${reschedBannerHTML}
+                </div>
+            `;
+            
+            container.classList.remove("hidden");
+        }
+
+        // Handler functions for Approve / Reject Reschedule
+        async function approveReschedule(appId) {
+            const result = await Swal.fire({
+                title: 'Accept Reschedule Request?',
+                text: 'This will update the interview date and time to the applicant\'s requested schedule.',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#10B981', // Emerald green
+                cancelButtonColor: '#6B7280',
+                confirmButtonText: 'Yes, Accept',
+                cancelButtonText: 'Cancel',
+                customClass: { popup: 'rounded-2xl' }
             });
-        } catch (error) {
-            formattedDate = app.interview_date;
+
+            if (result.isConfirmed) {
+                try {
+                    const response = await fetch(`/org/applications/${appId}/approve-reschedule`, {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'include'
+                    });
+                    const data = await response.json();
+                    if (response.ok && data.success) {
+                        await Swal.fire({ 
+                            icon: 'success', 
+                            title: 'Rescheduled!', 
+                            text: data.message, 
+                            confirmButtonColor: '#2563EB',
+                            customClass: { popup: 'rounded-2xl' }
+                        });
+                        fetchApplicationDetail(appId);
+                    }
+                } catch (err) {
+                    Swal.fire({ 
+                        icon: 'error', 
+                        title: 'Error', 
+                        text: 'Server error.', 
+                        confirmButtonColor: '#EF4444',
+                        customClass: { popup: 'rounded-2xl' }
+                    });
+                }
+            }
         }
-    }
 
-    // 2. FORMAT TIME (Mula SQL TIME na "14:30:00" patungong "02:30 PM")
-    let formattedTime = "No Time Set";
-    if (app.interview_time) {
-        const timeParts = app.interview_time.split(':');
-        if (timeParts.length >= 2) {
-            let hours = parseInt(timeParts[0], 10);
-            const minutes = timeParts[1];
-            const ampm = hours >= 12 ? 'PM' : 'AM';
-            hours = hours % 12;
-            hours = hours ? hours : 12;
-            formattedTime = `${hours}:${minutes} ${ampm}`;
-        } else {
-            formattedTime = app.interview_time;
-        }
-    }
+        async function rejectReschedule(appId) {
+            const result = await Swal.fire({
+                title: 'Decline Reschedule Request?',
+                text: 'The original interview schedule will be kept and the applicant will be notified.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#EF4444', // Red
+                cancelButtonColor: '#6B7280',
+                confirmButtonText: 'Yes, Decline',
+                cancelButtonText: 'Cancel',
+                customClass: { popup: 'rounded-2xl' }
+            });
 
-    const interviewMethod = app.interview_method ? app.interview_method.toUpperCase() : "N/A";
-    const locationLink = app.interview_location_link || "N/A";
-
-    // 3. RENDER SA UI CARD
-    container.innerHTML = `
-        <div class="bg-white p-6 rounded-2xl border border-blue-100 shadow-sm">
-            <h3 class="text-blue-600 font-semibold text-base mb-3 flex items-center gap-2">
-                <i class="fa-solid fa-calendar-check text-blue-500"></i> Interview Schedule Details
-            </h3>
-            <div class="p-4 bg-blue-50/50 rounded-xl border border-blue-100 grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-gray-700">
-                <div class="min-w-0">
-                    <span class="text-xs text-gray-400 block mb-0.5">Method</span>
-                    <span class="font-bold text-gray-800 break-words">${interviewMethod}</span>
-                </div>
-                <div class="min-w-0">
-                    <span class="text-xs text-gray-400 block mb-0.5">Date</span>
-                    <span class="font-bold text-gray-800 break-words">${formattedDate}</span>
-                </div>
-                <div class="min-w-0">
-                    <span class="text-xs text-gray-400 block mb-0.5">Time</span>
-                    <span class="font-bold text-gray-800 break-all block">${formattedTime}</span>
-                </div>
-                <div class="sm:col-span-2 pt-2 border-t border-blue-100/60 min-w-0">
-                    <span class="text-xs text-gray-400 block mb-0.5">Location / Link</span>
-                    <span class="font-semibold text-gray-800 break-all block">
-                        ${locationLink.startsWith('http') 
-                            ? `<a href="${locationLink}" target="_blank" class="text-blue-600 hover:underline inline-flex items-center gap-1 break-all"><i class="fa-solid fa-arrow-up-right-from-square text-xs shrink-0"></i> <span>${locationLink}</span></a>` 
-                            : locationLink}
-                    </span>
-                </div>
-            </div>
-        </div>
-    `;
-    
-    container.classList.remove("hidden");
+            if (result.isConfirmed) {
+                try {
+                    const response = await fetch(`/org/applications/${appId}/reject-reschedule`, {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'include'
+                    });
+                    const data = await response.json();
+                    if (response.ok && data.success) {
+                        await Swal.fire({ 
+                            icon: 'info', 
+                            title: 'Request Declined', 
+                            text: data.message, 
+                            confirmButtonColor: '#2563EB',
+                            customClass: { popup: 'rounded-2xl' }
+                        });
+                        fetchApplicationDetail(appId);
+                    }
+                } catch (err) {
+                    Swal.fire({ 
+                        icon: 'error', 
+                        title: 'Error', 
+                        text: 'Server error.', 
+                        confirmButtonColor: '#EF4444',
+                        customClass: { popup: 'rounded-2xl' }
+                    });
+                }
+            }
         }
     
         function previewIdProof() {
