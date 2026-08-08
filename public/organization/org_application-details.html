@@ -386,64 +386,67 @@
             const val = (v, fallback = "N/A") => (v !== undefined && v !== null && v !== "") ? v : fallback;
 
             // 1. Matalinong Status Check
-            let status = app.status;
+           // 1. Matalinong Status Check
+           let status = app.status;
 
-            // Kung blanko ang status SA DATABASE pero may nai-save nang interview date/time:
-            if ((!status || status.trim() === "") && (app.interview_date || app.interview_time)) {
-                status = "Interview Scheduled";
-            } else if (!status || status.trim() === "") {
-                status = "Under Review"; // Default fallback kapag talagang walang interview schedule
-            }
+if ((!status || status.trim() === "") && (app.interview_date || app.interview_time)) {
+    status = "Interview Scheduled";
+} else if (!status || status.trim() === "") {
+    status = "Under Review";
+}
 
-            const lowerStatus = status.toLowerCase();
-            const statusBadge = document.getElementById("appStatusBadge");
+const lowerStatus = status.toLowerCase();
+const statusBadge = document.getElementById("appStatusBadge");
 
-            if (statusBadge) {
-                statusBadge.textContent = status;
+if (statusBadge) {
+    statusBadge.textContent = status;
 
-                if (lowerStatus === "approved") {
-                    statusBadge.className = "inline-flex px-4 py-1.5 rounded-full text-sm font-medium bg-emerald-100 text-emerald-600";
-                } else if (lowerStatus === "declined" || lowerStatus === "rejected") {
-                    statusBadge.className = "inline-flex px-4 py-1.5 rounded-full text-sm font-medium bg-red-100 text-red-600";
-                } else if (lowerStatus.includes("interview") || lowerStatus.includes("scheduled")) {
-                    statusBadge.className = "inline-flex px-4 py-1.5 rounded-full text-sm font-medium bg-blue-100 text-blue-600";
-                } else {
-                    // Under Review (Default)
-                    statusBadge.className = "inline-flex px-4 py-1.5 rounded-full text-sm font-medium bg-amber-100 text-amber-600";
-                }
-            }
+    if (lowerStatus === "approved") {
+        statusBadge.className = "inline-flex px-4 py-1.5 rounded-full text-sm font-medium bg-emerald-100 text-emerald-600";
+    } else if (lowerStatus === "declined" || lowerStatus === "rejected") {
+        statusBadge.className = "inline-flex px-4 py-1.5 rounded-full text-sm font-medium bg-red-100 text-red-600";
+    } else if (lowerStatus.includes("interview") || lowerStatus.includes("scheduled")) {
+        statusBadge.className = "inline-flex px-4 py-1.5 rounded-full text-sm font-medium bg-blue-100 text-blue-600";
+    } else if (lowerStatus.includes("cancelled")) {
+        // Kulay ng badge kapag kinansela ng adopter
+        statusBadge.className = "inline-flex px-4 py-1.5 rounded-full text-sm font-medium bg-gray-200 text-gray-700";
+    } else {
+        statusBadge.className = "inline-flex px-4 py-1.5 rounded-full text-sm font-medium bg-amber-100 text-amber-600";
+    }
+}
 
-            currentDeclineReason = app.decline_reason || app.rejection_reason || "No decline reason specified.";
-    
-            // 2. Disable buttons kapag Finalized na (Approved, Declined, or Rejected)
-            const declineBtn = document.getElementById("declineBtn");
-            const scheduleBtn = document.getElementById("scheduleBtn");
-            const approveBtn = document.getElementById("approveBtn");
-            
-            const isDeclined = ["declined", "rejected"].includes(lowerStatus);
-            const isApproved = lowerStatus === "approved";
-            const isFinalized = isApproved || isDeclined;
-            const isInterviewScheduled = lowerStatus.includes("interview") || lowerStatus.includes("scheduled");
+currentDeclineReason = app.decline_reason || app.rejection_reason || "No decline reason specified.";
 
-            if (declineBtn) {
-                if (isDeclined) {
-                    // Palitan ang button text, kulay, at gawing ACTIVE (enabled) para ma-click
-                    declineBtn.disabled = false;
-                    declineBtn.textContent = "View Decline Reason";
-                    declineBtn.className = "px-5 py-2.5 rounded-xl border border-amber-500 bg-amber-50 text-amber-700 hover:bg-amber-100 text-sm font-semibold transition cursor-pointer";
-                    declineBtn.onclick = handleViewDeclineReason;
-                } else {
-                    // Ibalik sa default na Decline Application state
-                    declineBtn.disabled = isFinalized;
-                    declineBtn.textContent = "Decline Application";
-                    declineBtn.className = "px-5 py-2.5 rounded-xl border border-red-500 text-red-500 hover:bg-red-50 text-sm font-semibold transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent";
-                    declineBtn.onclick = handleDecline;
-                }
-            }
+// 2. DISABLE BUTTONS KAPAG FINALIZED NA O CANCELLED BY ADOPTER
+const declineBtn = document.getElementById("declineBtn");
+const scheduleBtn = document.getElementById("scheduleBtn");
+const approveBtn = document.getElementById("approveBtn");
 
-            if (approveBtn) approveBtn.disabled = isFinalized;
-            //the schedule interview button will be disable if the status is interview Scheduled
-            if (scheduleBtn) scheduleBtn.disabled = isFinalized || isInterviewScheduled;
+const isDeclined = ["declined", "rejected"].includes(lowerStatus);
+const isApproved = lowerStatus === "approved";
+const isCancelled = lowerStatus.includes("cancelled"); // Check kung kinansela ng adopter
+
+const isFinalized = isApproved || isDeclined || isCancelled; // Kasama na ang Cancelled sa Finalized
+const isInterviewScheduled = lowerStatus.includes("interview") || lowerStatus.includes("scheduled");
+
+if (declineBtn) {
+    if (isDeclined) {
+        declineBtn.disabled = false;
+        declineBtn.textContent = "View Decline Reason";
+        declineBtn.className = "px-5 py-2.5 rounded-xl border border-amber-500 bg-amber-50 text-amber-700 hover:bg-amber-100 text-sm font-semibold transition cursor-pointer";
+        declineBtn.onclick = handleViewDeclineReason;
+    } else {
+        // Naka-disable kapag Approved, Declined, o Cancelled
+        declineBtn.disabled = isFinalized;
+        declineBtn.textContent = "Decline Application";
+        declineBtn.className = "px-5 py-2.5 rounded-xl border border-red-500 text-red-500 hover:bg-red-50 text-sm font-semibold transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent";
+        declineBtn.onclick = handleDecline;
+    }
+}
+
+// I-disable ang Approve at Schedule Interview buttons kapag Cancelled o Finalized na
+if (approveBtn) approveBtn.disabled = isFinalized;
+if (scheduleBtn) scheduleBtn.disabled = isFinalized || isInterviewScheduled;
     
             // 3. Applied Date
             document.getElementById("appSubmittedDate").textContent = app.applied_date ? `Submitted on ${app.applied_date}` : 'Submitted on N/A';

@@ -208,13 +208,21 @@
         .badge-status.success .dot {
             background: #22c55e;
         }
-        .badge-status.cancelled {
+        .badge-status.declined {
             background: #fef2f2;
             color: #991b1b;
             border-color: #fca5a5;
         }
-        .badge-status.cancelled .dot {
+        .badge-status.declined .dot {
             background: #ef4444;
+        }
+        .badge-status.cancelled {
+            background: #fef2f2;
+            color: #3a3a3a;
+            border-color: #3a3a3a;
+        }
+        .badge-status.cancelled .dot {
+            background: #2e2e2e;
         }
 
         .badge-status.scheduled {

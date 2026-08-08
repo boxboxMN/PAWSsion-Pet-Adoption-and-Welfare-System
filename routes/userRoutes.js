@@ -160,4 +160,7 @@ router.post(
 // Check if the user has already applied for a specific pet
 router.get('/check-applied/:petId', userController.checkAppliedStatus);
 
+// When the user cancel the adoption application
+router.patch('/api/user/applications/:id/cancel', userController.cancelAdoptionApplication);
+
 module.exports = router;
