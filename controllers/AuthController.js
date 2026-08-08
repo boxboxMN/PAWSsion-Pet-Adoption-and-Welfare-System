@@ -3,6 +3,8 @@ const validator = require('validator');
 const pool = require('../config/database');
 const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#]).{8,}$/;
 const phoneRegex = /^(09\d{9}|\+639\d{9})$/;
+const crypto = require("crypto");
+const transporter = require("../config/email");
 
 exports.register = async (req, res) => {
   console.log("=== REGISTER START ===");
@@ -321,5 +323,231 @@ exports.checkOrgNameAvailability = async (req, res) => {
     } catch (err) {
         console.error("Error sa checkOrgNameAvailability:", err);
         return res.status(500).send("Internal server error.");
+    }
+};
+//FORGOT PASSWORD
+exports.forgotPassword = async (req, res) => {
+    try {
+        const email = (req.body.email || "").trim().toLowerCase();
+
+        if (!email) {
+            return res.status(400).send("Email is required.");
+        }
+
+        if (!validator.isEmail(email)) {
+            return res.status(400).send("Please enter a valid email address.");
+        }
+
+        const [accounts] = await pool.query(
+            `
+            SELECT account_id, email
+            FROM accounts
+            WHERE email = ?
+            LIMIT 1
+            `,
+            [email]
+        );
+
+        // Do not reveal whether the email exists
+        if (accounts.length === 0) {
+            return res.status(200).send(
+                "If an account with that email exists, a password reset link has been sent."
+            );
+        }
+
+        const account = accounts[0];
+
+        // Generate secure random token
+        const rawToken = crypto.randomBytes(32).toString("hex");
+
+        // Store only the hash of the token
+        const tokenHash = crypto
+            .createHash("sha256")
+            .update(rawToken)
+            .digest("hex");
+
+        // Token expires after 30 minutes
+        const expiresAt = new Date(Date.now() + 30 * 60 * 1000);
+
+        // Delete previous unused tokens for this account
+        await pool.query(
+            `
+            DELETE FROM password_reset_tokens
+            WHERE account_id = ?
+            `,
+            [account.account_id]
+        );
+
+        // Store new reset token
+        await pool.query(
+            `
+            INSERT INTO password_reset_tokens
+            (
+                account_id,
+                token_hash,
+                expires_at
+            )
+            VALUES (?, ?, ?)
+            `,
+            [
+                account.account_id,
+                tokenHash,
+                expiresAt
+            ]
+        );
+
+        const resetLink =
+            `${process.env.APP_URL}/auth/reset-password.html?token=${rawToken}`;
+
+        await transporter.sendMail({
+            from: `"Pawpon Support" <${process.env.EMAIL_USER}>`,
+            to: account.email,
+            subject: "Pawpon Password Reset",
+            html: `
+                <div style="
+                    font-family: Arial, sans-serif;
+                    max-width: 600px;
+                    margin: auto;
+                    padding: 30px;
+                    color: #334155;
+                ">
+                    <h2 style="color:#1656ff;">
+                        Pawpon Password Reset
+                    </h2>
+
+                    <p>
+                        We received a request to reset your Pawpon account password.
+                    </p>
+
+                    <p>
+                        Click the button below to create a new password.
+                    </p>
+
+                    <div style="margin:30px 0;">
+                        <a
+                            href="${resetLink}"
+                            style="
+                                background:#1656ff;
+                                color:white;
+                                padding:12px 22px;
+                                border-radius:8px;
+                                text-decoration:none;
+                                font-weight:bold;
+                                display:inline-block;
+                            "
+                        >
+                            Reset My Password
+                        </a>
+                    </div>
+
+                    <p style="font-size:13px;color:#64748b;">
+                        This link will expire in 30 minutes.
+                    </p>
+
+                    <p style="font-size:13px;color:#64748b;">
+                        If you did not request a password reset, you can safely ignore this email.
+                    </p>
+                </div>
+            `
+        });
+
+        return res.status(200).send(
+            "If an account with that email exists, a password reset link has been sent."
+        );
+
+    } catch (error) {
+        console.error("forgotPassword error:", error);
+
+        return res.status(500).send(
+            "Unable to process password reset right now."
+        );
+    }
+};
+
+//CHANGE PASSWORD
+exports.resetPassword = async (req, res) => {
+    try {
+        const token = (req.body.token || "").trim();
+        const password = req.body.password || "";
+        const confirmPassword = req.body.confirmPassword || "";
+
+        if (!token || !password || !confirmPassword) {
+            return res.status(400).send("All fields are required.");
+        }
+
+        if (!passwordRegex.test(password)) {
+            return res.status(400).send(
+                "Password must contain at least 8 characters, including uppercase, lowercase, number, and special character."
+            );
+        }
+
+        if (password !== confirmPassword) {
+            return res.status(400).send("Passwords do not match.");
+        }
+
+        // Hash token so the raw token is never stored in DB
+        const tokenHash = crypto
+            .createHash("sha256")
+            .update(token)
+            .digest("hex");
+
+        const [rows] = await pool.query(
+            `
+            SELECT
+                reset_id,
+                account_id
+            FROM password_reset_tokens
+            WHERE token_hash = ?
+              AND used_at IS NULL
+              AND expires_at > NOW()
+            LIMIT 1
+            `,
+            [tokenHash]
+        );
+
+        if (rows.length === 0) {
+            return res.status(400).send(
+                "This password reset link is invalid or has expired."
+            );
+        }
+
+        const resetRequest = rows[0];
+
+        // Hash new password
+        const passwordHash = await bcrypt.hash(password, 10);
+
+        // Update actual account password
+        await pool.query(
+            `
+            UPDATE accounts
+            SET password_hash = ?
+            WHERE account_id = ?
+            `,
+            [
+                passwordHash,
+                resetRequest.account_id
+            ]
+        );
+
+        // Mark reset token as used
+        await pool.query(
+            `
+            UPDATE password_reset_tokens
+            SET used_at = NOW()
+            WHERE reset_id = ?
+            `,
+            [resetRequest.reset_id]
+        );
+
+        return res.status(200).send(
+            "Password changed successfully."
+        );
+
+    } catch (error) {
+        console.error("resetPassword error:", error);
+
+        return res.status(500).send(
+            "Unable to reset password right now."
+        );
     }
 };

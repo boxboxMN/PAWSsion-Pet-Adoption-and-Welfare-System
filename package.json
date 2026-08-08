@@ -30,6 +30,7 @@
     "express-session": "^1.19.0",
     "multer": "^2.2.0",
     "mysql2": "^3.22.4",
+    "nodemailer": "^9.0.5",
     "validator": "^13.15.35"
   },
   "devDependencies": {

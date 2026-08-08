@@ -52,7 +52,7 @@ MODIFY COLUMN status ENUM('pending', 'active', 'disabled', 'suspended', 'banned'
 
 # **9. TO DO (07.19.26)**
 ## **LOGIN**
-- forgot password
+✓ forgot password
 
 
 ## **ALL MODULES**
@@ -67,7 +67,8 @@ MODIFY COLUMN status ENUM('pending', 'active', 'disabled', 'suspended', 'banned'
 ## **USERSIDE MODULES**
 ✓ Use **Title** and **Subtitle** for headers/topbar
 - Notification
-- Connect **Dashboard**,**My Application** and **Kamustahan** to DB
+✓ Connect **Dashboard**,
+- **My Application** and **Kamustahan** to DB
 ✓ Connect **Matchmaking**, **Donation**
 - Improve CSS
 
@@ -79,7 +80,9 @@ MODIFY COLUMN status ENUM('pending', 'active', 'disabled', 'suspended', 'banned'
 ✓ Search, CRUD
 ✓ Connect **Dashboard**, **Application**,**Donation** 
 - Connect **Kamustahan**, **Analytics**, and **Organization Profile** to DB
-- Settings & Support
+- Settings & 
+✓ Support
+✓ **Analytics**
 - Improve CSS
 
 ---
@@ -244,3 +247,7 @@ Di ko pa navivisit
 
 ALTER TABLE user_adoption_applications 
 MODIFY COLUMN status VARCHAR(50) NOT NULL DEFAULT 'Under Review';
+
+# install this in project folder
+npm install nodemailer
+
