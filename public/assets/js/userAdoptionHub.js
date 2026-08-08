@@ -480,65 +480,43 @@ async function openPetModal(pet){
 
 
 function renderMedicalHistory(history) {
-
     const tbody = document.getElementById("modalMedicalBody");
-
     tbody.innerHTML = "";
-
     if (!history || history.length === 0) {
-
         tbody.innerHTML = `
             <tr>
-
                 <td colspan="3"
                     class="text-center p-6 text-gray-400">
-
                     No medical records.
-
                 </td>
-
             </tr>
         `;
-
         return;
-
     }
 
     history.forEach(record => {
-
         const date = record.administered_date
-            ? new Date(record.administered_date)
-                .toLocaleDateString()
+            ? new Date(record.administered_date).toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "long",
+                day: "numeric"
+            })
             : "-";
 
         tbody.innerHTML += `
-
             <tr class="border-t hover:bg-gray-50">
-
                 <td class="p-3">
-
                     ${record.treatment}
-
                 </td>
-
                 <td class="p-3">
-
                     ${date}
-
                 </td>
-
                 <td class="p-3">
-
                     ${record.administered_by}
-
                 </td>
-
             </tr>
-
         `;
-
     });
-
 }
 
 function closePetModal(){
