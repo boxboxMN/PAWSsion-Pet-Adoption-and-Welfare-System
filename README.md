@@ -255,3 +255,57 @@ npm install nodemailer
 # Aug 08, 2026
 Import nyo na lang yung user adoption applicationsn table may additional columns don
 
+# Pa run sa db: (Aug 09, 2026)
+CREATE TABLE IF NOT EXISTS `application_interviews` (
+  `interview_id` INT(11) NOT NULL AUTO_INCREMENT,
+  `application_id` INT(11) NOT NULL,
+  `interview_date` DATE DEFAULT NULL,
+  `interview_time` TIME DEFAULT NULL,
+  `interview_method` VARCHAR(50) DEFAULT NULL,
+  `interview_location_link` TEXT DEFAULT NULL,
+  `requested_interview_date` DATE DEFAULT NULL,
+  `requested_interview_time` TIME DEFAULT NULL,
+  `reschedule_reason` TEXT DEFAULT NULL,
+  `resched_status` VARCHAR(50) DEFAULT 'None',
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP(),
+  `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP() ON UPDATE CURRENT_TIMESTAMP(),
+  PRIMARY KEY (`interview_id`),
+  UNIQUE KEY `unique_app_interview` (`application_id`),
+  CONSTRAINT `fk_interview_application` FOREIGN KEY (`application_id`) REFERENCES `user_adoption_applications` (`application_id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+INSERT INTO `application_interviews` (
+  `application_id`,
+  `interview_date`,
+  `interview_time`,
+  `interview_method`,
+  `interview_location_link`,
+  `requested_interview_date`,
+  `requested_interview_time`,
+  `reschedule_reason`,
+  `resched_status`
+)
+SELECT 
+  `application_id`,
+  `interview_date`,
+  `interview_time`,
+  `interview_method`,
+  `interview_location_link`,
+  `requested_interview_date`,
+  `requested_interview_time`,
+  `reschedule_reason`,
+  `resched_status`
+FROM `user_adoption_applications`
+WHERE `interview_date` IS NOT NULL 
+   OR `requested_interview_date` IS NOT NULL 
+   OR `resched_status` != 'None';
+
+ALTER TABLE `user_adoption_applications`
+  DROP COLUMN `interview_date`,
+  DROP COLUMN `interview_time`,
+  DROP COLUMN `interview_method`,
+  DROP COLUMN `interview_location_link`,
+  DROP COLUMN `requested_interview_date`,
+  DROP COLUMN `requested_interview_time`,
+  DROP COLUMN `reschedule_reason`,
+  DROP COLUMN `resched_status`;
