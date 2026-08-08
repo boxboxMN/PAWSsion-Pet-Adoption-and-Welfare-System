@@ -214,8 +214,8 @@ async function checkPetApplicationStatus(petId) {
         if (data.hasApplied) {
             const statusUpper = (data.status || '').toUpperCase();
 
+            // KAPAG DECLINED: Clickable Button na nagpapakita ng reason
             if (statusUpper === 'DECLINED' || statusUpper === 'REJECTED') {
-                // KAPAG DECLINED: Clickable Button na nagpapakita ng reason
                 applyBtn.disabled = false;
                 applyBtn.className = "w-full bg-red-600 hover:bg-red-700 text-white py-3 rounded-xl font-bold text-xs shadow-md transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99]";
                 applyBtn.innerHTML = `
@@ -230,6 +230,15 @@ async function checkPetApplicationStatus(petId) {
                 sessionStorage.setItem("targetPetId", petId); // I-save ang Pet ID
                 window.location.href = "/application";
             };
+            // KAPAG CANCELLED: Gawing ACTIVE at PWEDENG MAG-APPLY ULI (Normal Apply Button)
+            } else if (statusUpper === 'CANCELLED') {
+                applyBtn.disabled = false;
+                applyBtn.onclick = null; // Gagamitin ang default form-opening listener
+                applyBtn.className = "w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 transition-all duration-200 text-white py-3 rounded-xl font-bold text-xs shadow-md shadow-indigo-100 hover:shadow-indigo-200 active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer";
+                applyBtn.innerHTML = `
+                    <i class="fa-regular fa-heart text-sm"></i>
+                    <span>Apply for Adoption</span>
+                `;
             } else {
                 // KAPAG PENDING / APPROVED: Disabled Button
                 applyBtn.disabled = true;
@@ -241,7 +250,7 @@ async function checkPetApplicationStatus(petId) {
                 `;
             }
         } else {
-            // Ibalik sa active state
+            // KAPAG WALA PANG APPLICATION
             applyBtn.disabled = false;
             applyBtn.className = "w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 transition-all duration-200 text-white py-3 rounded-xl font-bold text-xs shadow-md shadow-indigo-100 hover:shadow-indigo-200 active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer";
             applyBtn.innerHTML = `

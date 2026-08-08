@@ -162,6 +162,9 @@ Notification:
 
 	Dapat nakikita ang lahat ng changes sa notif and dapat sa sidebar is kapag may changes may pula na bilog na nagaappear
 
+    Under My Application:
+        Dapat kapag may bagong update is may notif like parang read or unread sa may under review, interview sched, pending, declined
+
 Profile: 
 	
 	Dapat nakikita yung picture sa lahat ng page, Hindi lang profile nakalagay
@@ -174,11 +177,9 @@ My Application:
 
     ✓ Dapat kapagg nag resched ang org nanotif doon sa application ng user
 
-	Dapat kapag may bagong update is may notif like parang read or unread sa may under review, interview sched, pending, declined
-
 	✓ What if, once na yung applicaiton is under interview schedule is pwedeng magrequest ang adopter to change date once na hindi sila available
     
-	kapag nadecline sa view details dapat may reapply button if gusto pang mag apply yung user sa same pet na yun
+	✓ kapag nadecline sa view details dapat may reapply button if gusto pang mag apply yung user sa same pet na yun
 
 Adoption-hub: 	
 	

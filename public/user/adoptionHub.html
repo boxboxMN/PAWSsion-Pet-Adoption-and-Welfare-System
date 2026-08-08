@@ -458,9 +458,11 @@
                     const res = await fetch(`/check-applied/${petId}`, { credentials: 'include' });
                     const data = await res.json();
 
+                    const inactiveStatuses = ['DECLINED', 'REJECTED', 'CANCELLED'];
+                    const isInactive = inactiveStatuses.includes((data.status || '').toUpperCase());
+
                     // Kapag galing sa Re-apply button (Declined status) O bago pa lang ang application
-                    // Pag bibigyan mag-apply kung Declined o wala pang application
-                    if (data.hasApplied && data.status !== 'Declined' && data.status !== 'Rejected') {
+                    if (data.hasApplied && !isInactive) {
                         alert(`You have already submitted an application for this pet (Status: ${data.status}).`);
                         window.location.href = "/adoption-hub";
                         return; 
