@@ -242,3 +242,7 @@ Di ko pa navivisit
 
 ALTER TABLE user_adoption_applications 
 MODIFY COLUMN status VARCHAR(50) NOT NULL DEFAULT 'Under Review';
+
+# install this in project folder
+npm install nodemailer
+

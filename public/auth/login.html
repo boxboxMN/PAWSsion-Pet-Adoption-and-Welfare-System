@@ -4,6 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Pawpon Login</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
   <link rel="stylesheet" href="/assets/css/login.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 </head>
@@ -36,7 +40,7 @@
 
     
       <form id="loginForm" class="form-section" method="POST" action="/auth/login">
-        <div class="input">
+        <div class="input mb-4">
           <label for="email">Email</label>
           <div class="input-with-icon">
             <i class="fa-regular fa-envelope icon" style="color: #1656ff;"></i>
@@ -44,7 +48,7 @@
           </div>
         </div>
 
-        <div class="input">
+        <div class="input mb-1.5">
           <label for="password">Password</label>
           <div class="input-with-icon">
             <i class="fa-solid fa-lock icon" style="color:#1656ff;"></i>
@@ -55,15 +59,33 @@
           </div>
         </div>
 
-          <div id="successMessage" class="success-message">
-            ✔ Account created successfully! Please sign in.
+        <!-- Forgot Password Link -->
+       <div class="flex justify-center mb-5 mt-5">
+            <a href="forgot_password.html" class="inline-flex items-center gap-1.5 px-2 py-0.5 text-xs font-semibold text-[#1656ff] hover:text-[#0d3dcc] hover:underline transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#1656ff]/20 rounded-md">
+                <i class="fa-solid fa-key text-[11px]"></i>
+                Forgot Password?
+            </a>
         </div>
-        
-        <div id="loginError" class="login-error hidden"></div>
-        <button type="submit">Login</button>
-      </form>
 
-      <div class="register-section">
+        <!-- Login Error Message -->
+        <div id="loginError" class="hidden mb-4 px-4 py-3 rounded-xl bg-red-50 text-red-700 border border-red-200/80 text-xs leading-relaxed shadow-sm"></div>
+
+        <!-- Success Message -->
+        <div id="successMessage" class="hidden mb-4 px-4 py-3 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200/80 text-xs leading-relaxed shadow-sm">
+            <i class="fa-solid fa-circle-check mr-2 text-emerald-600"></i>
+            Account created successfully! Please sign in.
+        </div>
+
+        <!-- Submit Button -->
+        <button type="submit" class="w-full py-3.5 px-5 rounded-xl bg-[#1656ff] hover:bg-[#0d3dcc] active:scale-[0.99] text-white text-sm font-bold tracking-wide shadow-md shadow-blue-500/20 hover:shadow-lg hover:shadow-blue-500/30 transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer border-0 mt-2">
+            <span>Login</span>
+            <i class="fa-solid fa-arrow-right text-xs"></i>
+        </button>
+
+      </form>
+      
+      
+      <div class="register-section mt-6">
         Not Registered yet?
         <a href="#" onclick="openModal()">Create an Account</a>
       </div>
@@ -117,12 +139,12 @@
 
     const params = new URLSearchParams(window.location.search);
 
-if (params.get("success") === "1") {
-    document.getElementById("successMessage").style.display = "block";
+    if (params.get("success") === "1") {
+        document.getElementById("successMessage").style.display = "block";
 
-    // Remove ?success=1 from the URL
-    window.history.replaceState({}, document.title, window.location.pathname);
-}
+        // Remove ?success=1 from the URL
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
   </script>
   <script src="/auth/login.js"></script>
   <script>

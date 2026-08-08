@@ -5,7 +5,11 @@ const multer = require("multer");
 const path = require("path");
 const crypto = require("crypto");
 
+
 const authController = require("../controllers/authController");
+console.log("AUTH ROUTES CHECK:");
+console.log("forgotPassword:", typeof authController.forgotPassword);
+console.log("resetPassword:", typeof authController.resetPassword);
 
 // Configure secure storage
 const storage = multer.diskStorage({
@@ -39,6 +43,8 @@ const upload = multer({
 router.post("/register", authController.register);
 router.post("/login", authController.login);
 router.get("/logout", authController.logout);
+router.post("/forgot-password", authController.forgotPassword);
+router.post("/reset-password", authController.resetPassword);
 
 // ==========================================
 // REAL-TIME EMAIL AVAILABILITY CHECK ROUTE
