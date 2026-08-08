@@ -609,9 +609,64 @@ exports.submitAdoptionApplication = async (req, res) => {
         }
 
         const organizationId = petRows[0].organization_id;
+
+        // 2. CHECK KUNG MAY EXISTING APPLICATION NA PARA SA PET NA ITO
+        const [existingApp] = await pool.query(
+            `SELECT application_id, status FROM user_adoption_applications 
+             WHERE adopter_id = ? AND animal_id = ? 
+             ORDER BY created_at DESC LIMIT 1`,
+            [adopterId, animal_id]
+        );
         
-        // 4. Save sa Database
-        const query = `
+        // KUNG MAY LALABAS AT STATUS AY DECLINED/REJECTED/CANCELLED -> UPDATE (RE-APPLY LOGIC)
+        if (existingApp.length > 0 && ['Declined', 'Rejected', 'Cancelled'].includes(existingApp[0].status)) {
+            const updateQuery = `
+                UPDATE user_adoption_applications SET
+                    organization_id = ?,
+                    full_name = ?,
+                    contact_number = ?,
+                    email = ?,
+                    full_address = ?,
+                    civil_status = ?,
+                    age = ?,
+                    occupation = ?,
+                    adoption_intent = ?,
+                    emergency_name = ?,
+                    emergency_phone = ?,
+                    emergency_relation = ?,
+                    document_path = COALESCE(?, document_path),
+                    status = 'Under Review',
+                    decline_reason = NULL,
+                    updated_at = NOW()
+                WHERE application_id = ?
+            `;
+
+            const updateValues = [
+                organizationId,
+                full_name || null,
+                contact_number || null,
+                email || null,
+                full_address || null,
+                civil_status || null,
+                age ? parseInt(age, 10) : null,
+                occupation || null,
+                adoption_intent || null,
+                emergency_name || null,
+                emergency_phone || null,
+                emergency_relation || null,
+                documentPath,
+                existingApp[0].application_id
+            ];
+
+            await pool.query(updateQuery, updateValues);
+
+            return res.status(200).json({
+                status: 'success',
+                message: 'Re-application submitted successfully! Your application status is now Under Review.'
+            });
+        }
+
+        const insertQuery = `
             INSERT INTO user_adoption_applications (
                 organization_id,
                 adopter_id,
@@ -651,7 +706,7 @@ exports.submitAdoptionApplication = async (req, res) => {
             'Under Review'
         ];
 
-        await pool.query(query, values);
+        await pool.query(insertQuery, insertValues);
 
         return res.status(200).json({
             status: 'success',

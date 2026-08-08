@@ -583,6 +583,12 @@ function showDetails(app) {
                     <i class="fas fa-ban"></i> Cancel Application
                 </button>
             `;
+        } else if (app.status === "Declined") {
+            detailsActions.innerHTML = `
+                <button onclick="handleReapply(${app.petId})" class="px-4 py-2 text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition inline-flex items-center gap-1.5 shadow-sm cursor-pointer">
+                    <i class="fas fa-rotate-right"></i> Re-apply for Adoption
+                </button>
+            `;
         } else {
             detailsActions.innerHTML = "";
         }
@@ -754,17 +760,11 @@ function showDetails(app) {
     if (app.status === "Declined") {
         declineCard.classList.remove("hidden");
 
-        // Header na may Re-apply button
         const declineHeader = declineCard.querySelector(".section-title");
         if (declineHeader) {
-            declineHeader.className = "section-title flex flex-wrap items-center justify-between gap-2 mb-4";
+            declineHeader.className = "section-title flex items-center gap-2 mb-4";
             declineHeader.innerHTML = `
-                <span class="flex items-center gap-2">
-                    <i class="fas fa-circle-xmark text-red-600"></i> Reason for Decline
-                </span>
-                <button onclick="handleReapply(${app.petId})" class="text-xs font-semibold px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition inline-flex items-center gap-1.5 shadow-sm cursor-pointer">
-                    <i class="fas fa-rotate-right"></i> Re-apply for Adoption
-                </button>
+                <i class="fas fa-circle-xmark text-red-600"></i> Reason for Decline
             `;
         }
 
@@ -888,7 +888,7 @@ async function handleRequestReschedule(appId) {
                 if (updatedApp) {
                     showDetails(updatedApp);
                 }
-                
+
             } else {
                 throw new Error(data.message || 'Failed to submit request.');
             }
@@ -914,8 +914,11 @@ function handleReapply(petId) {
         return;
     }
 
-    // Direct redirect sa adoption form para sa napiling pet
-    window.location.href = `/user/adoption-form?petId=${petId}`;
+    // 1. I-save ang Pet ID sa sessionStorage para mabasa ng Adoption Hub page
+    sessionStorage.setItem("autoOpenPetId", petId);
+
+    // 2. Pumunta sa Adoption Hub page
+    window.location.href = "/adoption-hub";
 }
 
 // =====================================================

@@ -441,18 +441,29 @@
             // Wait until sidebar + header are loaded
             await loadSidebar();
             const params = new URLSearchParams(window.location.search);
-            const petId = params.get("petId");
+            const urlPetId = params.get("petId");
+            const sessionPetId = sessionStorage.getItem("autoOpenPetId");
+
+            // Tanggalin ang session key agad para hindi paulit-ulit kapag ni-refresh ang page
+            if (sessionPetId) sessionStorage.removeItem("autoOpenPetId");
+
+            // Gamitin alinman sa dalawa ang may laman
+            const petId = urlPetId || sessionPetId;
+
+            let isFormOpened = false;
 
             if (petId) {
-   
                 try {
+                    // Check kung may existing application na
                     const res = await fetch(`/check-applied/${petId}`, { credentials: 'include' });
                     const data = await res.json();
 
-                    if (data.hasApplied) {
+                    // Kapag galing sa Re-apply button (Declined status) O bago pa lang ang application
+                    // Pag bibigyan mag-apply kung Declined o wala pang application
+                    if (data.hasApplied && data.status !== 'Declined' && data.status !== 'Rejected') {
                         alert(`You have already submitted an application for this pet (Status: ${data.status}).`);
-                        window.location.href = "/user/adoptionHub.html";
-                        return; // Itigil na ang pagbukas ng form
+                        window.location.href = "/adoption-hub";
+                        return; 
                     }
 
                     console.log("Opening form for pet:", petId);
@@ -465,17 +476,22 @@
                         title: "Adoption Form",
                         subtitle: "Please fill out the form below to start your adoption journey."
                     });
+
+                    isFormOpened = true;
+
                 } catch (err) {
                     console.error("Error checking application status:", err);
                 }
             }
-            
-            requestAnimationFrame(() => {
-                loadTopbar({
-                    title: "Adoption Hub",
-                    subtitle: "Browse available pets, view their profiles, and begin your adoption journey."
-                });
 
+            // Topbar fallback at visibility setup
+            requestAnimationFrame(() => {
+                if (!isFormOpened) {
+                    loadTopbar({
+                        title: "Adoption Hub",
+                        subtitle: "Browse available pets, view their profiles, and begin your adoption journey."
+                    });
+                }
                 document.body.style.visibility = "visible";
             });
 
