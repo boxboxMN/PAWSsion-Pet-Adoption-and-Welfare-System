@@ -769,6 +769,11 @@ exports.getUserApplications = async (req, res) => {
                 app.interview_time,
                 app.interview_method,
                 app.interview_location_link,
+                -- RESCHEDULE INTERVIEW
+                app.requested_interview_date,
+                app.requested_interview_time,
+                app.reschedule_reason,
+                app.resched_status,
                 -- PET INFORMATION
                 animal.name AS pet_name,
                 animal.species AS species,

@@ -387,7 +387,11 @@ async function loadApplications() {
             date: app.interview_date,
             time: app.interview_time,
             method: app.interview_method,
-            locationLink: app.interview_location_link
+            locationLink: app.interview_location_link,
+            requestedDate: app.requested_interview_date,
+            requestedTime: app.requested_interview_time,
+            reschedReason: app.reschedule_reason,
+            reschedStatus: app.resched_status
         }
     }));
         // ---------------------------------------------
@@ -633,21 +637,37 @@ function showDetails(app) {
     // 5. INTERVIEW SCHEDULE CARD (Gaya ng ibang Card)
     const interviewCard = document.getElementById("detail-interview-card");
     const interviewContent = document.getElementById("detail-interview-content");
+    
     if (app.status === "Interview Scheduled") {
         interviewCard.classList.remove("hidden");
+
+        // Check kung may pending reschedule request ang user
+        const isReschedPending = app.interview.reschedStatus === "Pending" || (app.interview.requestedDate && app.interview.reschedStatus !== "Approved");
 
         // I-update ang Card Header para magkaroon ng Request Reschedule button sa kanang bahagi
         const cardHeader = interviewCard.querySelector(".section-title");
         if (cardHeader) {
             cardHeader.className = "section-title flex flex-wrap items-center justify-between gap-2 mb-4";
-            cardHeader.innerHTML = `
-                <span class="flex items-center gap-2">
-                    <i class="fas fa-calendar-alt text-blue-600"></i> Interview Schedule
-                </span>
-                <button onclick="handleRequestReschedule(${app.id})" class="text-xs font-semibold px-3 py-1.5 border border-amber-500 text-amber-600 hover:bg-amber-50 rounded-lg transition inline-flex items-center gap-1.5 cursor-pointer">
-                    <i class="fas fa-calendar-minus"></i> Request Reschedule
-                </button>
-            `;
+        
+            if (isReschedPending) {
+                cardHeader.innerHTML = `
+                    <span class="flex items-center gap-2">
+                        <i class="fas fa-calendar-alt text-blue-600"></i> Interview Schedule
+                    </span>
+                    <span class="text-xs font-semibold px-3 py-1 bg-amber-100 text-amber-700 rounded-full inline-flex items-center gap-1.5 border border-amber-200">
+                        <i class="fas fa-clock text-amber-600"></i> Reschedule Request Pending
+                    </span>
+                `;
+            } else {
+                cardHeader.innerHTML = `
+                    <span class="flex items-center gap-2">
+                        <i class="fas fa-calendar-alt text-blue-600"></i> Interview Schedule
+                    </span>
+                    <button onclick="handleRequestReschedule(${app.id})" class="text-xs font-semibold px-3 py-1.5 border border-amber-500 text-amber-600 hover:bg-amber-50 rounded-lg transition inline-flex items-center gap-1.5 cursor-pointer">
+                        <i class="fas fa-calendar-minus"></i> Request Reschedule
+                    </button>
+                `;
+            }
         }
 
         let locationOrLink = app.interview.locationLink || "N/A";
@@ -655,14 +675,47 @@ function showDetails(app) {
             ? `<a href="${locationOrLink}" target="_blank" class="text-blue-600 underline font-semibold break-all">${locationOrLink}</a>`
             : locationOrLink;
 
-        interviewContent.innerHTML = `
-            ${createFormalField("Interview Date", app.interview.date ? formatDate(app.interview.date) : "—")}
-            ${createFormalField("Interview Time", formatTime(app.interview.time))}
+        // 2. Base Schedule Content
+        let scheduleHTML = `
+            ${createFormalField("Current Interview Date", app.interview.date ? formatDate(app.interview.date) : "—")}
+            ${createFormalField("Current Interview Time", formatTime(app.interview.time))}
             ${createFormalField("Method", app.interview.method ? app.interview.method.toUpperCase() : "—")}
             <div class="md:col-span-3">
                 ${createFormalField("Venue / Meeting Link", linkDisplay)}
             </div>
         `;
+
+        // 3. Dagdag na Banner / Card Box kapag may PENDING Reschedule Request
+        if (isReschedPending && app.interview.requestedDate) {
+            scheduleHTML += `
+                <div class="md:col-span-3 mt-3 p-4 bg-amber-50 border border-amber-200 rounded-xl space-y-2">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold text-amber-800 uppercase tracking-wide flex items-center gap-1.5">
+                            Reschedule Details
+                        </span>
+                    </div>
+                    <div class="grid md:grid-cols-2 gap-3 text-sm pt-1">
+                        <div>
+                            <span class="text-xs text-gray-500 block">Requested New Date:</span>
+                            <span class="font-bold text-gray-800">${formatDate(app.interview.requestedDate)}</span>
+                        </div>
+                        <div>
+                            <span class="text-xs text-gray-500 block">Requested New Time:</span>
+                            <span class="font-bold text-gray-800">${formatTime(app.interview.requestedTime)}</span>
+                        </div>
+                        ${app.interview.reschedReason ? `
+                            <div class="md:col-span-2 pt-1">
+                                <span class="text-xs text-gray-500 block">Reason:</span>
+                                <span class="text-xs text-gray-700 italic">${app.interview.reschedReason}</span>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        interviewContent.innerHTML = scheduleHTML;
+
     } else {
         interviewCard.classList.add("hidden");
     }
@@ -723,19 +776,95 @@ function showDetails(app) {
 // =====================================================
 // REQUEST RESCHEDULE BUTTON HANDLER
 // =====================================================
-function handleRequestReschedule(appId) {
-    console.log("Requesting reschedule for Application ID:", appId);
-    
-    // Placeholder alert muna
-    if (typeof Swal !== "undefined") {
-        Swal.fire({
-            icon: 'info',
-            title: 'Request Reschedule',
-            text: 'Reschedule request feature will be available soon.',
-            confirmButtonColor: '#2563EB'
-        });
-    } else {
-        alert("Request Reschedule button clicked for Application #" + appId);
+async function handleRequestReschedule(appId) {
+    if (!appId) return;
+
+    // Kunin ang petsa ngayon para sa minimum date selection
+    const today = new Date().toISOString().split('T')[0];
+
+    const { value: formValues } = await Swal.fire({
+        title: 'Request Interview Reschedule',
+        html: `
+            <div class="text-left space-y-4 pt-2">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">Preferred Date</label>
+                    <input type="date" id="swal-resched-date" min="${today}" class="w-full p-3 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">Preferred Time</label>
+                    <input type="time" id="swal-resched-time" class="w-full p-3 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">Reason for Rescheduling</label>
+                    <textarea id="swal-resched-reason" rows="3" class="w-full p-3 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none resize-none" placeholder="State your reason (e.g., Work conflict, personal emergency)..."></textarea>
+                </div>
+            </div>
+        `,
+        showCancelButton: true,
+        confirmButtonText: 'Submit Request',
+        cancelButtonText: 'Cancel',
+        confirmButtonColor: '#2563EB',
+        cancelButtonColor: '#6B7280',
+        customClass: {
+            popup: 'rounded-2xl max-w-md',
+            confirmButton: 'rounded-xl font-semibold px-4 py-2',
+            cancelButton: 'rounded-xl font-semibold px-4 py-2'
+        },
+        preConfirm: () => {
+            const preferredDate = document.getElementById('swal-resched-date').value;
+            const preferredTime = document.getElementById('swal-resched-time').value;
+            const reason = document.getElementById('swal-resched-reason').value.trim();
+
+            if (!preferredDate || !preferredTime) {
+                Swal.showValidationMessage('Please select both date and time.');
+                return false;
+            }
+            if (!reason) {
+                Swal.showValidationMessage('Please state a reason for rescheduling.');
+                return false;
+            }
+
+            return { preferredDate, preferredTime, reason };
+        }
+    });
+
+    if (formValues) {
+        // I-send ang reschedule request sa backend API
+        try {
+            const response = await fetch(`/api/user/applications/${appId}/reschedule-request`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    preferred_date: formValues.preferredDate,
+                    preferred_time: formValues.preferredTime,
+                    reason: formValues.reason
+                })
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+                await Swal.fire({
+                    icon: 'success',
+                    title: 'Request Submitted!',
+                    text: 'Your reschedule request has been sent to the organization.',
+                    confirmButtonColor: '#2563EB',
+                    customClass: { popup: 'rounded-2xl' }
+                });
+                await loadApplications();
+            } else {
+                throw new Error(data.message || 'Failed to submit request.');
+            }
+        } catch (err) {
+            console.error("❌ Reschedule Request Error:", err);
+            Swal.fire({
+                icon: 'error',
+                title: 'Submission Failed',
+                text: err.message || 'Unable to submit reschedule request.',
+                confirmButtonColor: '#EF4444',
+                customClass: { popup: 'rounded-2xl' }
+            });
+        }
     }
 }
 
