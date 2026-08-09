@@ -706,7 +706,7 @@ exports.submitAdoptionApplication = async (req, res) => {
             'Under Review'
         ];
 
-        await pool.query(insertQuery, insertValues);
+        await pool.query(insertQuery, values);
 
         return res.status(200).json({
             status: 'success',

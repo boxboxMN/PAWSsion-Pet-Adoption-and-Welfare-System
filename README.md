@@ -149,6 +149,9 @@ HOW TO RUN WITH WORKING MATCHMAKING FEATURE
 
 Not working:
 
+CREATE AN ACCOUNT:
+
+    Lagyan ng scroll bar
 USER SIDE:
 
 Dashboard:
@@ -180,6 +183,8 @@ My Application:
 	✓ What if, once na yung applicaiton is under interview schedule is pwedeng magrequest ang adopter to change date once na hindi sila available
     
 	✓ kapag nadecline sa view details dapat may reapply button if gusto pang mag apply yung user sa same pet na yun
+
+    sa reschedule approved na lumalabas lang kapag nagrequest
 
 Adoption-hub: 	
 	
@@ -309,3 +314,4 @@ ALTER TABLE `user_adoption_applications`
   DROP COLUMN `requested_interview_time`,
   DROP COLUMN `reschedule_reason`,
   DROP COLUMN `resched_status`;
+  
