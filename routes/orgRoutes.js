@@ -182,6 +182,10 @@ router.get('/applications/:id', async (req, res) => {
             app.interview_time,
             app.interview_method,
             app.interview_location_link,
+            app.requested_interview_date,
+            app.requested_interview_time,
+            app.reschedule_reason,
+            app.resched_status,
             DATE_FORMAT(app.created_at, '%b %d, %Y • %h:%i %p') AS applied_date,
             p.name AS pet_name
         FROM user_adoption_applications app
@@ -335,6 +339,70 @@ router.post('/applications/:id/schedule', async (req, res) => {
 //para magconnect kapag pinagclick ang action sa adoption to org_app-details
 router.get("/adoption-details", (req, res) => {
     res.sendFile(path.join(__dirname, "../public/organization/org_application-details.html"));
+});
+
+// APPROVE RESCHEDULE REQUEST
+router.patch('/applications/:id/approve-reschedule', async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        // 1. Kunin ang requested date at time
+        const [rows] = await pool.query(
+            `SELECT requested_interview_date, requested_interview_time FROM user_adoption_applications WHERE application_id = ?`,
+            [id]
+        );
+
+        if (!rows.length || !rows[0].requested_interview_date) {
+            return res.status(400).json({ success: false, message: "No reschedule request found." });
+        }
+
+        const reqDate = rows[0].requested_interview_date;
+        const reqTime = rows[0].requested_interview_time;
+
+        // 2. I-update ang main interview_date at interview_time tapos i-clear ang request columns
+        await pool.query(
+            `UPDATE user_adoption_applications 
+             SET 
+                 interview_date = ?, 
+                 interview_time = ?, 
+                 requested_interview_date = NULL, 
+                 requested_interview_time = NULL, 
+                 reschedule_reason = NULL, 
+                 resched_status = 'Approved',
+                 updated_at = NOW()
+             WHERE application_id = ?`,
+            [reqDate, reqTime, id]
+        );
+
+        res.json({ success: true, message: "Interview schedule updated to the requested time!" });
+    } catch (err) {
+        console.error("Approve Reschedule Error:", err);
+        res.status(500).json({ success: false, message: "Server error." });
+    }
+});
+
+// REJECT RESCHEDULE REQUEST
+router.patch('/applications/:id/reject-reschedule', async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        await pool.query(
+            `UPDATE user_adoption_applications 
+             SET 
+                 requested_interview_date = NULL, 
+                 requested_interview_time = NULL, 
+                 reschedule_reason = NULL, 
+                 resched_status = 'Rejected',
+                 updated_at = NOW()
+             WHERE application_id = ?`,
+            [id]
+        );
+
+        res.json({ success: true, message: "Reschedule request rejected. Original schedule kept." });
+    } catch (err) {
+        console.error("Reject Reschedule Error:", err);
+        res.status(500).json({ success: false, message: "Server error." });
+    }
 });
 
 module.exports = router;

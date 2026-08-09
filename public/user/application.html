@@ -583,6 +583,12 @@ function showDetails(app) {
                     <i class="fas fa-ban"></i> Cancel Application
                 </button>
             `;
+        } else if (app.status === "Declined") {
+            detailsActions.innerHTML = `
+                <button onclick="handleReapply(${app.petId})" class="px-4 py-2 text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition inline-flex items-center gap-1.5 shadow-sm cursor-pointer">
+                    <i class="fas fa-rotate-right"></i> Re-apply for Adoption
+                </button>
+            `;
         } else {
             detailsActions.innerHTML = "";
         }
@@ -641,6 +647,7 @@ function showDetails(app) {
     if (app.status === "Interview Scheduled") {
         interviewCard.classList.remove("hidden");
 
+        const reschedStatus = app.interview.reschedStatus;
         // Check kung may pending reschedule request ang user
         const isReschedPending = app.interview.reschedStatus === "Pending" || (app.interview.requestedDate && app.interview.reschedStatus !== "Approved");
 
@@ -685,14 +692,15 @@ function showDetails(app) {
             </div>
         `;
 
-        // 3. Dagdag na Banner / Card Box kapag may PENDING Reschedule Request
+        // KAPAG PENDING PA ANG REQUEST
         if (isReschedPending && app.interview.requestedDate) {
             scheduleHTML += `
                 <div class="md:col-span-3 mt-3 p-4 bg-amber-50 border border-amber-200 rounded-xl space-y-2">
                     <div class="flex items-center justify-between">
                         <span class="text-xs font-bold text-amber-800 uppercase tracking-wide flex items-center gap-1.5">
-                            Reschedule Details
+                            <i class="fas fa-hourglass-half text-amber-600"></i> Pending Reschedule Details
                         </span>
+                        <span class="px-2.5 py-0.5 bg-amber-200/70 text-amber-800 text-[11px] font-bold rounded-md">PENDING APPROVAL</span>
                     </div>
                     <div class="grid md:grid-cols-2 gap-3 text-sm pt-1">
                         <div>
@@ -714,6 +722,32 @@ function showDetails(app) {
             `;
         }
 
+        // KAPAG NA-ACCEPT / IN-APPROVE NG ORG
+        else if (reschedStatus === 'Approved') {
+            scheduleHTML += `
+                <div class="md:col-span-3 mt-3 p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center gap-3 text-emerald-800 text-sm">
+                    <i class="fas fa-circle-check text-emerald-600 text-lg shrink-0"></i>
+                    <div>
+                        <span class="font-bold block">Reschedule Request Approved!</span>
+                        <span class="text-xs text-emerald-700">The organization accepted your request. Your interview schedule has been updated to the new date and time above.</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Kapag nareject ng org
+        else if (reschedStatus === 'Rejected') {
+            scheduleHTML += `
+                <div class="md:col-span-3 mt-3 p-3.5 bg-rose-50 border border-rose-200 rounded-xl flex items-center gap-3 text-rose-800 text-sm">
+                    <i class="fas fa-circle-xmark text-rose-600 text-lg shrink-0"></i>
+                    <div>
+                        <span class="font-bold block">Reschedule Request Declined</span>
+                        <span class="text-xs text-rose-700">The organization was unable to accommodate your request. Please follow the <strong>Current Interview Date & Time</strong> shown above.</span>
+                    </div>
+                </div>
+            `;
+        }
+
         interviewContent.innerHTML = scheduleHTML;
 
     } else {
@@ -726,17 +760,11 @@ function showDetails(app) {
     if (app.status === "Declined") {
         declineCard.classList.remove("hidden");
 
-        // Header na may Re-apply button
         const declineHeader = declineCard.querySelector(".section-title");
         if (declineHeader) {
-            declineHeader.className = "section-title flex flex-wrap items-center justify-between gap-2 mb-4";
+            declineHeader.className = "section-title flex items-center gap-2 mb-4";
             declineHeader.innerHTML = `
-                <span class="flex items-center gap-2">
-                    <i class="fas fa-circle-xmark text-red-600"></i> Reason for Decline
-                </span>
-                <button onclick="handleReapply(${app.petId})" class="text-xs font-semibold px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition inline-flex items-center gap-1.5 shadow-sm cursor-pointer">
-                    <i class="fas fa-rotate-right"></i> Re-apply for Adoption
-                </button>
+                <i class="fas fa-circle-xmark text-red-600"></i> Reason for Decline
             `;
         }
 
@@ -852,6 +880,15 @@ async function handleRequestReschedule(appId) {
                     customClass: { popup: 'rounded-2xl' }
                 });
                 await loadApplications();
+
+                // 2. Hanapin ang na-update na application record
+                const updatedApp = applications.find(a => Number(a.id) === Number(appId));
+
+                // 3. I-re-render agad ang details card para makita ang "Reschedule Request Pending" badge
+                if (updatedApp) {
+                    showDetails(updatedApp);
+                }
+
             } else {
                 throw new Error(data.message || 'Failed to submit request.');
             }
@@ -877,8 +914,11 @@ function handleReapply(petId) {
         return;
     }
 
-    // Direct redirect sa adoption form para sa napiling pet
-    window.location.href = `/user/adoption-form?petId=${petId}`;
+    // 1. I-save ang Pet ID sa sessionStorage para mabasa ng Adoption Hub page
+    sessionStorage.setItem("autoOpenPetId", petId);
+
+    // 2. Pumunta sa Adoption Hub page
+    window.location.href = "/adoption-hub";
 }
 
 // =====================================================
