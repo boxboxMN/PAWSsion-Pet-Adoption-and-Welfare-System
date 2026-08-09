@@ -167,7 +167,7 @@ Notification:
 
 Profile: 
 	
-	Dapat nakikita yung picture sa lahat ng page, Hindi lang profile nakalagay
+	Dapat nakikita yung picture sa lahat ng page, Hindi lang profile nakalagay hindi pa gumagana sa dashboard, kamustahan, donations, profile, matchmaking pages
 
 My Application: 
 
