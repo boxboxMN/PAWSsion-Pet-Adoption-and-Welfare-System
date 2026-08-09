@@ -26,21 +26,6 @@ document.addEventListener("DOMContentLoaded", () => {
 let allUsers = [];
 let selectedUserId = null;
 
-// ─── Avatar images ────────────────────────────────────
-const avatarImages = [
-    "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=120",
-    "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=120",
-    "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&q=80&w=120",
-    "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=120",
-    "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=120",
-    "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=120",
-    "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=120",
-    "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&q=80&w=120",
-];
-
-function getAvatarUrl(index) {
-    return avatarImages[index % avatarImages.length];
-}
 
 // ─── Load users ────────────────────────────────────────
 async function loadUsers() {
@@ -135,10 +120,7 @@ function buildUserCard(user, index) {
         timeStr = `${dateStr} ${hour12}:${mins} ${ampm}`;
     }
 
-    const avatarUrl =
-            user.profile_picture || user.profile
-                ? (user.profile_picture || user.profile)
-                : getAvatarUrl(index);
+    const avatarUrl = user.profile_picture || user.profile || "";
 
     const card = document.createElement("div");
     card.className = `user-card fadeIn ${selectedUserId === userId ? 'selected' : ''}`;
@@ -148,15 +130,16 @@ function buildUserCard(user, index) {
     card.innerHTML = `
         <!-- Header: Avatar + Name -->
         <div class="flex gap-3 items-start">
-            <img
-                src="${avatarUrl}"
-                alt="${name}"
-                class="avatar-img"
-                onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'"
-            />
-            <div class="avatar-placeholder" style="display:none; background: linear-gradient(135deg, #6366f1, #8b5cf6);">
-                ${name.charAt(0)}
-            </div>
+            ${avatarUrl ? `
+                <img src="${avatarUrl}" alt="${name}" class="avatar-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+                <div class="avatar-placeholder" style="display: none; background: linear-gradient(135deg, #6366f1, #8b5cf6);">
+                    ${name.charAt(0).toUpperCase()}
+                </div>
+            ` : `
+                <div class="avatar-placeholder" style="display: flex; background: linear-gradient(135deg, #6366f1, #8b5cf6);">
+                    ${name.charAt(0).toUpperCase()}
+                </div>
+            `}
             <div class="flex-1 min-w-0">
                 <h3 class="font-semibold text-slate-800 text-sm leading-tight truncate">${name}</h3>
                 <p class="text-blue-600 text-xs capitalize font-medium">${role}</p>
@@ -259,10 +242,7 @@ function openPanel(user) {
         hour12: true
     }) : "—";
 
-    const avatarUrl =
-        user.profile_picture || user.profile
-            ? (user.profile_picture || user.profile)
-            : getAvatarUrl(allUsers.indexOf(user));
+    const avatarUrl = user.profile_pic || "";
 
     body.innerHTML = `
         <img

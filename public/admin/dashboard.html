@@ -136,7 +136,7 @@
                         <p class="text-xs text-slate-500 mt-0.5">Ranked by successful adoptions and overall platform engagement</p>
                     </div>
                     <div class="inline-flex items-center gap-2 self-start sm:self-auto px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-600">
-                        <i class="fa-regular fa-calendar text-slate-400"></i> This Quarter
+                        <i class="fa-regular fa-calendar text-slate-400"></i> This Year
                     </div>
                 </div>
 
@@ -152,54 +152,11 @@
                                 <th class="py-3.5 px-6 text-right">Total Donations</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-slate-100 text-sm">
-                            <tr class="hover:bg-slate-50/80 transition-colors">
-                                <td class="py-4 px-6 text-center">
-                                    <span class="w-7 h-7 inline-flex items-center justify-center bg-slate-900 text-white rounded-full font-bold text-xs shadow-sm">1</span>
+                        <tbody id="topOrganizationsBody" class="divide-y divide-slate-100 text-sm">
+                            <tr>
+                                <td colspan="5" class="py-8 text-center text-sm text-slate-400">
+                                    Loading organizations...
                                 </td>
-                                <td class="py-4 px-6">
-                                    <div class="flex items-center gap-3">
-                                        <div class="w-9 h-9 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 shrink-0">
-                                            <i class="fa-regular fa-hand-holding-heart text-sm"></i>
-                                        </div>
-                                        <span class="font-bold text-slate-900">PAWSsion Benevolence Circle</span>
-                                    </div>
-                                </td>
-                                <td class="py-4 px-6 text-center font-bold text-slate-800">45</td>
-                                <td class="py-4 px-6 text-center font-medium text-slate-500">38</td>
-                                <td class="py-4 px-6 text-right font-bold text-emerald-600">₱67,200</td>
-                            </tr>
-                            <tr class="hover:bg-slate-50/80 transition-colors">
-                                <td class="py-4 px-6 text-center">
-                                    <span class="w-7 h-7 inline-flex items-center justify-center bg-slate-700 text-white rounded-full font-bold text-xs shadow-sm">2</span>
-                                </td>
-                                <td class="py-4 px-6">
-                                    <div class="flex items-center gap-3">
-                                        <div class="w-9 h-9 rounded-xl bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-600 shrink-0">
-                                            <i class="fa-solid fa-cat text-sm"></i>
-                                        </div>
-                                        <span class="font-bold text-slate-900">PUP Sintang Pusa</span>
-                                    </div>
-                                </td>
-                                <td class="py-4 px-6 text-center font-bold text-slate-800">32</td>
-                                <td class="py-4 px-6 text-center font-medium text-slate-500">27</td>
-                                <td class="py-4 px-6 text-right font-bold text-emerald-600">₱48,500</td>
-                            </tr>
-                            <tr class="hover:bg-slate-50/80 transition-colors">
-                                <td class="py-4 px-6 text-center">
-                                    <span class="w-7 h-7 inline-flex items-center justify-center bg-slate-500 text-white rounded-full font-bold text-xs shadow-sm">3</span>
-                                </td>
-                                <td class="py-4 px-6">
-                                    <div class="flex items-center gap-3">
-                                        <div class="w-9 h-9 rounded-xl bg-purple-50 border border-purple-100 flex items-center justify-center text-purple-600 shrink-0">
-                                            <i class="fa-solid fa-dog text-sm"></i>
-                                        </div>
-                                        <span class="font-bold text-slate-900">Roar Call</span>
-                                    </div>
-                                </td>
-                                <td class="py-4 px-6 text-center font-bold text-slate-800">28</td>
-                                <td class="py-4 px-6 text-center font-medium text-slate-500">35</td>
-                                <td class="py-4 px-6 text-right font-bold text-emerald-600">₱41,300</td>
                             </tr>
                         </tbody>
                     </table>
@@ -244,16 +201,130 @@
         document.getElementById("usersThisMonth").innerHTML = `<i class="fa-solid fa-caret-up text-[9px]"></i> 14 new this month`;
     }
 }
+async function loadTopOrganizations() {
+    const tbody = document.getElementById("topOrganizationsBody");
 
-        document.addEventListener("DOMContentLoaded", function() {
-            loadSidebar("dashboard");
-            loadTopbar({
-                title: "Dashboard",
-                subtitle: "Overview of organizations, users, and platform adoption statistics."
-            });
-            loadDashboardStats();
-        });
-    </script>
+    try {
+        const res = await fetch("/admin/dashboard/top-organizations");
+        if (!res.ok) throw new Error("Failed to load top organizations");
+
+        const data = await res.json();
+
+        if (!data.success || !data.organizations?.length) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="5" class="py-8 text-center text-sm text-slate-400">
+                        No organizations available.
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+      
+            tbody.innerHTML = data.organizations.map((org, index) => {
+                const rank = index + 1;
+                const organizationName = org.organization_name || "Unnamed Organization";
+                const initial = organizationName.charAt(0).toUpperCase();
+                const avatarUrl = org.profile_pic || null;
+
+                const rankBg = rank === 1 ? "bg-slate-900" : rank === 2 ? "bg-slate-700" : "bg-slate-500";
+                const formattedDonations = Number(org.total_donations ?? 0).toLocaleString("en-PH", {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 2
+                });
+
+                return `
+                    <tr class="hover:bg-slate-50/80 transition-colors">
+                        <!-- Rank -->
+                        <td class="py-4 px-6 text-center">
+                            <span class="w-7 h-7 inline-flex items-center justify-center ${rankBg} text-white rounded-full font-bold text-xs shadow-sm">
+                                ${rank}
+                            </span>
+                        </td>
+
+                        <!-- Organization -->
+                        <td class="py-4 px-6">
+                            <div class="flex items-center gap-3">
+                                ${avatarUrl ? `
+                                    <img
+                                        src="${avatarUrl}"
+                                        alt="${escapeHtml(organizationName)}"
+                                        class="w-9 h-9 rounded-xl object-cover border border-slate-200 bg-slate-100"
+                                        onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='flex';"
+                                    />
+                                ` : ""}
+
+                                <!-- Fallback initial -->
+                                <div
+                                    class="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 border border-blue-100 items-center justify-center font-bold text-sm"
+                                    style="display: ${avatarUrl ? "none" : "flex"};"
+                                >
+                                    ${initial}
+                                </div>
+
+                                <span class="font-bold text-slate-900">
+                                    ${escapeHtml(organizationName)}
+                                </span>
+                            </div>
+                        </td>
+
+                        <!-- Adoptions -->
+                        <td class="py-4 px-6 text-center font-bold text-slate-800">
+                            ${org.adoptions ?? 0}
+                        </td>
+
+                        <!-- Active Pets -->
+                        <td class="py-4 px-6 text-center font-medium text-slate-500">
+                            ${org.active_pets ?? 0}
+                        </td>
+
+                        <!-- Donations -->
+                        <td class="py-4 px-6 text-right font-bold text-emerald-600">
+                            ₱${formattedDonations}
+                        </td>
+                    </tr>
+                `;
+            }).join("");
+    } catch (err) {
+        console.error("Top Organizations Error:", err);
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="5" class="py-8 text-center text-sm text-red-500">
+                    Failed to load organizations.
+                </td>
+            </tr>
+        `;
+    }
+}
+
+/*
+=================================================
+ESCAPE HTML
+=================================================
+*/
+function escapeHtml(value) {
+    if (value === null || value === undefined) return "";
+    
+    return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    loadSidebar("dashboard");
+
+    loadTopbar({
+        title: "Dashboard",
+        subtitle: "Overview of organizations, users, and platform adoption statistics."
+    });
+
+    loadDashboardStats();
+    loadTopOrganizations();
+});
+</script>
 
 </body>
 </html>

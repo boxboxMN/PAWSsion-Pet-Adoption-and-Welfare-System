@@ -47,57 +47,69 @@ GET ALL USERS
 */
 router.get("/users", async (req, res) => {
     try {
-
         const [rows] = await pool.query(`
-           SELECT
+            SELECT
                 a.account_id,
                 a.email,
                 a.role,
                 a.status,
+                a.email_verified,
                 a.created_at,
                 a.last_login,
-
-                CASE
-                    WHEN a.role='adopter'
-                        THEN CONCAT(ad.first_name,' ',ad.last_name)
-                    WHEN a.role='organization'
-                        THEN o.organization_name
-                    ELSE 'Administrator'
-                END AS name,
-
-                CASE
-                    WHEN a.role='adopter'
-                        THEN ad.phone_number
-                    WHEN a.role='organization'
-                        THEN o.contact_number
-                    ELSE NULL
-                END AS phone,
-
-                CASE
-                    WHEN a.role='adopter'
-                        THEN ad.profile_picture
-                    WHEN a.role='organization'
-                        THEN o.profile_pic
-                    ELSE NULL
-                END AS profile
-
+                a.profile_pic,
+                ad.first_name,
+                ad.last_name,
+                ad.phone_number,
+                ad.profile_picture AS adopter_profile_picture,
+                o.organization_name,
+                o.contact_person,
+                o.contact_number,
+                o.city,
+                o.province,
+                o.profile_pic AS organization_profile_picture
             FROM accounts a
-            LEFT JOIN adopters ad
-                ON a.account_id = ad.account_id
-            LEFT JOIN organizations o
-                ON a.account_id = o.account_id
+            LEFT JOIN adopters ad ON a.account_id = ad.account_id
+            LEFT JOIN organizations o ON a.account_id = o.account_id
             ORDER BY a.created_at DESC
         `);
 
-        res.json(rows);
+        const users = rows.map(user => {
+            let name = "Administrator";
 
-    } catch (err) {
+            if (user.role === "organization") {
+                name = user.organization_name || "Unnamed Organization";
+            } else if (user.role === "adopter") {
+                name = `${user.first_name || ""} ${user.last_name || ""}`.trim() || user.email;
+            }
 
-        console.error(err);
-        res.status(500).json({
-            message: "Database Error"
+            const profilePicture = 
+                user.profile_pic || 
+                user.adopter_profile_picture || 
+                user.organization_profile_picture || 
+                null;
+
+            return {
+                account_id: user.account_id,
+                name,
+                email: user.email,
+                role: user.role,
+                status: user.status,
+                created_at: user.created_at,
+                last_login: user.last_login,
+                phone: user.role === "adopter" ? (user.phone_number || "N/A") : (user.contact_number || "N/A"),
+                city: user.city || "",
+                province: user.province || "",
+                profile_picture: profilePicture,
+                organization_name: user.organization_name || null,
+                contact_person: user.contact_person || null
+            };
         });
 
+        res.json(users);
+
+    } catch (err) {
+        console.error("Get Users Error:", err);
+        res.status(500).json({ message: "Database Error" });
     }
 });
 /*
@@ -348,94 +360,6 @@ router.get("/document/download/:id", async (req, res) => {
 
 /*
 =================================================
-GET ALL USERS
-=================================================
-*/
-
-router.get("/users", async (req, res) => {
-    try {
-
-        const [rows] = await pool.query(`
-            SELECT
-                a.account_id,
-                a.email,
-                a.role,
-                a.status,
-                a.email_verified,
-                a.created_at,
-
-                ad.first_name,
-                ad.last_name,
-                ad.profile_picture,
-
-                o.organization_name,
-                o.contact_person,
-                o.contact_number,
-                o.city,
-                o.province
-
-            FROM accounts a
-
-            LEFT JOIN adopters ad
-                ON a.account_id = ad.account_id
-
-            LEFT JOIN organizations o
-                ON a.account_id = o.account_id
-
-            ORDER BY a.created_at DESC
-        `);
-
-        const users = rows.map(user => {
-
-            let name = "";
-
-            if (user.role === "organization") {
-                name = user.organization_name || "Unnamed Organization";
-            } else {
-                name =
-                    `${user.first_name || ""} ${user.last_name || ""}`.trim();
-
-                if (!name)
-                    name = user.email;
-            }
-
-            return {
-                account_id: user.account_id,
-                name,
-                email: user.email,
-                role: user.role,
-                status: user.status,
-                created_at: user.created_at,
-
-                phone: user.contact_number || "N/A",
-
-                city: user.city || "",
-
-                province: user.province || "",
-
-                profile_picture: user.profile_picture,
-
-                organization_name: user.organization_name,
-
-                contact_person: user.contact_person
-            };
-
-        });
-
-        res.json(users);
-
-    } catch (err) {
-
-        console.error(err);
-
-        res.status(500).json({
-            message: "Database Error"
-        });
-
-    }
-});
-/*
-=================================================
 GET SINGLE USER
 =================================================
 */
@@ -659,5 +583,51 @@ router.put("/users/:id/ban", async (req, res) => {
 
     }
 
+});
+// =================================================
+// GET TOP PERFORMING ORGANIZATIONS
+// =================================================
+router.get("/dashboard/top-organizations", async (req, res) => {
+    try {
+        const [rows] = await pool.query(`
+            SELECT
+                o.organization_id,
+                o.organization_name,
+                COALESCE(o.profile_pic, acc.profile_pic) AS profile_pic,
+                COUNT(DISTINCT CASE WHEN a.adoption_status = 'Adopted' THEN a.animal_id END) AS adoptions,
+                COUNT(DISTINCT CASE WHEN a.adoption_status = 'Available' THEN a.animal_id END) AS active_pets,
+                COALESCE((
+                    SELECT SUM(cd.amount)
+                    FROM cash_donations cd
+                    WHERE cd.organization_id = o.organization_id AND cd.status = 'Approved'
+                ), 0) AS total_donations
+            FROM organizations o
+            LEFT JOIN accounts acc ON o.account_id = acc.account_id
+            LEFT JOIN animals a ON o.organization_id = a.organization_id
+            WHERE o.verification_status = 'Approved'
+            GROUP BY 
+                o.organization_id,
+                o.organization_name,
+                o.profile_pic,
+                acc.profile_pic
+            ORDER BY 
+                adoptions DESC,
+                active_pets DESC,
+                total_donations DESC
+            LIMIT 3
+        `);
+
+        res.json({
+            success: true,
+            organizations: rows
+        });
+
+    } catch (err) {
+        console.error("Top Organizations Error:", err);
+        res.status(500).json({
+            success: false,
+            message: "Failed to load top organizations."
+        });
+    }
 });
 module.exports = router;
