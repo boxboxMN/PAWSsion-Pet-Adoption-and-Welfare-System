@@ -649,10 +649,11 @@ function showDetails(app) {
         interviewCard.classList.remove("hidden");
 
         const reschedStatus = app.interview.reschedStatus;
-        // Check kung may pending reschedule request ang user
-        const isReschedPending = app.interview.reschedStatus === "Pending" || (app.interview.requestedDate && app.interview.reschedStatus !== "Approved");
+        // Titingnan kung may totoong reschedule record/activity ang user
+        const hasRequestedDate = Boolean(app.interview.requestedDate || app.interview.requestedTime);
+        const isReschedPending = reschedStatus === "Pending" && hasRequestedDate;
 
-        // I-update ang Card Header para magkaroon ng Request Reschedule button sa kanang bahagi
+        // I-update ang Card Header para sa Reschedule Button / Pending Badge
         const cardHeader = interviewCard.querySelector(".section-title");
         if (cardHeader) {
             cardHeader.className = "section-title flex flex-wrap items-center justify-between gap-2 mb-4";
@@ -683,7 +684,7 @@ function showDetails(app) {
             ? `<a href="${locationOrLink}" target="_blank" class="text-blue-600 underline font-semibold break-all">${locationOrLink}</a>`
             : locationOrLink;
 
-        // 2. Base Schedule Content
+        // Base Schedule Details
         let scheduleHTML = `
             ${createFormalField("Current Interview Date", app.interview.date ? formatDate(app.interview.date) : "—")}
             ${createFormalField("Current Interview Time", formatTime(app.interview.time))}
@@ -693,8 +694,8 @@ function showDetails(app) {
             </div>
         `;
 
-        // KAPAG PENDING PA ANG REQUEST
-        if (isReschedPending && app.interview.requestedDate) {
+        // 1. KAPAG NAKAPAG-SUBMIT NA NG REQUEST AT PENDING PA
+        if (hasRequestedDate && reschedStatus === 'Pending') {
             scheduleHTML += `
                 <div class="md:col-span-3 mt-3 p-4 bg-amber-50 border border-amber-200 rounded-xl space-y-2">
                     <div class="flex items-center justify-between">
@@ -709,7 +710,7 @@ function showDetails(app) {
                             <span class="font-bold text-gray-800">${formatDate(app.interview.requestedDate)}</span>
                         </div>
                         <div>
-                            <span class="text-xs text-gray-500 block">Requested New Time:</span>
+                            <span class="text-xs text-gray-500 block">Requested Time:</span>
                             <span class="font-bold text-gray-800">${formatTime(app.interview.requestedTime)}</span>
                         </div>
                         ${app.interview.reschedReason ? `
@@ -723,8 +724,8 @@ function showDetails(app) {
             `;
         }
 
-        // KAPAG NA-ACCEPT / IN-APPROVE NG ORG
-        else if (reschedStatus === 'Approved') {
+        // 2. KAPAG NAKAPAG-RESCHEDULE NA ANG USER AT IN-APPROVE NG ORG
+        else if (reschedStatus === 'Approved' && (hasRequestedDate || app.interview.reschedReason)) {
             scheduleHTML += `
                 <div class="md:col-span-3 mt-3 p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center gap-3 text-emerald-800 text-sm">
                     <i class="fas fa-circle-check text-emerald-600 text-lg shrink-0"></i>
@@ -736,8 +737,8 @@ function showDetails(app) {
             `;
         }
 
-        // Kapag nareject ng org
-        else if (reschedStatus === 'Rejected') {
+        // 3. KAPAG NAKAPAG-RESCHEDULE ANG USER PERO NI-REJECT NG ORG
+        else if (reschedStatus === 'Rejected' && (hasRequestedDate || app.interview.reschedReason)) {
             scheduleHTML += `
                 <div class="md:col-span-3 mt-3 p-3.5 bg-rose-50 border border-rose-200 rounded-xl flex items-center gap-3 text-rose-800 text-sm">
                     <i class="fas fa-circle-xmark text-rose-600 text-lg shrink-0"></i>

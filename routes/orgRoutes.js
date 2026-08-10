@@ -370,9 +370,6 @@ router.patch('/applications/:id/approve-reschedule', async (req, res) => {
              SET 
                  interview_date = ?, 
                  interview_time = ?, 
-                 requested_interview_date = NULL, 
-                 requested_interview_time = NULL, 
-                 reschedule_reason = NULL, 
                  resched_status = 'Approved',
                  updated_at = NOW()
              WHERE application_id = ?`,
