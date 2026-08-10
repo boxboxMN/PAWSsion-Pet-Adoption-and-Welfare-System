@@ -184,11 +184,11 @@ My Application:
     
 	✓ kapag nadecline sa view details dapat may reapply button if gusto pang mag apply yung user sa same pet na yun
 
-    sa reschedule approved na lumalabas lang kapag nagrequest
+    ✓ sa reschedule approved na lumalabas lang kapag nagrequest
 
 Adoption-hub: 	
 	
-	- Once na adopted na yung pet is hindi na sya makikita ng ibang user sa adoption page
+	✓ Once na adopted na yung pet is hindi na sya makikita ng ibang user sa adoption page
 
     ✓ Kapag nadecline, kapag pinag view yung details is nakalagay doon is decline view details kung   bakit nadecline then mapupunta doon sa applications
 
