@@ -9,6 +9,8 @@
     <script src="../assets/js/orgSidebar.js"></script>
     <script src="../assets/js/orgTopbar.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- jsPDF Library para sa Single Application PDF Export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body class="bg-slate-100 font-['Inter',_sans-serif] min-h-screen">
 
@@ -18,11 +20,20 @@
     <main id="mainContent" class="pt-24 pb-20 px-4 md:px-8 transition-all duration-200 ease-in-out left-0 md:ml-[280px] data-[sidebar-collapsed=true]:md:ml-20">
         
         <!-- Header / Back Navigation -->
-        <div class="mb-6">
-            <h1 class="text-2xl font-bold text-gray-900">Adoption Application Details</h1>
-            <button onclick="goBackAndRefresh()" class="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 text-sm font-semibold mt-2 cursor-pointer transition">
-                <i class="fa-solid fa-arrow-left"></i> Back
-            </button>
+        <div class="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-900">Adoption Application Details</h1>
+                <button onclick="goBackAndRefresh()" class="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 text-sm font-semibold mt-2 cursor-pointer transition">
+                    <i class="fa-solid fa-arrow-left"></i> Back
+                </button>
+            </div>
+
+            <!-- EXPORT PDF BUTTON -->
+            <div>
+                <button onclick="exportSingleApplicationPDF()" class="bg-white border border-gray-200 text-gray-700 px-4 py-2.5 rounded-xl text-sm font-semibold inline-flex items-center gap-2 hover:bg-gray-50 transition shadow-sm cursor-pointer">
+                    <i class="fa-solid fa-file-pdf text-red-500 text-base"></i> Export Details as PDF
+                </button>
+            </div>
         </div>
 
         <!-- Status & Submitted Bar -->
@@ -1099,6 +1110,177 @@
             } else {
                 window.history.back();
             }
+        }
+
+        // Variable para sa pag-cache ng profile
+        let cachedOrgProfile = null;
+
+        // Helper: Kunin ang Organization Profile
+        async function getOrgProfileData() {
+            if (cachedOrgProfile) return cachedOrgProfile;
+            try {
+                const response = await fetch('/api/organization/profile', {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include'
+                });
+                if (response.ok) {
+                    cachedOrgProfile = await response.json();
+                    return cachedOrgProfile;
+                }
+            } catch (err) {
+                console.error("Failed to fetch org profile:", err);
+            }
+            return { organization_name: "Pawpon Organization Shelter" };
+        }
+
+        // Function para sa pag-export ng Single Application Details bilang PDF
+        async function exportSingleApplicationPDF() {
+            if (!currentAppDetails) {
+                return Swal.fire({
+                    icon: 'warning',
+                    title: 'Attention',
+                    text: 'Application details are not loaded yet.',
+                    confirmButtonColor: '#2563EB'
+                });
+            }
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({ orientation: "portrait" });
+
+            const orgData = await getOrgProfileData();
+            const orgName = orgData.organization_name || "Pawpon Organization Shelter";
+            const today = new Date().toLocaleDateString("en-US", { year: 'numeric', month: 'long', day: 'numeric' });
+
+            // ================= 1. HEADER & LOGO/TITLE =================
+            // Main Document Title
+            doc.setFontSize(18);
+            doc.setFont("helvetica", "bold");
+            doc.setTextColor(30, 58, 138); // Darker Indigo/Blue (#1E3A8A)
+            doc.text("ADOPTION APPLICATION REPORT", 14, 20);
+
+            // Decorative Accent Line below header
+            doc.setDrawColor(37, 99, 235); // Primary Blue
+            doc.setLineWidth(1);
+            doc.line(14, 24, 196, 24);
+
+            // Metadata Block (Right & Left Aligned)
+            doc.setFontSize(9.5);
+            doc.setFont("helvetica", "bold");
+            doc.setTextColor(15, 23, 42); // Dark slate
+            doc.text(`Organization: ${orgName}`, 14, 32);
+
+            doc.setFont("helvetica", "normal");
+            doc.setTextColor(100, 116, 139); // Muted slate gray
+            doc.text(`Generated Date: ${today}`, 14, 38);
+
+            // Status Badge Block (Top Right)
+            const appStatus = (currentAppDetails.status || 'Under Review').toUpperCase();
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(9);
+            doc.setFillColor(239, 246, 255); // Soft blue background badge
+            doc.setDrawColor(191, 219, 254);
+            doc.roundedRect(135, 28, 61, 10, 2, 2, "FD");
+            doc.setTextColor(29, 78, 216);
+            doc.text(`STATUS: ${appStatus}`, 140, 34.5);
+
+            // Helper Function para sa malinis na Section Banners
+            function createSectionHeader(title, yPos) {
+                doc.setFillColor(241, 245, 249); // Light Gray Background (#F1F5F9)
+                doc.roundedRect(14, yPos, 182, 7, 1, 1, "F");
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(9.5);
+                doc.setTextColor(30, 58, 138); // Dark Blue text
+                doc.text(title, 18, yPos + 4.8);
+            }
+
+            // Helper Function para sa 2-Column Key-Value Labels
+            function drawField(label, value, x, y) {
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(8.5);
+                doc.setTextColor(100, 116, 139); // Gray Label
+                doc.text(label, x, y);
+
+                doc.setFont("helvetica", "normal");
+                doc.setFontSize(9.5);
+                doc.setTextColor(15, 23, 42); // Dark Value Text
+                doc.text(String(value || 'N/A'), x, y + 5);
+            }
+
+            // ================= 2. SECTION 1: APPLICANT INFORMATION =================
+            createSectionHeader("1. APPLICANT INFORMATION", 46);
+
+            let currentY = 59;
+            // Row 1
+            drawField("FULL NAME", currentAppDetails.full_name, 18, currentY);
+            drawField("EMAIL ADDRESS", currentAppDetails.email, 105, currentY);
+
+            // Row 2
+            currentY += 13;
+            drawField("CONTACT NUMBER", currentAppDetails.contact_number, 18, currentY);
+            drawField("AGE / CIVIL STATUS", `${currentAppDetails.age || 'N/A'} yrs old • ${currentAppDetails.civil_status || 'N/A'}`, 105, currentY);
+
+            // Row 3
+            currentY += 13;
+            drawField("OCCUPATION", currentAppDetails.occupation, 18, currentY);
+            drawField("COMPLETE ADDRESS", currentAppDetails.full_address, 105, currentY);
+
+            // ================= 3. SECTION 2: PREFERRED PET & ADOPTION INTENT =================
+            currentY += 18;
+            createSectionHeader("2. PREFERRED PET & ADOPTION INTENT", currentY);
+
+            currentY += 13;
+            drawField("TARGET PET NAME", currentAppDetails.pet_name, 18, currentY);
+
+            currentY += 13;
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(8.5);
+            doc.setTextColor(100, 116, 139);
+            doc.text("REASON FOR ADOPTION", 18, currentY);
+
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(9);
+            doc.setTextColor(15, 23, 42);
+            
+            // Auto-wrap long paragraph text safely with margins
+            const splitReason = doc.splitTextToSize(currentAppDetails.adoption_intent || "No reason provided.", 174);
+            doc.text(splitReason, 18, currentY + 5);
+
+            currentY += 8 + (splitReason.length * 4.5);
+
+            // ================= 4. SECTION 3: EMERGENCY CONTACT =================
+            createSectionHeader("3. EMERGENCY CONTACT DETAILS", currentY);
+
+            currentY += 13;
+            drawField("CONTACT PERSON", currentAppDetails.emergency_name, 18, currentY);
+            drawField("RELATIONSHIP", currentAppDetails.emergency_relation, 105, currentY);
+
+            currentY += 13;
+            drawField("CONTACT NUMBER", currentAppDetails.emergency_phone, 18, currentY);
+
+            // ================= 5. SECTION 4: INTERVIEW SCHEDULE (IF SET) =================
+            if (currentAppDetails.interview_date || currentAppDetails.interview_time) {
+                currentY += 18;
+                createSectionHeader("4. INTERVIEW SCHEDULE DETAILS", currentY);
+
+                currentY += 13;
+                drawField("INTERVIEW METHOD", (currentAppDetails.interview_method || 'N/A').toUpperCase(), 18, currentY);
+                drawField("SCHEDULED DATE & TIME", `${currentAppDetails.interview_date || 'N/A'} @ ${currentAppDetails.interview_time || 'N/A'}`, 105, currentY);
+
+                currentY += 13;
+                drawField("LOCATION / MEETING LINK", currentAppDetails.interview_location_link, 18, currentY);
+            }
+
+            // ================= FOOTER PAGE NUMBER & CONFIDENTIALITY =================
+            doc.setFontSize(8);
+            doc.setFont("helvetica", "normal");
+            doc.setTextColor(148, 163, 184);
+            doc.text("Confidential Document — For Organization Internal Adoption Review Only", 14, 285);
+            doc.text("Page 1 of 1", 182, 285);
+
+            // Save File
+            const cleanFileName = (currentAppDetails.full_name || "Applicant").replace(/[^a-zA-Z0-9]/g, "_");
+            doc.save(`Adoption_Form_${cleanFileName}.pdf`);
         }
     </script>
     <script src="/assets/js/orgProfile.js"></script> 

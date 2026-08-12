@@ -220,15 +220,15 @@ Pets:
 
 Adoption:
 
-	Export Summary
+	✓ Export Summary
 
-	lagyan ng edit schedule ang application details
+	✓ lagyan ng edit schedule ang application details
 
-    kapag nagrequest ang adopter ng resched of interview dapat nasa notif and makikita ng org
+    ✓ kapag nagrequest ang adopter ng resched of interview dapat makikita ng org
 
     ✓ kapag decline, instead of idisable ang declined button dapat auto na napapalitan ng view declined details
 
-    Under Interview nschedule, yung date is hindi tugma doon sa napiliing date, ang inistore is yung kung kailan ka nag sched ng interview
+    ✓ Under Interview nschedule, yung date is hindi tugma doon sa napiliing date, ang inistore is yung kung kailan ka nag sched ng interview
 
 Settings & Support:
 	
