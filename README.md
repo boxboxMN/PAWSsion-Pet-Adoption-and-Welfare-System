@@ -205,8 +205,10 @@ Pets:
 	Sa available, makikita pa din yung all status, all species and add pet
 	Sa adopted, dapat makikita pa din yung all species
 	Sa Add new pet, alisin yung archive sa adoption status & ilagay na lang sa gilid (checkbox)
+
 	Ayusin yung mga error
-	Sa view Profile, alisin ang birth date, date sa medical history
+
+	✓ Sa view Profile, alisin ang birth date, date sa medical history
 
     Edit Record may bug pet_desciption = behavior_description
 	

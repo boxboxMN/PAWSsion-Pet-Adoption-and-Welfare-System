@@ -289,7 +289,15 @@ exports.getPetDetails = async (req, res) => {
 
         // Get medical history
         const [medical] = await pool.query(
-            `SELECT * FROM animal_medical_history WHERE animal_id = ? ORDER BY administered_date DESC`,
+            `SELECT 
+                medical_id,
+                animal_id,
+                treatment,
+                DATE_FORMAT(administered_date, '%Y-%m-%d') AS administered_date,
+                administered_by
+             FROM animal_medical_history 
+             WHERE animal_id = ? 
+             ORDER BY administered_date DESC`,
             [req.params.id]
         );
 
