@@ -12,7 +12,6 @@ exports.addPet = async (req, res) => {
             species,
             gender,
             age,
-            birth_date,
             color,
             pet_description,
             health_status,
@@ -66,7 +65,6 @@ exports.addPet = async (req, res) => {
                 species,
                 gender,
                 age,
-                birth_date,
                 color,
                 pet_description,
                 health_status,
@@ -75,7 +73,7 @@ exports.addPet = async (req, res) => {
                 image_path,
                 personality_tags
             )
-            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?)
             `,
             [
                 organization_id,
@@ -83,7 +81,6 @@ exports.addPet = async (req, res) => {
                 species,
                 gender,
                 age,
-                birth_date || null,
                 color || null,
                 pet_description || null,
                 health_status,
@@ -315,7 +312,6 @@ exports.updatePet = async (req, res) => {
             species,
             gender,
             age,
-            birth_date,
             color,
             pet_description,
             health_status,
@@ -358,7 +354,6 @@ exports.updatePet = async (req, res) => {
             species,
             gender,
             age,
-            birth_date || null,
             color || null,
             pet_description || null,
             health_status,
@@ -395,7 +390,6 @@ exports.updatePet = async (req, res) => {
                 species=?,
                 gender=?,
                 age=?,
-                birth_date=?,
                 color=?,
                 pet_description=?,
                 health_status=?,

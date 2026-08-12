@@ -79,13 +79,6 @@ modal.addEventListener("click", (e) => {
 });
 
 // ==========================
-// SET MAX DATE FOR BIRTHDATE
-// ==========================
-const birthDate = document.querySelector('input[name="birth_date"]');
-const today = new Date().toISOString().split("T")[0];
-birthDate.max = today;
-
-// ==========================
 // FORM SUBMIT PLACEHOLDER
 // ==========================
 // This will later connect to your PHP API
@@ -334,9 +327,6 @@ function openPetDetailsModal(pet){
     petForm.species.value = pet.species;
     petForm.gender.value = pet.gender;
     petForm.age.value = pet.age;
-    petForm.birth_date.value = pet.birth_date
-        ? pet.birth_date.split("T")[0]
-        : "";
     petForm.color.value = pet.color || "";
     petForm.health_status.value = pet.health_status;
     petForm.vaccination_status.value = pet.vaccination_status;
@@ -405,9 +395,6 @@ document.getElementById("deletePetBtn").onclick = async () => {
 
     document.getElementById("viewColor").textContent =
         pet.color || "Unknown";
-
-    document.getElementById("viewBirthDate").textContent =
-        pet.birth_date || "Unknown";
 
     document.getElementById("viewVaccination").textContent =
         pet.vaccination_status;

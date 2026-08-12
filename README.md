@@ -152,6 +152,7 @@ Not working:
 CREATE AN ACCOUNT:
 
     Lagyan ng scroll bar
+
 USER SIDE:
 
 Dashboard:
@@ -201,11 +202,12 @@ ORGANIZATION:
 
 Pets: 
 	
-	Sa available, makikia pa din yung all status, all species and add pet
+	Sa available, makikita pa din yung all status, all species and add pet
 	Sa adopted, dapat makikita pa din yung all species
 	Sa Add new pet, alisin yung archive sa adoption status & ilagay na lang sa gilid (checkbox)
 	Ayusin yung mga error
 	Sa view Profile, alisin ang birth date, date sa medical history
+
     Edit Record may bug pet_desciption = behavior_description
 	
 	OPTION 1:
@@ -314,4 +316,8 @@ ALTER TABLE `user_adoption_applications`
   DROP COLUMN `requested_interview_time`,
   DROP COLUMN `reschedule_reason`,
   DROP COLUMN `resched_status`;
+
+
+  # Palagay sa db nyo
+  ALTER TABLE animals DROP COLUMN birth_date;
   
