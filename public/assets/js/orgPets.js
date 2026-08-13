@@ -222,15 +222,13 @@ petForm.addEventListener("submit", async (e)=>{
             return;
         }
 
-        if(data.success){
+        if (data.success) {
             alert(data.message);
             closeModal();
             petForm.reset();
-             await loadPets();
-        }
-
-        else{
-            alert(data.message);
+            await loadPets();
+        } else {
+            alert(data.message || "Failed to save pet. Please check all required fields.");
         }
     }
 

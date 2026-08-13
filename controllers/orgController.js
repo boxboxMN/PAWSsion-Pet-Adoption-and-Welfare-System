@@ -23,6 +23,13 @@ exports.addPet = async (req, res) => {
 
         console.log("Received tags:", personality_tags);
 
+        if (!name || !species || !gender || !age) {
+            return res.status(400).json({
+                success: false,
+                message: "Please fill out all required fields (Pet Name, Species, Gender, Age Group)."
+            });
+        }
+
         // Get organization using logged account
         const [org] = await pool.query(
             `
@@ -83,9 +90,9 @@ exports.addPet = async (req, res) => {
                 age,
                 color || null,
                 pet_description || null,
-                health_status,
-                vaccination_status,
-                adoption_status,
+                health_status || 'Healthy',
+                vaccination_status || 'Unknown',
+                adoption_status || 'Available',
                 image_path,
                 personality_tags || null
             ]
@@ -132,35 +139,40 @@ exports.addPet = async (req, res) => {
                     ]
                 );
             }
-            
+
             // ============================
             // Generate embedding
             // ============================
-            console.log("Generating embedding...");
+            try {
+                console.log("Generating embedding...");
 
-            const embedding = await generateEmbedding(
-                pet_description || ""
-            );
+                const embedding = await generateEmbedding(
+                    pet_description || ""
+                );
 
-            console.log("Embedding generated.");
+                console.log("Embedding generated.");
 
-            // Save embedding
-            await pool.query(
-                `
-                INSERT INTO animal_embeddings
-                (
-                    animal_id,
-                    embedding
-                )
-                VALUES (?, ?)
-                `,
-                [
-                    animal_id,
-                    JSON.stringify(embedding)
-                ]
-            );
+                // Save embedding
+                await pool.query(
+                    `
+                    INSERT INTO animal_embeddings
+                    (
+                        animal_id,
+                        embedding
+                    )
+                    VALUES (?, ?)
+                    `,
+                    [
+                        animal_id,
+                        JSON.stringify(embedding)
+                    ]
+                );
 
-            console.log("Embedding saved.");
+                console.log("Embedding saved.");
+
+            } catch (embedErr) {
+                console.warn("⚠️ Embedding service offline or skipped:", embedErr.message);
+            }
 
         // Parse medical history from frontend
         const medicalHistory = medical_history
@@ -200,7 +212,8 @@ exports.addPet = async (req, res) => {
 
         res.status(500).json({
             success: false,
-            message: error.message
+            success: false,
+            message: error.message || "Failed to add pet. Please make sure all required fields are complete."
         });
     }
 };
@@ -463,19 +476,22 @@ exports.updatePet = async (req, res) => {
         // =====================================================
         // UPDATE PET EMBEDDING
         // =====================================================
+        try {
+            const embedding = await generateEmbedding(pet_description || "");
 
-        const embedding = await generateEmbedding(pet_description || "");
-
-        await pool.query(
-            `
-            INSERT INTO animal_embeddings (animal_id, embedding)
-            VALUES (?, ?)
-            ON DUPLICATE KEY UPDATE
-                embedding = VALUES(embedding),
-                updated_at = CURRENT_TIMESTAMP
-            `,
-            [id, JSON.stringify(embedding)]
-        );
+            await pool.query(
+                `
+                INSERT INTO animal_embeddings (animal_id, embedding)
+                VALUES (?, ?)
+                ON DUPLICATE KEY UPDATE
+                    embedding = VALUES(embedding),
+                    updated_at = CURRENT_TIMESTAMP
+                `,
+                [id, JSON.stringify(embedding)]
+            );
+        } catch (embedErr) {
+            console.warn("⚠️ Embedding service offline or skipped:", embedErr.message);
+        }
 
         // =====================================================
         // UPDATE MEDICAL HISTORY

@@ -214,16 +214,10 @@ Pets:
 
     ✓ Sa add new pet, kapag pinili ang adopted satus dapat may lilitaw na additional form for adopters information
 
-    Under add pet, itanong if magkaiba ang pet description at personality & traits since pwede naman mailagay ang personality & traits sa pet description??
-
-	Ayusin yung mga error
-
 	✓ Sa view Profile, alisin ang birth date, date sa medical history
 
     ✓ Edit Record may bug pet_desciption = behavior_description
 
-    Si mariel na lang magtingin if gumagana ang edit record
-	
 	✓ Iseparate ang available sa adopted para hindi malito ang orgs
 	Iseparate ang archive pero tignan sa controller dapat gumagana pa din yung ibang functions
 
@@ -232,7 +226,12 @@ Pets:
     Archive is may unarchive buttons and nakahide ang edit, delete buttons
 
 	Once available may archive, edit & delete buttons
+    
+# Questions and Testing
 
+    Under add pet, itanong if magkaiba ang pet description at personality & traits since pwede naman mailagay ang personality & traits sa pet description??
+
+    Itry ni mayie mag edit, delete, at add pet if nagpafunction pa
 
 Adoption:
 
