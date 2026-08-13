@@ -202,24 +202,34 @@ ORGANIZATION:
 
 Pets: 
 	
-	Sa available, makikita pa din yung all status, all species and add pet
-	Sa adopted, dapat makikita pa din yung all species
-	Sa Add new pet, alisin yung archive sa adoption status & ilagay na lang sa gilid (checkbox)
+	✓ Sa available, makikita pa din yung all status, all species and add pet
+
+	✓ Sa adopted, dapat makikita pa din yung all species
+
+	✓ Sa Add new pet, alisin yung archive sa adoption status
+
+    ✓ alisin din ang archive sa all; status
+
+    ✓ ilipat ang archive sa sarili; nyang button
+
+    Sa add new pet, kapag pinili ang adopted satus dapat may lilitaw na additional form for adopters information
+
+    Under add pet, itanong if magkaiba ang pet description at personality & traits since pwede naman mailagay ang personality & traits sa pet description??
 
 	Ayusin yung mga error
 
 	✓ Sa view Profile, alisin ang birth date, date sa medical history
 
-    Edit Record may bug pet_desciption = behavior_description
+    ✓ Edit Record may bug pet_desciption = behavior_description
+
+    Si mariel na lang magtingin if gumagana ang edit record
 	
-	OPTION 1:
-	Iseparate ang available sa adopted para hindi malito ang orgs
+	✓ Iseparate ang available sa adopted para hindi malito ang orgs
 	Iseparate ang archive pero tignan sa controller dapat gumagana pa din yung ibang functions
-	Dapat once na adopted, pending na yung pet is may edit record, and archive button sya wala ng delete
-	Once available, walang archive pero nandoon yung edit & delete buttons
-	
-	OPTION 2:
-	once adopted and pending na is automatic na nasa archive na sila pero dapat may notice pa din sa org
+
+	Dapat once na adopted and pending na yung pet is may edit record, and archive button sya wala ng delete
+
+	Once available, walang archive,  edit & delete buttons
 
 
 Adoption:
@@ -246,7 +256,7 @@ Notification:
 
 NOTES:
 
-Itanong kay jhy if ok na yung donation, kamustahan
+Itanong kay jhy if ok na yung kamustahan
 
 ADMIN:
 

@@ -30,29 +30,40 @@
     <!-- Toolbar -->
     <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4">
         <div class="flex flex-wrap items-center gap-3">
-            <!-- Search -->
+            <!-- Search (Laging Nakikita) -->
             <div class="relative flex-1 min-w-[250px]">
                 <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
                 <input id="searchPet" type="text" placeholder="Search pet..." class="w-full pl-11 pr-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-600 focus:border-blue-600">
             </div>
 
-            <!-- Status -->
+            <!-- Status Filter (Mawawala sa Adopted View) -->
             <select id="statusFilter" class="px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-600">
                 <option value="">All Status</option>
-                <option>Available</option>
-                <option>Pending</option>
-                <option>Adopted</option>
-                <option>Archived</option>
+                <option value="Available">Available</option>
+                <option value="Pending">Pending</option>
             </select>
 
-            <!-- Species -->
+            <!-- Species Filter (Laging Nakikita) -->
             <select id="typeFilter" class="px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-600">
                 <option value="">All Species</option>
                 <option>Dog</option>
                 <option>Cat</option>
             </select>
 
-            <button id="addPetBtn" class="bg-blue-700 hover:bg-blue-800 text-white px-5 py-2.5 rounded-xl flex items-center gap-2">
+            <!-- Adopted Pets Toggle Button -->
+            <button id="adoptedPetsBtn" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl flex items-center gap-2 font-medium transition cursor-pointer">
+                <i class="fa-solid fa-heart"></i>
+                Adopted Pets
+            </button>
+
+            <!-- ARCHIVED PETS BUTTON (BAGONG DAGDAG) -->
+            <button id="archivedPetsBtn" class="bg-slate-600 hover:bg-slate-700 text-white px-4 py-2.5 rounded-xl flex items-center gap-2 font-medium transition cursor-pointer">
+                <i class="fa-solid fa-box-archive"></i>
+                Archived Pets
+            </button>
+
+            <!-- Add Pet Button (Mawawala sa Adopted View) -->
+            <button id="addPetBtn" class="bg-blue-700 hover:bg-blue-800 text-white px-5 py-2.5 rounded-xl flex items-center gap-2 font-medium transition cursor-pointer">
                 <i class="fa-solid fa-plus"></i>
                 Add Pet
             </button>
@@ -248,7 +259,6 @@
                             <option value="Available">Available</option>
                             <option value="Pending">Pending</option>
                             <option value="Adopted">Adopted</option>
-                            <option value="Archived">Archived</option>
                         </select>
                     </div>
                 </div>
@@ -469,7 +479,11 @@
 
                             <i class="fa-solid fa-pen mr-2"></i>
                             Edit Record
+                        </button>
 
+                        <!-- ARCHIVE / UNARCHIVE BUTTON -->
+                        <button id="archivePetBtn" class="bg-slate-600 hover:bg-slate-700 text-white px-6 py-2 rounded-lg font-medium transition">
+                            <i class="fa-solid fa-box-archive mr-2"></i> Archive Record
                         </button>
 
                         <button

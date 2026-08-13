@@ -7,7 +7,8 @@ const { uploadPet, uploadQR, uploadDropoff } = require('../config/upload');
 const { 
     addPet, 
     updatePet, 
-    deletePet, 
+    deletePet,
+    archivePet, 
     getPets, 
     getPetDetails,
     getDonations, 
@@ -461,5 +462,8 @@ router.get("/applications/export/summary", async (req, res) => {
         res.status(500).json({ error: "Failed to generate export." });
     }
 });
+
+// Add Archive Route
+router.patch("/pets/archive/:id", archivePet);
 
 module.exports = router;

@@ -1724,3 +1724,58 @@ exports.getAnalyticsData = async (req, res) => {
         });
     }
 };
+
+// ==========================================
+// ARCHIVE / UNARCHIVE PET CONTROLLER
+// ==========================================
+exports.archivePet = async (req, res) => {
+    try {
+        const id = req.params.id;
+        const { status } = req.body; // Inaasahan: 'Archived' o 'Available'
+
+        // Check organization ownership
+        const [org] = await pool.query(
+            `SELECT organization_id FROM organizations WHERE account_id = ?`,
+            [req.session.accountId]
+        );
+
+        if (!org.length) {
+            return res.status(403).json({
+                success: false,
+                message: "Organization not found."
+            });
+        }
+
+        const organizationId = org[0].organization_id;
+        const targetStatus = status === 'Archived' ? 'Archived' : 'Available';
+
+        // Update animal adoption_status
+        const [result] = await pool.query(
+            `
+            UPDATE animals
+            SET adoption_status = ?
+            WHERE animal_id = ? AND organization_id = ?
+            `,
+            [targetStatus, id, organizationId]
+        );
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "Pet not found or unauthorized access."
+            });
+        }
+
+        res.json({
+            success: true,
+            message: `Pet status successfully updated to ${targetStatus}.`
+        });
+
+    } catch (err) {
+        console.error("ARCHIVE PET ERROR:", err);
+        res.status(500).json({
+            success: false,
+            message: err.message
+        });
+    }
+};

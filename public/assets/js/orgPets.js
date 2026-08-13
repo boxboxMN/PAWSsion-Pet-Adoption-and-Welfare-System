@@ -1,4 +1,6 @@
 let allPets = [];
+let currentViewMode = "active"; // "active", "adopted", or "archived"
+
 document.addEventListener("DOMContentLoaded", async () => {
     // Load shared dashboard components
     await loadSidebar("pets");
@@ -10,6 +12,96 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // Load org pets from db
     await loadPets();
+
+    const adoptedBtn = document.getElementById("adoptedPetsBtn");
+    const archivedBtn = document.getElementById("archivedPetsBtn");
+    const statusFilter = document.getElementById("statusFilter");
+    const addPetBtn = document.getElementById("addPetBtn");
+
+    if (adoptedBtn) {
+        // adoptedBtn.addEventListener("click", () => {
+        //     if (currentViewMode === "active") {
+        //         // SWITCH TO ADOPTED PETS VIEW
+        //         currentViewMode = "adopted";
+                
+        //         // 1. Itago ang Status Filter at Add Pet Button
+        //         statusFilter.classList.add("hidden");
+        //         addPetBtn.classList.add("hidden");
+
+        //         // 2. Baguhin ang kulay at label ng button
+        //         adoptedBtn.classList.remove("bg-emerald-600", "hover:bg-emerald-700");
+        //         adoptedBtn.classList.add("bg-slate-700", "hover:bg-slate-800");
+        //         adoptedBtn.innerHTML = `<i class="fa-solid fa-arrow-left"></i> Active Pets`;
+
+        //     } else {
+        //         // SWITCH BACK TO ACTIVE PETS VIEW
+        //         currentViewMode = "active";
+                
+        //         // 1. Ipakita uli ang Status Filter at Add Pet Button
+        //         statusFilter.classList.remove("hidden");
+        //         addPetBtn.classList.remove("hidden");
+
+        //         // 2. Ibalik sa orihinal na kulay ang button
+        //         adoptedBtn.classList.remove("bg-slate-700", "hover:bg-slate-800");
+        //         adoptedBtn.classList.add("bg-emerald-600", "hover:bg-emerald-700");
+        //         adoptedBtn.innerHTML = `<i class="fa-solid fa-heart"></i> Adopted Pets`;
+        //     }
+
+        //     // I-reset ang Status Filter kapag nagpalit ng view
+        //     statusFilter.value = "";
+        //     filterPets();
+        // });
+
+        adoptedBtn.addEventListener("click", () => {
+            if (currentViewMode !== "adopted") {
+                currentViewMode = "adopted";
+                statusFilter.classList.add("hidden");
+                addPetBtn.classList.add("hidden");
+
+                adoptedBtn.className = "bg-slate-700 hover:bg-slate-800 text-white px-4 py-2.5 rounded-xl flex items-center gap-2 font-medium transition cursor-pointer";
+                adoptedBtn.innerHTML = `<i class="fa-solid fa-arrow-left"></i> Active Pets`;
+
+                archivedBtn.className = "bg-slate-600 hover:bg-slate-700 text-white px-4 py-2.5 rounded-xl flex items-center gap-2 font-medium transition cursor-pointer";
+                archivedBtn.innerHTML = `<i class="fa-solid fa-box-archive"></i> Archived Pets`;
+            } else {
+                resetToActiveView();
+            }
+            filterPets();
+        });
+    }
+
+    // ARCHIVED PETS TOGGLE
+    if (archivedBtn) {
+        archivedBtn.addEventListener("click", () => {
+            if (currentViewMode !== "archived") {
+                currentViewMode = "archived";
+                statusFilter.classList.add("hidden");
+                addPetBtn.classList.add("hidden");
+
+                archivedBtn.className = "bg-slate-700 hover:bg-slate-800 text-white px-4 py-2.5 rounded-xl flex items-center gap-2 font-medium transition cursor-pointer";
+                archivedBtn.innerHTML = `<i class="fa-solid fa-arrow-left"></i> Active Pets`;
+
+                adoptedBtn.className = "bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl flex items-center gap-2 font-medium transition cursor-pointer";
+                adoptedBtn.innerHTML = `<i class="fa-solid fa-heart"></i> Adopted Pets`;
+            } else {
+                resetToActiveView();
+            }
+            filterPets();
+        });
+    }
+
+    function resetToActiveView() {
+        currentViewMode = "active";
+        statusFilter.classList.remove("hidden");
+        addPetBtn.classList.remove("hidden");
+
+        adoptedBtn.className = "bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl flex items-center gap-2 font-medium transition cursor-pointer";
+        adoptedBtn.innerHTML = `<i class="fa-solid fa-heart"></i> Adopted Pets`;
+
+        archivedBtn.className = "bg-slate-600 hover:bg-slate-700 text-white px-4 py-2.5 rounded-xl flex items-center gap-2 font-medium transition cursor-pointer";
+        archivedBtn.innerHTML = `<i class="fa-solid fa-box-archive"></i> Archived Pets`;
+        statusFilter.value = "";
+    }
 });
 
 // ==========================
@@ -17,6 +109,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 // ==========================
 const modal = document.getElementById("petModal");
 const addPetBtn = document.getElementById("addPetBtn");
+const adoptedBtn = document.getElementById("adoptedPetsBtn");
+const statusFilter = document.getElementById("statusFilter");
 const closePetModal = document.getElementById("closePetModal");
 const cancelPetBtn = document.getElementById("cancelPetBtn");
 const petForm = document.getElementById("petForm");
@@ -319,65 +413,108 @@ catch(err){
 });
 
 function openPetDetailsModal(pet){
+
+    const archiveBtn = document.getElementById("archivePetBtn");
+    
+    // Dynamic text & icon batay sa status ng pet
+    if (pet.adoption_status === "Archived") {
+        archiveBtn.innerHTML = `<i class="fa-solid fa-box-open mr-2"></i> Unarchive Record`;
+        archiveBtn.className = "bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition";
+    } else {
+        archiveBtn.innerHTML = `<i class="fa-solid fa-box-archive mr-2"></i> Archive Record`;
+        archiveBtn.className = "bg-slate-600 hover:bg-slate-700 text-white px-6 py-2 rounded-lg font-medium transition";
+    }
+
+    archiveBtn.onclick = async () => {
+        const newStatus = pet.adoption_status === "Archived" ? "Available" : "Archived";
+        const confirmMsg = pet.adoption_status === "Archived" 
+            ? `Do you want to restore ${pet.name} back to Active Pets?` 
+            : `Are you sure you want to archive ${pet.name}?`;
+
+        if (!confirm(confirmMsg)) return;
+
+        try {
+            const res = await fetch(`/org/pets/archive/${pet.animal_id}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ status: newStatus })
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                alert(data.message);
+                closeViewPetModal();
+                await loadPets();
+            } else {
+                alert(data.message);
+            }
+        } catch (err) {
+            console.error("ARCHIVE ERROR:", err);
+            alert("Failed to update archive status.");
+        }
+    };
+
     document.getElementById("editPetBtn").onclick = () => {
 
-    editingPetId = pet.animal_id;
-    document.getElementById("animal_id").value = pet.animal_id;
-    petForm.name.value = pet.name;
-    petForm.species.value = pet.species;
-    petForm.gender.value = pet.gender;
-    petForm.age.value = pet.age;
-    petForm.color.value = pet.color || "";
-    petForm.health_status.value = pet.health_status;
-    petForm.vaccination_status.value = pet.vaccination_status;
-    petForm.adoption_status.value = pet.adoption_status;
-    petForm.pet_description.value = pet.pet_description || "";
-    traitsContainer.innerHTML = "";
+        editingPetId = pet.animal_id;
+        document.getElementById("animal_id").value = pet.animal_id;
+        petForm.name.value = pet.name;
+        petForm.species.value = pet.species;
+        petForm.gender.value = pet.gender;
+        petForm.age.value = pet.age;
+        petForm.color.value = pet.color || "";
+        petForm.health_status.value = pet.health_status;
+        petForm.vaccination_status.value = pet.vaccination_status;
+        petForm.adoption_status.value = pet.adoption_status;
+        petForm.pet_description.value = pet.pet_description || "";
+        traitsContainer.innerHTML = "";
 
-    if (pet.personality_tags) {
-        pet.personality_tags
-            .split(",")
-            .forEach(tag => addTrait(tag.trim()));
-    }
-
-    medicalList = pet.medical_history ? [...pet.medical_history] : [];
-    renderMedicalTable();
-
-    modalTitle.innerHTML = `
-        <i class="fa-solid fa-pen text-amber-500 mr-2"></i>
-        Edit Pet
-    `;
-    submitButton.innerHTML = `
-        <i class="fa-solid fa-floppy-disk mr-2"></i>
-        Save Changes
-    `;
-    closeViewPetModal();
-    modal.classList.remove("hidden");
-    modal.classList.add("flex");
-};
-document.getElementById("deletePetBtn").onclick = async () => {
-    const confirmed = confirm(
-        `Are you sure you want to delete ${pet.name}?`
-    );
-    if (!confirmed) return;
-    try {
-        const res = await fetch(`/org/pets/delete/${pet.animal_id}`, {
-            method: "DELETE"
-        });
-        const data = await res.json();
-        if (data.success) {
-            alert(data.message);
-            closeViewPetModal();
-            await loadPets();
-        } else {
-            alert(data.message);
+        if (pet.personality_tags) {
+            pet.personality_tags
+                .split(",")
+                .forEach(tag => addTrait(tag.trim()));
         }
-    } catch (err) {
-        console.error("DELETE ERROR:", err);
-        alert(err.message);
-    }
 
-};
+        medicalList = pet.medical_history ? [...pet.medical_history] : [];
+        renderMedicalTable();
+
+        modalTitle.innerHTML = `
+            <i class="fa-solid fa-pen text-amber-500 mr-2"></i>
+            Edit Pet
+        `;
+        submitButton.innerHTML = `
+            <i class="fa-solid fa-floppy-disk mr-2"></i>
+            Save Changes
+        `;
+        closeViewPetModal();
+        modal.classList.remove("hidden");
+        modal.classList.add("flex");
+    };
+
+    document.getElementById("deletePetBtn").onclick = async () => {
+        const confirmed = confirm(
+            `Are you sure you want to delete ${pet.name}?`
+        );
+        if (!confirmed) return;
+        try {
+            const res = await fetch(`/org/pets/delete/${pet.animal_id}`, {
+                method: "DELETE"
+            });
+            const data = await res.json();
+            if (data.success) {
+                alert(data.message);
+                closeViewPetModal();
+                await loadPets();
+            } else {
+                alert(data.message);
+            }
+        } catch (err) {
+            console.error("DELETE ERROR:", err);
+            alert(err.message);
+        }
+
+    };
+
     const viewModal = document.getElementById("viewPetModal");
 
     document.getElementById("viewPetImage").src =
@@ -657,8 +794,8 @@ function renderMedicalTable() {
         `;
 
     });
-
 }
+
 function removeMedical(index) {
 
     medicalList.splice(index, 1);
@@ -669,6 +806,7 @@ function removeMedical(index) {
 const searchInput = document.getElementById("searchPet");
 
 searchInput.addEventListener("input", filterPets);
+
 function filterPets() {
 
     const keyword = document
@@ -696,15 +834,19 @@ function filterPets() {
                 .toLowerCase()
                 .includes(keyword);
 
-        const matchesStatus =
-            !status || pet.adoption_status === status;
+        const matchesSpecies = !species || pet.species === species;
 
-        const matchesSpecies =
-            !species || pet.species === species;
+        if (currentViewMode === "adopted") {
+            return matchesSearch && matchesSpecies && pet.adoption_status === "Adopted";
+        } else if (currentViewMode === "archived") {
+            return matchesSearch && matchesSpecies && pet.adoption_status === "Archived";
+        } else {
+            // ACTIVE PETS VIEW (Exclude Adopted & Archived)
+            const isNotAdoptedOrArchived = pet.adoption_status !== "Adopted" && pet.adoption_status !== "Archived";
+            const matchesStatus = !status || pet.adoption_status === status;
 
-        return matchesSearch &&
-               matchesStatus &&
-               matchesSpecies;
+            return matchesSearch && matchesSpecies && isNotAdoptedOrArchived && matchesStatus;
+        }
     });
 
     renderPets(filtered);
