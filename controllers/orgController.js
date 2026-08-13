@@ -95,6 +95,44 @@ exports.addPet = async (req, res) => {
 
             // Get the newly inserted pet ID
             const animal_id = result.insertId;
+
+            // KUNG 'ADOPTED' ANG PINILI, ISAVE DIN ANG ADOPTER DETAILS SA USER_ADOPTION_APPLICATIONS TABLE
+            if (adoption_status === 'Adopted' && req.body.adopter_full_name) {
+                await pool.query(
+                    `
+                    INSERT INTO user_adoption_applications
+                    (
+                        animal_id,
+                        full_name,
+                        contact_number,
+                        email,
+                        full_address,
+                        civil_status,
+                        age,
+                        occupation,
+                        emergency_name,
+                        emergency_phone,
+                        emergency_relation,
+                        status
+                    )
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Approved')
+                    `,
+                    [
+                        animal_id,
+                        req.body.adopter_full_name,
+                        req.body.adopter_contact_number,
+                        req.body.adopter_email,
+                        req.body.adopter_full_address,
+                        req.body.adopter_civil_status,
+                        req.body.adopter_age,
+                        req.body.adopter_occupation,
+                        req.body.adopter_emergency_name,
+                        req.body.adopter_emergency_phone,
+                        req.body.adopter_emergency_relation
+                    ]
+                );
+            }
+            
             // ============================
             // Generate embedding
             // ============================

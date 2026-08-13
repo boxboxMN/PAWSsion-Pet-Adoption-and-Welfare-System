@@ -13,45 +13,34 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Load org pets from db
     await loadPets();
 
+    // Toggle Adopter Details Form Base sa Adoption Status
+    const adoptionStatusSelect = petForm ? petForm.querySelector('select[name="adoption_status"]') : null;
+  
+
+    if (adoptionStatusSelect) {
+        adoptionStatusSelect.addEventListener('change', (e) => {
+            const adopterDetailsSection = document.getElementById('adopterDetailsSection');
+            const adopterInputs = document.querySelectorAll('.adopter-input');
+    
+            if (e.target.value === 'Adopted') {
+                adopterDetailsSection?.classList.remove('hidden');
+                adopterInputs.forEach(input => input.setAttribute('required', 'true'));
+            } else {
+                adopterDetailsSection?.classList.add('hidden');
+                adopterInputs.forEach(input => {
+                    input.removeAttribute('required');
+                    input.value = '';
+                });
+            }
+        });
+    }
+
     const adoptedBtn = document.getElementById("adoptedPetsBtn");
     const archivedBtn = document.getElementById("archivedPetsBtn");
     const statusFilter = document.getElementById("statusFilter");
     const addPetBtn = document.getElementById("addPetBtn");
 
     if (adoptedBtn) {
-        // adoptedBtn.addEventListener("click", () => {
-        //     if (currentViewMode === "active") {
-        //         // SWITCH TO ADOPTED PETS VIEW
-        //         currentViewMode = "adopted";
-                
-        //         // 1. Itago ang Status Filter at Add Pet Button
-        //         statusFilter.classList.add("hidden");
-        //         addPetBtn.classList.add("hidden");
-
-        //         // 2. Baguhin ang kulay at label ng button
-        //         adoptedBtn.classList.remove("bg-emerald-600", "hover:bg-emerald-700");
-        //         adoptedBtn.classList.add("bg-slate-700", "hover:bg-slate-800");
-        //         adoptedBtn.innerHTML = `<i class="fa-solid fa-arrow-left"></i> Active Pets`;
-
-        //     } else {
-        //         // SWITCH BACK TO ACTIVE PETS VIEW
-        //         currentViewMode = "active";
-                
-        //         // 1. Ipakita uli ang Status Filter at Add Pet Button
-        //         statusFilter.classList.remove("hidden");
-        //         addPetBtn.classList.remove("hidden");
-
-        //         // 2. Ibalik sa orihinal na kulay ang button
-        //         adoptedBtn.classList.remove("bg-slate-700", "hover:bg-slate-800");
-        //         adoptedBtn.classList.add("bg-emerald-600", "hover:bg-emerald-700");
-        //         adoptedBtn.innerHTML = `<i class="fa-solid fa-heart"></i> Adopted Pets`;
-        //     }
-
-        //     // I-reset ang Status Filter kapag nagpalit ng view
-        //     statusFilter.value = "";
-        //     filterPets();
-        // });
-
         adoptedBtn.addEventListener("click", () => {
             if (currentViewMode !== "adopted") {
                 currentViewMode = "adopted";
@@ -137,13 +126,23 @@ const submitButton = petForm.querySelector('button[type="submit"]');
 
 // OPEN MODAL
 addPetBtn.addEventListener("click", () => {
-
     editingPetId = null;
     petForm.reset();
     medicalList = [];
     renderMedicalTable();
     traitsContainer.innerHTML = "";
     personalityTags.value = "";
+
+    // Tanggalin ang required sa hidden adopter inputs
+    const adopterDetailsSection = document.getElementById('adopterDetailsSection');
+    const adopterInputs = document.querySelectorAll('.adopter-input');
+    if (adopterDetailsSection) {
+        adopterDetailsSection.classList.add('hidden');
+        adopterInputs.forEach(input => {
+            input.removeAttribute('required');
+            input.value = '';
+        });
+    }
 
     modalTitle.innerHTML = `
         <i class="fa-solid fa-paw text-blue-700 mr-2"></i>
@@ -157,8 +156,8 @@ addPetBtn.addEventListener("click", () => {
 
     modal.classList.remove("hidden");
     modal.classList.add("flex");
-
 });
+
 // CLOSE BUTTON
 closePetModal.addEventListener("click", closeModal);
 
@@ -274,8 +273,7 @@ async function loadPets() {
 
         return;
     }
-
-renderPets(allPets);
+    filterPets();
 }
 
 function renderPets(pets) {
@@ -714,7 +712,19 @@ function closeModal(){
     traitsContainer.innerHTML = "";
     personalityTags.value = "";
 
+    // LIGTAS NA PAG-RESET NG ADOPTER DETAILS
+    const adopterDetailsSection = document.getElementById('adopterDetailsSection');
+    const adopterInputs = document.querySelectorAll('.adopter-input');
+
+    if (adopterDetailsSection) {
+        adopterDetailsSection.classList.add('hidden');
+        adopterInputs.forEach(input => {
+            input.removeAttribute('required'); // Inaalis ang required para hindi harangin ng browser validation
+            input.value = '';
+        });
+    }
 }
+
 function updateTraitField() {
 
     const tags = [...traitsContainer.querySelectorAll(".trait-tag")]

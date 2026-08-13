@@ -212,7 +212,7 @@ Pets:
 
     ✓ ilipat ang archive sa sarili; nyang button
 
-    Sa add new pet, kapag pinili ang adopted satus dapat may lilitaw na additional form for adopters information
+    ✓ Sa add new pet, kapag pinili ang adopted satus dapat may lilitaw na additional form for adopters information
 
     Under add pet, itanong if magkaiba ang pet description at personality & traits since pwede naman mailagay ang personality & traits sa pet description??
 
@@ -227,9 +227,11 @@ Pets:
 	✓ Iseparate ang available sa adopted para hindi malito ang orgs
 	Iseparate ang archive pero tignan sa controller dapat gumagana pa din yung ibang functions
 
-	Dapat once na adopted and pending na yung pet is may edit record, and archive button sya wala ng delete
+	Dapat once na adopted is wala ng edit, archive and delete buttons instead dapat may view adoption applications button na mapupunta doon sa adoption application details
 
-	Once available, walang archive,  edit & delete buttons
+    Archive is may unarchive buttons and nakahide ang edit, delete buttons
+
+	Once available may archive, edit & delete buttons
 
 
 Adoption:
