@@ -192,6 +192,9 @@ petForm.addEventListener("submit", async (e)=>{
         console.log(`${key}:`, value);
     }
 
+    // Kunin ang piniling adoption status bago i-reset ang form
+    const selectedAdoptionStatus = petForm.querySelector('select[name="adoption_status"]').value;
+
     try {
 
     const url = editingPetId
@@ -226,6 +229,34 @@ petForm.addEventListener("submit", async (e)=>{
             alert(data.message);
             closeModal();
             petForm.reset();
+
+            // =======================================================
+            // AUTOMATIC VIEW SWITCHING BASE SA PINILING STATUS
+            // =======================================================
+            const statusFilter = document.getElementById("statusFilter");
+            const addPetBtn = document.getElementById("addPetBtn");
+            const adoptedBtn = document.getElementById("adoptedPetsBtn");
+            const archivedBtn = document.getElementById("archivedPetsBtn");
+
+            if (selectedAdoptionStatus === "Adopted") {
+                // Ilipat ang view sa Adopted Pets
+                currentViewMode = "adopted";
+                statusFilter?.classList.add("hidden");
+                addPetBtn?.classList.add("hidden");
+
+                if (adoptedBtn) {
+                    adoptedBtn.className = "bg-slate-700 hover:bg-slate-800 text-white px-4 py-2.5 rounded-xl flex items-center gap-2 font-medium transition cursor-pointer";
+                    adoptedBtn.innerHTML = `<i class="fa-solid fa-arrow-left"></i> Active Pets`;
+                }
+                if (archivedBtn) {
+                    archivedBtn.className = "bg-slate-600 hover:bg-slate-700 text-white px-4 py-2.5 rounded-xl flex items-center gap-2 font-medium transition cursor-pointer";
+                    archivedBtn.innerHTML = `<i class="fa-solid fa-box-archive"></i> Archived Pets`;
+                }
+            } else {
+                // Kung Available o Pending: Ibalik sa Active Pets view
+                resetToActiveView();
+            }
+            
             await loadPets();
         } else {
             alert(data.message || "Failed to save pet. Please check all required fields.");
@@ -239,6 +270,7 @@ petForm.addEventListener("submit", async (e)=>{
         );
     }
 });
+
 // PETS CARD
 async function loadPets() {
     const container = document.getElementById("petsContainer");

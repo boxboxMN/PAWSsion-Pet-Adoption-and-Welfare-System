@@ -223,11 +223,11 @@ Pets:
 
 	✓ Dapat once na adopted is wala ng edit, archive and delete buttons instead dapat may view adoption applications button na mapupunta doon sa adoption application details
 
-    Archive is may unarchive buttons and nakahide ang edit, delete buttons
-
-	Once available may archive, edit & delete buttons
+	✓ Once available may archive, edit & delete buttons
 
     Under add pet, sa may adoption status dapat once na adopted auto na malalgay sa nadopted pets same din sa available and pending
+
+    Archive is may unarchive buttons and nakahide ang edit, delete buttons
     
 # Questions and Testing
 
@@ -336,3 +336,6 @@ ALTER TABLE `user_adoption_applications`
   # Palagay sa db nyo
   ALTER TABLE animals DROP COLUMN birth_date;
   
+  # Palagay sa db ny:o Aug 14 (today)
+  ALTER TABLE user_adoption_applications 
+    MODIFY COLUMN adopter_id INT NULL;
