@@ -1833,3 +1833,58 @@ exports.archivePet = async (req, res) => {
         });
     }
 };
+
+// ==========================================
+// GET APPLICATION ID BY ANIMAL ID
+// ==========================================
+exports.getApplicationByAnimalId = async (req, res) => {
+    try {
+        const animalId = req.params.animalId;
+        const accountId = req.session?.accountId;
+
+        if (!accountId) {
+            return res.status(401).json({ success: false, message: "Unauthorized." });
+        }
+
+        // Kunin ang organization_id
+        const [org] = await pool.query(
+            `SELECT organization_id FROM organizations WHERE account_id = ?`,
+            [accountId]
+        );
+
+        if (!org.length) {
+            return res.status(404).json({ success: false, message: "Organization not found." });
+        }
+
+        const organizationId = org[0].organization_id;
+
+        // Kunin ang approved application ng animal na ito
+        const [rows] = await pool.query(
+            `
+            SELECT app.application_id
+            FROM user_adoption_applications app
+            INNER JOIN animals a ON app.animal_id = a.animal_id
+            WHERE app.animal_id = ? AND a.organization_id = ?
+            ORDER BY app.application_id DESC
+            LIMIT 1
+            `,
+            [animalId, organizationId]
+        );
+
+        if (!rows.length) {
+            return res.status(404).json({
+                success: false,
+                message: "No adoption application found for this pet."
+            });
+        }
+
+        res.json({
+            success: true,
+            application_id: rows[0].application_id
+        });
+
+    } catch (error) {
+        console.error("Get Application By Animal Error:", error);
+        res.status(500).json({ success: false, message: "Server error." });
+    }
+};

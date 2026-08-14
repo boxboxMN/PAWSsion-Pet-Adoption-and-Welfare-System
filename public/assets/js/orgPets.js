@@ -410,7 +410,44 @@ catch(err){
 
 function openPetDetailsModal(pet){
 
+    const editBtn = document.getElementById("editPetBtn");
     const archiveBtn = document.getElementById("archivePetBtn");
+    const deleteBtn = document.getElementById("deletePetBtn");
+    const viewAppBtn = document.getElementById("viewAdoptionAppBtn");
+
+    // KUNG ADOPTED: Itago ang Edit, Archive, Delete at ipakita ang View Application Button
+    if (pet.adoption_status === "Adopted") {
+        if (editBtn) editBtn.classList.add("hidden");
+        if (archiveBtn) archiveBtn.classList.add("hidden");
+        if (deleteBtn) deleteBtn.classList.add("hidden");
+        
+        if (viewAppBtn) {
+            viewAppBtn.classList.remove("hidden");
+            viewAppBtn.onclick = async () => {
+                try {
+                    const res = await fetch(`/org/pets/${pet.animal_id}/application`);
+                    const data = await res.json();
+
+                    if (data.success && data.application_id) {
+                        // I-store sa sessionStorage gaya ng nasa adoption table
+                        sessionStorage.setItem("selectedApplicationId", data.application_id);
+                        // Redirect sa mismong Adoption Details Page
+                        window.location.href = "/org/adoption-details";
+                    } else {
+                        alert("No adoption application details record found for this pet.");
+                    }
+                } catch (err) {
+                    console.error("Error redirecting to application:", err);
+                    alert("Failed to load application details.");
+                }
+            };
+        }
+    } else {
+        // KUNG HINDI ADOPTED (Available, Pending, Archived): Ibalik ang normal buttons
+        if (editBtn) editBtn.classList.remove("hidden");
+        if (archiveBtn) archiveBtn.classList.remove("hidden");
+        if (deleteBtn) deleteBtn.classList.remove("hidden");
+        if (viewAppBtn) viewAppBtn.classList.add("hidden");
     
     // Dynamic text & icon batay sa status ng pet
     if (pet.adoption_status === "Archived") {
@@ -421,34 +458,35 @@ function openPetDetailsModal(pet){
         archiveBtn.className = "bg-slate-600 hover:bg-slate-700 text-white px-6 py-2 rounded-lg font-medium transition";
     }
 
-    archiveBtn.onclick = async () => {
-        const newStatus = pet.adoption_status === "Archived" ? "Available" : "Archived";
-        const confirmMsg = pet.adoption_status === "Archived" 
-            ? `Do you want to restore ${pet.name} back to Active Pets?` 
-            : `Are you sure you want to archive ${pet.name}?`;
+        archiveBtn.onclick = async () => {
+            const newStatus = pet.adoption_status === "Archived" ? "Available" : "Archived";
+            const confirmMsg = pet.adoption_status === "Archived" 
+                ? `Do you want to restore ${pet.name} back to Active Pets?` 
+                : `Are you sure you want to archive ${pet.name}?`;
 
-        if (!confirm(confirmMsg)) return;
+            if (!confirm(confirmMsg)) return;
 
-        try {
-            const res = await fetch(`/org/pets/archive/${pet.animal_id}`, {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ status: newStatus })
-            });
+            try {
+                const res = await fetch(`/org/pets/archive/${pet.animal_id}`, {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ status: newStatus })
+                });
 
-            const data = await res.json();
-            if (data.success) {
-                alert(data.message);
-                closeViewPetModal();
-                await loadPets();
-            } else {
-                alert(data.message);
+                const data = await res.json();
+                if (data.success) {
+                    alert(data.message);
+                    closeViewPetModal();
+                    await loadPets();
+                } else {
+                    alert(data.message);
+                }
+            } catch (err) {
+                console.error("ARCHIVE ERROR:", err);
+                alert("Failed to update archive status.");
             }
-        } catch (err) {
-            console.error("ARCHIVE ERROR:", err);
-            alert("Failed to update archive status.");
-        }
-    };
+        };
+    }
 
     document.getElementById("editPetBtn").onclick = () => {
 

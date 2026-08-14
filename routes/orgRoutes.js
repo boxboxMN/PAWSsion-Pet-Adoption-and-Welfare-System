@@ -11,6 +11,7 @@ const {
     archivePet, 
     getPets, 
     getPetDetails,
+    getApplicationByAnimalId,
     getDonations, 
     getDashboardStats,
     getPaymentInfo,
@@ -465,5 +466,7 @@ router.get("/applications/export/summary", async (req, res) => {
 
 // Add Archive Route
 router.patch("/pets/archive/:id", archivePet);
+
+router.get("/pets/:animalId/application", getApplicationByAnimalId);
 
 module.exports = router;

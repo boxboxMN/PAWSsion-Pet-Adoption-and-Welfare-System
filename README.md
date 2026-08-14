@@ -226,6 +226,8 @@ Pets:
     Archive is may unarchive buttons and nakahide ang edit, delete buttons
 
 	Once available may archive, edit & delete buttons
+
+    Under add pet, sa may adoption status dapat once na adopted auto na malalgay sa nadopted pets same din sa available and pending
     
 # Questions and Testing
 
