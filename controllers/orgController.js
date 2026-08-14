@@ -1807,9 +1807,9 @@ exports.getAnalyticsData = async (req, res) => {
 exports.archivePet = async (req, res) => {
     try {
         const id = req.params.id;
-        const { status } = req.body; // Inaasahan: 'Archived' o 'Available'
+        const { status, prevStatus} = req.body; // 'Archived' o 'Restore' / 'Available'[cite: 70]
 
-        // Check organization ownership
+        // 1. Check organization ownership
         const [org] = await pool.query(
             `SELECT organization_id FROM organizations WHERE account_id = ?`,
             [req.session.accountId]
@@ -1823,29 +1823,61 @@ exports.archivePet = async (req, res) => {
         }
 
         const organizationId = org[0].organization_id;
-        const targetStatus = status === 'Archived' ? 'Archived' : 'Available';
 
-        // Update animal adoption_status
-        const [result] = await pool.query(
-            `
-            UPDATE animals
-            SET adoption_status = ?
-            WHERE animal_id = ? AND organization_id = ?
-            `,
-            [targetStatus, id, organizationId]
-        );
+        if (status === 'Archived') {
+            // KAPAG I-AARCHIVE
+            await pool.query(
+                `UPDATE animals SET adoption_status = 'Archived' WHERE animal_id = ? AND organization_id = ?`,
+                [id, organizationId]
+            );
 
-        if (result.affectedRows === 0) {
-            return res.status(404).json({
-                success: false,
-                message: "Pet not found or unauthorized access."
+            return res.json({
+                success: true,
+                message: "Pet has been archived successfully."
+            });
+        } else {
+            // KAPAG I-UUNARCHIVE: Aalamin ang dating status mula sa applications table
+            const [applications] = await pool.query(
+                `SELECT status FROM user_adoption_applications 
+                 WHERE animal_id = ? 
+                 ORDER BY application_id DESC LIMIT 1`,
+                [id]
+            );
+
+            let restoredStatus = prevStatus || 'Available';
+
+            // Kung hindi naipasa o 'Archived' ang naipasa, tingnan sa applications table
+            if (!prevStatus || prevStatus === 'Archived') {
+                const [applications] = await pool.query(
+                    `SELECT status FROM user_adoption_applications 
+                     WHERE animal_id = ? 
+                     ORDER BY application_id DESC LIMIT 1`,
+                    [id]
+                );
+
+                if (applications.length > 0) {
+                    const appStatus = (applications[0].status || '').toLowerCase();
+
+                    // Kung may active application pa -> PENDING
+                    if (appStatus.includes('review') || appStatus.includes('interview') || appStatus.includes('scheduled')) {
+                        restoredStatus = 'Pending';
+                    } else if (appStatus.includes('approved')) {
+                        restoredStatus = 'Adopted';
+                    }
+                }
+            }
+
+            // I-UPDATE SA TOTOONG DATING STATUS (Pending o Available)
+            await pool.query(
+                `UPDATE animals SET adoption_status = ? WHERE animal_id = ? AND organization_id = ?`,
+                [restoredStatus, id, organizationId]
+            );
+
+            return res.json({
+                success: true,
+                message: `Pet successfully restored with status: ${restoredStatus}.`
             });
         }
-
-        res.json({
-            success: true,
-            message: `Pet status successfully updated to ${targetStatus}.`
-        });
 
     } catch (err) {
         console.error("ARCHIVE PET ERROR:", err);
