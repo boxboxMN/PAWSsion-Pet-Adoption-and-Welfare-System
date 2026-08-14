@@ -109,6 +109,7 @@ exports.addPet = async (req, res) => {
                     `
                     INSERT INTO user_adoption_applications
                     (
+                        adopter_id,
                         animal_id,
                         full_name,
                         contact_number,
@@ -122,7 +123,7 @@ exports.addPet = async (req, res) => {
                         emergency_relation,
                         status
                     )
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Approved')
+                    VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Approved')
                     `,
                     [
                         animal_id,

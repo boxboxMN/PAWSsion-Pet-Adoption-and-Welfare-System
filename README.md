@@ -225,7 +225,7 @@ Pets:
 
 	✓ Once available may archive, edit & delete buttons
 
-    Under add pet, sa may adoption status dapat once na adopted auto na malalgay sa nadopted pets same din sa available and pending
+    ✓ Under add pet, sa may adoption status dapat once na adopted auto na malalgay sa adopted pets, and yung available and pending is sa active status
 
     Archive is may unarchive buttons and nakahide ang edit, delete buttons
     
