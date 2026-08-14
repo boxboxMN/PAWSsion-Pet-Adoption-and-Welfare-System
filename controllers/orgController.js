@@ -105,6 +105,25 @@ exports.addPet = async (req, res) => {
 
             // KUNG 'ADOPTED' ANG PINILI, ISAVE DIN ANG ADOPTER DETAILS SA USER_ADOPTION_APPLICATIONS TABLE
             if (adoption_status === 'Adopted' && req.body.adopter_full_name) {
+
+                const phPhoneRegex = /^09\d{9}$/;
+                const contactNum = req.body.adopter_contact_number ? req.body.adopter_contact_number.trim() : '';
+                const emergencyNum = req.body.adopter_emergency_phone ? req.body.adopter_emergency_phone.trim() : '';
+
+                if (!phPhoneRegex.test(contactNum)) {
+                    return res.status(400).json({
+                        success: false,
+                        message: "Invalid Contact Number. It must be an 11-digit Philippine mobile number starting with 09."
+                    });
+                }
+
+                if (!phPhoneRegex.test(emergencyNum)) {
+                    return res.status(400).json({
+                        success: false,
+                        message: "Invalid Emergency Phone Number. It must be an 11-digit Philippine mobile number starting with 09."
+                    });
+                }
+
                 await pool.query(
                     `
                     INSERT INTO user_adoption_applications

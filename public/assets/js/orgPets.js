@@ -239,6 +239,23 @@ petForm.addEventListener("submit", async (e)=>{
             const archivedBtn = document.getElementById("archivedPetsBtn");
 
             if (selectedAdoptionStatus === "Adopted") {
+
+                const contactNumber = petForm.querySelector('input[name="adopter_contact_number"]').value.trim();
+                const emergencyPhone = petForm.querySelector('input[name="adopter_emergency_phone"]').value.trim();
+                
+                // Regex: Dapat eksaktong 11 digits at nagsisimula sa '09'
+                const phPhoneRegex = /^09\d{9}$/;
+
+                if (!phPhoneRegex.test(contactNumber)) {
+                    alert("Please enter a valid Philippine contact number (e.g., 09123456789).");
+                    return;
+                }
+
+                if (!phPhoneRegex.test(emergencyPhone)) {
+                    alert("Please enter a valid Philippine emergency phone number (e.g., 09123456789).");
+                    return;
+                }
+
                 // Ilipat ang view sa Adopted Pets
                 currentViewMode = "adopted";
                 statusFilter?.classList.add("hidden");
@@ -256,7 +273,7 @@ petForm.addEventListener("submit", async (e)=>{
                 // Kung Available o Pending: Ibalik sa Active Pets view
                 resetToActiveView();
             }
-            
+
             await loadPets();
         } else {
             alert(data.message || "Failed to save pet. Please check all required fields.");
