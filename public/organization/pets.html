@@ -30,29 +30,40 @@
     <!-- Toolbar -->
     <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4">
         <div class="flex flex-wrap items-center gap-3">
-            <!-- Search -->
+            <!-- Search (Laging Nakikita) -->
             <div class="relative flex-1 min-w-[250px]">
                 <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
                 <input id="searchPet" type="text" placeholder="Search pet..." class="w-full pl-11 pr-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-600 focus:border-blue-600">
             </div>
 
-            <!-- Status -->
+            <!-- Status Filter (Mawawala sa Adopted View) -->
             <select id="statusFilter" class="px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-600">
                 <option value="">All Status</option>
-                <option>Available</option>
-                <option>Pending</option>
-                <option>Adopted</option>
-                <option>Archived</option>
+                <option value="Available">Available</option>
+                <option value="Pending">Pending</option>
             </select>
 
-            <!-- Species -->
+            <!-- Species Filter (Laging Nakikita) -->
             <select id="typeFilter" class="px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-600">
                 <option value="">All Species</option>
                 <option>Dog</option>
                 <option>Cat</option>
             </select>
 
-            <button id="addPetBtn" class="bg-blue-700 hover:bg-blue-800 text-white px-5 py-2.5 rounded-xl flex items-center gap-2">
+            <!-- Adopted Pets Toggle Button -->
+            <button id="adoptedPetsBtn" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl flex items-center gap-2 font-medium transition cursor-pointer">
+                <i class="fa-solid fa-heart"></i>
+                Adopted Pets
+            </button>
+
+            <!-- ARCHIVED PETS BUTTON (BAGONG DAGDAG) -->
+            <button id="archivedPetsBtn" class="bg-slate-600 hover:bg-slate-700 text-white px-4 py-2.5 rounded-xl flex items-center gap-2 font-medium transition cursor-pointer">
+                <i class="fa-solid fa-box-archive"></i>
+                Archived Pets
+            </button>
+
+            <!-- Add Pet Button (Mawawala sa Adopted View) -->
+            <button id="addPetBtn" class="bg-blue-700 hover:bg-blue-800 text-white px-5 py-2.5 rounded-xl flex items-center gap-2 font-medium transition cursor-pointer">
                 <i class="fa-solid fa-plus"></i>
                 Add Pet
             </button>
@@ -110,9 +121,9 @@
             <div class="border-b px-4 py-2 flex items-center justify-between">
                 <h2 class="text-2xl font-bold text-slate-800">
                     <i class="fa-solid fa-paw text-blue-700 mr-2"></i>
-                    Add New Pet
+                     Add New Pet
                 </h2>
-                <button id="closePetModal" class="text-2xl text-slate-500 hover:text-red-600">
+                <button type="button" id="closePetModal" class="text-2xl text-slate-500 hover:text-red-600">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
@@ -165,12 +176,6 @@
                             <option value="Adult (4-7 yrs old)">Adult (4-7 yrs old)</option>
                             <option value="Senior (8-10 yrs old)">Senior (8-10 yrs old)</option>
                         </select>
-                    </div>
-
-                    <!-- BIRTH DATE -->
-                    <div>
-                        <label class="block text-sm font-medium mb-1">Birth Date</label>
-                        <input type="date" name="birth_date" class="w-full rounded-lg border p-2.5">
                     </div>
 
                     <!-- COLOR -->
@@ -244,6 +249,7 @@
                     </table>
                 </div>
             </div>
+
             <!-- ADOPTION -->
             <div class="mb-8">
                 <h3 class="text-lg font-semibold text-blue-700 mb-4">Adoption Information</h3>
@@ -254,8 +260,76 @@
                             <option value="Available">Available</option>
                             <option value="Pending">Pending</option>
                             <option value="Adopted">Adopted</option>
-                            <option value="Archived">Archived</option>
                         </select>
+                    </div>
+                </div>
+            </div>
+            <!-- DYNAMIC ADOPTER DETAILS (Lumalabas lamang kapag 'Adopted' ang pinili sa adoption status under the add new pet) -->
+            <div id="adopterDetailsSection" class="hidden mb-8 border-t border-slate-200 pt-6">
+                <h3 class="text-lg font-semibold text-emerald-700 mb-2 flex items-center gap-2">
+                    <i class="fa-solid fa-user-check"></i> Adopter Details
+                </h3>
+                <p class="text-xs text-slate-500 mb-4">Please enter the adopter's information for this pet!</p>
+
+                <!-- Section 1: Applicant Information -->
+                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 mb-5">
+                    <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-3">
+                        <i class="fa-regular fa-user mr-1"></i> Applicant Information
+                    </h4>
+                    <div class="grid md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-700 mb-1">Full Name <span class="text-red-500">*</span></label>
+                            <input type="text" name="adopter_full_name" placeholder="Full Name" class="adopter-input w-full rounded-lg border p-2.5 text-sm bg-white">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-700 mb-1">Contact Number <span class="text-red-500">*</span></label>
+                            <input type="tel" name="adopter_contact_number" placeholder="09123456789" maxlength="11" inputmode="numeric" pattern="09[0-9]{9}" title="Must be an 11-digit PH phone number starting with 09" oninput="this.value = this.value.replace(/[^0-9]/g, '')"class="adopter-input w-full rounded-lg border p-2.5 text-sm bg-white">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-700 mb-1">Email Address <span class="text-red-500">*</span></label>
+                            <input type="email" name="adopter_email" placeholder="email@example.com" class="adopter-input w-full rounded-lg border p-2.5 text-sm bg-white">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-xs font-medium text-slate-700 mb-1">Full Address <span class="text-red-500">*</span></label>
+                            <input type="text" name="adopter_full_address" placeholder="House No., Street, City" class="adopter-input w-full rounded-lg border p-2.5 text-sm bg-white">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-700 mb-1">Civil Status <span class="text-red-500">*</span></label>
+                            <select name="adopter_civil_status" class="adopter-input w-full rounded-lg border p-2.5 text-sm bg-white">
+                                <option value="">Choose Civil Status</option>
+                                <option value="Single">Single</option>
+                                <option value="Married">Married</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-700 mb-1">Age <span class="text-red-500">*</span></label>
+                            <input type="number" name="adopter_age" min="18" max="99" placeholder="e.g. 25" class="adopter-input w-full rounded-lg border p-2.5 text-sm bg-white">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-xs font-medium text-slate-700 mb-1">Occupation / Source of Income <span class="text-red-500">*</span></label>
+                            <input type="text" name="adopter_occupation" placeholder="e.g. Employee, Business" class="adopter-input w-full rounded-lg border p-2.5 text-sm bg-white">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 2: Emergency Contact -->
+                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                    <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-3">
+                        <i class="fa-solid fa-phone mr-1"></i> Emergency Contact
+                    </h4>
+                    <div class="grid md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-700 mb-1">Contact Person Name <span class="text-red-500">*</span></label>
+                            <input type="text" name="adopter_emergency_name" placeholder="Full Name" class="adopter-input w-full rounded-lg border p-2.5 text-sm bg-white">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-700 mb-1">Emergency Phone Number <span class="text-red-500">*</span></label>
+                            <input type="tel" name="adopter_emergency_phone" placeholder="09123456789" maxlength="11" inputmode="numeric" pattern="09[0-9]{9}" title="Must be an 11-digit PH phone number starting with 09" oninput="this.value = this.value.replace(/[^0-9]/g, '')" class="adopter-input w-full rounded-lg border p-2.5 text-sm bg-white">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-700 mb-1">Relationship <span class="text-red-500">*</span></label>
+                            <input type="text" name="adopter_emergency_relation" placeholder="Parent / Sibling / Friend" class="adopter-input w-full rounded-lg border p-2.5 text-sm bg-white">
+                        </div>
                     </div>
                 </div>
             </div>
@@ -344,11 +418,6 @@
                             <div>
                                 <p class="text-[10px] uppercase tracking-wide text-slate-400">Age</p>
                                 <p id="viewAge" class="font-semibold text-xs text-slate-800 mt-1"></p>
-                            </div>
-
-                            <div>
-                                <p class="text-[10px] uppercase tracking-wide text-slate-400">Birth Date</p>
-                                <p id="viewBirthDate" class="font-semibold text-xs text-slate-800 mt-1"></p>
                             </div>
 
                             <div>
@@ -480,7 +549,11 @@
 
                             <i class="fa-solid fa-pen mr-2"></i>
                             Edit Record
+                        </button>
 
+                        <!-- ARCHIVE / UNARCHIVE BUTTON -->
+                        <button id="archivePetBtn" class="bg-slate-600 hover:bg-slate-700 text-white px-6 py-2 rounded-lg font-medium transition">
+                            <i class="fa-solid fa-box-archive mr-2"></i> Archive Record
                         </button>
 
                         <button
@@ -489,6 +562,11 @@
 
                             <i class="fa-solid fa-trash mr-2"></i>
                             Delete Record
+                        </button>
+
+                        <!-- ADOPTED PET ONLY ACTION (Nakatago by default) -->
+                        <button id="viewAdoptionAppBtn" class="hidden bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2 rounded-lg font-medium transition shadow-md shadow-emerald-100 flex items-center gap-2 cursor-pointer">
+                            <i class="fa-solid fa-file-invoice"></i> View Adoption Application
                         </button>
                     </div>
 

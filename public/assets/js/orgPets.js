@@ -1,4 +1,6 @@
 let allPets = [];
+let currentViewMode = "active"; // "active", "adopted", or "archived"
+
 document.addEventListener("DOMContentLoaded", async () => {
     // Load shared dashboard components
     await loadSidebar("pets");
@@ -10,6 +12,85 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // Load org pets from db
     await loadPets();
+
+    // Toggle Adopter Details Form Base sa Adoption Status
+    const adoptionStatusSelect = petForm ? petForm.querySelector('select[name="adoption_status"]') : null;
+  
+
+    if (adoptionStatusSelect) {
+        adoptionStatusSelect.addEventListener('change', (e) => {
+            const adopterDetailsSection = document.getElementById('adopterDetailsSection');
+            const adopterInputs = document.querySelectorAll('.adopter-input');
+    
+            if (e.target.value === 'Adopted') {
+                adopterDetailsSection?.classList.remove('hidden');
+                adopterInputs.forEach(input => input.setAttribute('required', 'true'));
+            } else {
+                adopterDetailsSection?.classList.add('hidden');
+                adopterInputs.forEach(input => {
+                    input.removeAttribute('required');
+                    input.value = '';
+                });
+            }
+        });
+    }
+
+    const adoptedBtn = document.getElementById("adoptedPetsBtn");
+    const archivedBtn = document.getElementById("archivedPetsBtn");
+    const statusFilter = document.getElementById("statusFilter");
+    const addPetBtn = document.getElementById("addPetBtn");
+
+    if (adoptedBtn) {
+        adoptedBtn.addEventListener("click", () => {
+            if (currentViewMode !== "adopted") {
+                currentViewMode = "adopted";
+                statusFilter.classList.add("hidden");
+                addPetBtn.classList.add("hidden");
+
+                adoptedBtn.className = "bg-slate-700 hover:bg-slate-800 text-white px-4 py-2.5 rounded-xl flex items-center gap-2 font-medium transition cursor-pointer";
+                adoptedBtn.innerHTML = `<i class="fa-solid fa-arrow-left"></i> Active Pets`;
+
+                archivedBtn.className = "bg-slate-600 hover:bg-slate-700 text-white px-4 py-2.5 rounded-xl flex items-center gap-2 font-medium transition cursor-pointer";
+                archivedBtn.innerHTML = `<i class="fa-solid fa-box-archive"></i> Archived Pets`;
+            } else {
+                resetToActiveView();
+            }
+            filterPets();
+        });
+    }
+
+    // ARCHIVED PETS TOGGLE
+    if (archivedBtn) {
+        archivedBtn.addEventListener("click", () => {
+            if (currentViewMode !== "archived") {
+                currentViewMode = "archived";
+                statusFilter.classList.add("hidden");
+                addPetBtn.classList.add("hidden");
+
+                archivedBtn.className = "bg-slate-700 hover:bg-slate-800 text-white px-4 py-2.5 rounded-xl flex items-center gap-2 font-medium transition cursor-pointer";
+                archivedBtn.innerHTML = `<i class="fa-solid fa-arrow-left"></i> Active Pets`;
+
+                adoptedBtn.className = "bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl flex items-center gap-2 font-medium transition cursor-pointer";
+                adoptedBtn.innerHTML = `<i class="fa-solid fa-heart"></i> Adopted Pets`;
+            } else {
+                resetToActiveView();
+            }
+            filterPets();
+        });
+    }
+
+    function resetToActiveView() {
+        currentViewMode = "active";
+        statusFilter.classList.remove("hidden");
+        addPetBtn.classList.remove("hidden");
+
+        adoptedBtn.className = "bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl flex items-center gap-2 font-medium transition cursor-pointer";
+        adoptedBtn.innerHTML = `<i class="fa-solid fa-heart"></i> Adopted Pets`;
+
+        archivedBtn.className = "bg-slate-600 hover:bg-slate-700 text-white px-4 py-2.5 rounded-xl flex items-center gap-2 font-medium transition cursor-pointer";
+        archivedBtn.innerHTML = `<i class="fa-solid fa-box-archive"></i> Archived Pets`;
+        statusFilter.value = "";
+    }
 });
 
 // ==========================
@@ -17,6 +98,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 // ==========================
 const modal = document.getElementById("petModal");
 const addPetBtn = document.getElementById("addPetBtn");
+const adoptedBtn = document.getElementById("adoptedPetsBtn");
+const statusFilter = document.getElementById("statusFilter");
 const closePetModal = document.getElementById("closePetModal");
 const cancelPetBtn = document.getElementById("cancelPetBtn");
 const petForm = document.getElementById("petForm");
@@ -43,13 +126,23 @@ const submitButton = petForm.querySelector('button[type="submit"]');
 
 // OPEN MODAL
 addPetBtn.addEventListener("click", () => {
-
     editingPetId = null;
     petForm.reset();
     medicalList = [];
     renderMedicalTable();
     traitsContainer.innerHTML = "";
     personalityTags.value = "";
+
+    // Tanggalin ang required sa hidden adopter inputs
+    const adopterDetailsSection = document.getElementById('adopterDetailsSection');
+    const adopterInputs = document.querySelectorAll('.adopter-input');
+    if (adopterDetailsSection) {
+        adopterDetailsSection.classList.add('hidden');
+        adopterInputs.forEach(input => {
+            input.removeAttribute('required');
+            input.value = '';
+        });
+    }
 
     modalTitle.innerHTML = `
         <i class="fa-solid fa-paw text-blue-700 mr-2"></i>
@@ -63,8 +156,8 @@ addPetBtn.addEventListener("click", () => {
 
     modal.classList.remove("hidden");
     modal.classList.add("flex");
-
 });
+
 // CLOSE BUTTON
 closePetModal.addEventListener("click", closeModal);
 
@@ -77,13 +170,6 @@ modal.addEventListener("click", (e) => {
         closeModal();
     }
 });
-
-// ==========================
-// SET MAX DATE FOR BIRTHDATE
-// ==========================
-const birthDate = document.querySelector('input[name="birth_date"]');
-const today = new Date().toISOString().split("T")[0];
-birthDate.max = today;
 
 // ==========================
 // FORM SUBMIT PLACEHOLDER
@@ -105,6 +191,9 @@ petForm.addEventListener("submit", async (e)=>{
     for (const [key, value] of formData.entries()) {
         console.log(`${key}:`, value);
     }
+
+    // Kunin ang piniling adoption status bago i-reset ang form
+    const selectedAdoptionStatus = petForm.querySelector('select[name="adoption_status"]').value;
 
     try {
 
@@ -136,15 +225,58 @@ petForm.addEventListener("submit", async (e)=>{
             return;
         }
 
-        if(data.success){
+        if (data.success) {
             alert(data.message);
             closeModal();
             petForm.reset();
-             await loadPets();
-        }
 
-        else{
-            alert(data.message);
+            // =======================================================
+            // AUTOMATIC VIEW SWITCHING BASE SA PINILING STATUS
+            // =======================================================
+            const statusFilter = document.getElementById("statusFilter");
+            const addPetBtn = document.getElementById("addPetBtn");
+            const adoptedBtn = document.getElementById("adoptedPetsBtn");
+            const archivedBtn = document.getElementById("archivedPetsBtn");
+
+            if (selectedAdoptionStatus === "Adopted") {
+
+                const contactNumber = petForm.querySelector('input[name="adopter_contact_number"]').value.trim();
+                const emergencyPhone = petForm.querySelector('input[name="adopter_emergency_phone"]').value.trim();
+                
+                // Regex: Dapat eksaktong 11 digits at nagsisimula sa '09'
+                const phPhoneRegex = /^09\d{9}$/;
+
+                if (!phPhoneRegex.test(contactNumber)) {
+                    alert("Please enter a valid Philippine contact number (e.g., 09123456789).");
+                    return;
+                }
+
+                if (!phPhoneRegex.test(emergencyPhone)) {
+                    alert("Please enter a valid Philippine emergency phone number (e.g., 09123456789).");
+                    return;
+                }
+
+                // Ilipat ang view sa Adopted Pets
+                currentViewMode = "adopted";
+                statusFilter?.classList.add("hidden");
+                addPetBtn?.classList.add("hidden");
+
+                if (adoptedBtn) {
+                    adoptedBtn.className = "bg-slate-700 hover:bg-slate-800 text-white px-4 py-2.5 rounded-xl flex items-center gap-2 font-medium transition cursor-pointer";
+                    adoptedBtn.innerHTML = `<i class="fa-solid fa-arrow-left"></i> Active Pets`;
+                }
+                if (archivedBtn) {
+                    archivedBtn.className = "bg-slate-600 hover:bg-slate-700 text-white px-4 py-2.5 rounded-xl flex items-center gap-2 font-medium transition cursor-pointer";
+                    archivedBtn.innerHTML = `<i class="fa-solid fa-box-archive"></i> Archived Pets`;
+                }
+            } else {
+                // Kung Available o Pending: Ibalik sa Active Pets view
+                resetToActiveView();
+            }
+
+            await loadPets();
+        } else {
+            alert(data.message || "Failed to save pet. Please check all required fields.");
         }
     }
 
@@ -155,6 +287,7 @@ petForm.addEventListener("submit", async (e)=>{
         );
     }
 });
+
 // PETS CARD
 async function loadPets() {
     const container = document.getElementById("petsContainer");
@@ -187,8 +320,7 @@ async function loadPets() {
 
         return;
     }
-
-renderPets(allPets);
+    filterPets();
 }
 
 function renderPets(pets) {
@@ -326,68 +458,181 @@ catch(err){
 });
 
 function openPetDetailsModal(pet){
+
+    const editBtn = document.getElementById("editPetBtn");
+    const archiveBtn = document.getElementById("archivePetBtn");
+    const deleteBtn = document.getElementById("deletePetBtn");
+    const viewAppBtn = document.getElementById("viewAdoptionAppBtn");
+
+    // KUNG ADOPTED: Itago ang Edit, Archive, Delete at ipakita ang View Application Button
+    if (pet.adoption_status === "Adopted") {
+        if (editBtn) editBtn.classList.add("hidden");
+        if (archiveBtn) archiveBtn.classList.add("hidden");
+        if (deleteBtn) deleteBtn.classList.add("hidden");
+        
+        if (viewAppBtn) {
+            viewAppBtn.classList.remove("hidden");
+            viewAppBtn.onclick = async () => {
+                try {
+                    const res = await fetch(`/org/pets/${pet.animal_id}/application`);
+                    const data = await res.json();
+
+                    if (data.success && data.application_id) {
+                        // I-store sa sessionStorage gaya ng nasa adoption table
+                        sessionStorage.setItem("selectedApplicationId", data.application_id);
+                        // Redirect sa mismong Adoption Details Page
+                        window.location.href = "/org/adoption-details";
+                    } else {
+                        alert("No adoption application details record found for this pet.");
+                    }
+                } catch (err) {
+                    console.error("Error redirecting to application:", err);
+                    alert("Failed to load application details.");
+                }
+            };
+        }
+    } 
+    // =========================================================================
+    // 2. KUNG ARCHIVED: Tanging "Unarchive" Button lang ang makikita (Walang Edit/Delete)
+    // =========================================================================
+    else if (pet.adoption_status === "Archived") {
+        if (editBtn) editBtn.classList.add("hidden");
+        if (deleteBtn) deleteBtn.classList.add("hidden");
+        if (viewAppBtn) viewAppBtn.classList.add("hidden");
+        
+        if (archiveBtn) {
+            archiveBtn.classList.remove("hidden");
+            archiveBtn.innerHTML = `<i class="fa-solid fa-box-open mr-2"></i> Unarchive Record`;
+            archiveBtn.className = "bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition cursor-pointer";
+
+            archiveBtn.onclick = async () => {
+                if (!confirm(`Do you want to restore ${pet.name} back to Active Pets?`)) return;
+
+                try {
+                    const storedPrevStatus = archiveBtn.dataset.prevStatus || null;
+
+                    const res = await fetch(`/org/pets/archive/${pet.animal_id}`, {
+                        method: "PATCH",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ status: "Restore", prevStatus: storedPrevStatus })
+                    });
+
+                    const data = await res.json();
+                    if (data.success) {
+                        alert(data.message);
+                        closeViewPetModal();
+                        await loadPets();
+                    } else {
+                        alert(data.message);
+                    }
+                } catch (err) {
+                    console.error("UNARCHIVE ERROR:", err);
+                    alert("Failed to unarchive pet.");
+                }
+            };
+        }
+    } else {
+       // 3. KUNG ACTIVE (Available / Pending): Ipakita ang Edit, Archive, Delete
+        if (editBtn) editBtn.classList.remove("hidden");
+        if (deleteBtn) deleteBtn.classList.remove("hidden");
+        if (viewAppBtn) viewAppBtn.classList.add("hidden");
+    
+        if (archiveBtn) {
+            archiveBtn.classList.remove("hidden");
+            archiveBtn.innerHTML = `<i class="fa-solid fa-box-archive mr-2"></i> Archive Record`;
+            archiveBtn.className = "bg-slate-600 hover:bg-slate-700 text-white px-6 py-2 rounded-lg font-medium transition cursor-pointer";
+
+            // Itabi ang kasalukuyang status (Pending o Available) sa button dataset
+            archiveBtn.dataset.prevStatus = pet.adoption_status;
+
+            archiveBtn.onclick = async () => {
+                if (!confirm(`Are you sure you want to archive ${pet.name}?`)) return;
+
+                try {
+                    const res = await fetch(`/org/pets/archive/${pet.animal_id}`, {
+                        method: "PATCH",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ status: "Archived", prevStatus: pet.adoption_status })
+                    });
+
+                    const data = await res.json();
+                    if (data.success) {
+                        alert(data.message);
+                        closeViewPetModal();
+                        await loadPets();
+                    } else {
+                        alert(data.message);
+                    }
+                } catch (err) {
+                    console.error("ARCHIVE ERROR:", err);
+                    alert("Failed to archive pet.");
+                }
+            };
+        }
+    }
+
     document.getElementById("editPetBtn").onclick = () => {
 
-    editingPetId = pet.animal_id;
-    document.getElementById("animal_id").value = pet.animal_id;
-    petForm.name.value = pet.name;
-    petForm.species.value = pet.species;
-    petForm.gender.value = pet.gender;
-    petForm.age.value = pet.age;
-    petForm.birth_date.value = pet.birth_date
-        ? pet.birth_date.split("T")[0]
-        : "";
-    petForm.color.value = pet.color || "";
-    petForm.health_status.value = pet.health_status;
-    petForm.vaccination_status.value = pet.vaccination_status;
-    petForm.adoption_status.value = pet.adoption_status;
-    petForm.pet_description.value = pet.pet_description || "";
-    traitsContainer.innerHTML = "";
+        editingPetId = pet.animal_id;
+        document.getElementById("animal_id").value = pet.animal_id;
+        petForm.name.value = pet.name;
+        petForm.species.value = pet.species;
+        petForm.gender.value = pet.gender;
+        petForm.age.value = pet.age;
+        petForm.color.value = pet.color || "";
+        petForm.health_status.value = pet.health_status;
+        petForm.vaccination_status.value = pet.vaccination_status;
+        petForm.adoption_status.value = pet.adoption_status;
+        petForm.pet_description.value = pet.pet_description || "";
+        traitsContainer.innerHTML = "";
 
-    if (pet.personality_tags) {
-        pet.personality_tags
-            .split(",")
-            .forEach(tag => addTrait(tag.trim()));
-    }
-
-    medicalList = pet.medical_history ? [...pet.medical_history] : [];
-    renderMedicalTable();
-
-    modalTitle.innerHTML = `
-        <i class="fa-solid fa-pen text-amber-500 mr-2"></i>
-        Edit Pet
-    `;
-    submitButton.innerHTML = `
-        <i class="fa-solid fa-floppy-disk mr-2"></i>
-        Save Changes
-    `;
-    closeViewPetModal();
-    modal.classList.remove("hidden");
-    modal.classList.add("flex");
-};
-document.getElementById("deletePetBtn").onclick = async () => {
-    const confirmed = confirm(
-        `Are you sure you want to delete ${pet.name}?`
-    );
-    if (!confirmed) return;
-    try {
-        const res = await fetch(`/org/pets/delete/${pet.animal_id}`, {
-            method: "DELETE"
-        });
-        const data = await res.json();
-        if (data.success) {
-            alert(data.message);
-            closeViewPetModal();
-            await loadPets();
-        } else {
-            alert(data.message);
+        if (pet.personality_tags) {
+            pet.personality_tags
+                .split(",")
+                .forEach(tag => addTrait(tag.trim()));
         }
-    } catch (err) {
-        console.error("DELETE ERROR:", err);
-        alert(err.message);
-    }
 
-};
+        medicalList = pet.medical_history ? [...pet.medical_history] : [];
+        renderMedicalTable();
+
+        modalTitle.innerHTML = `
+            <i class="fa-solid fa-pen text-amber-500 mr-2"></i>
+            Edit Pet
+        `;
+        submitButton.innerHTML = `
+            <i class="fa-solid fa-floppy-disk mr-2"></i>
+            Save Changes
+        `;
+        closeViewPetModal();
+        modal.classList.remove("hidden");
+        modal.classList.add("flex");
+    };
+
+    document.getElementById("deletePetBtn").onclick = async () => {
+        const confirmed = confirm(
+            `Are you sure you want to delete ${pet.name}?`
+        );
+        if (!confirmed) return;
+        try {
+            const res = await fetch(`/org/pets/delete/${pet.animal_id}`, {
+                method: "DELETE"
+            });
+            const data = await res.json();
+            if (data.success) {
+                alert(data.message);
+                closeViewPetModal();
+                await loadPets();
+            } else {
+                alert(data.message);
+            }
+        } catch (err) {
+            console.error("DELETE ERROR:", err);
+            alert(err.message);
+        }
+
+    };
+
+    // DISPLAY PET DETAILS TO MODAL
     const viewModal = document.getElementById("viewPetModal");
 
     document.getElementById("viewPetImage").src =
@@ -405,9 +650,6 @@ document.getElementById("deletePetBtn").onclick = async () => {
 
     document.getElementById("viewColor").textContent =
         pet.color || "Unknown";
-
-    document.getElementById("viewBirthDate").textContent =
-        pet.birth_date || "Unknown";
 
     document.getElementById("viewVaccination").textContent =
         pet.vaccination_status;
@@ -590,7 +832,19 @@ function closeModal(){
     traitsContainer.innerHTML = "";
     personalityTags.value = "";
 
+    // LIGTAS NA PAG-RESET NG ADOPTER DETAILS
+    const adopterDetailsSection = document.getElementById('adopterDetailsSection');
+    const adopterInputs = document.querySelectorAll('.adopter-input');
+
+    if (adopterDetailsSection) {
+        adopterDetailsSection.classList.add('hidden');
+        adopterInputs.forEach(input => {
+            input.removeAttribute('required'); // Inaalis ang required para hindi harangin ng browser validation
+            input.value = '';
+        });
+    }
 }
+
 function updateTraitField() {
 
     const tags = [...traitsContainer.querySelectorAll(".trait-tag")]
@@ -670,8 +924,8 @@ function renderMedicalTable() {
         `;
 
     });
-
 }
+
 function removeMedical(index) {
 
     medicalList.splice(index, 1);
@@ -682,6 +936,7 @@ function removeMedical(index) {
 const searchInput = document.getElementById("searchPet");
 
 searchInput.addEventListener("input", filterPets);
+
 function filterPets() {
 
     const keyword = document
@@ -709,15 +964,19 @@ function filterPets() {
                 .toLowerCase()
                 .includes(keyword);
 
-        const matchesStatus =
-            !status || pet.adoption_status === status;
+        const matchesSpecies = !species || pet.species === species;
 
-        const matchesSpecies =
-            !species || pet.species === species;
+        if (currentViewMode === "adopted") {
+            return matchesSearch && matchesSpecies && pet.adoption_status === "Adopted";
+        } else if (currentViewMode === "archived") {
+            return matchesSearch && matchesSpecies && pet.adoption_status === "Archived";
+        } else {
+            // ACTIVE PETS VIEW (Exclude Adopted & Archived)
+            const isNotAdoptedOrArchived = pet.adoption_status !== "Adopted" && pet.adoption_status !== "Archived";
+            const matchesStatus = !status || pet.adoption_status === status;
 
-        return matchesSearch &&
-               matchesStatus &&
-               matchesSpecies;
+            return matchesSearch && matchesSpecies && isNotAdoptedOrArchived && matchesStatus;
+        }
     });
 
     renderPets(filtered);

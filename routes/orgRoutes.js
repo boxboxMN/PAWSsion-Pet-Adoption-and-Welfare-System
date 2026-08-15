@@ -7,9 +7,11 @@ const { uploadPet, uploadQR, uploadDropoff } = require('../config/upload');
 const { 
     addPet, 
     updatePet, 
-    deletePet, 
+    deletePet,
+    archivePet, 
     getPets, 
     getPetDetails,
+    getApplicationByAnimalId,
     getDonations, 
     getDashboardStats,
     getPaymentInfo,
@@ -419,5 +421,65 @@ router.patch('/applications/:id/reject-reschedule', async (req, res) => {
         res.status(500).json({ success: false, message: "Server error." });
     }
 });
+
+// Export Applications Summary API
+router.get("/applications/export/summary", async (req, res) => {
+    try {
+        const accountId = req.session?.accountId;
+        if (!accountId) {
+            return res.status(401).json({ error: "Unauthorized access." });
+        }
+
+        const [orgRows] = await pool.query(
+            `SELECT organization_id FROM organizations WHERE account_id = ?`,
+            [accountId]
+        );
+
+        if (!orgRows.length) {
+            return res.status(404).json({ error: "Organization not found." });
+        }
+
+        const orgId = orgRows[0].organization_id;
+
+        const query = `
+            SELECT 
+                app.application_id,
+                CONCAT(adopt.first_name, ' ', adopt.last_name) AS applicant_name,
+                acc.email AS applicant_email,
+                app.contact_number,
+                p.name AS pet_name,
+                p.species AS pet_species,
+                app.status,
+                DATE_FORMAT(app.created_at, '%Y-%m-%d %h:%i %p') AS applied_at
+            FROM user_adoption_applications app
+            LEFT JOIN adopters adopt ON app.adopter_id = adopt.adopter_id
+            LEFT JOIN accounts acc ON adopt.account_id = acc.account_id
+            INNER JOIN animals p ON app.animal_id = p.animal_id
+            WHERE p.organization_id = ?
+            ORDER BY app.created_at DESC;
+        `;
+
+        const [rows] = await pool.query(query, [orgId]);
+
+        // Construct CSV
+        let csv = "Application ID,Applicant Name,Email,Contact Number,Pet Name,Species,Status,Applied At\n";
+        rows.forEach(r => {
+            csv += `"${r.application_id}","${r.applicant_name}","${r.applicant_email}","${r.contact_number}","${r.pet_name}","${r.pet_species}","${r.status}","${r.applied_at}"\n`;
+        });
+
+        res.setHeader("Content-Type", "text/csv; charset=utf-8");
+        res.setHeader("Content-Disposition", `attachment; filename=Adoption_Summary_${Date.now()}.csv`);
+        return res.status(200).send("\uFEFF" + csv);
+
+    } catch (error) {
+        console.error("Export Error:", error);
+        res.status(500).json({ error: "Failed to generate export." });
+    }
+});
+
+// Add Archive Route
+router.patch("/pets/archive/:id", archivePet);
+
+router.get("/pets/:animalId/application", getApplicationByAnimalId);
 
 module.exports = router;

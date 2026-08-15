@@ -12,7 +12,6 @@ exports.addPet = async (req, res) => {
             species,
             gender,
             age,
-            birth_date,
             color,
             pet_description,
             health_status,
@@ -23,6 +22,13 @@ exports.addPet = async (req, res) => {
         } = req.body;
 
         console.log("Received tags:", personality_tags);
+
+        if (!name || !species || !gender || !age) {
+            return res.status(400).json({
+                success: false,
+                message: "Please fill out all required fields (Pet Name, Species, Gender, Age Group)."
+            });
+        }
 
         // Get organization using logged account
         const [org] = await pool.query(
@@ -66,7 +72,6 @@ exports.addPet = async (req, res) => {
                 species,
                 gender,
                 age,
-                birth_date,
                 color,
                 pet_description,
                 health_status,
@@ -75,7 +80,7 @@ exports.addPet = async (req, res) => {
                 image_path,
                 personality_tags
             )
-            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?)
             `,
             [
                 organization_id,
@@ -83,12 +88,11 @@ exports.addPet = async (req, res) => {
                 species,
                 gender,
                 age,
-                birth_date || null,
                 color || null,
                 pet_description || null,
-                health_status,
-                vaccination_status,
-                adoption_status,
+                health_status || 'Healthy',
+                vaccination_status || 'Unknown',
+                adoption_status || 'Available',
                 image_path,
                 personality_tags || null
             ]
@@ -98,34 +102,99 @@ exports.addPet = async (req, res) => {
 
             // Get the newly inserted pet ID
             const animal_id = result.insertId;
+
+            // KUNG 'ADOPTED' ANG PINILI, ISAVE DIN ANG ADOPTER DETAILS SA USER_ADOPTION_APPLICATIONS TABLE
+            if (adoption_status === 'Adopted' && req.body.adopter_full_name) {
+
+                const phPhoneRegex = /^09\d{9}$/;
+                const contactNum = req.body.adopter_contact_number ? req.body.adopter_contact_number.trim() : '';
+                const emergencyNum = req.body.adopter_emergency_phone ? req.body.adopter_emergency_phone.trim() : '';
+
+                if (!phPhoneRegex.test(contactNum)) {
+                    return res.status(400).json({
+                        success: false,
+                        message: "Invalid Contact Number. It must be an 11-digit Philippine mobile number starting with 09."
+                    });
+                }
+
+                if (!phPhoneRegex.test(emergencyNum)) {
+                    return res.status(400).json({
+                        success: false,
+                        message: "Invalid Emergency Phone Number. It must be an 11-digit Philippine mobile number starting with 09."
+                    });
+                }
+
+                await pool.query(
+                    `
+                    INSERT INTO user_adoption_applications
+                    (
+                        adopter_id,
+                        organization_id,
+                        animal_id,
+                        full_name,
+                        contact_number,
+                        email,
+                        full_address,
+                        civil_status,
+                        age,
+                        occupation,
+                        emergency_name,
+                        emergency_phone,
+                        emergency_relation,
+                        status
+                    )
+                    VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Approved')
+                    `,
+                    [
+                        organization_id,
+                        animal_id,
+                        req.body.adopter_full_name,
+                        req.body.adopter_contact_number,
+                        req.body.adopter_email,
+                        req.body.adopter_full_address,
+                        req.body.adopter_civil_status,
+                        req.body.adopter_age,
+                        req.body.adopter_occupation,
+                        req.body.adopter_emergency_name,
+                        req.body.adopter_emergency_phone,
+                        req.body.adopter_emergency_relation
+                    ]
+                );
+            }
+
             // ============================
             // Generate embedding
             // ============================
-            console.log("Generating embedding...");
+            try {
+                console.log("Generating embedding...");
 
-            const embedding = await generateEmbedding(
-                pet_description || ""
-            );
+                const embedding = await generateEmbedding(
+                    pet_description || ""
+                );
 
-            console.log("Embedding generated.");
+                console.log("Embedding generated.");
 
-            // Save embedding
-            await pool.query(
-                `
-                INSERT INTO animal_embeddings
-                (
-                    animal_id,
-                    embedding
-                )
-                VALUES (?, ?)
-                `,
-                [
-                    animal_id,
-                    JSON.stringify(embedding)
-                ]
-            );
+                // Save embedding
+                await pool.query(
+                    `
+                    INSERT INTO animal_embeddings
+                    (
+                        animal_id,
+                        embedding
+                    )
+                    VALUES (?, ?)
+                    `,
+                    [
+                        animal_id,
+                        JSON.stringify(embedding)
+                    ]
+                );
 
-            console.log("Embedding saved.");
+                console.log("Embedding saved.");
+
+            } catch (embedErr) {
+                console.warn("⚠️ Embedding service offline or skipped:", embedErr.message);
+            }
 
         // Parse medical history from frontend
         const medicalHistory = medical_history
@@ -165,7 +234,8 @@ exports.addPet = async (req, res) => {
 
         res.status(500).json({
             success: false,
-            message: error.message
+            success: false,
+            message: error.message || "Failed to add pet. Please make sure all required fields are complete."
         });
     }
 };
@@ -292,7 +362,15 @@ exports.getPetDetails = async (req, res) => {
 
         // Get medical history
         const [medical] = await pool.query(
-            `SELECT * FROM animal_medical_history WHERE animal_id = ? ORDER BY administered_date DESC`,
+            `SELECT 
+                medical_id,
+                animal_id,
+                treatment,
+                DATE_FORMAT(administered_date, '%Y-%m-%d') AS administered_date,
+                administered_by
+             FROM animal_medical_history 
+             WHERE animal_id = ? 
+             ORDER BY administered_date DESC`,
             [req.params.id]
         );
 
@@ -315,7 +393,6 @@ exports.updatePet = async (req, res) => {
             species,
             gender,
             age,
-            birth_date,
             color,
             pet_description,
             health_status,
@@ -358,7 +435,6 @@ exports.updatePet = async (req, res) => {
             species,
             gender,
             age,
-            birth_date || null,
             color || null,
             pet_description || null,
             health_status,
@@ -395,7 +471,6 @@ exports.updatePet = async (req, res) => {
                 species=?,
                 gender=?,
                 age=?,
-                birth_date=?,
                 color=?,
                 pet_description=?,
                 health_status=?,
@@ -423,19 +498,22 @@ exports.updatePet = async (req, res) => {
         // =====================================================
         // UPDATE PET EMBEDDING
         // =====================================================
+        try {
+            const embedding = await generateEmbedding(pet_description || "");
 
-        const embedding = await generateEmbedding(pet_description || "");
-
-        await pool.query(
-            `
-            INSERT INTO animal_embeddings (animal_id, embedding)
-            VALUES (?, ?)
-            ON DUPLICATE KEY UPDATE
-                embedding = VALUES(embedding),
-                updated_at = CURRENT_TIMESTAMP
-            `,
-            [id, JSON.stringify(embedding)]
-        );
+            await pool.query(
+                `
+                INSERT INTO animal_embeddings (animal_id, embedding)
+                VALUES (?, ?)
+                ON DUPLICATE KEY UPDATE
+                    embedding = VALUES(embedding),
+                    updated_at = CURRENT_TIMESTAMP
+                `,
+                [id, JSON.stringify(embedding)]
+            );
+        } catch (embedErr) {
+            console.warn("⚠️ Embedding service offline or skipped:", embedErr.message);
+        }
 
         // =====================================================
         // UPDATE MEDICAL HISTORY
@@ -1720,6 +1798,148 @@ exports.getAnalyticsData = async (req, res) => {
             message: "Failed to load analytics.",
             details: err.message
         });
+    }
+};
+
+// ==========================================
+// ARCHIVE / UNARCHIVE PET CONTROLLER
+// ==========================================
+exports.archivePet = async (req, res) => {
+    try {
+        const id = req.params.id;
+        const { status, prevStatus} = req.body; // 'Archived' o 'Restore' / 'Available'[cite: 70]
+
+        // 1. Check organization ownership
+        const [org] = await pool.query(
+            `SELECT organization_id FROM organizations WHERE account_id = ?`,
+            [req.session.accountId]
+        );
+
+        if (!org.length) {
+            return res.status(403).json({
+                success: false,
+                message: "Organization not found."
+            });
+        }
+
+        const organizationId = org[0].organization_id;
+
+        if (status === 'Archived') {
+            // KAPAG I-AARCHIVE
+            await pool.query(
+                `UPDATE animals SET adoption_status = 'Archived' WHERE animal_id = ? AND organization_id = ?`,
+                [id, organizationId]
+            );
+
+            return res.json({
+                success: true,
+                message: "Pet has been archived successfully."
+            });
+        } else {
+            // KAPAG I-UUNARCHIVE: Aalamin ang dating status mula sa applications table
+            const [applications] = await pool.query(
+                `SELECT status FROM user_adoption_applications 
+                 WHERE animal_id = ? 
+                 ORDER BY application_id DESC LIMIT 1`,
+                [id]
+            );
+
+            let restoredStatus = prevStatus || 'Available';
+
+            // Kung hindi naipasa o 'Archived' ang naipasa, tingnan sa applications table
+            if (!prevStatus || prevStatus === 'Archived') {
+                const [applications] = await pool.query(
+                    `SELECT status FROM user_adoption_applications 
+                     WHERE animal_id = ? 
+                     ORDER BY application_id DESC LIMIT 1`,
+                    [id]
+                );
+
+                if (applications.length > 0) {
+                    const appStatus = (applications[0].status || '').toLowerCase();
+
+                    // Kung may active application pa -> PENDING
+                    if (appStatus.includes('review') || appStatus.includes('interview') || appStatus.includes('scheduled')) {
+                        restoredStatus = 'Pending';
+                    } else if (appStatus.includes('approved')) {
+                        restoredStatus = 'Adopted';
+                    }
+                }
+            }
+
+            // I-UPDATE SA TOTOONG DATING STATUS (Pending o Available)
+            await pool.query(
+                `UPDATE animals SET adoption_status = ? WHERE animal_id = ? AND organization_id = ?`,
+                [restoredStatus, id, organizationId]
+            );
+
+            return res.json({
+                success: true,
+                message: `Pet successfully restored with status: ${restoredStatus}.`
+            });
+        }
+
+    } catch (err) {
+        console.error("ARCHIVE PET ERROR:", err);
+        res.status(500).json({
+            success: false,
+            message: err.message
+        });
+    }
+};
+
+// ==========================================
+// GET APPLICATION ID BY ANIMAL ID
+// ==========================================
+exports.getApplicationByAnimalId = async (req, res) => {
+    try {
+        const animalId = req.params.animalId;
+        const accountId = req.session?.accountId;
+
+        if (!accountId) {
+            return res.status(401).json({ success: false, message: "Unauthorized." });
+        }
+
+        // Kunin ang organization_id
+        const [org] = await pool.query(
+            `SELECT organization_id FROM organizations WHERE account_id = ?`,
+            [accountId]
+        );
+
+        if (!org.length) {
+            return res.status(404).json({ success: false, message: "Organization not found." });
+        }
+
+        const organizationId = org[0].organization_id;
+
+        // Kunin ang approved application ng animal na ito
+        const [rows] = await pool.query(
+            `
+            SELECT app.application_id
+            FROM user_adoption_applications app
+            INNER JOIN animals a ON app.animal_id = a.animal_id
+            WHERE app.animal_id = ? AND a.organization_id = ?
+            ORDER BY app.application_id DESC
+            LIMIT 1
+            `,
+            [animalId, organizationId]
+        );
+
+        if (!rows.length) {
+            return res.status(404).json({
+                success: false,
+                message: "No adoption application found for this pet."
+            });
+        }
+
+        res.json({
+            success: true,
+            application_id: rows[0].application_id
+        });
+
+    } catch (error) {
+        console.error("Get Application By Animal Error:", error);
+        res.status(500).json({ success: false, message: "Server error." });
     }
 };
 exports.getKamustahanUpdates = async (req, res) => {
