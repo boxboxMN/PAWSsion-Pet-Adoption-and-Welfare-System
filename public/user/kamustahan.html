@@ -4,171 +4,206 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Kamustahan Update</title>
-
-    <!-- Tailwind via CDN -->
+    <title>Kamustahan Center - Pet Adoption Update</title>
     <script src="https://cdn.tailwindcss.com"></script>
-
-    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
-
-    <!-- Google Font: Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet" />
-
     <style>
-        *{
-    box-sizing:border-box;
-        }
-
-        html{
-            scroll-behavior:smooth;
-        }
-
-        body{
-            margin:0;
-            overscroll-behavior:none;
-           visibility:hidden;
-
-            }
+        *{ box-sizing:border-box; }
+        html{ scroll-behavior:smooth; }
+        body{ margin:0; overscroll-behavior:none; visibility:hidden; font-family: 'Inter', sans-serif; }
         input:focus, select:focus, textarea:focus {
             outline: none;
             border-color: #3b82f6;
-            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
         }
-        #sidebar,
-        #header{
-            visibility:hidden;
-        }
+        #sidebar, #header{ visibility:hidden; }
     </style>
 </head>
 
-<body class="bg-gray-100 h-full overflow-hidden">
+<body class="bg-gradient-to-br from-slate-100 via-blue-50/20 to-indigo-50/30 h-full overflow-hidden">
 
-    <!-- ===== SIDEBAR ===== -->
-    <div
-        id="sidebar"
-        class="fixed left-0 top-0 w-64 h-screen bg-white border-r border-gray-200 z-50">
-    </div>
+    <div id="sidebar" class="fixed left-0 top-0 w-64 h-screen bg-white border-r border-slate-200 z-50 shadow-sm"></div>
 
-    <!-- ===== MAIN CONTENT ===== -->
-    <main class="ml-64 pt-24 h-screen overflow-hidden bg-gray-50">
+    <main class="ml-64 pt-24 h-screen overflow-hidden">
+        <div id="header" class="fixed top-0 left-64 right-0 h-24 bg-white/80 backdrop-blur-md border-b border-slate-200/80 z-40"></div>
 
-        <!-- ===== HEADER ===== -->
-      <div
-        id="header"
-        class="fixed top-0 left-64 right-0 h-24 bg-white border-b border-gray-200 z-40">
-    </div>
-
-        <!-- ===== KAMUSTAHAN UPDATE FORM ===== -->
-        <div class="absolute top-24 left-64 right-0 bottom-0 overflow-y-auto p-8 bg-gray-50">
-            <div class="max-w-6xl mx-auto">
-                <!-- TOP FIELDS -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-                    <!-- PET SELECT -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
-                            Select Adopted Pet
-                        </label>
-                        <select class="w-full border border-gray-300 rounded-lg px-4 py-3 bg-white">
-                            <option>Charlie</option>
-                            <option>Max</option>
-                            <option>Luna</option>
-                        </select>
+        <div class="absolute top-24 left-64 right-0 bottom-0 overflow-y-auto p-8">
+            <div class="max-w-5xl mx-auto pb-16">
+                
+                <!-- PROFESSIONAL BANNER -->
+                <div class="bg-gradient-to-r from-blue-700 to-indigo-800 rounded-3xl p-8 text-white mb-8 shadow-xl shadow-blue-900/10 flex flex-col md:flex-row items-center justify-between gap-6 border border-white/10">
+                    <div class="space-y-1.5">
+                        <span class="bg-white/15 text-blue-100 text-xs font-semibold px-3.5 py-1 rounded-full uppercase tracking-wider backdrop-blur-sm border border-white/10">Adopter Portal</span>
+                        <h1 class="text-3xl font-bold tracking-tight">Kamustahan Center</h1>
+                        <p class="text-blue-100 text-sm max-w-xl">Share official milestone updates, well-being reports, and photos of your adopted pet for monitoring and verification.</p>
                     </div>
-
-                    <!-- DATE -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
-                            Date of Update
-                        </label>
-                        <div class="relative">
-                            <input
-                                type="date"
-                                class="w-full border border-gray-300 rounded-lg px-4 py-3 bg-white"
-                            />
-                            <i class="fas fa-calendar-alt absolute right-4 top-4 text-gray-400"></i>
-                        </div>
-                    </div>
-
-                </div>
-
-                <!-- PET UPDATE (Textarea) -->
-                <div class="mt-8">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                        Please share your pet's doing
-                    </label>
-                    <textarea
-                        rows="4"
-                        placeholder="Charlie is doing great! He's eating well, very active, and already loves playing in the backyard."
-                        class="w-full border border-gray-300 rounded-lg px-4 py-3 resize-none bg-white"
-                    ></textarea>
-                </div>
-
-                <!-- PHOTO UPLOAD -->
-                <div class="mt-8">
-                    <label class="block text-sm font-medium text-gray-700 mb-3">
-                        Upload photo - at least 1 photo
-                    </label>
-
-                    <div class="flex gap-4 flex-wrap">
-                        <!-- ADD PHOTO -->
-                        <label class="w-32 h-32 border border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition bg-white">
-                            <i class="fas fa-image text-2xl text-gray-500 mb-2"></i>
-                            <span class="text-sm text-gray-600">Add Photo</span>
-                            <input type="file" class="hidden" />
-                        </label>
-                    </div>
-                </div>
-
-                <!-- REMINDER -->
-                <div class="mt-8 bg-blue-50 border border-blue-100 rounded-lg p-4 flex gap-3">
-                    <i class="fas fa-info-circle text-blue-600 mt-1"></i>
-                    <div>
-                        <h3 class="text-sm font-semibold text-blue-700">Reminder</h3>
-                        <p class="text-sm text-gray-600 mt-1">
-                            Please upload at least 1 photo of your pet.
-                            Photos help us see how your pet is adjusting to their new home.
-                        </p>
-                    </div>
-                </div>
-
-                <!-- SUBMIT BUTTON -->
-                <div class="mt-8">
-                    <button class="w-full bg-blue-700 hover:bg-blue-800 text-white py-3 rounded-lg font-medium transition">
-                        Submit
+                    <button onclick="openHistoryModal()" class="bg-white/10 hover:bg-white/20 border border-white/25 text-white px-6 py-3.5 rounded-2xl text-sm font-semibold transition duration-200 flex items-center gap-2.5 backdrop-blur-md shadow-sm group shrink-0">
+                        <i class="fas fa-history group-hover:-rotate-45 transition-transform"></i> View Update History
                     </button>
+                </div>
+
+                <!-- FORM CONTAINER -->
+                <div class="bg-white/90 backdrop-blur-xl rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-200/70 p-8 md:p-10">
+                    
+                    <!-- UI ALERT / MESSAGE BOX (Replaces browser alert) -->
+                    <div id="uiAlertBox" class="hidden mb-6 p-4 rounded-2xl border text-sm flex items-start gap-3 transition-all">
+                        <i id="uiAlertIcon" class="fas fa-exclamation-circle mt-0.5 text-lg shrink-0"></i>
+                        <div class="flex-1">
+                            <span id="uiAlertTitle" class="font-bold block mb-0.5">Notice</span>
+                            <p id="uiAlertMessage" class="leading-relaxed"></p>
+                        </div>
+                        <button onclick="hideUiAlert()" class="text-slate-400 hover:text-slate-600 transition">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+
+                    <form id="kamustahanForm" class="space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- PET SELECT -->
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-2">
+                                    <i class="fas fa-dog text-blue-600 mr-1.5"></i> Select Adopted Pet <span class="text-rose-500">*</span>
+                                </label>
+                                <select id="petSelect" name="animal_id" required class="w-full border border-slate-200 rounded-2xl px-4 py-3.5 bg-slate-50/50 text-slate-800 font-medium focus:bg-white transition">
+                                    <option value="">Loading approved pets...</option>
+                                </select>
+                                <input type="hidden" id="orgIdInput" name="organization_id">
+                            </div>
+
+                            <!-- DATE (PH TIME LOCKED) -->
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-2">
+                                    <i class="fas fa-calendar-alt text-blue-600 mr-1.5"></i> Date of Update (Philippine Standard Time) <span class="text-rose-500">*</span>
+                                </label>
+                                <input type="date" id="updateDate" name="update_date" required readonly class="w-full border border-slate-200 rounded-2xl px-4 py-3.5 bg-slate-100 text-slate-600 font-medium cursor-not-allowed" />
+                            </div>
+                        </div>
+
+                        <!-- PET UPDATE (Textarea) -->
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">
+                                <i class="fas fa-comment-dots text-blue-600 mr-1.5"></i> How is your pet doing? <span class="text-rose-500">*</span>
+                            </label>
+                            <textarea id="updateText" name="update_text" rows="4" required placeholder="Describe their current condition, behavior, meals, or favorite activities..." class="w-full border border-slate-200 rounded-2xl p-4 bg-slate-50/50 resize-none text-slate-800 font-medium focus:bg-white transition"></textarea>
+                        </div>
+
+                        <!-- PHOTO UPLOAD SECTION -->
+                        <div>
+                            <div class="flex items-center justify-between mb-3">
+                                <label class="block text-sm font-semibold text-slate-700">
+                                    <i class="fas fa-image text-blue-600 mr-1.5"></i> Upload Pet Photo <span class="text-rose-500">*</span>
+                                </label>
+                                <span id="fileCountBadge" class="bg-blue-50 text-blue-700 text-xs font-bold px-3 py-1 rounded-full border border-blue-100">0 selected</span>
+                            </div>
+                            
+                            <div id="previewContainer" class="flex gap-4 flex-wrap items-center">
+                                <!-- ADD PHOTO BUTTON -->
+                                <label class="w-32 h-32 border-2 border-dashed border-slate-300 rounded-2xl flex flex-col items-center justify-center cursor-pointer hover:border-blue-500 hover:bg-blue-50/30 transition duration-200 bg-slate-50/50 group">
+                                    <i class="fas fa-camera text-2xl text-slate-400 group-hover:text-blue-600 mb-1.5 transition-colors"></i>
+                                    <span class="text-xs font-semibold text-slate-500 group-hover:text-blue-600">Select Image</span>
+                                    <input type="file" id="photoInput" name="photos" accept="image/*" class="hidden" />
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- GUIDELINES NOTICE -->
+                        <div class="bg-blue-50/60 backdrop-blur-sm border border-blue-100 rounded-2xl p-4 flex gap-3.5 items-start">
+                            <i class="fas fa-info-circle text-blue-600 mt-1 text-base shrink-0"></i>
+                            <div class="text-xs text-blue-900 leading-relaxed">
+                                <span class="font-bold block mb-0.5">Submission Guideline:</span>
+                                Please ensure the uploaded image clearly displays your adopted pet. You can replace the selected image anytime before final submission by clicking the removal option.
+                            </div>
+                        </div>
+
+                        <!-- SUBMIT BUTTON -->
+                        <div class="pt-2">
+                            <button type="submit" id="submitBtn" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white py-4 rounded-2xl font-bold shadow-lg shadow-blue-500/25 transition duration-200 flex items-center justify-center gap-2.5">
+                                <i class="fas fa-paper-plane"></i> Submit Pet Update
+                            </button>
+                        </div>
+                    </form>
                 </div>
 
             </div>
         </div>
-
     </main>
 
-    <!-- ===== LOAD SIDEBAR & HEADER ===== -->
-<script src="/assets/js/userSidebar.js"></script>
-<script>
-document.addEventListener("DOMContentLoaded", async () => {
+    <!-- SUCCESS MODAL POPUP -->
+    <div id="successModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center z-50 p-4 overflow-y-auto">
+        <div class="bg-white rounded-3xl p-8 max-w-lg w-full text-center shadow-2xl border border-slate-100 transform transition-all my-8">
+            <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-4 text-2xl shadow-inner">
+                <i class="fas fa-check"></i>
+            </div>
+            <h3 class="text-2xl font-bold text-slate-900 mb-1">Update Submitted Successfully!</h3>
+            <p class="text-sm text-slate-600 mb-6">Your pet condition report has been recorded in Philippine Standard Time.</p>
+            
+            <div class="bg-slate-50 rounded-2xl p-4 text-left border border-slate-200/80 mb-6 space-y-3">
+                <div>
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Selected Pet:</span>
+                    <p id="modalPetName" class="text-sm font-semibold text-slate-800">-</p>
+                </div>
+                <div>
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Timestamp (PST):</span>
+                    <p id="modalTimestamp" class="text-xs font-medium text-slate-700">-</p>
+                </div>
+                <div>
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Message:</span>
+                    <p id="modalUpdateText" class="text-xs text-slate-600 italic bg-white p-2.5 rounded-xl border border-slate-100 max-h-24 overflow-y-auto">-</p>
+                </div>
+                <div>
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Uploaded Photo:</span>
+                    <div id="modalImagesGrid" class="flex gap-2 overflow-x-auto py-1"></div>
+                </div>
+            </div>
 
-    // Wait until sidebar + header are loaded
-    await loadSidebar();
+            <button onclick="closeSuccessModal()" class="w-full bg-slate-900 hover:bg-slate-800 text-white py-3.5 rounded-2xl font-semibold transition shadow-md">
+                Done / Close
+            </button>
+        </div>
+    </div>
 
-    // Wait one tick so the header HTML exists
-    requestAnimationFrame(() => {
+    <!-- HISTORY / POSTS MODAL -->
+    <div id="historyModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center z-50 p-4 overflow-y-auto">
+        <div class="bg-white rounded-3xl p-6 md:p-8 max-w-3xl w-full shadow-2xl border border-slate-100 transform transition-all my-8 max-h-[85vh] flex flex-col">
+            <div class="flex items-center justify-between pb-4 border-b border-slate-100 mb-4">
+                <div>
+                    <h3 class="text-xl font-bold text-slate-900">Kamustahan History Log</h3>
+                    <p class="text-xs text-slate-500">Chronological history of your previously submitted updates.</p>
+                </div>
+                <button onclick="closeHistoryModal()" class="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 transition">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
 
-        // Set page title
-        loadTopbar({
-            title: "Kamustahan",
-            subtitle: "Share updates about your adopted pet."
-        });
+            <div id="historyFeedContainer" class="overflow-y-auto flex-1 space-y-4 pr-1">
+                <div class="text-center py-12 text-slate-400">
+                    <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
+                    <p class="text-sm">Loading history records...</p>
+                </div>
+            </div>
 
-        document.body.style.visibility = "visible";
-    });
+            <div class="pt-4 border-t border-slate-100 mt-4 text-right">
+                <button onclick="closeHistoryModal()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-6 py-2.5 rounded-xl text-sm font-semibold transition">
+                    Close Window
+                </button>
+            </div>
+        </div>
+    </div>
 
-});
-</script>
+    <!-- IMAGE LIGHTBOX MODAL -->
+    <div id="imageLightboxModal" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden items-center justify-center z-[70] p-4 cursor-pointer" onclick="closeLightbox()">
+        <div class="relative max-w-4xl max-h-[90vh] overflow-hidden flex items-center justify-center" onclick="event.stopPropagation()">
+            <button onclick="closeLightbox()" class="absolute -top-12 right-0 text-white hover:text-slate-300 text-2xl w-10 h-10 flex items-center justify-center">
+                <i class="fas fa-times"></i>
+            </button>
+            <img id="lightboxImage" src="" class="max-w-full max-h-[85vh] object-contain rounded-2xl shadow-2xl border border-white/10" alt="Enlarged Pet View">
+        </div>
+    </div>
 
+    <script src="/assets/js/userSidebar.js"></script>
+    <script src="/assets/js/userKamustahan.js"></script>
 </body>
 </html>

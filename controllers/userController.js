@@ -917,3 +917,237 @@ exports.cancelAdoptionApplication = async (req, res) => {
         });
     }
 };
+// ==========================================
+// KAMUSTAHAN MODULE (USER SIDE)
+// ==========================================
+
+exports.getApprovedAdoptedPets = async (req, res) => {
+    const accountId = req.session?.accountId;
+    if (!accountId) {
+        return res.status(401).json({ success: false, error: "Unauthorized access." });
+    }
+
+    try {
+        // I-log natin ang accountId para ma-check sa console
+        console.log("Fetching pets for accountId:", accountId);
+
+        const [adopterRows] = await pool.query(
+            `SELECT adopter_id FROM adopters WHERE account_id = ? LIMIT 1`,
+            [accountId]
+        );
+
+        if (!adopterRows.length) {
+            console.log("No adopter record found for this account.");
+            return res.status(404).json({ success: false, error: "Adopter profile not found." });
+        }
+
+        const adopterId = adopterRows[0].adopter_id;
+        console.log("Found adopter_id:", adopterId);
+
+        // BAGONG QUERY: Ginawang UPPER(status) para iwas case-sensitivity
+        const [pets] = await pool.query(`
+            SELECT DISTINCT
+                a.animal_id,
+                a.name,
+                a.species,
+                a.image_path,
+                a.organization_id
+            FROM user_adoption_applications app
+            JOIN animals a ON app.animal_id = a.animal_id
+            WHERE app.adopter_id = ? 
+            AND UPPER(app.status) = 'APPROVED'
+        `, [adopterId]);
+
+        console.log("Pets found:", pets); // I-check sa console kung may laman ang pets array
+
+        return res.json({
+            success: true,
+            pets: pets
+        });
+
+    } catch (error) {
+        console.error("Get Approved Adopted Pets Error:", error);
+        return res.status(500).json({ success: false, error: "Server error." });
+    }
+};
+exports.submitKamustahanUpdate = async (req, res) => {
+    const accountId = req.session?.accountId;
+    if (!accountId) {
+        return res.status(401).json({ success: false, error: "Unauthorized access." });
+    }
+
+    try {
+        const [adopterRows] = await pool.query(
+            `SELECT adopter_id FROM adopters WHERE account_id = ? LIMIT 1`,
+            [accountId]
+        );
+
+        if (!adopterRows.length) {
+            return res.status(404).json({ success: false, error: "Adopter profile not found." });
+        }
+
+        const adopterId = adopterRows[0].adopter_id;
+        const { animal_id, organization_id, update_text } = req.body;
+        const photoPath = req.file ? `/uploads/kamustahan/${req.file.filename}` : '';
+
+        if (!animal_id || !organization_id || !update_text) {
+            return res.status(400).json({ success: false, error: "Please fill in all required fields." });
+        }
+
+        // 1. Check if there is an active scheduled update ('For Update') for this pet
+        const [scheduleRows] = await pool.query(`
+            SELECT update_id, status, scheduled_date as target_schedule 
+            FROM kamustahan_updates 
+            WHERE adopter_id = ? AND animal_id = ? AND status = 'For Update'
+            ORDER BY created_at DESC LIMIT 1
+        `, [adopterId, animal_id]);
+
+        if (!scheduleRows.length) {
+            return res.status(400).json({ 
+                success: false, 
+                error: "No scheduled update found for this pet, or the update for the current schedule has already been submitted." 
+            });
+        }
+
+        const currentSchedule = scheduleRows[0];
+        const updateId = currentSchedule.update_id;
+
+        // 2. Check if a scheduled_date actually exists and is valid in the database
+        if (!currentSchedule.target_schedule) {
+            return res.status(400).json({ 
+                success: false, 
+                error: "No schedule date has been set in the database for this pet yet. Please wait for the organization to set a schedule." 
+            });
+        }
+
+        // 3. Format Philippine Time and the database target schedule accurately
+        const phTimeOptions = { timeZone: 'Asia/Manila', year: 'numeric', month: '2-digit', day: '2-digit' };
+        const formatter = new Intl.DateTimeFormat('en-CA', phTimeOptions);
+        
+        const phToday = formatter.format(new Date());
+        const targetDateStr = formatter.format(new Date(currentSchedule.target_schedule));
+
+        // Prevent 1970-01-01 or invalid empty database date traps
+        if (targetDateStr === '1970-01-01' || !targetDateStr) {
+            return res.status(400).json({ 
+                success: false, 
+                error: "The schedule date for this pet is not yet properly configured in the system." 
+            });
+        }
+
+        if (targetDateStr !== phToday) {
+            return res.status(400).json({ 
+                success: false, 
+                error: `It is not yet time or the correct date to update this pet. The scheduled date is on ${targetDateStr}.` 
+            });
+        }
+
+        // 4. Update the record and set the upload timestamp
+        await pool.query(`
+            UPDATE kamustahan_updates 
+            SET update_date = CURDATE(), 
+                update_text = ?, 
+                photos = ?, 
+                status = 'Pending',
+                created_at = NOW()
+            WHERE update_id = ?
+        `, [update_text, photoPath, updateId]);
+
+        return res.json({
+            success: true,
+            message: "Kamustahan update successfully submitted!"
+        });
+
+    } catch (error) {
+        console.error("Submit Kamustahan Error:", error);
+        return res.status(500).json({ success: false, error: "Database error during submission." });
+    }
+};
+
+exports.getKamustahanHistory = async (req, res) => {
+    const accountId = req.session?.accountId;
+    if (!accountId) {
+        return res.status(401).json({ success: false, error: "Unauthorized access." });
+    }
+
+    try {
+        const [adopterRows] = await pool.query(
+            `SELECT adopter_id FROM adopters WHERE account_id = ? LIMIT 1`,
+            [accountId]
+        );
+
+        if (!adopterRows.length) {
+            return res.status(404).json({ success: false, error: "Adopter profile not found." });
+        }
+
+        const adopterId = adopterRows[0].adopter_id;
+
+        const [updates] = await pool.query(`
+            SELECT 
+                k.update_id,
+                k.update_date,
+                k.update_text,
+                k.photos,
+                k.status,
+                k.created_at,
+                a.name AS pet_name
+            FROM kamustahan_updates k
+            JOIN animals a ON k.animal_id = a.animal_id
+            WHERE k.adopter_id = ?
+            ORDER BY k.created_at DESC
+        `, [adopterId]);
+
+        return res.json({
+            success: true,
+            updates: updates
+        });
+
+    } catch (error) {
+        console.error("Get Kamustahan History Error:", error);
+        return res.status(500).json({ success: false, error: "Failed to load kamustahan history." });
+    }
+};
+// I-update din ang getKamustahanHistory para makuha ang created_at timestamp
+exports.getKamustahanHistory = async (req, res) => {
+    const accountId = req.session?.accountId;
+    if (!accountId) {
+        return res.status(401).json({ success: false, error: "Unauthorized access." });
+    }
+
+    try {
+        const [adopterRows] = await pool.query(
+            `SELECT adopter_id FROM adopters WHERE account_id = ? LIMIT 1`,
+            [accountId]
+        );
+
+        if (!adopterRows.length) {
+            return res.status(404).json({ success: false, error: "Adopter profile not found." });
+        }
+
+        const adopterId = adopterRows[0].adopter_id;
+
+        const [updates] = await pool.query(`
+            SELECT 
+                k.update_id,
+                k.update_date,
+                k.update_text,
+                k.photos,
+                k.status,
+                k.created_at,
+                a.name AS pet_name
+            FROM kamustahan_updates k
+            JOIN animals a ON k.animal_id = a.animal_id
+            WHERE k.adopter_id = ?
+            ORDER BY k.created_at DESC
+        `, [adopterId]);
+
+        return res.json({
+            success: true,
+            updates: updates
+        });
+
+    } catch (error) {
+        console.error("Get History Error:", error);
+        return res.status(500).json({ success: false, error: "Failed to load history." });
+    }
+};

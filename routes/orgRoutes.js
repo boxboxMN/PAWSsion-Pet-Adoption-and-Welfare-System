@@ -18,11 +18,14 @@ const {
     addInKindDonation, 
     getInKindDonations,
     updateInKindDonationStatus,
-    getDropoffInfo,   
+    getDropoffInfo,    
     updateDropoffInfo,
     getNewestPets,
     getRecentApplications,
-    getAnalyticsData
+    getAnalyticsData,
+    getKamustahanUpdates,
+    schedulePetUpdate,
+    archiveKamustahanUpdate
 } = require("../controllers/orgController");
 
 const router = express.Router();
@@ -69,20 +72,21 @@ router.get("/dashboard/stats", getDashboardStats);
 router.get("/dashboard/recent-applications", getRecentApplications);
 router.get("/pets/newest", getNewestPets);
 router.get("/analytics/data", getAnalyticsData);
+router.get("/kamustahan-updates", getKamustahanUpdates);
 
+router.post('/kamustahan-schedule', schedulePetUpdate);
+router.post('/kamustahan-archive', archiveKamustahanUpdate);
+
+// 3. PAGES ROUTES
 router.get("/dashboard", (req, res) => {
     res.sendFile(
         path.join(__dirname, "../public/organization/dashboard.html")
     );
 });
 
-// 3. PAGES ROUTES
-router.get("/dashboard", (req, res) => {res.sendFile(path.join(__dirname, "../public/organization/dashboard.html"));});
 router.get("/pets", (req, res) => {
     res.sendFile(path.join(__dirname, "../public/organization/pets.html"));
 });
-
-router.get("/pets/newest", checkOrganizationApproval, getNewestPets);
 
 router.get("/adoption", (req, res) => {
     res.sendFile(path.join(__dirname, "../public/organization/adoption.html"));
@@ -274,6 +278,15 @@ router.patch('/applications/:id/status', async (req, res) => {
                 `UPDATE animals SET adoption_status = 'Adopted' WHERE animal_id = ?`,
                 [animalId]
             );
+
+            await connection.query(`
+                INSERT INTO kamustahan_updates (organization_id, animal_id, adopter_id, status, created_at)
+                SELECT p.organization_id, app.animal_id, app.adopter_id, 'For Update', NOW()
+                FROM user_adoption_applications app
+                JOIN animals p ON app.animal_id = p.animal_id
+                WHERE app.application_id = ?
+                ON DUPLICATE KEY UPDATE status = 'For Update'
+            `, [id]);
         }
 
         // save the changes in the db

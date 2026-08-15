@@ -1722,3 +1722,99 @@ exports.getAnalyticsData = async (req, res) => {
         });
     }
 };
+exports.getKamustahanUpdates = async (req, res) => {
+    try {
+        const [org] = await pool.query(
+            `SELECT organization_id FROM organizations WHERE account_id = ?`,
+            [req.session.accountId]
+        );
+
+        if (!org.length) {
+            return res.status(404).json({ success: false, message: "Organization not found." });
+        }
+
+        const organization_id = org[0].organization_id;
+
+        const [updates] = await pool.query(
+            `
+            SELECT 
+                k.update_id,
+                k.status AS update_status,
+                k.scheduled_date,
+                DATE_FORMAT(k.scheduled_date, '%b %d, %Y') AS formatted_scheduled_date,
+                DATE_FORMAT(k.update_date, '%b %d, %Y') AS formatted_date,
+                k.is_archived,
+                k.update_text, -- <--- IDINAGDAG DITO PARA MA-FETCH ANG ADOPTER MESSAGE
+                k.photos AS update_photos,
+                p.name AS pet_name,
+                p.species,
+                p.image_path AS pet_image,
+                CONCAT(a.first_name, ' ', a.last_name) AS adopter_name
+            FROM kamustahan_updates k
+            JOIN animals p ON k.animal_id = p.animal_id
+            JOIN adopters a ON k.adopter_id = a.adopter_id
+            WHERE k.organization_id = ?
+            ORDER BY k.created_at DESC
+            `,
+            [organization_id]
+        );
+
+        res.json({ success: true, updates });
+    } catch (err) {
+        console.error("Get Kamustahan Updates Error:", err);
+        res.status(500).json({ success: false, message: err.message });
+    }
+};
+exports.schedulePetUpdate = async (req, res) => {
+    try {
+        const { update_id, scheduled_date } = req.body;
+        
+        await pool.query(
+            `UPDATE kamustahan_updates 
+             SET scheduled_date = ?, status = 'For Update' 
+             WHERE update_id = ?`,
+            [scheduled_date, update_id]
+        );
+
+        res.json({ success: true, message: "Schedule set successfully!" });
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+};
+exports.archiveKamustahanUpdate = async (req, res) => {
+    try {
+        const { update_id } = req.body;
+
+        // 1. Kunin ang current details ng update para masuri ang status[cite: 21]
+        const [updateCheck] = await pool.query(
+            `SELECT * FROM kamustahan_updates WHERE update_id = ?`,
+            [update_id]
+        );
+
+        if (!updateCheck.length) {
+            return res.status(404).json({ success: false, message: "Update record not found." });
+        }
+
+        const currentUpdate = updateCheck[0];
+
+        // 2. I-check kung ang status ay 'For Update' pa o wala pang update_date (hindi pa na-update)[cite: 21]
+        if (currentUpdate.status === 'For Update' || !currentUpdate.update_date) {
+            return res.status(400).json({ 
+                success: false, 
+                message: "Hindi maaring i-archive ang update hangga't hindi pa ito nai-update ng adopter." 
+            });
+        }
+
+        // 3. Kung na-update na, saka pa lamang i-archive[cite: 21]
+        await pool.query(
+            `UPDATE kamustahan_updates 
+             SET is_archived = 1, status = 'Archived' 
+             WHERE update_id = ?`,
+            [update_id]
+        );
+
+        res.json({ success: true, message: "Matagumpay na na-archive ang update." });
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+};

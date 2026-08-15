@@ -91,7 +91,21 @@ const uploadDoc = multer({
       cb(new Error("Only images (JPG, PNG) and PDF files are allowed!"));
   }
 });
+// Idagdag itong storage configuration sa userRouter.js
+const kamustahanStorage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        const dir = "uploads/kamustahan/";
+        if (!fs.existsSync(dir)) {
+            fs.mkdirSync(dir, { recursive: true });
+        }
+        cb(null, dir);
+    },
+    filename: function (req, file, cb) {
+        cb(null, `kamustahan-${Date.now()}${path.extname(file.originalname)}`);
+    }
+});
 
+const uploadKamustahan = multer({ storage: kamustahanStorage });
 
 router.get("/api/pets", userController.getAvailablePets);
 router.get("/api/pets/:id", userController.getPetById);
@@ -139,8 +153,9 @@ router.post("/api/user/profile/avatar", upload.single("avatar"), userController.
 router.get("/api/organizations", userController.getOrganizations);
 router.post( "/api/user/donation/cash", uploadReceipt.single("receipt"), userController.submitCashDonation);
 router.post('/api/user/donation/in-kind', userController.submitInKindDonation);
-
-//for user adoption application submission
+router.get("/api/user/approved-pets", userController.getApprovedAdoptedPets);
+router.get("/api/user/kamustahan-history", userController.getKamustahanHistory);
+router.post("/api/user/kamustahan", uploadKamustahan.single("photos"), userController.submitKamustahanUpdate);
 router.post(
   '/api/adoptions/submit-application', 
   (req, res, next) => {
