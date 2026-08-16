@@ -259,7 +259,7 @@ Notification:
 
 NOTES:
 
-Itanong kay jhy if ok na yung kamustahan
+✓ Itanong kay jhy if ok na yung kamustahan
 
 ADMIN:
 
