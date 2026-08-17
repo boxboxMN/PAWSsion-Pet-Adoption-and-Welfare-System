@@ -7,14 +7,18 @@
     <title>User Dashboard</title>
 
     <link rel="stylesheet" href="/assets/css/tailwind.css" />
-    <script src="https://cdn.tailwindcss.com">
-    </script>
-
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <script src="../assets/js/userSidebar.js"></script>
+    <script src="../assets/js/userHeader.js"></script>
+    <script src="../assets/js/userDashboard.js" defer></script>
 
     <style>
         * {
             box-sizing: border-box;
+            scrollbar-width: none;
         }
 
         html {
@@ -46,10 +50,21 @@
         .activity-item:last-child .activity-dot::after {
             display: none;
         }
-    </style>
-    <script src="../assets/js/userSidebar.js"></script>
-    <script src="../assets/js/userDashboard.js"></script>
 
+        /* Hide scrollbar but keep scrolling */
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        *::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
 </head>
 
 <body class="bg-gray-100 h-full overflow-hidden">
@@ -92,90 +107,107 @@
 
                             <a href="/adoption-hub"
                             class="bg-white rounded-xl border p-4 hover:shadow-lg transition group">
-                            <div class="w-12 h-12 rounded-full bg-blue-100 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition flex items-center justify-center">
-                                <i class="fas fa-paw"></i>
-                            </div>
-                            <h3 class="font-semibold mt-3 text-gray-800">Find a Pet</h3>
-                            <p class="text-xs text-gray-500">Browse pets looking for home</p>
-                        </a>
+                                <div class="w-12 h-12 rounded-full bg-blue-100 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition flex items-center justify-center">
+                                    <i class="fas fa-paw"></i>
+                                </div>
+                                <h3 class="font-semibold mt-3 text-gray-800">Find a Pet</h3>
+                                <p class="text-xs text-gray-500">Browse pets looking for home</p>
+                            </a>
 
-                        <a href="/application"
-                        class="bg-white rounded-xl border p-4 hover:shadow-lg transition group">
-                        <div class="w-12 h-12 rounded-full bg-indigo-100 text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition flex items-center justify-center">
-                            <i class="fas fa-clipboard-list"></i>
+                            <a href="/application"
+                            class="bg-white rounded-xl border p-4 hover:shadow-lg transition group">
+                                <div class="w-12 h-12 rounded-full bg-indigo-100 text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition flex items-center justify-center">
+                                    <i class="fas fa-clipboard-list"></i>
+                                </div>
+                                <h3 class="font-semibold mt-3 text-gray-800">Continue Application</h3>
+                                <p class="text-xs text-gray-500">View your application status</p>
+                            </a>
+
+                            <a href="/application" onclick="sessionStorage.setItem('targetAppTab', 'Interview Scheduled')"
+                            class="bg-white rounded-xl border p-4 hover:shadow-lg transition group">
+                                <div class="w-12 h-12 rounded-full bg-green-100 text-green-600 group-hover:bg-green-600 group-hover:text-white transition flex items-center justify-center">
+                                    <i class="fas fa-user-friends"></i>
+                                </div>
+                                <h3 class="font-semibold mt-3 text-gray-800">Upcoming Interview</h3>
+                                <p class="text-xs text-gray-500">View interview schedule</p>
+                            </a>
+
+                            <a href="/kamustahan"
+                            class="bg-white rounded-xl border p-4 hover:shadow-lg transition group">
+                                <div class="w-12 h-12 rounded-full bg-orange-100 text-orange-600 group-hover:bg-orange-600 group-hover:text-white transition flex items-center justify-center">
+                                    <i class="fas fa-hands-helping"></i>
+                                </div>
+                                <h3 class="font-semibold mt-3 text-gray-800">Kamustahan Update</h3>
+                                <p class="text-xs text-gray-500">Submit pet care update</p>
+                            </a>
+
                         </div>
-                        <h3 class="font-semibold mt-3 text-gray-800">Continue Application</h3>
-                        <p class="text-xs text-gray-500">View your application status</p>
-                    </a>
-
-                    <a href="/application" onclick="sessionStorage.setItem('targetAppTab', 'Interview Scheduled')"
-                    class="bg-white rounded-xl border p-4 hover:shadow-lg transition group">
-                    <div class="w-12 h-12 rounded-full bg-green-100 text-green-600 group-hover:bg-green-600 group-hover:text-white transition flex items-center justify-center">
-                        <i class="fas fa-user-friends"></i>
                     </div>
-                    <h3 class="font-semibold mt-3 text-gray-800">Upcoming Interview</h3>
-                    <p class="text-xs text-gray-500">View interview schedule</p>
-                </a>
 
-                <a href="/kamustahan"
-                class="bg-white rounded-xl border p-4 hover:shadow-lg transition group">
-                <div class="w-12 h-12 rounded-full bg-orange-100 text-orange-600 group-hover:bg-orange-600 group-hover:text-white transition flex items-center justify-center">
-                    <i class="fas fa-hands-helping"></i>
+                    <!-- Recent Activities (Donations + Applications + Matchmaking) -->
+                    <div>
+                        <h2 class="text-xl lg:text-2xl font-bold text-blue-900 mb-4">
+                            Recent Activities
+                        </h2>
+                        <div class="bg-white rounded-2xl border shadow-sm p-5 relative">
+
+                            <!-- Activity timeline -->
+                            <div id="recentActivitiesContainer" class="space-y-5 relative pl-10 activity-timeline">
+                                <p class="text-sm text-gray-400">Loading activities...</p>
+                            </div>
+
+                        </div>
+                    </div>
+
                 </div>
-                <h3 class="font-semibold mt-3 text-gray-800">Kamustahan Update</h3>
-                <p class="text-xs text-gray-500">Submit pet care update</p>
-            </a>
 
-        </div>
-    </div>
+                <!-- RIGHT SIDE -->
+                <div>
+                    <div class="bg-white rounded-2xl shadow-md border p-6 h-full">
 
-    <!-- Recent Activities (Donations + Applications + Matchmaking) -->
-    <div>
-        <h2 class="text-xl lg:text-2xl font-bold text-blue-900 mb-4">
-            Recent Activities
-        </h2>
-        <div class="bg-white rounded-2xl border shadow-sm p-5 relative">
+                        <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2">
+                            <i class="fas fa-calendar-alt text-blue-600"></i>
+                            Upcoming Schedule
+                        </h2>
 
-            <!-- Activity timeline -->
-            <div id="recentActivitiesContainer" class="space-y-5 relative pl-10 activity-timeline">
-                <p class="text-sm text-gray-400">Loading activities...</p>
+                        <p class="text-sm text-gray-500 mt-1">
+                            Key dates for your adoption application process
+                        </p>
+
+                        <!-- Dynamic Schedule Container -->
+                        <div id="upcomingScheduleContainer" class="mt-6 space-y-5">
+                            <p class="text-sm text-gray-400">Loading schedules...</p>
+                        </div>
+
+                        <!-- Small note -->
+                        <p class="text-xs text-gray-400 mt-5 text-center border-t border-gray-100 pt-4">
+                            <i class="far fa-clock mr-1"></i> All times are in Philippine Standard Time (PST)
+                        </p>
+
+                    </div>
+                </div>
+
             </div>
 
         </div>
-    </div>
 
-</div>
+    </main>
 
-<!-- RIGHT SIDE -->
-<div>
-    <div class="bg-white rounded-2xl shadow-md border p-6 h-full">
+    <script>
+    document.addEventListener("DOMContentLoaded", async () => {
+        // Wait until sidebar is loaded
+        await loadSidebar();
 
-        <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2">
-            <i class="fas fa-calendar-alt text-blue-600"></i>
-            Upcoming Schedule
-        </h2>
+        // Wait one tick so the header HTML exists, then initialize header and make body visible
+        requestAnimationFrame(() => {
+            loadTopbar({
+                title: "User Dashboard",
+                subtitle: "Monitor your adoption application progress, upcoming schedules, and recent activities."
+            });
 
-        <p class="text-sm text-gray-500 mt-1">
-            Key dates for your adoption application process
-        </p>
-
-        <!-- Dynamic Schedule Container -->
-        <div id="upcomingScheduleContainer" class="mt-6 space-y-5">
-            <p class="text-sm text-gray-400">Loading schedules...</p>
-        </div>
-
-        <!-- Small note -->
-        <p class="text-xs text-gray-400 mt-5 text-center border-t border-gray-100 pt-4">
-            <i class="far fa-clock mr-1"></i> All times are in Philippine Standard Time (PST)
-        </p>
-
-    </div>
-</div>
-
-</div>
-
-</div>
-
-</main>
+            document.body.style.visibility = "visible";
+        });
+    });
+    </script>
 </body>
 </html>

@@ -6,46 +6,54 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>My Profile</title>
 
-    <!-- Tailwind via CDN -->
-    <script src="https://cdn.tailwindcss.com">
-    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
 
-    <!-- Google Font: Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet" />
+    
     <link rel="stylesheet" href="/assets/css/userProfile.css">
+
+    <script src="../assets/js/userSidebar.js"></script>
+    <script src="../assets/js/userHeader.js"></script>
+
+    <style>
+        body {
+            visibility: hidden;
+            margin: 0;
+            overscroll-behavior: none;
+        }
+
+        #sidebar,
+        #header {
+            visibility: hidden;
+        }
+    </style>
 </head>
 
 <body class="bg-gray-100 h-full overflow-hidden">
 
-    <!-- ===== SIDEBAR ===== -->
     <div
         id="sidebar"
         class="fixed left-0 top-0 w-64 h-screen bg-white border-r border-gray-200 z-50">
     </div>
-    <!-- ===== MAIN CONTENT ===== -->
+
     <main class="ml-64 pt-24 h-screen overflow-hidden bg-slate-100">
 
-        <!-- ===== HEADER ===== -->
         <div id="header" class="fixed top-0 left-64 right-0 h-24 bg-white border-b border-slate-200 z-40"></div>
 
-        <!-- ===== PROFILE PAGE ===== -->
         <div class="h-[calc(100vh-6rem)] overflow-y-auto p-6">
 
             <div class="max-w-6xl mx-auto space-y-5">
 
-                <!-- ================= PROFILE HEADER ================= -->
                 <div class="bg-gradient-to-r from-blue-900 via-blue-800 to-blue-700 rounded-3xl shadow-lg overflow-hidden">
 
                     <div class="p-7 flex flex-col lg:flex-row justify-between items-center gap-6">
 
                         <div class="flex items-center gap-5">
 
-                            <!-- Avatar -->
                             <div id="avatarContainer" class="avatar-container w-28 h-28 rounded-full bg-white/10 backdrop-blur border-4 border-white/30 overflow-hidden flex-shrink-0 shadow-lg">
                                 <div id="avatarDisplay" class="avatar-placeholder">
                                     <i class="fas fa-user text-white text-4xl"></i>
@@ -74,7 +82,6 @@
 
                         </div>
 
-                        <!-- Buttons -->
                         <div id="action-buttons">
                             <button id="edit-btn" class="px-5 py-2.5 rounded-xl bg-white text-blue-800 font-semibold shadow hover:scale-[1.02] transition">
                                 <i class="fas fa-edit mr-2"></i>Edit Profile
@@ -95,10 +102,8 @@
 
                 </div>
 
-                <!-- ================= BENTO GRID ================= -->
                 <div class="grid grid-cols-12 gap-5">
 
-                    <!-- PERSONAL INFO -->
                     <div class="col-span-12 lg:col-span-8 bg-white rounded-3xl border border-slate-200 shadow-sm">
 
                         <div class="px-6 py-4 border-b border-slate-100">
@@ -113,28 +118,24 @@
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 p-5">
 
-                            <!-- Full Name -->
                             <div class="rounded-2xl bg-slate-50 border border-slate-200 p-4">
                                 <label class="text-xs uppercase tracking-wider text-slate-500 font-semibold">Full Name</label>
                                 <div id="full-name-display" class="mt-2 text-slate-800 font-semibold">Jhyzeel Dianela</div>
                                 <input id="full-name-input" type="text" class="hidden w-full mt-2 border border-slate-300 rounded-xl px-3 py-2 focus:ring-2 focus:ring-blue-300">
                             </div>
 
-                            <!-- Email -->
                             <div class="rounded-2xl bg-slate-50 border border-slate-200 p-4">
                                 <label class="text-xs uppercase tracking-wider text-slate-500 font-semibold">Email</label>
                                 <div id="email-display" class="mt-2 text-slate-800 font-semibold">jhdianela@gmail.com</div>
                                 <input id="email-input" type="email" class="hidden w-full mt-2 border border-slate-300 rounded-xl px-3 py-2 focus:ring-2 focus:ring-blue-300">
                             </div>
 
-                            <!-- Mobile -->
                             <div class="rounded-2xl bg-slate-50 border border-slate-200 p-4">
                                 <label class="text-xs uppercase tracking-wider text-slate-500 font-semibold">Mobile Number</label>
                                 <div id="mobile-display" class="mt-2 text-slate-800 font-semibold">09924974712</div>
                                 <input id="mobile-input" type="text" class="hidden w-full mt-2 border border-slate-300 rounded-xl px-3 py-2 focus:ring-2 focus:ring-blue-300">
                             </div>
 
-                            <!-- Account -->
                             <div class="rounded-2xl bg-slate-50 border border-slate-200 p-4">
                                 <label class="text-xs uppercase tracking-wider text-slate-500 font-semibold">Account Type</label>
                                 <div class="mt-2 text-slate-800 font-semibold">User</div>
@@ -144,7 +145,6 @@
 
                     </div>
 
-                    <!-- SECURITY -->
                     <div class="col-span-12 lg:col-span-4 bg-white rounded-3xl border border-slate-200 shadow-sm flex flex-col">
 
                         <div class="px-6 py-4 border-b border-slate-100">
@@ -183,35 +183,11 @@
         </div>
 
     </main>
-<script src="/assets/js/userSidebar.js"></script>
-<script>
-document.addEventListener("DOMContentLoaded", async () => {
-    try {
-        // Load sidebar/header
-        await loadSidebar();
 
-        // Wait until the header is rendered
-        requestAnimationFrame(async () => {
-            await loadTopbar({
-                title: "User Profile",
-                subtitle: "Share updates about your adopted pet."
-            });
-
-            await fetchProfileData();
-            setAvatarEditMode(false);
-
-            document.body.style.visibility = "visible";
-        });
-
-    } catch (error) {
-        console.error("Error initializing page:", error);
-        document.body.style.visibility = "visible";
-    }
-});
+    <script>
         let isEditing = false;
         let isPasswordFormVisible = false;
 
-        
         const displayName = document.getElementById('display-name');
         const displayAccountType = document.getElementById('display-account-type');
         const memberSinceText = document.querySelector('.fa-calendar-alt').nextElementSibling;
@@ -235,13 +211,11 @@ document.addEventListener("DOMContentLoaded", async () => {
         const confirmPassword = document.getElementById('confirm-password');
         const updatePasswordBtn = document.getElementById('update-password-btn');
 
-       
         const avatarContainer = document.getElementById('avatarContainer');
         const avatarOverlay = document.getElementById('avatarOverlay');
         const avatarInput = document.getElementById('avatarInput');
         const avatarDisplay = document.getElementById('avatarDisplay');
 
-      
         function setAvatarEditMode(editable) {
             const container = document.getElementById('avatarContainer');
             if(container) {
@@ -249,6 +223,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 else container.classList.remove('editable');
             }
         }
+
         async function fetchProfileData() {
             try {
                 const response = await fetch('/api/user/profile');
@@ -272,7 +247,6 @@ document.addEventListener("DOMContentLoaded", async () => {
                 mobileDisplay.textContent = data.phone_number || 'N/A';
                 mobileInput.value = data.phone_number || '';
 
-                
                 if (data.profile_picture) {
                     avatarDisplay.innerHTML = `<img src="${data.profile_picture}" alt="Profile Picture" class="w-full h-full object-cover rounded-full">`;
                 } else {
@@ -289,50 +263,44 @@ document.addEventListener("DOMContentLoaded", async () => {
             }
         }
 
+        function enterEditMode() {
+            isEditing = true;
+            editBtn.classList.add('hidden');
+            editActions.classList.remove('hidden');
 
- 
-       function enterEditMode() {
-        isEditing = true;
-        editBtn.classList.add('hidden');
-        editActions.classList.remove('hidden');
-
-        fullNameDisplay.classList.add('hidden');
-        fullNameInput.classList.remove('hidden');
-        emailDisplay.classList.add('hidden');
-        emailInput.classList.remove('hidden');
-        mobileDisplay.classList.add('hidden');
-        mobileInput.classList.remove('hidden');
-        
-        if (avatarOverlay) {
-            avatarOverlay.classList.remove('hidden');
-            avatarOverlay.style.opacity = "1"; 
+            fullNameDisplay.classList.add('hidden');
+            fullNameInput.classList.remove('hidden');
+            emailDisplay.classList.add('hidden');
+            emailInput.classList.remove('hidden');
+            mobileDisplay.classList.add('hidden');
+            mobileInput.classList.remove('hidden');
+            
+            if (avatarOverlay) {
+                avatarOverlay.classList.remove('hidden');
+                avatarOverlay.style.opacity = "1"; 
+            }
+            setAvatarEditMode(true);
         }
-        setAvatarEditMode(true);
-    }
 
-    function exitEditMode() {
-        isEditing = false;
-        editBtn.classList.remove('hidden');
-        editActions.classList.add('hidden');
+        function exitEditMode() {
+            isEditing = false;
+            editBtn.classList.remove('hidden');
+            editActions.classList.add('hidden');
 
-        fullNameDisplay.classList.remove('hidden');
-        fullNameInput.classList.add('hidden');
-        emailDisplay.classList.remove('hidden');
-        emailInput.classList.add('hidden');
-        mobileDisplay.classList.remove('hidden');
-        mobileInput.classList.add('hidden');
-        
-      
-        if (avatarOverlay) {
-            avatarOverlay.classList.add('hidden');
-            avatarOverlay.style.opacity = "0";
+            fullNameDisplay.classList.remove('hidden');
+            fullNameInput.classList.add('hidden');
+            emailDisplay.classList.remove('hidden');
+            emailInput.classList.add('hidden');
+            mobileDisplay.classList.remove('hidden');
+            mobileInput.classList.add('hidden');
+            
+            if (avatarOverlay) {
+                avatarOverlay.classList.add('hidden');
+                avatarOverlay.style.opacity = "0";
+            }
+            setAvatarEditMode(false);
         }
-        setAvatarEditMode(false);
-    }
 
-        // ==========================================
-        // SAVE PROFILE TO DATABASE DYNAMICALLY
-        // ==========================================
         async function saveProfile() {
             const updatedData = {
                 fullName: fullNameInput.value.trim(),
@@ -387,14 +355,12 @@ document.addEventListener("DOMContentLoaded", async () => {
                 togglePasswordBtn.innerHTML = '<i class="fas fa-lock"></i> Change Password';
                 togglePasswordBtn.className = "flex items-center gap-2 border border-blue-500 text-blue-500 px-4 py-2 rounded-lg hover:bg-blue-50 transition-custom";
                 
-                // Linisin ang input fields kapag sinarado
                 currentPassword.value = '';
                 newPassword.value = '';
                 confirmPassword.value = '';
             }
         }
 
-        
         async function updatePassword() {
             const currentPwd = currentPassword.value.trim();
             const newPwd = newPassword.value.trim();
@@ -439,10 +405,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             }
         }
 
-        // ==========================================
-        // DYNAMIC PROFILE PICTURE UPLOAD LOGIC
-        // ==========================================
-       
         avatarOverlay.addEventListener('click', () => {
             if (isEditing) {
                 avatarInput.click();
@@ -455,13 +417,11 @@ document.addEventListener("DOMContentLoaded", async () => {
             const file = this.files[0];
             if (!file) return;
 
-          
             if (!file.type.startsWith('image/')) {
                 alert('Please select an image file.');
                 return;
             }
 
-            
             if (file.size > 2 * 1024 * 1024) {
                 alert('File size is too large. Maximum limit is 2MB.');
                 return;
@@ -476,7 +436,6 @@ document.addEventListener("DOMContentLoaded", async () => {
                     body: formData 
                 });
 
-               
                 if (!response.ok) {
                     const errData = await response.json().catch(() => ({}));
                     throw new Error(errData.error || `Server responded with status ${response.status}`);
@@ -486,9 +445,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
                 if (result.success) {
                     alert('Profile picture uploaded successfully!');
-                   
                     avatarDisplay.innerHTML = `<img src="${result.avatarUrl}" alt="Profile Picture" class="w-full h-full object-cover rounded-full">`;
-                    
                     
                     if (typeof loadComponent === "function") {
                         loadComponent("header", "/user/userHeader.html");
@@ -502,7 +459,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             }
         });
 
-        // Events listeners mapping
         editBtn.addEventListener('click', enterEditMode);
         saveBtn.addEventListener('click', saveProfile);
         cancelBtn.addEventListener('click', cancelEdit);
@@ -516,6 +472,31 @@ document.addEventListener("DOMContentLoaded", async () => {
                     updatePassword();
                 }
             });
+        });
+
+        // Initialization gamit ang loadSidebar, loadTopbar, at fetchProfileData katulad ng Adoption Hub
+        document.addEventListener("DOMContentLoaded", async () => {
+            try {
+                await loadSidebar();
+
+                requestAnimationFrame(async () => {
+                    if (typeof loadTopbar === "function") {
+                        await loadTopbar({
+                            title: "User Profile",
+                            subtitle: "Manage your personal account details, preferences, and security settings."
+                        });
+                    }
+
+                    await fetchProfileData();
+                    setAvatarEditMode(false);
+
+                    document.body.style.visibility = "visible";
+                });
+
+            } catch (error) {
+                console.error("Error initializing page:", error);
+                document.body.style.visibility = "visible";
+            }
         });
     </script>
 </body>

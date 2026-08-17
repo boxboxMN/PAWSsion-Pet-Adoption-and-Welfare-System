@@ -10,6 +10,11 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
+    <!-- Scripts in Head (Matching Adoption Hub & Donation Pages) -->
+    <script src="../assets/js/userSidebar.js"></script>
+    <script src="../assets/js/userHeader.js"></script>
+    <script src="../assets/js/userMatchmaker.js" defer></script>
+
     <style>
         *{
             box-sizing:border-box;
@@ -420,7 +425,6 @@ VIEW PET PROFILE (NEW BENTO DESIGN)
                     </div>
 
                     <!-- STATUS PILLS -->
-                    <!-- STATUS PILLS -->
                     <div class="flex flex-wrap items-center gap-3 mt-4">
                         <!-- Adoption Status -->
                         <div id="statusBadge" class="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold">
@@ -538,8 +542,6 @@ VIEW PET PROFILE (NEW BENTO DESIGN)
     </div>
 
 </div>
-<script src="../assets/js/userSidebar.js"></script>
-<script src="../assets/js/userMatchmaker.js"></script>
 <script>
 document.addEventListener("DOMContentLoaded", async () => {
         applyBtn.onclick = () => {
