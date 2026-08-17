@@ -160,7 +160,9 @@ Dashboard:
 	✓ Make it Real-time!
 	✓ Quick Actions: Upcoming Interview
 	✓ Recent Activities
-	Upcoming Schedule
+	✓ Upcoming Schedule
+
+    ✓ kapag lagpas na sa interview datesa dashboard, mawawala na sa upcoming schedule while sa application page naman, yung nilalgyan ng request schedule is mawawala mapapalitan ng interview done | awaiting org decision
 
 Notification:
 

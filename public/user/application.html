@@ -576,6 +576,30 @@ function showDetails(app) {
     detailStatusBadge.className = `badge-status ${statusKey}`;
     detailStatusBadge.innerHTML = `<span class="dot"></span> ${app.status}`;
 
+    // 1. TINGNAN KUNG TAPOS NA ANG INTERVIEW DATE/TIME
+    const now = new Date();
+    let isPastInterview = false;
+
+    if (app.interview && app.interview.date) {
+        const interviewDateTime = new Date(app.interview.date);
+        if (app.interview.time) {
+            const [hours, minutes] = app.interview.time.split(':');
+            interviewDateTime.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0);
+        } else {
+            interviewDateTime.setHours(23, 59, 59, 999);
+        }
+        
+        if (now > interviewDateTime && app.status === "Interview Scheduled") {
+            isPastInterview = true;
+        }
+    }
+
+    // 2. KUNG LUMAGPAS NA ANG PETSA, I-UPDATE ANG HEADER & STATUS BANNER
+    if (isPastInterview) {
+        detailStatusBadge.className = "badge-status scheduled";
+        detailStatusBadge.innerHTML = `<span class="dot"></span> Post-Interview Review`;
+    }
+
     // Maglagay ng Cancel Application Button sa Header kapag "Under Review" ang status
     if (detailsActions) {
         if (app.status === "Under Review") {
@@ -657,8 +681,18 @@ function showDetails(app) {
         const cardHeader = interviewCard.querySelector(".section-title");
         if (cardHeader) {
             cardHeader.className = "section-title flex flex-wrap items-center justify-between gap-2 mb-4";
-        
-            if (isReschedPending) {
+            if (isPastInterview) {
+                // TANGGALIN ANG REQUEST RESCHEDULE BUTTON AT PALITAN NG NOTIFICATION BANNER
+                cardHeader.innerHTML = `
+                    <span class="flex items-center gap-2">
+                        <i class="fas fa-calendar-check text-purple-600"></i> Post-Interview Stage
+                    </span>
+                    <span class="text-xs font-semibold px-3 py-1 bg-purple-100 text-purple-700 rounded-full inline-flex items-center gap-1.5 border border-purple-200">
+                        <i class="fas fa-clock"></i> Interview Done • Awaiting Org Decision
+                    </span>
+                `;
+            }
+            else if (isReschedPending) {
                 cardHeader.innerHTML = `
                     <span class="flex items-center gap-2">
                         <i class="fas fa-calendar-alt text-blue-600"></i> Interview Schedule
