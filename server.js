@@ -427,8 +427,8 @@ app.get('/api/organization/applications', async (req, res) => {
         const query = `
            SELECT 
                 app.application_id AS id,
-                CONCAT(adopt.first_name, ' ', adopt.last_name) AS applicant_name,
-                acc.email AS applicant_email,
+                COALESCE(NULLIF(TRIM(app.full_name), ''), CONCAT(adopt.first_name, ' ', adopt.last_name), 'N/A') AS applicant_name,
+                COALESCE(NULLIF(TRIM(app.email), ''), acc.email, '') AS applicant_email,
                 p.name AS pet_name,
                 p.species AS pet_type,
                 p.gender AS pet_gender,
