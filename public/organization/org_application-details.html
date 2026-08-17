@@ -409,22 +409,45 @@
             }
 
             const lowerStatus = status.toLowerCase();
+            const isInterviewScheduled = lowerStatus.includes("interview") || lowerStatus.includes("scheduled");
+
+            // CHECK KUNG TAPOS NA ANG INTERVIEW DATE/TIME
+            const now = new Date();
+            let isPastInterview = false;
+
+            if (app.interview_date && isInterviewScheduled) {
+                const interviewDateTime = new Date(app.interview_date);
+                if (app.interview_time) {
+                    const [hours, minutes] = app.interview_time.split(':');
+                    interviewDateTime.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0);
+                } else {
+                    interviewDateTime.setHours(23, 59, 59, 999);
+                }
+                if (now > interviewDateTime) {
+                    isPastInterview = true;
+                }
+            }
+
             const statusBadge = document.getElementById("appStatusBadge");
 
             if (statusBadge) {
-                statusBadge.textContent = status;
-
-                if (lowerStatus === "approved") {
-                    statusBadge.className = "inline-flex px-4 py-1.5 rounded-full text-sm font-medium bg-emerald-100 text-emerald-600";
-                } else if (lowerStatus === "declined" || lowerStatus === "rejected") {
-                    statusBadge.className = "inline-flex px-4 py-1.5 rounded-full text-sm font-medium bg-red-100 text-red-600";
-                } else if (lowerStatus.includes("interview") || lowerStatus.includes("scheduled")) {
-                    statusBadge.className = "inline-flex px-4 py-1.5 rounded-full text-sm font-medium bg-blue-100 text-blue-600";
-                } else if (lowerStatus.includes("cancelled")) {
-                    // Kulay ng badge kapag kinansela ng adopter
-                    statusBadge.className = "inline-flex px-4 py-1.5 rounded-full text-sm font-medium bg-gray-200 text-gray-700";
+                if (isPastInterview) {
+                    statusBadge.textContent = "Post-Interview Review";
+                    statusBadge.className = "inline-flex px-4 py-1.5 rounded-full text-sm font-medium bg-purple-100 text-purple-700 border border-purple-200";
                 } else {
-                    statusBadge.className = "inline-flex px-4 py-1.5 rounded-full text-sm font-medium bg-amber-100 text-amber-600";
+                    statusBadge.textContent = status;
+                    if (lowerStatus === "approved") {
+                        statusBadge.className = "inline-flex px-4 py-1.5 rounded-full text-sm font-medium bg-emerald-100 text-emerald-600";
+                    } else if (lowerStatus === "declined" || lowerStatus === "rejected") {
+                        statusBadge.className = "inline-flex px-4 py-1.5 rounded-full text-sm font-medium bg-red-100 text-red-600";
+                    } else if (isInterviewScheduled) {
+                        statusBadge.className = "inline-flex px-4 py-1.5 rounded-full text-sm font-medium bg-blue-100 text-blue-600";
+                    } else if (lowerStatus.includes("cancelled")) {
+                        // Kulay ng badge kapag kinansela ng adopter
+                        statusBadge.className = "inline-flex px-4 py-1.5 rounded-full text-sm font-medium bg-gray-200 text-gray-700";
+                    } else {
+                        statusBadge.className = "inline-flex px-4 py-1.5 rounded-full text-sm font-medium bg-amber-100 text-amber-600";
+                    }
                 }
             }
 
@@ -440,7 +463,6 @@
             const isCancelled = lowerStatus.includes("cancelled"); // Check kung kinansela ng adopter
 
             const isFinalized = isApproved || isDeclined || isCancelled; // Kasama na ang Cancelled sa Finalized
-            const isInterviewScheduled = lowerStatus.includes("interview") || lowerStatus.includes("scheduled");
 
             if (declineBtn) {
                 if (isDeclined) {
@@ -525,7 +547,7 @@
             }
     
             // 8. Render Status Action Box
-            renderApplicationStatusDetails(app);
+            renderApplicationStatusDetails(app, isPastInterview);
         }
     
         // ================= DECLINE LOGIC =================
@@ -851,16 +873,29 @@
             }
         }
     
-        function renderApplicationStatusDetails(app) {
+        function renderApplicationStatusDetails(app, isPastInterview = false) {
             const container = document.getElementById("interviewDetailsCard");
             if (!container) return;
-
+        
             // Suriin kung may nakatakdang schedule
             const hasSchedule = app.interview_date || app.interview_time || app.interview_location_link;
 
             if (!hasSchedule) {
                 container.classList.add("hidden");
                 return;
+            }
+
+            // Kung hindi naipasa ang isPastInterview, i-compute ito dito
+            if (typeof isPastInterview === "undefined" && app.interview_date) {
+                const now = new Date();
+                const interviewDateTime = new Date(app.interview_date);
+                if (app.interview_time) {
+                    const [hours, minutes] = app.interview_time.split(':');
+                    interviewDateTime.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0);
+                } else {
+                    interviewDateTime.setHours(23, 59, 59, 999);
+                }
+                isPastInterview = now > interviewDateTime;
             }
 
             // 1. FORMAT DATE (Kaparehong-kapareho ng User Side formatDate function)
