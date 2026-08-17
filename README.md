@@ -157,9 +157,9 @@ USER SIDE:
 
 Dashboard:
 	
-	Make it Real-time!
+	✓ Make it Real-time!
 	✓ Quick Actions: Upcoming Interview
-	Recent Activities
+	✓ Recent Activities
 	Upcoming Schedule
 
 Notification:

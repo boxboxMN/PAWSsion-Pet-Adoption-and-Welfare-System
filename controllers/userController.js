@@ -1182,9 +1182,12 @@ exports.getUserRecentActivities = async (req, res) => {
                 app.status,
                 a.name AS pet_name,
                 a.species,
+                i.interview_date,
+                i.interview_time,
                 COALESCE(app.updated_at, app.created_at) AS activity_date
             FROM user_adoption_applications app
             JOIN animals a ON app.animal_id = a.animal_id
+            LEFT JOIN application_interviews i ON app.application_id = i.application_id
             WHERE app.adopter_id = ?
         `, [adopter_id]);
 
@@ -1240,5 +1243,59 @@ exports.getUserRecentActivities = async (req, res) => {
     } catch (error) {
         console.error("Error fetching activities:", error);
         return res.status(500).json({ success: false, error: "Database error fetching activities." });
+    }
+};
+
+// ==========================================
+// GET UPCOMING SCHEDULES / INTERVIEWS
+// ==========================================
+exports.getUserUpcomingSchedules = async (req, res) => {
+    const accountId = req.session?.accountId;
+    if (!accountId) {
+        return res.status(401).json({ success: false, message: "Unauthorized access." });
+    }
+
+    try {
+        const [adopterRows] = await pool.query(
+            `SELECT adopter_id FROM adopters WHERE account_id = ? LIMIT 1`,
+            [accountId]
+        );
+
+        if (!adopterRows.length) {
+            return res.status(404).json({ success: false, message: "Adopter profile not found." });
+        }
+
+        const adopterId = adopterRows[0].adopter_id;
+
+        const [schedules] = await pool.query(`
+            SELECT 
+                app.application_id,
+                app.status AS application_status,
+                i.interview_date,
+                i.interview_time,
+                i.interview_method,
+                i.interview_location_link,
+                i.resched_status,
+                a.name AS pet_name,
+                a.species,
+                o.organization_name
+            FROM user_adoption_applications app
+            INNER JOIN application_interviews i ON app.application_id = i.application_id
+            INNER JOIN animals a ON app.animal_id = a.animal_id
+            LEFT JOIN organizations o ON app.organization_id = o.organization_id
+            WHERE app.adopter_id = ? 
+              AND app.status = 'Interview Scheduled'
+              AND i.interview_date IS NOT NULL
+              AND STR_TO_DATE(CONCAT(DATE_FORMAT(i.interview_date, '%Y-%m-%d'), ' ', COALESCE(i.interview_time, '23:59:59')), '%Y-%m-%d %H:%i:%s') >= NOW()
+            ORDER BY i.interview_date ASC, i.interview_time ASC
+        `, [adopterId]);
+
+        return res.status(200).json({
+            success: true,
+            schedules
+        });
+    } catch (error) {
+        console.error("Error fetching upcoming schedules:", error);
+        return res.status(500).json({ success: false, message: "Server error fetching schedules." });
     }
 };

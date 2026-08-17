@@ -181,4 +181,7 @@ router.patch('/api/user/applications/:id/cancel', userController.cancelAdoptionA
 // Get the recent activities of the user
 router.get("/api/user/recent-activities", userController.getUserRecentActivities);
 
+// Get the upcoming interview schedules of the user
+router.get("/api/user/upcoming-schedules", userController.getUserUpcomingSchedules);
+
 module.exports = router;
