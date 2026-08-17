@@ -178,4 +178,7 @@ router.get('/check-applied/:petId', userController.checkAppliedStatus);
 // When the user cancel the adoption application
 router.patch('/api/user/applications/:id/cancel', userController.cancelAdoptionApplication);
 
+// Get the recent activities of the user
+router.get("/api/user/recent-activities", userController.getUserRecentActivities);
+
 module.exports = router;

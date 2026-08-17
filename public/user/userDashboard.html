@@ -136,66 +136,8 @@
         <div class="bg-white rounded-2xl border shadow-sm p-5 relative">
 
             <!-- Activity timeline -->
-            <div class="space-y-5 relative pl-10 activity-timeline">
-
-                <!-- 1. MATCHMAKING -->
-                <div class="relative activity-item">
-                    <div class="activity-dot absolute -left-8 top-1 w-4 h-4 rounded-full bg-pink-500 ring-4 ring-pink-100 flex items-center justify-center">
-                        <i class="fas fa-heart text-white text-[8px]"></i>
-                    </div>
-                    <div>
-                        <h4 class="font-semibold text-gray-800 flex items-center gap-2">
-                            <span class="text-pink-600">🐾 Match Found!</span>
-                        </h4>
-                        <p class="text-sm text-gray-500">
-                            You matched with <span class="font-medium text-gray-700">"Luna"</span> (Beagle) based on your lifestyle preferences.
-                        </p>
-                        <span class="text-xs text-gray-400 mt-1 inline-block">1 hour ago</span>
-                    </div>
-                </div>
-
-                <!-- 2. DONATION -->
-                <div class="relative activity-item">
-                    <div class="activity-dot absolute -left-8 top-1 w-4 h-4 rounded-full bg-green-500 ring-4 ring-green-100 flex items-center justify-center">
-                        <i class="fas fa-donate text-white text-[8px]"></i>
-                    </div>
-                    <div>
-                        <h4 class="font-semibold text-gray-800">One-Time Donation</h4>
-                        <p class="text-sm text-gray-500">
-                            You donated <span class="font-medium text-gray-700">₱500</span> to support <span class="font-medium text-gray-700">"Max"</span>'s medical fund via GCash.
-                        </p>
-                        <span class="text-xs text-gray-400 mt-1 inline-block">2 hours ago</span>
-                    </div>
-                </div>
-
-                <!-- 3. APPLICATION SUBMITTED -->
-                <div class="relative activity-item">
-                    <div class="activity-dot absolute -left-8 top-1 w-4 h-4 rounded-full bg-blue-500 ring-4 ring-blue-100 flex items-center justify-center">
-                        <i class="fas fa-clipboard-check text-white text-[8px]"></i>
-                    </div>
-                    <div>
-                        <h4 class="font-semibold text-gray-800">Application Submitted</h4>
-                        <p class="text-sm text-gray-500">
-                            You submitted an adoption application for <span class="font-medium text-gray-700">"Max"</span> (Golden Retriever).
-                        </p>
-                        <span class="text-xs text-gray-400 mt-1 inline-block">2 days ago</span>
-                    </div>
-                </div>
-
-                <!-- 4. APPLICATION PROCESS (Interview Scheduled) -->
-                <div class="relative activity-item">
-                    <div class="activity-dot absolute -left-8 top-1 w-4 h-4 rounded-full bg-purple-500 ring-4 ring-purple-100 flex items-center justify-center">
-                        <i class="fas fa-calendar-check text-white text-[8px]"></i>
-                    </div>
-                    <div>
-                        <h4 class="font-semibold text-gray-800">Interview Scheduled</h4>
-                        <p class="text-sm text-gray-500">
-                            Interview for <span class="font-medium text-gray-700">"Max"</span> scheduled on <span class="font-medium text-gray-700">June 12, 2025</span> at 2:00 PM.
-                        </p>
-                        <span class="text-xs text-gray-400 mt-1 inline-block">Yesterday</span>
-                    </div>
-                </div>
-
+            <div id="recentActivitiesContainer" class="space-y-5 relative pl-10 activity-timeline">
+                <p class="text-sm text-gray-400">Loading activities...</p>
             </div>
 
         </div>
@@ -310,6 +252,91 @@
 </main>
 
 <script>
+// Helper to format human-readable relative time
+function timeAgo(dateString) {
+    const date = new Date(dateString);
+    const now = new Date();
+    const seconds = Math.floor((now - date) / 1000);
+
+    if (seconds < 60) return "Just now";
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return `${minutes}m ago`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours}h ago`;
+    const days = Math.floor(hours / 24);
+    if (days < 7) return `${days}d ago`;
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+async function loadRecentActivities() {
+    const container = document.getElementById("recentActivitiesContainer");
+    if (!container) return;
+
+    try {
+        const response = await fetch("/api/user/recent-activities");
+        const data = await response.json();
+
+        if (!data.success || !data.activities.length) {
+            container.innerHTML = `<p class="text-sm text-gray-400">No recent activities found.</p>`;
+            return;
+        }
+
+        container.innerHTML = data.activities.map(item => {
+            let icon = 'fa-bell';
+            let dotColor = 'bg-blue-500 ring-blue-100';
+            let title = '';
+            let description = '';
+
+            switch (item.activity_type) {
+                case 'application':
+                    icon = 'fa-clipboard-check';
+                    dotColor = 'bg-blue-500 ring-blue-100';
+                    title = `Application: ${item.status}`;
+                    description = `Adoption application for <span class="font-medium text-gray-700">"${item.pet_name}"</span> (${item.species}) is currently <strong>${item.status}</strong>.`;
+                    break;
+
+                case 'donation_cash':
+                    icon = 'fa-donate';
+                    dotColor = 'bg-green-500 ring-green-100';
+                    title = `Cash Donation (${item.status})`;
+                    description = `You sent a cash donation of <span class="font-medium text-gray-700">₱${Number(item.amount).toLocaleString()}</span> to <span class="font-medium text-gray-700">${item.organization_name || 'Organization'}</span>.`;
+                    break;
+
+                case 'donation_inkind':
+                    icon = 'fa-box-open';
+                    dotColor = 'bg-yellow-500 ring-yellow-100';
+                    title = `In-Kind Donation (${item.status})`;
+                    description = `You submitted an in-kind donation for <span class="font-medium text-gray-700">${item.quantity}x ${item.item_name}</span>.`;
+                    break;
+
+                case 'kamustahan':
+                    icon = 'fa-heart';
+                    dotColor = 'bg-orange-500 ring-orange-100';
+                    title = `Kamustahan Care Update`;
+                    description = `Submitted a health and care update for <span class="font-medium text-gray-700">"${item.pet_name}"</span>. Status: <strong>${item.status}</strong>.`;
+                    break;
+            }
+
+            return `
+                <div class="relative activity-item">
+                    <div class="activity-dot absolute -left-8 top-1 w-4 h-4 rounded-full ${dotColor} flex items-center justify-center ring-4">
+                        <i class="fas ${icon} text-white text-[8px]"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-gray-800">${title}</h4>
+                        <p class="text-sm text-gray-500">${description}</p>
+                        <span class="text-xs text-gray-400 mt-1 inline-block">${timeAgo(item.activity_date)}</span>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+    } catch (err) {
+        console.error("Error loading activities:", err);
+        container.innerHTML = `<p class="text-sm text-red-400">Failed to load recent activities.</p>`;
+    }
+}
+
 document.addEventListener("DOMContentLoaded", async () => {
 
     // Wait until sidebar + header are loaded
@@ -326,6 +353,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         // Load user's name
         await loadUserName();
+        await loadRecentActivities();
+
+        // Real-time polling: fetch updates every 30 seconds
+        setInterval(loadRecentActivities, 30000);
 
         document.body.style.visibility = "visible";
     });

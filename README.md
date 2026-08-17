@@ -158,7 +158,7 @@ USER SIDE:
 Dashboard:
 	
 	Make it Real-time!
-	Quick Actions: Upcoming Interview
+	✓ Quick Actions: Upcoming Interview
 	Recent Activities
 	Upcoming Schedule
 
@@ -246,6 +246,8 @@ Adoption:
     ✓ kapag decline, instead of idisable ang declined button dapat auto na napapalitan ng view declined details
 
     ✓ Under Interview nschedule, yung date is hindi tugma doon sa napiliing date, ang inistore is yung kung kailan ka nag sched ng interview
+
+    ayusing yung sa applicant name diba yung org naglagay ng add pet na adopted dapat lumabas doon yuyng name ng nagadopt
 
 Settings & Support:
 	

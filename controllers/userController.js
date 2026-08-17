@@ -1151,3 +1151,94 @@ exports.getKamustahanHistory = async (req, res) => {
         return res.status(500).json({ success: false, error: "Failed to load history." });
     }
 };
+
+//functions for recent activities in user dashboard
+exports.getUserRecentActivities = async (req, res) => {
+    const accountId = req.session?.accountId;
+    if (!accountId) {
+        return res.status(401).json({ success: false, error: "Unauthorized access." });
+    }
+
+    try {
+        // 1. Get adopter_id & email
+        const [adopterRows] = await pool.query(
+            `SELECT adopter_id, email FROM adopters 
+             JOIN accounts ON adopters.account_id = accounts.account_id 
+             WHERE adopters.account_id = ? LIMIT 1`,
+            [accountId]
+        );
+
+        if (!adopterRows.length) {
+            return res.status(404).json({ success: false, error: "Adopter profile not found." });
+        }
+
+        const { adopter_id, email } = adopterRows[0];
+
+        // 2. Fetch Adoption Applications & Status Changes
+        const [apps] = await pool.query(`
+            SELECT 
+                app.application_id AS id,
+                'application' AS activity_type,
+                app.status,
+                a.name AS pet_name,
+                a.species,
+                COALESCE(app.updated_at, app.created_at) AS activity_date
+            FROM user_adoption_applications app
+            JOIN animals a ON app.animal_id = a.animal_id
+            WHERE app.adopter_id = ?
+        `, [adopter_id]);
+
+        // 3. Fetch Cash Donations
+        const [cash] = await pool.query(`
+            SELECT 
+                c.cash_donation_id AS id,
+                'donation_cash' AS activity_type,
+                c.amount,
+                o.organization_name,
+                c.status,
+                c.created_at AS activity_date
+            FROM cash_donations c
+            LEFT JOIN organizations o ON c.organization_id = o.organization_id
+            WHERE c.adopter_id = ? OR c.donor_email = ?
+        `, [adopter_id, email]);
+
+        // 4. Fetch In-Kind Donations
+        const [inkind] = await pool.query(`
+            SELECT 
+                i.inkind_donation_id AS id,
+                'donation_inkind' AS activity_type,
+                i.item_name,
+                i.quantity,
+                o.organization_name,
+                i.status,
+                i.created_at AS activity_date
+            FROM inkind_donations i
+            LEFT JOIN organizations o ON i.organization_id = o.organization_id
+            WHERE i.adopter_id = ? OR i.donor_email = ?
+        `, [adopter_id, email]);
+
+        // 5. Fetch Kamustahan Updates
+        const [kamustahan] = await pool.query(`
+            SELECT 
+                k.update_id AS id,
+                'kamustahan' AS activity_type,
+                k.status,
+                a.name AS pet_name,
+                k.created_at AS activity_date
+            FROM kamustahan_updates k
+            JOIN animals a ON k.animal_id = a.animal_id
+            WHERE k.adopter_id = ?
+        `, [adopter_id]);
+
+        // Combine and sort newest first
+        const allActivities = [...apps, ...cash, ...inkind, ...kamustahan]
+            .filter(item => item.activity_date)
+            .sort((a, b) => new Date(b.activity_date) - new Date(a.activity_date))
+            .slice(0, 5); // Show top 10 most recent
+
+        return res.json({ success: true, activities: allActivities });
+    } catch (error) {
+        console.error("Error fetching activities:", error);
+        return res.status(500).json({ success: false, error: "Database error fetching activities." });
+    }
+};
