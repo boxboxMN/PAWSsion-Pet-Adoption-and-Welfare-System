@@ -252,8 +252,8 @@
                 declined++;
             } else if (status.includes('interview') || status.includes('scheduled')) {
                 interview++;
-            } else {
-                // Babagsak dito kapag "under review", "pending", o walang nakalagay na status
+            } else if (status.includes('review') || status.includes('pending') || status === '') {
+            // Tanging 'Under Review' at 'Pending' lamang ang bibilangin dito (hindi kasama ang 'Cancelled')
                 active++;
             }
         });
