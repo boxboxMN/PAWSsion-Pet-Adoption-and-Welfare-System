@@ -1,4 +1,4 @@
-    // Stores all donation records fetched from the server
+  // Stores all donation records fetched from the server
     let rawDonationsData = [];
     // Stores the currently selected receipt path for zoom/view actions
     let currentActiveReceiptPath = "";
@@ -24,10 +24,9 @@
             showEmptyTable("No donations found or error connecting to server.");
         }
     }
+
     /**
      * Renders donation records into the donation table.
-     * Displays donation details, amount/items, status,
-     * and action buttons.
      */
     function renderDonations(data) {
         const tbody = document.getElementById("donationTableBody");
@@ -47,17 +46,15 @@
             const isCash = item.type === "Cash";
             const iconClass = isCash ? "fa-money-bill-wave" : "fa-box-open";
             
-            // Details column content
             let detailsHtml = `<h3 class="font-medium text-gray-800">${item.organization || 'Animal Shelter'}</h3>`;
             if (isCash && item.reference_number) {
                 detailsHtml += `<p class="text-xs text-gray-400 mt-0.5">Ref No: ${item.reference_number}</p>`;
             }
-            // Amount / items content
+
             const amountOrItems = isCash 
                 ? `₱ ${parseFloat(item.amount).toLocaleString('en-US', {minimumFractionDigits: 2})}`
                 : (item.items || 'In-Kind Items');
 
-            // Badge Color Status
             let statusBadge = '';
             const statusStr = (item.status || 'Pending').toLowerCase();
 
@@ -104,9 +101,7 @@
     }
 
     /**
-     * Calculates and updates dashboard statistics,
-     * including total verified cash donations and
-     * total verified in-kind donations.
+     * Calculates and updates dashboard statistics.
      */
     function calculateStats(data) {
         let totalCash = 0;
@@ -128,8 +123,7 @@
     }
 
     /**
-     * Filters donation records based on the selected
-     * donation type (All, Cash, or In-Kind).
+     * Filters donation records based on type.
      */
     function filterDonations() {
         const filterValue = document.getElementById("typeFilter").value;
@@ -140,10 +134,7 @@
             renderDonations(filtered);
         }
     }
-    /**
-     * Displays an empty-state message when no
-     * donation records are available.
-     */
+
     function showEmptyTable(message) {
         document.getElementById("donationTableBody").innerHTML = `
             <tr>
@@ -151,10 +142,6 @@
             </tr>`;
     }
 
-    /**
-     * Opens the donation details modal and displays
-     * complete information about the selected donation.
-     */
     function viewDetails(type, id) {
         const donation = rawDonationsData.find(d => d.id == id && d.type === type);
         if (!donation) return;
@@ -166,7 +153,6 @@
         
         document.getElementById("modalType").textContent = donation.type;
 
-        // Render Amount / Items & Reference Number
         if (type === 'Cash') {
             document.getElementById("modalAmountContainer").classList.remove("hidden");
             document.getElementById("modalRefContainer").classList.remove("hidden");
@@ -178,7 +164,6 @@
             document.getElementById("modalAmount").textContent = donation.items || 'In-Kind Resource Item';
         }
 
-        // Receipt Handling
         const proofSection = document.getElementById("modalProofSection");
         if (donation.receipt_path) {
             proofSection.classList.remove("hidden");
@@ -193,7 +178,6 @@
             currentActiveReceiptPath = "";
         }
 
-        // Status Banner Rendering
         const statusBanner = document.getElementById("modalStatusBanner");
         const statusStr = (donation.status || 'Pending').toLowerCase();
 
@@ -208,8 +192,6 @@
             `;
             statusBanner.classList.remove("hidden");
         } else if (statusStr === 'rejected') {
-            const reasonText = donation.rejection_reason || 'No specific reason provided.';
-
             statusBanner.className = "mt-4 p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold space-y-1.5";
             statusBanner.innerHTML = `
                 <div class="flex items-center justify-between">
@@ -245,10 +227,6 @@
         modal.querySelector("div").classList.add("scale-95");
     }
 
-    /**
-     * Opens the receipt image in a lightbox modal
-     * for viewing, downloading, or opening externally.
-     */
     function viewReceiptDirect(receiptPathRaw) {
         let fullPath = "https://via.placeholder.com/400x600?text=No+Receipt+Uploaded";
         if (receiptPathRaw) {
@@ -269,23 +247,47 @@
         modal.classList.remove("opacity-0", "pointer-events-none");
         modal.querySelector("div").classList.remove("scale-95");
     }
-    /**
-     * Closes the receipt preview modal.
-     */
+
     function closeReceiptModal() {
         const modal = document.getElementById("receiptModal");
         modal.classList.add("opacity-0", "pointer-events-none");
         modal.querySelector("div").classList.add("scale-95");
     }
-    /**
-     * Opens the currently selected receipt image
-     * in the receipt viewer modal.
-     */
+
     function triggerZoomReceipt() {
         if (currentActiveReceiptPath) {
             viewReceiptDirect(currentActiveReceiptPath);
         }
     }
+
+    /**
+     * Fetches user profile data to populate the header (name, avatar).
+     */
+    async function fetchAndRenderUserProfile() {
+        try {
+            const response = await fetch('/api/user/profile', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+                }
+            });
+
+            if (!response.ok) throw new Error('Failed to fetch user profile');
+
+            const userData = await response.json();
+            const user = userData.user || userData;
+
+            const userNameEl = document.getElementById('userName') || document.querySelector('.user-name');
+            const userAvatarEl = document.getElementById('userAvatar') || document.querySelector('.user-avatar');
+
+            if (userNameEl) userNameEl.textContent = user.name || user.username;
+            if (userAvatarEl && user.avatar) userAvatarEl.src = user.avatar;
+        } catch (error) {
+            console.error('Error loading profile in header:', error);
+        }
+    }
+
     /**
      * Dynamically loads reusable page components
      * such as the sidebar and header.
@@ -299,11 +301,12 @@
             console.error(error);
         }
     }
+
     Promise.all([
         loadComponent("sidebar", "/user/userSidebar.html"),
         loadComponent("header", "/user/userHeader.html")
     ])
-    .then(() => {
+    .then(async () => {
         document.getElementById("sidebar").style.visibility = "visible";
         document.getElementById("header").style.visibility = "visible";
 
@@ -333,7 +336,13 @@
                 link.className = "nav-link flex items-center gap-4 px-5 py-4 rounded-2xl text-gray-800 hover:bg-blue-50 hover:text-blue-600 transition";
             }
         });
+
+        // Fetch user profile to update the header elements correctly
+        await fetchAndRenderUserProfile();
+        
+        // Fetch donations data
         fetchUserDonations();
+        
         document.body.style.visibility = "visible";
     })
     .catch(error => console.error(error));
