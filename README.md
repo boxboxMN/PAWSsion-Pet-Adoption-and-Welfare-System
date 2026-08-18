@@ -193,7 +193,7 @@ My Application:
 
     Once na approved na dapat may inotify pa ang user kung kelan makukuha ang pet 
 
-    fixed date and time
+    ✓ fixed date and time
 Adoption-hub: 	
 	
 	✓ Once na adopted na yung pet is hindi na sya makikita ng ibang user sa adoption page
@@ -259,7 +259,7 @@ Adoption:
 
     ✓ ayusing yung sa applicant name diba yung org naglagay ng add pet na adopted dapat lumabas doon yuyng name ng nagadopt
 
-    fixed date and time
+    ✓ fixed date and time
 
 Settings & Support:
 	
