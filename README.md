@@ -192,6 +192,8 @@ My Application:
     dapat once na adopted na yung pet pero yung isang user is may under review, dapat maging declined na yun since naadopt na ng isang user ang pet
 
     Once na approved na dapat may inotify pa ang user kung kelan makukuha ang pet 
+
+    fixed date and time
 Adoption-hub: 	
 	
 	✓ Once na adopted na yung pet is hindi na sya makikita ng ibang user sa adoption page
@@ -235,6 +237,7 @@ Pets:
     ✓ Archive is may unarchive buttons and nakahide ang edit, delete buttons
 
     Once na approved na dapat may inotify pa ang user kung kelan makukuha ang pet 
+
     
 # Questions and Testing
 
@@ -255,6 +258,8 @@ Adoption:
     ✓ Under Interview nschedule, yung date is hindi tugma doon sa napiliing date, ang inistore is yung kung kailan ka nag sched ng interview
 
     ✓ ayusing yung sa applicant name diba yung org naglagay ng add pet na adopted dapat lumabas doon yuyng name ng nagadopt
+
+    fixed date and time
 
 Settings & Support:
 	

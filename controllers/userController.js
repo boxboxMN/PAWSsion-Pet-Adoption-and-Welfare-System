@@ -550,6 +550,7 @@ exports.getPetById = async (req, res) => {
         res.status(500).json(err);
     }
 };
+
 //for user adoption application submission
 exports.submitAdoptionApplication = async (req, res) => {
     try {
@@ -637,6 +638,7 @@ exports.submitAdoptionApplication = async (req, res) => {
                     document_path = COALESCE(?, document_path),
                     status = 'Under Review',
                     decline_reason = NULL,
+                    created_at = NOW(),
                     updated_at = NOW()
                 WHERE application_id = ?
             `;
@@ -683,8 +685,10 @@ exports.submitAdoptionApplication = async (req, res) => {
                 emergency_phone,
                 emergency_relation,
                 document_path,
-                status
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                status,
+                created_at,
+                updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
         `;
 
         const values = [
@@ -818,7 +822,7 @@ exports.getUserApplications = async (req, res) => {
                 app.document_path,
                 app.status,
                 app.decline_reason,
-                app.created_at,
+                COALESCE(app.updated_at, app.created_at) AS created_at,
                 app.updated_at,
                 i.interview_date,
                 i.interview_time,
@@ -844,7 +848,7 @@ exports.getUserApplications = async (req, res) => {
             LEFT JOIN organizations org ON animal.organization_id = org.organization_id
             LEFT JOIN application_interviews i ON app.application_id = i.application_id
             WHERE app.adopter_id = ?
-            ORDER BY app.created_at DESC
+            ORDER BY COALESCE(app.updated_at, app.created_at) DESC
             `,
             [adopterId]
         );
