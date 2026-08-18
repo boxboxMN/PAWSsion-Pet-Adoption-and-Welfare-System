@@ -191,6 +191,7 @@ My Application:
 
     dapat once na adopted na yung pet pero yung isang user is may under review, dapat maging declined na yun since naadopt na ng isang user ang pet
 
+    Once na approved na dapat may inotify pa ang user kung kelan makukuha ang pet 
 Adoption-hub: 	
 	
 	✓ Once na adopted na yung pet is hindi na sya makikita ng ibang user sa adoption page
@@ -232,6 +233,8 @@ Pets:
     ✓ Under add pet, sa may adoption status dapat once na adopted auto na malalgay sa adopted pets, and yung available and pending is sa active status
 
     ✓ Archive is may unarchive buttons and nakahide ang edit, delete buttons
+
+    Once na approved na dapat may inotify pa ang user kung kelan makukuha ang pet 
     
 # Questions and Testing
 
