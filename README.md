@@ -249,7 +249,7 @@ Adoption:
 
     ✓ Under Interview nschedule, yung date is hindi tugma doon sa napiliing date, ang inistore is yung kung kailan ka nag sched ng interview
 
-    ayusing yung sa applicant name diba yung org naglagay ng add pet na adopted dapat lumabas doon yuyng name ng nagadopt
+    ✓ ayusing yung sa applicant name diba yung org naglagay ng add pet na adopted dapat lumabas doon yuyng name ng nagadopt
 
 Settings & Support:
 	
@@ -259,8 +259,6 @@ Notification:
 
 	Dapat nakikita ang lahat ng changes sa notif and dapat sa sidebar is kapag may changes may pula na bilog na nagaappear
 	
-
-
 NOTES:
 
 ✓ Itanong kay jhy if ok na yung kamustahan
