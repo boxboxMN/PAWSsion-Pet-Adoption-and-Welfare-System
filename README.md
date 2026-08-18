@@ -189,6 +189,8 @@ My Application:
 
     ✓ sa reschedule approved na lumalabas lang kapag nagrequest
 
+    dapat once na adopted na yung pet pero yung isang user is may under review, dapat maging declined na yun since naadopt na ng isang user ang pet
+
 Adoption-hub: 	
 	
 	✓ Once na adopted na yung pet is hindi na sya makikita ng ibang user sa adoption page
