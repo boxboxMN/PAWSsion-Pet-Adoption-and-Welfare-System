@@ -168,8 +168,7 @@ async function matchPets(preferences) {
             sexScore:
                 sexScore * 100,
 
-            score:
-                Number((finalScore * 100).toFixed(2)),
+            score: Math.round(finalScore * 100),
             
             behaviorContribution: Math.round(behaviorSimilarity * behaviorWeight * 100),
             ageContribution: Math.round(ageScore * ageWeight * 100),
