@@ -182,9 +182,23 @@ if (account.role === "organization" && account.status === "pending") {
 };
 
 exports.logout = (req, res) => {
-  req.session.destroy(() => {
-    res.redirect('/auth/login.html');
-  });
+    req.session.destroy((err) => {
+        if (err) {
+            console.error("Logout error:", err);
+
+            return res.status(500).json({
+                success: false,
+                message: "Failed to logout."
+            });
+        }
+
+        res.clearCookie("connect.sid");
+
+        return res.status(200).json({
+            success: true,
+            message: "Logged out successfully."
+        });
+    });
 };
 
 exports.registerOrganization = async (req, res) => {

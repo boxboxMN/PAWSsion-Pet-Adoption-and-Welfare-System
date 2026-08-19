@@ -1318,4 +1318,56 @@ exports.getUserUpcomingSchedules = async (req, res) => {
         console.error("Error fetching upcoming schedules:", error);
         return res.status(500).json({ success: false, message: "Server error fetching schedules." });
     }
+}
+exports.logout = (req, res) => {
+
+    console.log("========== LOGOUT REQUEST ==========");
+
+    if (!req.session) {
+
+        console.log("No active session found.");
+
+        res.clearCookie("connect.sid", {
+            path: "/"
+        });
+
+        return res.json({
+            success: true,
+            message: "Already logged out."
+        });
+    }
+
+
+    req.session.destroy((err) => {
+
+        if (err) {
+
+            console.error("LOGOUT SESSION DESTROY ERROR:", err);
+
+            return res.status(500).json({
+                success: false,
+                message: "Failed to logout."
+            });
+
+        }
+
+
+        console.log("Session destroyed successfully.");
+
+
+        res.clearCookie("connect.sid", {
+            path: "/"
+        });
+
+
+        console.log("Session cookie cleared.");
+        console.log("====================================");
+
+
+        return res.status(200).json({
+            success: true,
+            message: "Logged out successfully."
+        });
+
+    });
 };
