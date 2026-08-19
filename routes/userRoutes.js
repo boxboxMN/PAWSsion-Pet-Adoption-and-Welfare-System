@@ -183,5 +183,6 @@ router.get("/api/user/recent-activities", userController.getUserRecentActivities
 
 // Get the upcoming interview schedules of the user
 router.get("/api/user/upcoming-schedules", userController.getUserUpcomingSchedules);
-
+// Kunin ang detalye ng isang partikular na organisasyon para sa modal profile
+router.get("/api/organizations/:id", userController.getOrganizationById);
 module.exports = router;
