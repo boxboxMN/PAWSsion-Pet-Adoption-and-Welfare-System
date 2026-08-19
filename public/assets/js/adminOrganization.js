@@ -194,7 +194,11 @@ async function openDetails(id) {
         document.getElementById("detailAdoptions").textContent = data.total_adoptions ?? 0;
         document.getElementById("detailDonations").textContent = "₱" + Number(data.total_donations ?? 0).toLocaleString();
         document.getElementById("detailLastLogin").textContent = data.last_login
-            ? new Date(data.last_login).toLocaleString()
+            ? new Date(data.last_login).toLocaleDateString("en-US", {
+                month: "long",
+                day: "numeric",
+                year: "numeric"
+            })
             : "Never";
 
         // DOCUMENTS

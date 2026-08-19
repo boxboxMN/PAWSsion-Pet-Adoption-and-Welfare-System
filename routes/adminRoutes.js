@@ -180,15 +180,14 @@ router.get("/organizations", async (req, res) => {
     }
 });
 
-/*
-=================================================
-GET SINGLE ORGANIZATION + DOCUMENTS
-=================================================
-*/
+// =================================================
+// GET SINGLE ORGANIZATION + DOCUMENTS + PLATFORM ACTIVITY
+// =================================================
 router.get("/organization/:id", async (req, res) => {
     try {
-        const id = req.params.id;
+        const { id } = req.params;
 
+        // Fetch organization basic information
         const [[organization]] = await pool.query(`
             SELECT
                 o.organization_id,
@@ -201,38 +200,57 @@ router.get("/organization/:id", async (req, res) => {
                 o.province,
                 o.description,
                 o.verification_status,
+                a.account_id,
                 a.email,
                 a.created_at,
-                a.status
+                a.status,
+                a.last_login
             FROM organizations o
-            JOIN accounts a ON o.account_id = a.account_id
+            INNER JOIN accounts a ON o.account_id = a.account_id
             WHERE o.organization_id = ?
         `, [id]);
 
         if (!organization) {
-            return res.status(404).json({
-                message: "Organization not found"
-            });
+            return res.status(404).json({ message: "Organization not found" });
         }
 
-        const [documents] = await pool.query(`
-            SELECT
-                document_id,
-                document_name,
-                file_path,
-                uploaded_at
-            FROM organization_documents
-            WHERE organization_id = ?
-        `, [id]);
+        // Fetch stats and documents in parallel
+        const [
+            [[animalStats]],
+            [[donationStats]],
+            [documents]
+        ] = await Promise.all([
+            pool.query(`
+                SELECT
+                    COUNT(*) AS total_animals,
+                    SUM(CASE WHEN adoption_status = 'Adopted' THEN 1 ELSE 0 END) AS total_adoptions
+                FROM animals
+                WHERE organization_id = ?
+            `, [id]),
+            pool.query(`
+                SELECT COALESCE(SUM(amount), 0) AS total_donations
+                FROM cash_donations
+                WHERE organization_id = ? AND status = 'Approved'
+            `, [id]),
+            pool.query(`
+                SELECT document_id, document_name, file_path, uploaded_at
+                FROM organization_documents
+                WHERE organization_id = ?
+                ORDER BY uploaded_at DESC
+            `, [id])
+        ]);
 
+        // Combine response data
+        organization.total_animals = Number(animalStats?.total_animals || 0);
+        organization.total_adoptions = Number(animalStats?.total_adoptions || 0);
+        organization.total_donations = Number(donationStats?.total_donations || 0);
         organization.documents = documents;
+
         res.json(organization);
 
     } catch (err) {
-        console.error(err);
-        res.status(500).json({
-            message: "Database Error"
-        });
+        console.error("Get Organization Details Error:", err);
+        res.status(500).json({ message: "Database Error" });
     }
 });
 /*

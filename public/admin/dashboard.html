@@ -14,7 +14,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="../assets/js/adminSidebar.js"></script>
     <script src="../assets/js/adminTopbar.js"></script>
-
     <style>
         .hide-scrollbar::-webkit-scrollbar {
             display: none;
@@ -246,8 +245,7 @@ async function loadTopOrganizations() {
                         <td class="py-4 px-6">
                             <div class="flex items-center gap-3">
                                 ${avatarUrl ? `
-                                    <img
-                                        src="${avatarUrl}"
+                                    <img src="${avatarUrl}"
                                         alt="${escapeHtml(organizationName)}"
                                         class="w-9 h-9 rounded-xl object-cover border border-slate-200 bg-slate-100"
                                         onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='flex';"

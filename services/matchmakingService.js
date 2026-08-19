@@ -35,31 +35,44 @@ async function matchPets(preferences) {
     const userEmbedding = await generateEmbedding(behavior);
 
     // Load pets together with their embeddings
-    const [pets] = await pool.query(`
-        SELECT
-            a.animal_id,
-            a.name,
-            a.species,
-            a.gender,
-            a.age,
-            a.color,
-            a.pet_description,
-            a.personality_tags,
-            a.image_path,
-            a.organization_id,
-            o.organization_name,
-            a.adoption_status,
-            a.health_status,
-            a.vaccination_status,
-            ae.embedding
-        FROM animals a
-        INNER JOIN animal_embeddings ae
-            ON a.animal_id = ae.animal_id
-        INNER JOIN organizations o
-            ON a.organization_id = o.organization_id
-        WHERE a.adoption_status='Available'
-        AND a.species=?
-    `, [type]);
+   const [pets] = await pool.query(` 
+    SELECT  
+        a.animal_id,  
+        a.name,  
+        a.species,  
+        a.gender,  
+        a.age,  
+        a.color,  
+        a.pet_description,  
+        a.personality_tags,  
+        a.image_path,  
+        a.organization_id,  
+        o.organization_name,  
+        a.adoption_status,  
+        a.health_status,  
+        a.vaccination_status,  
+        ae.embedding  
+    FROM animals a 
+    INNER JOIN animal_embeddings ae 
+        ON a.animal_id = ae.animal_id 
+    INNER JOIN organizations o 
+        ON a.organization_id = o.organization_id 
+    WHERE a.adoption_status = 'Available'
+
+    -- Exclude pets with active adoption applications
+    AND NOT EXISTS (
+        SELECT 1
+        FROM user_adoption_applications uaa
+        WHERE uaa.animal_id = a.animal_id
+        AND uaa.status IN (
+            'Under Review',
+            'Interview Scheduled',
+            'Approved'
+        )
+    )
+
+        ${type !== "Any" ? "AND a.species = ?" : ""} 
+    `, type !== "Any" ? [type] : []);
 
     const matches = [];
 
@@ -76,59 +89,58 @@ async function matchPets(preferences) {
         `, [pet.animal_id]);
 
         // Convert JSON stored in MySQL
-        const petEmbedding =
-            typeof pet.embedding === "string"
-                ? JSON.parse(pet.embedding)
-                : pet.embedding;
+        const petEmbedding = typeof pet.embedding === "string" ? JSON.parse(pet.embedding) : pet.embedding;
 
-        // Cosine similarity (-1 to 1)
-        const similarity =
-            cosineSimilarity(userEmbedding, petEmbedding);
+        // Cosine similarity (-1 to 1) and normalize to 0-1
+        const similarity = cosineSimilarity(userEmbedding, petEmbedding);
+        let behaviorSimilarity = (similarity + 1) / 2;
 
-        // Convert to 0-1
-        let behaviorSimilarity =
-            (similarity + 1) / 2;
-        
-            console.log("====================================");
-            console.log("Pet:", pet.name);
-            console.log("Raw Cosine Similarity:", similarity.toFixed(4));
-            console.log("Behavior Similarity BEFORE Boost:", (behaviorSimilarity * 100).toFixed(2) + "%");
+        console.log("====================================");
+        console.log("Pet:", pet.name);
+        console.log("Raw Cosine Similarity:", similarity.toFixed(4));
+        console.log("Behavior Similarity BEFORE Boost:", (behaviorSimilarity * 100).toFixed(2) + "%");
 
         // -----------------------------------
         // Smooth Boost
         // -----------------------------------
         // Only boost if already a decent match.
         if (behaviorSimilarity >= 0.50) {
-
-            // Increase by up to 25% of the remaining distance to 1.0
-            behaviorSimilarity =
-                behaviorSimilarity +
-                ((1 - behaviorSimilarity) * 0.30);
+            // Increase by up to 30% of the remaining distance to 1.0
+            behaviorSimilarity += (1 - behaviorSimilarity) * 0.30;
         }
-            console.log("Behavior Similarity AFTER Boost :", (behaviorSimilarity * 100).toFixed(2) + "%");
 
-        // Binary indicator scores
-        const sexScore =
-            pet.gender === sex ? 1 : 0;
+        console.log("Behavior Similarity AFTER Boost :", (behaviorSimilarity * 100).toFixed(2) + "%");
 
-        const ageScore =
-            pet.age === age ? 1 : 0;
-            
-            console.log("Sex Match :", sexScore === 1 ? "YES" : "NO");
-            console.log("Age Match :", ageScore === 1 ? "YES" : "NO");
+        // =========================================
+        // SEX & AGE SCORES
+        // =========================================
+        const sexScore = sex === "Any" ? 1 : (pet.gender === sex ? 1 : 0);
+        const ageScore = age === "Any" ? 1 : (pet.age === age ? 1 : 0);
 
-        // Weighted Sum Model
-        const finalScore =
-            (behaviorSimilarity * 0.70) +
-            (ageScore * 0.20) +
-            (sexScore * 0.10);
+        console.log("Sex Match :", sex === "Any" ? "ANY" : (sexScore === 1 ? "YES" : "NO"));
+        console.log("Age Match :", age === "Any" ? "ANY" : (ageScore === 1 ? "YES" : "NO"));
+        // =========================================
+        // FIXED WEIGHTS
+        // =========================================
 
-            console.log("Behavior Contribution :", (behaviorSimilarity * 0.70 * 100).toFixed(2) + "%");
-            console.log("Age Contribution      :", (ageScore * 0.20 * 100).toFixed(2) + "%");
-            console.log("Sex Contribution      :", (sexScore * 0.10 * 100).toFixed(2) + "%");
-            console.log("------------------------------------");
-            console.log("FINAL MATCH SCORE     :", (finalScore * 100).toFixed(2) + "%");
-            console.log("====================================\n");
+        const behaviorWeight = 0.70;
+        const ageWeight = 0.20;
+        const sexWeight = 0.10;
+
+        // =========================================
+        // FINAL MATCH SCORE
+        // =========================================
+        const finalScore = (behaviorSimilarity * behaviorWeight) + (ageScore * ageWeight) + (sexScore * sexWeight);
+
+        console.log("Behavior Weight       :", (behaviorWeight * 100).toFixed(0) + "%");
+        console.log("Age Weight            :", (ageWeight * 100).toFixed(0) + "%");
+        console.log("Sex Weight            :", (sexWeight * 100).toFixed(0) + "%");
+        console.log("Behavior Contribution :", (behaviorSimilarity * behaviorWeight * 100).toFixed(2) + "%");
+        console.log("Age Contribution      :", (ageScore * ageWeight * 100).toFixed(2) + "%");
+        console.log("Sex Contribution      :", (sexScore * sexWeight * 100).toFixed(2) + "%");
+        console.log("------------------------------------");
+        console.log("FINAL MATCH SCORE     :", (finalScore * 100).toFixed(2) + "%");
+        console.log("====================================\n");
             
         matches.push({
             animal_id: pet.animal_id,
@@ -156,13 +168,11 @@ async function matchPets(preferences) {
             sexScore:
                 sexScore * 100,
 
-            score:
-                Number((finalScore * 100).toFixed(2)),
+            score: Math.round(finalScore * 100),
             
-            behaviorContribution: Number((behaviorSimilarity * 70).toFixed(2)),
-            ageContribution: Number((ageScore * 20).toFixed(2)),
-            sexContribution: Number((sexScore * 10).toFixed(2)),
-
+            behaviorContribution: Math.round(behaviorSimilarity * behaviorWeight * 100),
+            ageContribution: Math.round(ageScore * ageWeight * 100),
+            sexContribution: Math.round(sexScore * sexWeight * 100),
         });
 
     }
