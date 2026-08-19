@@ -185,4 +185,30 @@ router.get("/api/user/recent-activities", userController.getUserRecentActivities
 router.get("/api/user/upcoming-schedules", userController.getUserUpcomingSchedules);
 // Kunin ang detalye ng isang partikular na organisasyon para sa modal profile
 router.get("/api/organizations/:id", userController.getOrganizationById);
+// Siguraduhin na gamit ang uploadKamustahan middleware
+router.put('/api/user/kamustahan/:id', uploadKamustahan.single('photos'), async (req, res) => {
+    try {
+        const updateId = req.params.id;
+        const { update_text } = req.body;
+        
+        // Gamitin ang pool na naka-export sa itaas
+        if (req.file) {
+            const photoPath = `/uploads/kamustahan/${req.file.filename}`;
+            await pool.query(
+                'UPDATE kamustahan_updates SET update_text = ?, photos = ? WHERE update_id = ?', 
+                [update_text, photoPath, updateId]
+            );
+        } else {
+            await pool.query(
+                'UPDATE kamustahan_updates SET update_text = ? WHERE update_id = ?', 
+                [update_text, updateId]
+            );
+        }
+
+        res.json({ success: true, message: 'Update successfully modified.' });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false, error: 'Server error' });
+    }
+});
 module.exports = router;
