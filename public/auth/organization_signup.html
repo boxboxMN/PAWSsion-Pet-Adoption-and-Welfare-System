@@ -244,7 +244,7 @@
                 </div>
 
                 <div class="next-btn">
-                    <button type="button" id="next1">Next →</button>
+                    <button type="button" id="next1" disabled>Next →</button>
                 </div>
 
             </div>
@@ -283,45 +283,57 @@
                     </div>
 
                     <div class="field full-width">
-                        <div class="address-row">
+                        <label>Street Address / House No. & Street <span class="required">*</span></label>
+                        <input type="text" id="streetAddress" name="streetAddress" placeholder="Unit / House No., Street, Subdivision" required>
+                    </div>
 
-                            <div class="field province-field">
-                                <label>Province <span class="required">*</span></label>
-                                <select id="province" name="province" class="dropdown-select" required>
-                                    <option value="">Select Province</option>
-                                </select>
-                            </div>
+                    <div class="field">
+                        <label>Region <span class="required">*</span></label>
+                        <select id="region" name="region" class="dropdown-select" required>
+                            <option value="">Select Region</option>
+                        </select>
+                    </div>
 
-                            <div class="field city-field">
-                                <label>City/Municipality <span class="required">*</span></label>
-                                <select id="city" name="city" class="dropdown-select" required disabled>
-                                    <option value="">Select Province First</option>
-                                </select>
-                            </div>
+                    <div class="field">
+                        <label>Province <span class="required">*</span></label>
+                        <select id="province" name="province" class="dropdown-select" required disabled>
+                            <option value="">Select Province</option>
+                        </select>
+                    </div>
 
-                            <div class="field address-field">
-                                <label>Street Address/Brgy <span class="required">*</span></label>
-                                <input
-                                    type="text"
-                                    id="address"
-                                    name="address"
-                                    placeholder="Unit No, Street, Barangay"
-                                    required>
-                            </div>
+                    <div class="field">
+                        <label>City / Municipality <span class="required">*</span></label>
+                        <select id="city" name="city" class="dropdown-select" required disabled>
+                            <option value="">Select City / Municipality</option>
+                        </select>
+                    </div>
 
-                        </div>
+                    <div class="field">
+                        <label>Barangay <span class="required">*</span></label>
+                        <select id="barangay" name="barangay" class="dropdown-select" required disabled>
+                            <option value="">Select Barangay</option>
+                        </select>
+                    </div>
+
+                    <div class="field full-width">
+                        <label>Zip Code <span class="required">*</span>
+                            <a href="https://www.google.com/search?q=zip+code+philippines" target="_blank" style="font-size: 11px; margin-left: 5px; color: #3498db;">
+                                (Find my Zip Code?)
+                            </a>
+                        </label>
+                        <input type="text" id="zipCode" name="zipCode" placeholder="e.g. 4434" maxlength="4" required>
+                        <div id="zipHelper" class="input-helper-text"></div>
                     </div>
 
                     <div class="field full-width">
                         <label>Description</label>
                         <textarea id="description" name="description" placeholder="Tell us briefly about your organization..."></textarea>
                     </div>
-
                 </div>
 
                 <div class="actions">
                     <button type="button" id="back1">← Back</button>
-                    <button type="button" id="next2">Next →</button>
+                    <button type="button" id="next2" disabled>Next →</button>
                 </div>
 
             </div>
@@ -389,26 +401,14 @@ const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#]).{8,}$/;
 const phoneRegex = /^09\d{9}$/;
 const emailValidatorRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-// Localized geographic data for dropdown cascades
-const locationData = {
-    "Camarines Sur": [
-        "Pili", "Naga City", "Iriga City", "Baao", "Bula", "Calabanga", 
-        "Canaman", "Goa", "Libmanan", "Minalabac", "Nabua", "Ocampo", 
-        "Pasacao", "Sagnay", "San Jose", "Sipocot", "Tigaon"
-    ],
-    "Camarines Norte": [
-        "Daet", "Basud", "Jose Panganiban", "Labo", "Mercedes", "Paracale", "Vinzons"
-    ],
-    "Albay": [
-        "Legazpi City", "Daraga", "Tabaco City", "Ligao City", "Guinobatan", "Camalig", "Polangui"
-    ],
-    "Sorsogon": [
-        "Sorsogon City", "Bulan", "Gubat", "Irosin", "Castilla", "Donsol"
-    ],
-    "Metro Manila": [
-        "Manila", "Quezon City", "Makati", "Taguig", "Pasig", "Mandaluyong", "Parañaque"
-    ]
-};
+const zipRegex = /^\d{4}$/;
+const streetAddressInput = document.getElementById("streetAddress");
+const regionSelect = document.getElementById("region");
+const provinceSelect = document.getElementById("province");
+const citySelect = document.getElementById("city");
+const barangaySelect = document.getElementById("barangay");
+const zipCodeInput = document.getElementById("zipCode");
+const zipHelper = document.getElementById("zipHelper");
 
 
 // ================================
@@ -419,6 +419,157 @@ const alertIcon = document.getElementById("customAlertIcon");
 const alertMessage = document.getElementById("customAlertMessage");
 const alertBtn = document.getElementById("customAlertBtn");
 let currentAlertCallback = null;
+
+let regionsData = [];
+let provincesData = [];
+let citiesData = [];
+let barangaysData = [];
+
+// Zip code live formatting
+zipCodeInput.addEventListener("input", function() {
+    this.value = this.value.replace(/\D/g, "");
+    if (this.value === "") {
+        zipHelper.innerHTML = "";
+    } else if (zipRegex.test(this.value)) {
+        zipHelper.className = "input-helper-text success";
+        zipHelper.innerHTML = "<i class='fa-solid fa-circle-check'></i> Valid ZIP code.";
+    } else {
+        zipHelper.className = "input-helper-text error";
+        zipHelper.innerHTML = "<i class='fa-solid fa-circle-xmark'></i> Must be exactly 4 digits.";
+    }
+});
+
+// Cascading Loaders
+async function loadRegions() {
+    try {
+        regionSelect.innerHTML = '<option value="">Loading regions...</option>';
+        const res = await fetch('/data/regions.json');
+        if (!res.ok) throw new Error("Local file not found");
+        regionsData = await res.json();
+
+        regionSelect.innerHTML = '<option value="">Select Region</option>';
+        regionsData.forEach(reg => {
+            const opt = document.createElement('option');
+            opt.value = reg.region_name;
+            opt.textContent = reg.region_name;
+            opt.dataset.code = reg.region_code;
+            regionSelect.appendChild(opt);
+        });
+    } catch (err) {
+        regionSelect.innerHTML = '<option value="">Failed to load regions</option>';
+    }
+}
+
+regionSelect.addEventListener('change', async function() {
+    const selectedOption = this.options[this.selectedIndex];
+    const regCode = selectedOption ? selectedOption.dataset.code : null;
+
+    provinceSelect.innerHTML = '<option value="">Loading provinces...</option>';
+    provinceSelect.disabled = true;
+    citySelect.innerHTML = '<option value="">Select City / Municipality</option>';
+    citySelect.disabled = true;
+    barangaySelect.innerHTML = '<option value="">Select Barangay</option>';
+    barangaySelect.disabled = true;
+
+    if (!regCode) {
+        provinceSelect.innerHTML = '<option value="">Select Province</option>';
+        return;
+    }
+
+    try {
+        if (provincesData.length === 0) {
+            const res = await fetch('/data/provinces.json');
+            provincesData = await res.json();
+        }
+
+        let filtered = provincesData.filter(p => p.region_code === regCode);
+        filtered.sort((a, b) => a.province_name.localeCompare(b.province_name));
+
+        if (filtered.length === 0) {
+            filtered = [{ province_code: regCode, province_name: selectedOption.value }];
+        }
+
+        provinceSelect.innerHTML = '<option value="">Select Province</option>';
+        filtered.forEach(p => {
+            const opt = document.createElement('option');
+            opt.value = p.province_name;
+            opt.textContent = p.province_name;
+            opt.dataset.code = p.province_code;
+            provinceSelect.appendChild(opt);
+        });
+        provinceSelect.disabled = false;
+    } catch (err) {
+        provinceSelect.innerHTML = '<option value="">Error loading</option>';
+    }
+});
+
+provinceSelect.addEventListener('change', async function() {
+    const selectedOption = this.options[this.selectedIndex];
+    const provCode = selectedOption ? selectedOption.dataset.code : null;
+    const regCode = regionSelect.options[regionSelect.selectedIndex]?.dataset.code;
+
+    citySelect.innerHTML = '<option value="">Loading cities...</option>';
+    citySelect.disabled = true;
+    barangaySelect.innerHTML = '<option value="">Select Barangay</option>';
+    barangaySelect.disabled = true;
+
+    if (!provCode) return;
+
+    try {
+        if (citiesData.length === 0) {
+            const res = await fetch('/data/cities.json');
+            citiesData = await res.json();
+        }
+
+        const filtered = citiesData.filter(c => c.province_code === provCode || c.region_desc === regCode);
+        filtered.sort((a, b) => a.city_name.localeCompare(b.city_name));
+
+        citySelect.innerHTML = '<option value="">Select City / Municipality</option>';
+        filtered.forEach(c => {
+            const opt = document.createElement('option');
+            opt.value = c.city_name;
+            opt.textContent = c.city_name;
+            opt.dataset.code = c.city_code;
+            citySelect.appendChild(opt);
+        });
+        citySelect.disabled = false;
+    } catch (err) {
+        citySelect.innerHTML = '<option value="">Error loading</option>';
+    }
+});
+
+citySelect.addEventListener('change', async function() {
+    const selectedOption = this.options[this.selectedIndex];
+    const cityCode = selectedOption ? selectedOption.dataset.code : null;
+
+    barangaySelect.innerHTML = '<option value="">Loading barangays...</option>';
+    barangaySelect.disabled = true;
+
+    if (!cityCode) return;
+
+    try {
+        if (barangaysData.length === 0) {
+            const res = await fetch('/data/barangays.json');
+            barangaysData = await res.json();
+        }
+
+        const filtered = barangaysData.filter(b => b.city_code === cityCode);
+        filtered.sort((a, b) => a.brgy_name.localeCompare(b.brgy_name));
+
+        barangaySelect.innerHTML = '<option value="">Select Barangay</option>';
+        filtered.forEach(b => {
+            const opt = document.createElement('option');
+            opt.value = b.brgy_name;
+            opt.textContent = b.brgy_name;
+            barangaySelect.appendChild(opt);
+        });
+        barangaySelect.disabled = false;
+    } catch (err) {
+        barangaySelect.innerHTML = '<option value="">Error loading</option>';
+    }
+});
+
+loadRegions();
 
 function showCustomAlert(message, type = "error", callback = null) {
     alertMessage.textContent = message;
@@ -445,37 +596,6 @@ alertBtn.addEventListener("click", () => {
 });
 
 
-// ================================
-// INITIALIZE DROPDOWNS
-// ================================
-const provinceSelect = document.getElementById("province");
-const citySelect = document.getElementById("city");
-
-Object.keys(locationData).forEach(province => {
-    const opt = document.createElement("option");
-    opt.value = province;
-    opt.textContent = province;
-    provinceSelect.appendChild(opt);
-});
-
-provinceSelect.addEventListener("change", function() {
-    const selectedProvince = this.value;
-    citySelect.innerHTML = '<option value="">Select City/Municipality</option>';
-    
-    if (selectedProvince && locationData[selectedProvince]) {
-        citySelect.disabled = false;
-        locationData[selectedProvince].forEach(city => {
-            const opt = document.createElement("option");
-            opt.value = city;
-            opt.textContent = city;
-            citySelect.appendChild(opt);
-        });
-    } else {
-        citySelect.disabled = true;
-        citySelect.innerHTML = '<option value="">Select Province First</option>';
-    }
-});
-
 
 // ================================
 // LIVE VALIDATIONS (EMAIL, PHONE & NAME)
@@ -498,6 +618,7 @@ async function verifyEmailUniqueness() {
         emailHelper.className = "input-helper-text";
         emailHelper.innerHTML = "";
         isEmailValidAndAvailable = false;
+        validateStep1();
         return;
     }
 
@@ -505,6 +626,7 @@ async function verifyEmailUniqueness() {
         emailHelper.className = "input-helper-text error";
         emailHelper.innerHTML = "<i class='fa-solid fa-circle-xmark'></i> Please enter a valid email format.";
         isEmailValidAndAvailable = false;
+        validateStep1();
         return;
     }
 
@@ -528,11 +650,27 @@ async function verifyEmailUniqueness() {
         emailHelper.innerHTML = "";
         isEmailValidAndAvailable = true; 
     }
+
+    validateStep1();
 }
 
 emailInput.addEventListener("blur", verifyEmailUniqueness);
 emailInput.addEventListener("input", () => {
+    const emailValue = emailInput.value.trim().toLowerCase();
     isEmailValidAndAvailable = false;
+
+    if (emailValue === "") {
+        emailHelper.className = "input-helper-text";
+        emailHelper.innerHTML = "";
+    } else if (!emailValidatorRegex.test(emailValue)) {
+        emailHelper.className = "input-helper-text error";
+        emailHelper.innerHTML = "<i class='fa-solid fa-circle-xmark'></i> Please enter a valid email address format.";
+    } else {
+        emailHelper.className = "input-helper-text";
+        emailHelper.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> Checking availability on blur...";
+    }
+
+    validateStep1();
 });
 
 // Async validation for Organization Name Uniqueness
@@ -719,6 +857,27 @@ showStep(step1);
 // ================================
 // NEXT STEP 1 VALIDATION
 // ================================
+const next1Btn = document.getElementById("next1");
+
+function validateStep1() {
+    const emailVal = emailInput.value.trim();
+    const passVal = passwordInput.value;
+    const confirmVal = confirmInput.value;
+
+    const isEmailFormatValid = emailValidatorRegex.test(emailVal);
+    const isPassValid = passwordRegex.test(passVal);
+    const isConfirmMatch = (passVal === confirmVal && passVal !== "");
+
+    // Dapat available/valid ang email format, pasado sa password complexity, at tugma ang confirm password
+    const isValid = isEmailValidAndAvailable && isPassValid && isConfirmMatch;
+    next1Btn.disabled = !isValid;
+}
+
+// I-trigger ang validateStep1 kapag nagbago ang password/confirm password
+passwordInput.addEventListener("input", validateStep1);
+confirmInput.addEventListener("input", validateStep1);
+
+
 document.getElementById("next1").addEventListener("click", async () => {
     const email = emailInput.value.trim();
     const password = passwordInput.value;
@@ -762,6 +921,49 @@ document.getElementById("back1").addEventListener("click", () => {
 // ================================
 // NEXT STEP 2 VALIDATION
 // ================================
+const next2Btn = document.getElementById("next2");
+const orgTypeSelect = document.getElementById("organizationType");
+const contactPersonInput = document.getElementById("contactPerson");
+
+function validateStep2() {
+    const isOrgNameValid = orgNameInput.value.trim().length >= 3;
+    const isTypeSelected = orgTypeSelect.value !== "";
+    const isContactPersonValid = contactPersonInput.value.trim() !== "";
+    const isPhoneValid = phoneRegex.test(phoneInput.value.trim());
+
+    const isStreetValid = streetAddressInput.value.trim() !== "";
+    const isRegionValid = regionSelect.value !== "";
+    const isProvinceValid = provinceSelect.value !== "";
+    const isCityValid = citySelect.value !== "";
+    const isBarangayValid = barangaySelect.value !== "";
+    const isZipValid = zipRegex.test(zipCodeInput.value.trim());
+
+    const isValid = 
+        isOrgNameValid &&
+        isTypeSelected &&
+        isContactPersonValid &&
+        isPhoneValid &&
+        isStreetValid &&
+        isRegionValid &&
+        isProvinceValid &&
+        isCityValid &&
+        isBarangayValid &&
+        isZipValid;
+
+    next2Btn.disabled = !isValid;
+}
+
+// Event listeners para mag-recalculate ang Step 2 button
+[orgNameInput, orgTypeSelect, contactPersonInput, phoneInput, streetAddressInput, zipCodeInput].forEach(el => {
+    el.addEventListener("input", validateStep2);
+    el.addEventListener("change", validateStep2);
+});
+
+[regionSelect, provinceSelect, citySelect, barangaySelect].forEach(el => {
+    el.addEventListener("change", validateStep2);
+});
+
+
 document.getElementById("next2").addEventListener("click", async () => {
     const contactNumber = phoneInput.value.trim();
     const organizationName = orgNameInput.value.trim();
@@ -792,6 +994,14 @@ document.getElementById("next2").addEventListener("click", async () => {
         showCustomAlert("Please enter a valid 11-digit mobile number starting with 09.");
         return;
     }
+    if (streetAddressInput.value.trim() === "") {
+    showCustomAlert("Street address / House number is required.");
+    return;
+    }
+    if (regionSelect.value === "") {
+        showCustomAlert("Please select your region.");
+        return;
+    }
     if (provinceSelect.value === "") {
         showCustomAlert("Please select your province.");
         return;
@@ -800,8 +1010,12 @@ document.getElementById("next2").addEventListener("click", async () => {
         showCustomAlert("Please select your city or municipality.");
         return;
     }
-    if (document.getElementById("address").value.trim() === "") {
-        showCustomAlert("Street address or Barangay is required.");
+    if (barangaySelect.value === "") {
+        showCustomAlert("Please select your barangay.");
+        return;
+    }
+    if (!zipRegex.test(zipCodeInput.value.trim())) {
+        showCustomAlert("Please enter a valid 4-digit ZIP code.");
         return;
     }
 
@@ -880,9 +1094,12 @@ document.getElementById("organizationSignupForm").addEventListener("submit", asy
     formData.append("organizationType", document.getElementById("organizationType").value);
     formData.append("contactPerson", document.getElementById("contactPerson").value.trim());
     formData.append("contactNumber", contactNumber);
-    formData.append("address", document.getElementById("address").value.trim());
-    formData.append("city", citySelect.value);
-    formData.append("province", provinceSelect.value);
+    formData.append("streetAddress", streetAddressInput.value.trim());
+    formData.append("region", regionSelect.value.trim());
+    formData.append("province", provinceSelect.value.trim());
+    formData.append("city", citySelect.value.trim());
+    formData.append("barangay", barangaySelect.value.trim());
+    formData.append("zipCode", zipCodeInput.value.trim());
     formData.append("description", document.getElementById("description").value.trim());
     formData.append("document", document.getElementById("document").files[0]);
 

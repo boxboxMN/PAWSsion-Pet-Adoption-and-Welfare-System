@@ -351,3 +351,35 @@ ALTER TABLE `user_adoption_applications`
   # Palagay sa db ny:o Aug 14 (today)
   ALTER TABLE user_adoption_applications 
     MODIFY COLUMN adopter_id INT NULL;
+
+
+# AUG 19, 2026
+
+# new folder under public: ✓
+    folder data - for storing the addresses
+
+# MGA NABAGO SA DB ✓
+    adopters table
+    organizations table
+
+# mga files na may changes: ✓
+    Authcontroller
+    assets/css/create_account
+    auth/create-account.html
+    read.me
+    assets/css/organization_signup
+    auth/organization_signup.html
+
+# MGA nafix
+    Create account (adopter):
+        may sanitation na ang birthday, below 18 cannot be an adopter
+        may sanitations na doon sa mga address, zip code
+    Create account (organization):
+        css ng org
+
+
+
+# new acc:
+
+irespeleta@my.cspc.edu.ph pass: irespeleta@my.cspc.edu.ph2A
+eneriatelpse@gmail.com pass: 1Eneriatelepse@gmail.com
