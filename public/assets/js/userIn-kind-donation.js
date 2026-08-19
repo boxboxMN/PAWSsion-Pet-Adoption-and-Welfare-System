@@ -195,15 +195,53 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
 }
 
-    function openModal(id) {
+    /**
+     * Opens the organization profile modal
+     * and fetches its complete details and logo dynamically.
+     */
+    async function openModal(id) {
         const org = organizations.find(o => o.organization_id == id);
         if (!org || !modal) return;
 
+        // 1. I-display muna ang cached data para mabilis mag-load
         if (orgName) orgName.textContent = org.organization_name;
-        if (orgAddress) orgAddress.textContent = `${org.city || ''}, ${org.province || ''}`;
+        if (orgAddress) orgAddress.innerHTML = `<i class="fa-solid fa-location-dot"></i> ${org.city || ''}, ${org.province || ''}`;
         if (orgPhone) orgPhone.textContent = org.contact_number || "N/A";
         if (orgEmail) orgEmail.textContent = org.email || "N/A";
         if (orgMission) orgMission.textContent = org.description || "No description available.";
+
+        // 2. Mag-fetch ng live data at logo galing sa backend API
+        try {
+            const response = await fetch(`/api/organizations/${id}`);
+            if (response.ok) {
+                const fullOrg = await response.json();
+                
+                // I-update ang mga field gamit ang live database response
+                if (orgName) orgName.textContent = fullOrg.organization_name || org.organization_name;
+                if (orgAddress) {
+                    const addressText = fullOrg.city && fullOrg.province 
+                        ? `${fullOrg.city}, ${fullOrg.province}` 
+                        : (fullOrg.address || `${org.city || ''}, ${org.province || ''}`);
+                    orgAddress.innerHTML = `<i class="fa-solid fa-location-dot"></i> ${addressText}`;
+                }
+                if (orgPhone) orgPhone.textContent = fullOrg.contact_number || fullOrg.phone || "N/A";
+                if (orgEmail) orgEmail.textContent = fullOrg.email || fullOrg.org_email || "N/A";
+                if (orgMission) orgMission.textContent = fullOrg.description || fullOrg.mission || "No description available.";
+
+                // 3. Pag-fetch at pag-display ng Logo / Profile Picture
+                const logoElement = document.getElementById("modalOrgLogo");
+                const logoPath = fullOrg.logo || fullOrg.avatar || fullOrg.image || org.profile_pic || org.logo;
+
+                if (logoElement && logoPath) {
+                    const validLogoUrl = getValidImageUrl(logoPath, "");
+                    logoElement.outerHTML = `<img id="modalOrgLogo" src="${validLogoUrl}" alt="Org Logo" class="w-full h-full object-cover rounded-full">`;
+                } else if (logoElement) {
+                    logoElement.outerHTML = `<i id="modalOrgLogo" class="fa-solid fa-building-user"></i>`;
+                }
+            }
+        } catch (err) {
+            console.error("Error fetching live organization profile:", err);
+        }
 
         modal.classList.add("active");
         document.body.style.overflow = "hidden";

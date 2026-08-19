@@ -208,30 +208,67 @@
                 </div>
             </div>
         </div>
+        <div id="orgModal" class="modal-overlay">
+    <div class="modal-box p-0 overflow-hidden rounded-2xl">
+        <!-- Modal Header na may Blue Gradient at Logo Container -->
+        <div class="bg-gradient-to-r from-blue-600 to-blue-700 p-6 text-white relative">
+            <span id="modalClose" class="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-black/20 hover:bg-black/40 text-white cursor-pointer transition">
+                <i class="fa-solid fa-xmark"></i>
+            </span>
+            <div class="flex items-center gap-4">
+                <div id="modalOrgLogoContainer" class="w-16 h-16 bg-white rounded-full p-1 shadow-md flex-shrink-0 flex items-center justify-center text-blue-700 font-bold text-xl overflow-hidden">
+                    <i id="modalOrgLogo" class="fa-solid fa-building-user"></i>
+                </div>
+                <div>
+                    <h2 id="modalOrgName" class="text-xl font-bold leading-tight">Organization Name</h2>
+                    <p id="modalOrgAddress" class="text-blue-100 text-xs mt-1 flex items-center gap-1">
+                        <i class="fa-solid fa-location-dot"></i> Address
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Body Content -->
+        <div class="p-6 space-y-4">
+            <div class="grid grid-cols-2 gap-4">
+                <div class="bg-gray-50 p-3 rounded-xl border border-gray-100 flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center flex-shrink-0">
+                        <i class="fa-solid fa-phone"></i>
+                    </div>
+                    <div class="overflow-hidden">
+                        <p class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Contact Number</p>
+                        <p id="modalOrgPhone" class="text-sm font-medium text-gray-800 truncate">N/A</p>
+                    </div>
+                </div>
+                <div class="bg-gray-50 p-3 rounded-xl border border-gray-100 flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center flex-shrink-0">
+                        <i class="fa-solid fa-envelope"></i>
+                    </div>
+                    <div class="overflow-hidden">
+                        <p class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Email Address</p>
+                        <p id="modalOrgEmail" class="text-sm font-medium text-gray-800 truncate">N/A</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="border-t border-gray-100 pt-4">
+                <h3 class="text-xs font-bold text-blue-600 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                    <i class="fa-solid fa-bullseye"></i> Mission & Description
+                </h3>
+                <div class="bg-gray-50 p-3.5 rounded-xl border border-gray-100 max-h-36 overflow-y-auto">
+                    <p id="modalOrgMission" class="text-sm text-gray-600 leading-relaxed">No description available.</p>
+                </div>
+            </div>
+
+            <button id="modalCloseBtn" class="mt-4 w-full bg-blue-700 hover:bg-blue-800 text-white py-2.5 rounded-xl font-semibold transition cursor-pointer">Close</button>
+        </div>
+    </div>
+</div>
         
         <div id="toastContainer" class="fixed bottom-5 right-5 z-[10000] flex flex-col gap-3 pointer-events-none"></div>
     </main>
 
-    <div id="orgModal" class="modal-overlay">
-        <div class="modal-box">
-            <span id="modalClose" class="modal-close">&times;</span>
-            <h2 id="modalOrgName" class="text-2xl font-bold text-gray-800 mb-2">Organization Name</h2>
-            <p id="modalOrgAddress" class="text-gray-500 text-sm mb-3">Address</p>
-            <div class="flex items-center gap-3 mb-4">
-                <span class="text-blue-600"><i class="fas fa-phone"></i></span>
-                <span id="modalOrgPhone" class="text-gray-700">0917 123 4567</span>
-            </div>
-            <div class="flex items-center gap-3 mb-4">
-                <span class="text-blue-600"><i class="fas fa-envelope"></i></span>
-                <span id="modalOrgEmail" class="text-gray-700">contact@organization.com</span>
-            </div>
-            <div class="border-t border-gray-200 pt-4 mt-2">
-                <h3 class="font-semibold text-gray-700 mb-2">Mission</h3>
-                <p id="modalOrgMission" class="text-sm text-gray-600">To rescue, rehabilitate, and rehome animals in need, and to promote responsible pet ownership.</p>
-            </div>
-            <button id="modalCloseBtn" class="mt-6 w-full bg-blue-700 hover:bg-blue-800 text-white py-2 rounded-lg transition cursor-pointer">Close</button>
-        </div>
-    </div>
+    
 
     <script>
     document.addEventListener("DOMContentLoaded", async () => {

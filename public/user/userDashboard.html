@@ -190,24 +190,169 @@
             </div>
 
         </div>
-
     </main>
 
-    <script>
-    document.addEventListener("DOMContentLoaded", async () => {
-        // Wait until sidebar is loaded
-        await loadSidebar();
+<script>
+document.addEventListener("DOMContentLoaded", async () => {
 
-        // Wait one tick so the header HTML exists, then initialize header and make body visible
-        requestAnimationFrame(() => {
-            loadTopbar({
-                title: "User Dashboard",
-                subtitle: "Monitor your adoption application progress, upcoming schedules, and recent activities."
+    // ==========================================
+    // LOAD SIDEBAR
+    // ==========================================
+    await loadSidebar();
+
+    // ==========================================
+    // LOGOUT ELEMENTS
+    // ==========================================
+    const logoutModal = document.getElementById("logoutModal");
+    const cancelLogoutBtn = document.getElementById("cancelLogoutBtn");
+    const confirmLogoutBtn = document.getElementById("confirmLogoutBtn");
+    const logoutModalContent = document.getElementById("logoutModalContent");
+
+
+    // ==========================================
+    // OPEN LOGOUT MODAL
+    // USE EVENT DELEGATION BECAUSE SIDEBAR
+    // IS LOADED DYNAMICALLY
+    // ==========================================
+    document.addEventListener("click", (e) => {
+
+        const logoutLink = e.target.closest("#logoutLink");
+
+        if (!logoutLink) {
+            return;
+        }
+
+        e.preventDefault();
+
+        console.log("Logout link clicked");
+
+        logoutModal?.classList.remove(
+            "opacity-0",
+            "pointer-events-none"
+        );
+
+        logoutModal?.classList.add("opacity-100");
+
+        logoutModalContent?.classList.remove("scale-95");
+        logoutModalContent?.classList.add("scale-100");
+    });
+
+
+    // ==========================================
+    // CLOSE LOGOUT MODAL
+    // ==========================================
+    function closeLogoutModal() {
+
+        logoutModal?.classList.remove("opacity-100");
+
+        logoutModal?.classList.add(
+            "opacity-0",
+            "pointer-events-none"
+        );
+
+        logoutModalContent?.classList.remove("scale-100");
+        logoutModalContent?.classList.add("scale-95");
+    }
+
+
+    // ==========================================
+    // CANCEL LOGOUT
+    // ==========================================
+    cancelLogoutBtn?.addEventListener("click", () => {
+
+        console.log("Logout cancelled");
+
+        closeLogoutModal();
+
+    });
+
+
+    // ==========================================
+    // CLICK OUTSIDE MODAL
+    // ==========================================
+    logoutModal?.addEventListener("click", (e) => {
+
+        if (e.target === logoutModal) {
+            closeLogoutModal();
+        }
+
+    });
+
+
+    // ==========================================
+    // CONFIRM LOGOUT
+    // ==========================================
+    confirmLogoutBtn?.addEventListener("click", async () => {
+
+        console.log("Confirm logout clicked");
+
+        confirmLogoutBtn.disabled = true;
+        confirmLogoutBtn.textContent = "Logging out...";
+
+        try {
+
+            const response = await fetch("/auth/logout", {
+                method: "POST",
+                credentials: "include",
+                headers: {
+                    "Content-Type": "application/json"
+                }
             });
 
-            document.body.style.visibility = "visible";
-        });
+            console.log("Logout response status:", response.status);
+
+            const data = await response.json();
+
+            console.log("Logout response:", data);
+
+            if (response.ok && data.success) {
+
+                console.log("Logout successful");
+
+                // Make sure browser does not keep displaying
+                // the protected dashboard from cache.
+                window.location.replace("/auth/login.html");
+
+            } else {
+
+                console.error("Logout failed:", data);
+
+                confirmLogoutBtn.disabled = false;
+                confirmLogoutBtn.textContent = "Yes, Logout";
+
+                alert(data.message || "Logout failed.");
+
+            }
+
+        } catch (error) {
+
+            console.error("LOGOUT ERROR:", error);
+
+            confirmLogoutBtn.disabled = false;
+            confirmLogoutBtn.textContent = "Yes, Logout";
+
+            alert("Unable to logout. Please try again.");
+
+        }
+
     });
-    </script>
+
+
+    // ==========================================
+    // HEADER
+    // ==========================================
+    requestAnimationFrame(() => {
+
+        loadTopbar({
+            title: "User Dashboard",
+            subtitle: "Monitor your adoption application progress, upcoming schedules, and recent activities."
+        });
+
+        document.body.style.visibility = "visible";
+
+    });
+
+});
+</script>
 </body>
 </html>

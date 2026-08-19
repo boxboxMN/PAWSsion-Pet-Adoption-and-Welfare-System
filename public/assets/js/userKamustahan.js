@@ -111,7 +111,6 @@
         });
     });
 
-    // --- UI ALERT FUNCTIONS ---
     function showUiAlert(message, type = 'error') {
         const alertBox = document.getElementById('uiAlertBox');
         const alertMsg = document.getElementById('uiAlertMessage');
@@ -132,8 +131,12 @@
 
         alertBox.classList.remove('hidden');
         alertBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }
 
+        // Awtomatikong itatago ang alert pagkalipas ng 4 na segundo (4000 milliseconds)
+        setTimeout(() => {
+            hideUiAlert();
+        }, 4000);
+    }
     function hideUiAlert() {
         const alertBox = document.getElementById('uiAlertBox');
         alertBox.classList.add('hidden');
@@ -177,26 +180,30 @@
         window.location.reload();
     }
 
-    async function openHistoryModal() {
-        const modal = document.getElementById('historyModal');
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
+   async function openHistoryModal() {
+    const modal = document.getElementById('historyModal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
 
-        const container = document.getElementById('historyFeedContainer');
-        container.innerHTML = `
-            <div class="text-center py-12 text-slate-400">
-                <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
-                <p class="text-sm">Loading history records...</p>
-            </div>
-        `;
+    const container = document.getElementById('historyFeedContainer');
+    container.innerHTML = `
+        <div class="text-center py-12 text-slate-400">
+            <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
+            <p class="text-sm">Loading history records...</p>
+        </div>
+    `;
 
-        try {
-            const res = await fetch('/api/user/kamustahan-history'); 
-            const data = await res.json();
+    try {
+        const res = await fetch('/api/user/kamustahan-history'); 
+        const data = await res.json();
 
-            if (data.success && data.updates.length > 0) {
+        if (data.success && data.updates.length > 0) {
+            // I-filter out ang mga may blangko o walang update_text
+            const validUpdates = data.updates.filter(item => item.update_text && item.update_text.trim() !== '');
+
+            if (validUpdates.length > 0) {
                 container.innerHTML = '';
-                data.updates.forEach(item => {
+                validUpdates.forEach(item => {
                     let imageUrl = '';
                     if (item.photos) {
                         try {
@@ -215,16 +222,14 @@
                         ? `<img src="${imageUrl}" class="w-20 h-20 object-cover rounded-xl border border-slate-200 shadow-sm flex-shrink-0 cursor-pointer hover:scale-105 transition duration-150" onclick="openLightbox('${imageUrl}')" title="Tap to view full image">`
                         : '<span class="text-xs text-slate-400 italic">No photo attached</span>';
 
-                    const formattedTimestamp = item.created_at 
-                        ? new Date(item.created_at).toLocaleString('en-US', { timeZone: 'Asia/Manila', dateStyle: 'medium', timeStyle: 'short' }) 
-                        : 'N/A';
-
                     const card = document.createElement('div');
                     card.className = 'bg-slate-50/80 border border-slate-200/80 rounded-2xl p-5 space-y-3';
                     card.innerHTML = `
                         <div class="flex items-center justify-between">
                             <span class="font-bold text-slate-800 text-sm flex items-center gap-1.5"><i class="fas fa-paw text-blue-600"></i> ${item.pet_name}</span>
-                            <span class="text-xs text-slate-500 font-medium bg-white px-2.5 py-1 rounded-lg border border-slate-200/60"><i class="fas fa-clock mr-1 text-slate-400"></i> ${formattedTimestamp}</span>
+                            <button onclick='openEditModal(${JSON.stringify(item)})' class="text-xs bg-blue-50 text-blue-600 hover:bg-blue-100 px-3 py-1.5 rounded-xl font-semibold transition flex items-center gap-1">
+                                <i class="fas fa-edit"></i> Edit
+                            </button>
                         </div>
                         <p class="text-sm text-slate-700 bg-white p-3.5 rounded-xl border border-slate-100 leading-relaxed">${item.update_text}</p>
                         <div class="flex gap-2.5 overflow-x-auto pt-1">${photosHtml}</div>
@@ -234,12 +239,14 @@
             } else {
                 container.innerHTML = `<p class="text-center text-slate-500 py-12 text-sm italic">No update history logs found.</p>`;
             }
-        } catch (err) {
-            console.error("History fetch error:", err);
-            container.innerHTML = `<p class="text-center text-rose-500 py-12 text-sm">Failed to retrieve history logs.</p>`;
+        } else {
+            container.innerHTML = `<p class="text-center text-slate-500 py-12 text-sm italic">No update history logs found.</p>`;
         }
+    } catch (err) {
+        console.error("History fetch error:", err);
+        container.innerHTML = `<p class="text-center text-rose-500 py-12 text-sm">Failed to retrieve history logs.</p>`;
     }
-
+}
     function closeHistoryModal() {
         document.getElementById('historyModal').classList.add('hidden');
     }
@@ -257,3 +264,98 @@
         lightbox.classList.add('hidden');
         lightbox.classList.remove('flex');
     }
+    let selectedEditFile = null;
+
+function openEditModal(item) {
+    document.getElementById('editUpdateId').value = item.id || item.update_id;
+    document.getElementById('editUpdateText').value = item.update_text;
+    
+    // I-reset at ipakita ang kasalukuyang larawan
+    selectedEditFile = null;
+    document.getElementById('editPhotoInput').value = '';
+    
+    let imageUrl = '';
+    if (item.photos) {
+        try {
+            const parsed = JSON.parse(item.photos);
+            imageUrl = Array.isArray(parsed) ? parsed[0] : parsed;
+        } catch(e) {
+            imageUrl = item.photos; 
+        }
+    }
+    if (imageUrl && !imageUrl.startsWith('http')) {
+        imageUrl = imageUrl.startsWith('/') ? imageUrl : `/${imageUrl}`;
+    }
+    
+    document.getElementById('editCurrentPhotoPreview').src = imageUrl || '';
+
+    const modal = document.getElementById('editModal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
+
+function closeEditModal() {
+    const modal = document.getElementById('editModal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+}
+
+// Listener para sa pagpili ng bagong photo sa edit modal
+document.addEventListener("DOMContentLoaded", () => {
+    const editPhotoInput = document.getElementById('editPhotoInput');
+    if (editPhotoInput) {
+        editPhotoInput.addEventListener('change', (e) => {
+            const files = e.target.files;
+            if (files && files.length > 0) {
+                selectedEditFile = files[0];
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    document.getElementById('editCurrentPhotoPreview').src = event.target.result;
+                }
+                reader.readAsDataURL(selectedEditFile);
+            }
+        });
+    }
+const editForm = document.getElementById('editKamustahanForm');
+    if (editForm) {
+        editForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const updateId = document.getElementById('editUpdateId').value;
+            const saveBtn = document.getElementById('saveEditBtn');
+
+            saveBtn.disabled = true;
+            saveBtn.textContent = 'Saving...';
+
+            const formData = new FormData();
+            formData.append('update_text', document.getElementById('editUpdateText').value);
+            
+            if (selectedEditFile) {
+                formData.append('photos', selectedEditFile); 
+            }
+
+            try {
+                const response = await fetch(`/api/user/kamustahan/${updateId}`, {
+                    method: 'PUT',
+                    body: formData 
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    closeEditModal();
+                    openHistoryModal(); // Refresh history log
+                    
+                    // Magpakita ng confirmation alert sa pangunahing pahina
+                    showUiAlert('Update successfully modified!', 'success');
+                } else {
+                    alert(result.error || 'Failed to update record.');
+                }
+            } catch (err) {
+                console.error('Error updating record:', err);
+                alert('An error occurred while saving.');
+            } finally {
+                saveBtn.disabled = false;
+                saveBtn.textContent = 'Save Changes';
+            }
+        });
+    }
+});
