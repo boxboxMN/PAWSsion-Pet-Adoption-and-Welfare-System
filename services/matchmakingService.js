@@ -171,9 +171,9 @@ async function matchPets(preferences) {
             score:
                 Number((finalScore * 100).toFixed(2)),
             
-            behaviorContribution: Number((behaviorSimilarity * behaviorWeight * 100).toFixed(2)),
-            ageContribution: Number((ageScore * ageWeight * 100).toFixed(2)),
-            sexContribution: Number((sexScore * sexWeight * 100).toFixed(2)),
+            behaviorContribution: Math.round(behaviorSimilarity * behaviorWeight * 100),
+            ageContribution: Math.round(ageScore * ageWeight * 100),
+            sexContribution: Math.round(sexScore * sexWeight * 100),
         });
 
     }
