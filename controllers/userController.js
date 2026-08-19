@@ -436,8 +436,24 @@ exports.submitInKindDonation = async (req, res) => {
         return res.status(400).json({ success: false, error: "Please fill in all required fields." });
     }
 
+    const cleanItemName = item_name.trim();
+    const cleanQuantity = quantity.trim();
+
+    // Strict Server-Side Validation
+    const gibberishPattern = /(.)\1{3,}/;
+    const validItemPattern = /^[a-zA-Z0-9\sñÑ-]{3,}$/;
+    const hasVowel = /[aeiouAEIOU]/.test(cleanItemName);
+    const strictQuantityPattern = /^\d+(\s*[a-zA-Z]+)?$/;
+
+    if (cleanItemName.length < 3 || /^[0-9]+$/.test(cleanItemName) || !hasVowel || gibberishPattern.test(cleanItemName) || !validItemPattern.test(cleanItemName)) {
+        return res.status(400).json({ success: false, error: "Invalid item name format. Please enter a real item description." });
+    }
+
+    if (!strictQuantityPattern.test(cleanQuantity)) {
+        return res.status(400).json({ success: false, error: "Invalid quantity format. Please include proper numbers and units (e.g., 5, 5kg, 3 packs)." });
+    }
+
     try {
-        // --- ADDED CONDITION: Check if Drop-off details exist for the org ---
         const [dropoffRows] = await pool.query(
             `SELECT dropoff_address FROM organization_dropoff_details WHERE organization_id = ?`,
             [organization_id]
@@ -474,8 +490,8 @@ exports.submitInKindDonation = async (req, res) => {
                 organization_id,
                 donorName,
                 adopter.email,
-                item_name,
-                quantity
+                cleanItemName,
+                cleanQuantity
             ]
         );
 

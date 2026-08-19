@@ -964,3 +964,49 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 });
+// ==========================
+// LOGOUT MODAL LOGIC
+// ==========================
+const logoutModal = document.getElementById("logoutModal");
+const cancelLogoutBtn = document.getElementById("cancelLogoutBtn");
+const confirmLogoutBtn = document.getElementById("confirmLogoutBtn");
+
+// Function para buksan ang logout modal (Maaari itong i-trigger mula sa sidebar logout button)
+function openLogoutModal() {
+    if (logoutModal) {
+        logoutModal.classList.remove("opacity-0", "pointer-events-none");
+        logoutModal.querySelector("div > div").classList.remove("scale-95");
+        logoutModal.querySelector("div > div").classList.add("scale-100");
+    }
+}
+
+// Function para isara ang logout modal
+function closeLogoutModal() {
+    if (logoutModal) {
+        logoutModal.classList.add("opacity-0", "pointer-events-none");
+        logoutModal.querySelector("div > div").classList.remove("scale-100");
+        logoutModal.querySelector("div > div").classList.add("scale-95");
+    }
+}
+
+// Event listener para sa Cancel button
+if (cancelLogoutBtn) {
+    cancelLogoutBtn.addEventListener("click", closeLogoutModal);
+}
+
+// Isara kapag pinindot ang background sa labas ng modal
+if (logoutModal) {
+    logoutModal.addEventListener("click", (e) => {
+        if (e.target === logoutModal) {
+            closeLogoutModal();
+        }
+    });
+}
+
+// Event listener para sa pag-confirm ng logout (Redirect sa backend logout route)
+if (confirmLogoutBtn) {
+    confirmLogoutBtn.addEventListener("click", () => {
+        // Ilagay dito ang tamang route para sa logout ng iyong backend
+        window.location.href = "/logout"; 
+    });
+}

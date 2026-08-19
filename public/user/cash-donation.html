@@ -164,18 +164,18 @@
                     <h2 class="text-xl font-bold mb-4">Step 2: Donations Details</h2>
                     <h3 class="font-semibold mb-3">General Information</h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                        <input type="text" placeholder="Name" class="border rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500" />
-                        <input type="email" placeholder="Email Address" class="border rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500" />
+                        <input type="text" id="donorName" placeholder="Name" class="border rounded-lg px-4 py-3 bg-gray-100 text-gray-700 cursor-not-allowed" readonly />
+                        <input type="email" id="donorEmail" placeholder="Email Address" class="border rounded-lg px-4 py-3 bg-gray-100 text-gray-700 cursor-not-allowed" readonly />
                     </div>
 
                     <h3 class="font-semibold mb-3">Payment-Specific Details</h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                        <input type="text" placeholder="GCASH account name" class="border rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500" />
-                        <input type="text" placeholder="Reference Number" class="border rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500" />
+                        <input type="text" id="gcashAccountName" placeholder="GCASH account name" class="border rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500" />
+                        <input type="text" id="referenceNumber" placeholder="Reference Number" maxlength="13" class="border rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500" />
                     </div>
 
                     <div class="mb-6">
-                        <input type="number" placeholder="Enter custom amount" class="w-full md:w-[300px] border rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500" />
+                        <input type="number" id="donationAmount" placeholder="Enter custom amount" min="1" step="any" class="w-full md:w-[300px] border rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500" />
                     </div>
 
                     <div class="flex items-start gap-2 mb-6">

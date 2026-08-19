@@ -2,6 +2,51 @@
  * Loads an HTML component (sidebar or header)
  * into the specified container element.
  */
+document.addEventListener("DOMContentLoaded", async () => {
+    try {
+        // 1. Fetch user profile para sa General Information (Name & Email)
+        const response = await fetch('/api/user/profile'); // Depende sa route endpoint mo ng getProfile
+        const data = await response.json();
+        
+        if (response.ok && data) {
+            const fullName = `${data.first_name || ''} ${data.last_name || ''}`.trim();
+            const email = data.email || '';
+
+            // I-set ang values at gawing read-only para hindi mamuwestra o mabago
+            const nameInput = document.getElementById('donorName');
+            const emailInput = document.getElementById('donorEmail');
+            const gcashNameInput = document.getElementById('gcashAccountName');
+
+            if (nameInput) nameInput.value = fullName;
+            if (emailInput) emailInput.value = email;
+            
+            // Auto-fill din natin ang GCash account name gamit ang pangalan ng user kung blangko pa
+            if (gcashNameInput && !gcashNameInput.value) {
+                gcashNameInput.value = fullName;
+            }
+        }
+    } catch (error) {
+        console.error("Error fetching donor auto-fill info:", error);
+    }
+
+    // 2. Sanitization para sa GCash Account Name (Letters, spaces, at dots lang)
+    const gcashNameInput = document.getElementById('gcashAccountName');
+    if (gcashNameInput) {
+        gcashNameInput.addEventListener('input', (e) => {
+            // Tanggalin ang mga special characters at numbers na hindi kasama sa pangalan
+            e.target.value = e.target.value.replace(/[^a-zA-ZñÑ\s.]/g, '');
+        });
+    }
+
+    // 3. Realization / Strict Validation para sa Reference Number (Numbers lang, e.g., 13 digits para sa GCash)
+    const refNumberInput = document.getElementById('referenceNumber');
+    if (refNumberInput) {
+        refNumberInput.addEventListener('input', (e) => {
+            // Panatilihing numbers lang ang ilagay para sa reference number
+            e.target.value = e.target.value.replace(/\D/g, '');
+        });
+    }
+});
  async function loadComponent(id, file) {
             try {
                 const response = await fetch(file);
@@ -176,11 +221,11 @@
                 }
             });
         }
-    /**
-     * Updates the selected organization's
-     * GCash account information and QR code.
-     */
-    function updateDonationInfo(id) {
+ /**
+ * Updates the selected organization's
+ * GCash account information and QR code.
+ */
+function updateDonationInfo(id) {
     const org = organizations.find(o => o.organization_id == id);
     if (!org) return;
 
@@ -189,9 +234,9 @@
     const numEl = document.getElementById("gcashNumber");
     const qrEl = document.getElementById("qrImage");
 
-    // 2. Update GCash Name & Number
-    if (nameEl) nameEl.textContent = org.gcash_name || "N/A";
-    if (numEl) numEl.textContent = org.gcash_number || "N/A";
+    // 2. Update GCash Name & Number (Kung walang data, magiging "N/A")
+    nameEl.textContent = org.gcash_name && org.gcash_name.trim() !== "" ? org.gcash_name : "N/A";
+    numEl.textContent = org.gcash_number && org.gcash_number.trim() !== "" ? org.gcash_number : "N/A";
 
     // 3. Update QR Code Image with Validation
     if (qrEl) {
@@ -202,11 +247,14 @@
 
         if (isValidQr) {
             qrEl.src = org.qr_code;
-            qrEl.classList.remove("hidden");
+            qrEl.style.display = "block"; // Siguraduhing visible
         } else {
-            // Fallback sa placeholder kapag walang valid na QR code
-            qrEl.src = "https://via.placeholder.com/200x200?text=No+QR+Available";
-            qrEl.classList.remove("hidden");
+            // Itago ang QR code kapag walang valid na file
+            qrEl.style.display = "none";
+            
+            // Opsyonal: Maglagay ng message sa lalagyan kung gusto mo
+            // Maaari mo ring lagyan ng hidden <p id="noQrMsg"> sa HTML mo
+            console.log("No QR code provided by this organization.");
         }
     }
 }

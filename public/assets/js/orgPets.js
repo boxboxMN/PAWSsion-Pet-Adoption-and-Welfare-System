@@ -78,8 +78,25 @@ document.addEventListener("DOMContentLoaded", async () => {
             filterPets();
         });
     }
+});
 
-    function resetToActiveView() {
+// ==========================
+// PET MODAL
+// ==========================
+const modal = document.getElementById("petModal");
+const addPetBtn = document.getElementById("addPetBtn");
+const adoptedBtn = document.getElementById("adoptedPetsBtn");
+const archivedBtn = document.getElementById("archivedPetsBtn");
+const statusFilter = document.getElementById("statusFilter");
+const closePetModal = document.getElementById("closePetModal");
+const cancelPetBtn = document.getElementById("cancelPetBtn");
+const petForm = document.getElementById("petForm");
+const petImageInput = document.getElementById("petImageInput");
+const petImagePreview = document.getElementById("petImagePreview");
+const uploadPlaceholder = document.getElementById("uploadPlaceholder");
+const selectedFileName = document.getElementById("selectedFileName");
+
+function resetToActiveView() {
         currentViewMode = "active";
         statusFilter.classList.remove("hidden");
         addPetBtn.classList.remove("hidden");
@@ -91,22 +108,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         archivedBtn.innerHTML = `<i class="fa-solid fa-box-archive"></i> Archived Pets`;
         statusFilter.value = "";
     }
-});
 
-// ==========================
-// PET MODAL
-// ==========================
-const modal = document.getElementById("petModal");
-const addPetBtn = document.getElementById("addPetBtn");
-const adoptedBtn = document.getElementById("adoptedPetsBtn");
-const statusFilter = document.getElementById("statusFilter");
-const closePetModal = document.getElementById("closePetModal");
-const cancelPetBtn = document.getElementById("cancelPetBtn");
-const petForm = document.getElementById("petForm");
-const petImageInput = document.getElementById("petImageInput");
-const petImagePreview = document.getElementById("petImagePreview");
-const uploadPlaceholder = document.getElementById("uploadPlaceholder");
-const selectedFileName = document.getElementById("selectedFileName");
 petImageInput.addEventListener("change", () => {
     const file = petImageInput.files[0];
     if (!file) return;
