@@ -1,6 +1,6 @@
 const pool = require("../config/database");
 const { generateEmbedding } = require("./embeddingService");
-
+const MATCH_THRESHOLD = 0.40;
 // =========================================
 // COSINE SIMILARITY
 // =========================================
@@ -30,6 +30,7 @@ async function matchPets(preferences) {
         age,
         behavior
     } = preferences;
+    
 
     // Generate ONE embedding for the adopter's description
     const userEmbedding = await generateEmbedding(behavior);
@@ -105,8 +106,8 @@ async function matchPets(preferences) {
         // -----------------------------------
         // Only boost if already a decent match.
         if (behaviorSimilarity >= 0.50) {
-            // Increase by up to 30% of the remaining distance to 1.0
-            behaviorSimilarity += (1 - behaviorSimilarity) * 0.30;
+            // Increase by up to 20% of the remaining distance to 1.0
+            behaviorSimilarity += (1 - behaviorSimilarity) * 0.20;
         }
 
         console.log("Behavior Similarity AFTER Boost :", (behaviorSimilarity * 100).toFixed(2) + "%");
@@ -140,8 +141,21 @@ async function matchPets(preferences) {
         console.log("Sex Contribution      :", (sexScore * sexWeight * 100).toFixed(2) + "%");
         console.log("------------------------------------");
         console.log("FINAL MATCH SCORE     :", (finalScore * 100).toFixed(2) + "%");
+
+        // =========================================
+        // MATCH THRESHOLD
+        // =========================================
+        // Only pets ABOVE 40% are included.
+        // 40% or below = excluded.
+        if (finalScore <= MATCH_THRESHOLD) {
+            console.log(`EXCLUDED: ${pet.name} - Final Match Score ${(finalScore * 100).toFixed(2)}% is at or below the 40% threshold.`);
+            console.log("====================================\n");
+            continue;
+        }
+
+        console.log(`INCLUDED: ${pet.name} - Final Match Score ${(finalScore * 100).toFixed(2)}% passed the 40% threshold.`);
         console.log("====================================\n");
-            
+
         matches.push({
             animal_id: pet.animal_id,
             name: pet.name,
@@ -158,21 +172,13 @@ async function matchPets(preferences) {
             health_status: pet.health_status,
             vaccination_status: pet.vaccination_status,
             medical_history: medicalHistory,
-
-            behaviorSimilarity:
-                Number((behaviorSimilarity * 100).toFixed(2)),
-
-            ageScore:
-                ageScore * 100,
-
-            sexScore:
-                sexScore * 100,
-
+            behaviorSimilarity: Number((behaviorSimilarity * 100).toFixed(2)),
+            ageScore: ageScore * 100,
+            sexScore: sexScore * 100,
             score: Math.round(finalScore * 100),
-            
             behaviorContribution: Math.round(behaviorSimilarity * behaviorWeight * 100),
             ageContribution: Math.round(ageScore * ageWeight * 100),
-            sexContribution: Math.round(sexScore * sexWeight * 100),
+            sexContribution: Math.round(sexScore * sexWeight * 100)
         });
 
     }
