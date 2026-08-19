@@ -10,17 +10,33 @@ exports.getProfile = async (req, res) => {
     try {
         
         const [rows] = await pool.query(
-            `SELECT first_name, last_name, email, phone_number, profile_picture, created_at 
-             FROM adopters 
+            `SELECT 
+                adopters.first_name, 
+                adopters.last_name, 
+                accounts.email, 
+                accounts.role,
+                adopters.phone_number, 
+                adopters.birthday,
+                adopters.civil_status,
+                adopters.occupation,
+                adopters.street_address,
+                adopters.barangay,
+                adopters.city,
+                adopters.province,
+                adopters.region,
+                adopters.zip_code,
+                adopters.profile_picture, 
+                accounts.created_at
+                FROM adopters 
              JOIN accounts ON adopters.account_id = accounts.account_id 
-             WHERE adopters.account_id = ?`, 
+             WHERE adopters.account_id = ?`,
             [accountId]
         );
 
         if (rows.length === 0) return res.status(404).json({ error: "Profile not found" });
         res.json(rows[0]);
     } catch (error) {
-        console.error(error);
+        console.error("Get Profile Error:", error);
         res.status(500).json({ error: "Server error" });
     }
 };
@@ -31,12 +47,26 @@ exports.updateProfile = async (req, res) => {
         return res.status(401).json({ error: "Unauthorized access" });
     }
 
-    const { fullName, email, mobile } = req.body;
+    const { 
+        firstName, 
+        lastName, 
+        email, 
+        mobile, 
+        birthday, 
+        civilStatus, 
+        occupation, 
+        streetAddress, 
+        barangay, 
+        city, 
+        province, 
+        region, 
+        zipCode
+    } = req.body;
 
    
-    const nameParts = fullName.trim().split(" ");
-    const firstName = nameParts[0] || "";
-    const lastName = nameParts.slice(1).join(" ") || "";
+    if (!firstName || !lastName || !email) {
+        return res.status(400).json({ error: "First name, Last name, and Email are required." });
+    }
 
     const connection = await pool.getConnection();
     try {
@@ -51,8 +81,35 @@ exports.updateProfile = async (req, res) => {
 
         
         await connection.query(
-            `UPDATE adopters SET first_name = ?, last_name = ?, phone_number = ? WHERE account_id = ?`,
-            [firstName, lastName, mobile, accountId]
+            `UPDATE adopters SET 
+                first_name = ?, 
+                last_name = ?, 
+                phone_number = ?, 
+                birthday = ?, 
+                civil_status = ?, 
+                occupation = ?, 
+                street_address = ?, 
+                barangay = ?, 
+                city = ?, 
+                province = ?, 
+                region = ?, 
+                zip_code = ?
+             WHERE account_id = ?`,
+            [
+                firstName.trim(),
+                lastName.trim(),
+                mobile ? mobile.trim() : null,
+                birthday || null,
+                civilStatus ? civilStatus.trim() : null,
+                occupation ? occupation.trim() : null,
+                streetAddress ? streetAddress.trim() : null,
+                barangay ? barangay.trim() : null,
+                city ? city.trim() : null,
+                province ? province.trim() : null,
+                region ? region.trim() : null,
+                zipCode ? zipCode.trim() : null,
+                accountId
+            ]
         );
 
         await connection.commit();

@@ -67,16 +67,16 @@
                             </div>
 
                             <div>
-                                <h1 id="display-name" class="text-3xl font-bold text-white">Jhyzeel Dianela</h1>
-
+                                <h1 id="display-name" class="text-3xl font-bold text-white">---</h1>
+                           
                                 <div class="inline-flex items-center gap-2 mt-3 px-3 py-1 rounded-full bg-white/20 text-white text-sm">
                                     <i class="fas fa-user text-xs"></i>
-                                    <span id="display-account-type">User</span>
+                                    <span id="display-account-type">Loading...</span>
                                 </div>
-
+                            
                                 <div class="flex items-center gap-2 mt-4 text-blue-100 text-sm">
                                     <i class="fas fa-calendar-alt"></i>
-                                    <span>Member since February 20, 2026</span>
+                                    <span id="display-member-since">Loading member date...</span>
                                 </div>
                             </div>
 
@@ -104,45 +104,125 @@
 
                 <div class="grid grid-cols-12 gap-5">
 
+                    <!-- PERSONAL INFORMATION CARD -->
                     <div class="col-span-12 lg:col-span-8 bg-white rounded-3xl border border-slate-200 shadow-sm">
-
                         <div class="px-6 py-4 border-b border-slate-100">
                             <div class="flex items-center gap-3">
                                 <div class="w-10 h-10 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center">
                                     <i class="fas fa-user"></i>
                                 </div>
-
                                 <h2 class="font-bold text-lg text-slate-800">Personal Information</h2>
                             </div>
                         </div>
 
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 p-5">
-
+                        <!-- VIEW MODE (Removed Full Name, Email, Mobile Number, Account Type) -->
+                        <div id="view-mode-section" class="grid grid-cols-1 md:grid-cols-2 gap-4 p-5">
+                            
+                            <!-- Birthday -->
                             <div class="rounded-2xl bg-slate-50 border border-slate-200 p-4">
-                                <label class="text-xs uppercase tracking-wider text-slate-500 font-semibold">Full Name</label>
-                                <div id="full-name-display" class="mt-2 text-slate-800 font-semibold">Jhyzeel Dianela</div>
-                                <input id="full-name-input" type="text" class="hidden w-full mt-2 border border-slate-300 rounded-xl px-3 py-2 focus:ring-2 focus:ring-blue-300">
+                                <label class="text-xs uppercase tracking-wider text-slate-500 font-semibold">Birthday</label>
+                                <div id="view-birthday" class="mt-2 text-slate-800 font-semibold">-</div>
                             </div>
 
-                            <div class="rounded-2xl bg-slate-50 border border-slate-200 p-4">
-                                <label class="text-xs uppercase tracking-wider text-slate-500 font-semibold">Email</label>
-                                <div id="email-display" class="mt-2 text-slate-800 font-semibold">jhdianela@gmail.com</div>
-                                <input id="email-input" type="email" class="hidden w-full mt-2 border border-slate-300 rounded-xl px-3 py-2 focus:ring-2 focus:ring-blue-300">
+                            <!-- Civil Status (Conditional: Auto-hides if empty or N/A) -->
+                            <div id="container-view-civil-status" class="rounded-2xl bg-slate-50 border border-slate-200 p-4 hidden">
+                                <label class="text-xs uppercase tracking-wider text-slate-500 font-semibold">Civil Status</label>
+                                <div id="view-civil-status" class="mt-2 text-slate-800 font-semibold">-</div>
                             </div>
 
-                            <div class="rounded-2xl bg-slate-50 border border-slate-200 p-4">
-                                <label class="text-xs uppercase tracking-wider text-slate-500 font-semibold">Mobile Number</label>
-                                <div id="mobile-display" class="mt-2 text-slate-800 font-semibold">09924974712</div>
-                                <input id="mobile-input" type="text" class="hidden w-full mt-2 border border-slate-300 rounded-xl px-3 py-2 focus:ring-2 focus:ring-blue-300">
+                            <!-- Occupation (Conditional: Auto-hides if empty or N/A) -->
+                            <div id="container-view-occupation" class="rounded-2xl bg-slate-50 border border-slate-200 p-4 hidden">
+                                <label class="text-xs uppercase tracking-wider text-slate-500 font-semibold">Occupation</label>
+                                <div id="view-occupation" class="mt-2 text-slate-800 font-semibold">-</div>
                             </div>
 
-                            <div class="rounded-2xl bg-slate-50 border border-slate-200 p-4">
-                                <label class="text-xs uppercase tracking-wider text-slate-500 font-semibold">Account Type</label>
-                                <div class="mt-2 text-slate-800 font-semibold">User</div>
+                            <!-- Region -->
+                            <div id="container-view-region" class="rounded-2xl bg-slate-50 border border-slate-200 p-4">
+                                <label class="text-xs uppercase tracking-wider text-slate-500 font-semibold">Region</label>
+                                <div id="view-region" class="mt-2 text-slate-800 font-semibold">-</div>
+                            </div>
+
+                            <!-- Full Address -->
+                            <div class="rounded-2xl bg-slate-50 border border-slate-200 p-4 md:col-span-2">
+                                <label class="text-xs uppercase tracking-wider text-slate-500 font-semibold">Full Address</label>
+                                <div id="view-full-address" class="mt-2 text-slate-800 font-semibold">-</div>
                             </div>
 
                         </div>
 
+                        <!-- EDIT MODE -->
+                        <div id="edit-mode-section" class="hidden grid grid-cols-1 md:grid-cols-2 gap-4 p-5">
+                            <div>
+                                <label class="text-xs uppercase tracking-wider text-slate-500 font-semibold">First Name</label>
+                                <input id="input-first-name" type="text" class="w-full mt-1 border border-slate-300 rounded-xl px-3 py-2 focus:ring-2 focus:ring-blue-300">
+                            </div>
+
+                            <div>
+                                <label class="text-xs uppercase tracking-wider text-slate-500 font-semibold">Last Name</label>
+                                <input id="input-last-name" type="text" class="w-full mt-1 border border-slate-300 rounded-xl px-3 py-2 focus:ring-2 focus:ring-blue-300">
+                            </div>
+
+                            <div>
+                                <label class="text-xs uppercase tracking-wider text-slate-500 font-semibold">Email</label>
+                                <input id="input-email" type="email" class="w-full mt-1 border border-slate-300 rounded-xl px-3 py-2 focus:ring-2 focus:ring-blue-300">
+                            </div>
+
+                            <div>
+                                <label class="text-xs uppercase tracking-wider text-slate-500 font-semibold">Mobile Number</label>
+                                <input id="input-mobile" type="text" class="w-full mt-1 border border-slate-300 rounded-xl px-3 py-2 focus:ring-2 focus:ring-blue-300">
+                            </div>
+
+                            <div>
+                                <label class="text-xs uppercase tracking-wider text-slate-500 font-semibold">Birthday</label>
+                                <input id="input-birthday" type="date" class="w-full mt-1 border border-slate-300 rounded-xl px-3 py-2 focus:ring-2 focus:ring-blue-300">
+                            </div>
+
+                            <div>
+                                <label class="text-xs uppercase tracking-wider text-slate-500 font-semibold">Civil Status</label>
+                                <select id="input-civil-status" class="w-full mt-1 border border-slate-300 rounded-xl px-3 py-2 focus:ring-2 focus:ring-blue-300 bg-white">
+                                    <option value="">Select Civil Status</option>
+                                    <option value="Single">Single</option>
+                                    <option value="Married">Married</option>
+                                    <option value="Widowed">Widowed</option>
+                                    <option value="Separated">Separated</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="text-xs uppercase tracking-wider text-slate-500 font-semibold">Occupation</label>
+                                <input id="input-occupation" type="text" class="w-full mt-1 border border-slate-300 rounded-xl px-3 py-2 focus:ring-2 focus:ring-blue-300">
+                            </div>
+
+                            <div>
+                                <label class="text-xs uppercase tracking-wider text-slate-500 font-semibold">Street Address</label>
+                                <input id="input-street" type="text" class="w-full mt-1 border border-slate-300 rounded-xl px-3 py-2 focus:ring-2 focus:ring-blue-300">
+                            </div>
+
+                            <div>
+                                <label class="text-xs uppercase tracking-wider text-slate-500 font-semibold">Barangay</label>
+                                <input id="input-barangay" type="text" class="w-full mt-1 border border-slate-300 rounded-xl px-3 py-2 focus:ring-2 focus:ring-blue-300">
+                            </div>
+
+                            <div>
+                                <label class="text-xs uppercase tracking-wider text-slate-500 font-semibold">City / Municipality</label>
+                                <input id="input-city" type="text" class="w-full mt-1 border border-slate-300 rounded-xl px-3 py-2 focus:ring-2 focus:ring-blue-300">
+                            </div>
+
+                            <div>
+                                <label class="text-xs uppercase tracking-wider text-slate-500 font-semibold">Province</label>
+                                <input id="input-province" type="text" class="w-full mt-1 border border-slate-300 rounded-xl px-3 py-2 focus:ring-2 focus:ring-blue-300">
+                            </div>
+
+                            <div>
+                                <label class="text-xs uppercase tracking-wider text-slate-500 font-semibold">Region</label>
+                                <input id="input-region" type="text" class="w-full mt-1 border border-slate-300 rounded-xl px-3 py-2 focus:ring-2 focus:ring-blue-300">
+                            </div>
+
+                            <div class="md:col-span-2">
+                                <label class="text-xs uppercase tracking-wider text-slate-500 font-semibold">ZIP Code</label>
+                                <input id="input-zip" type="text" class="w-full mt-1 border border-slate-300 rounded-xl px-3 py-2 focus:ring-2 focus:ring-blue-300">
+                            </div>
+                        </div>
                     </div>
 
                     <div class="col-span-12 lg:col-span-4 bg-white rounded-3xl border border-slate-200 shadow-sm flex flex-col">
@@ -189,15 +269,36 @@
         let isPasswordFormVisible = false;
 
         const displayName = document.getElementById('display-name');
-        const displayAccountType = document.getElementById('display-account-type');
         const memberSinceText = document.querySelector('.fa-calendar-alt').nextElementSibling;
 
-        const fullNameDisplay = document.getElementById('full-name-display');
-        const fullNameInput = document.getElementById('full-name-input');
-        const emailDisplay = document.getElementById('email-display');
-        const emailInput = document.getElementById('email-input');
-        const mobileDisplay = document.getElementById('mobile-display');
-        const mobileInput = document.getElementById('mobile-input');
+        const viewModeSection = document.getElementById('view-mode-section');
+        const editModeSection = document.getElementById('edit-mode-section');
+
+        const viewFullName = document.getElementById('view-full-name');
+        const viewEmail = document.getElementById('view-email');
+        const viewMobile = document.getElementById('view-mobile');
+        const viewBirthday = document.getElementById('view-birthday');
+        const containerViewCivilStatus = document.getElementById('container-view-civil-status');
+        const viewCivilStatus = document.getElementById('view-civil-status');
+        const containerViewOccupation = document.getElementById('container-view-occupation');
+        const viewOccupation = document.getElementById('view-occupation');
+        const viewFullAddress = document.getElementById('view-full-address');
+        const viewRegion = document.getElementById('view-region');
+
+        // Input Elements
+        const inputFirstName = document.getElementById('input-first-name');
+        const inputLastName = document.getElementById('input-last-name');
+        const inputEmail = document.getElementById('input-email');
+        const inputMobile = document.getElementById('input-mobile');
+        const inputBirthday = document.getElementById('input-birthday');
+        const inputCivilStatus = document.getElementById('input-civil-status');
+        const inputOccupation = document.getElementById('input-occupation');
+        const inputStreet = document.getElementById('input-street');
+        const inputBarangay = document.getElementById('input-barangay');
+        const inputCity = document.getElementById('input-city');
+        const inputProvince = document.getElementById('input-province');
+        const inputRegion = document.getElementById('input-region');
+        const inputZip = document.getElementById('input-zip');
 
         const editBtn = document.getElementById('edit-btn');
         const editActions = document.getElementById('edit-actions');
@@ -235,17 +336,77 @@
                 const lName = data.last_name || '';
                 const fullCombinedName = `${fName} ${lName}`.trim() || 'No Name Set';
 
-                displayName.textContent = fullCombinedName;
-                displayAccountType.textContent = data.role ? data.role.toUpperCase() : 'USER';
+                if (displayName) displayName.textContent = fullCombinedName;
                 
-                fullNameDisplay.textContent = fullCombinedName;
-                fullNameInput.value = fullCombinedName;
+                // I-display ang Role mula sa Database (e.g. 'adopter' -> 'ADOPTER', 'user' -> 'USER')
+                const displayAccountType = document.getElementById('display-account-type');
+                if (displayAccountType) {
+                    displayAccountType.textContent = data.role 
+                        ? (data.role.charAt(0).toUpperCase() + data.role.slice(1).toLowerCase()) // Halimbawa: "User" o "Adopter"
+                        : 'User';
+                }
 
-                emailDisplay.textContent = data.email || '';
-                emailInput.value = data.email || '';
+                // 3. Member since date
+                if (data.created_at && memberSinceText) {
+                    const date = new Date(data.created_at);
+                    memberSinceText.textContent = `Member since ${date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`;
+                }
+                
+                // Format Birthday
+                if (data.birthday) {
+                    const rawDate = data.birthday.toString().split('T')[0];
+                    
+                    // View Mode: August 16, 2005
+                    viewBirthday.textContent = formatBirthdayView(data.birthday);
+                    
+                    // Edit Mode: 2005-08-16
+                    inputBirthday.value = rawDate;
+                } else {
+                    viewBirthday.textContent = 'N/A';
+                    inputBirthday.value = '';
+                }
 
-                mobileDisplay.textContent = data.phone_number || 'N/A';
-                mobileInput.value = data.phone_number || '';
+                // Civil Status check
+                if (data.civil_status && data.civil_status.trim() !== '' && data.civil_status.toUpperCase() !== 'N/A') {
+                    containerViewCivilStatus.classList.remove('hidden');
+                    viewCivilStatus.textContent = data.civil_status;
+                } else {
+                    containerViewCivilStatus.classList.add('hidden');
+                }
+
+                // Occupation check
+                if (data.occupation && data.occupation.trim() !== '' && data.occupation.toUpperCase() !== 'N/A') {
+                    containerViewOccupation.classList.remove('hidden');
+                    viewOccupation.textContent = data.occupation;
+                } else {
+                    containerViewOccupation.classList.add('hidden');
+                }
+
+                // Construct Full Address
+                const addressParts = [
+                    data.street_address,
+                    data.barangay ? `Brgy. ${data.barangay}` : '',
+                    data.city,
+                    data.province,
+                    data.zip_code
+                ].filter(part => part && part.trim() !== '');
+
+                viewFullAddress.textContent = addressParts.length > 0 ? addressParts.join(', ') : 'N/A';
+                viewRegion.textContent = data.region || 'N/A';
+
+                // Edit Mode Form Inputs Populating
+                inputFirstName.value = fName;
+                inputLastName.value = lName;
+                inputEmail.value = data.email || '';
+                inputMobile.value = data.phone_number || '';
+                inputCivilStatus.value = data.civil_status || '';
+                inputOccupation.value = data.occupation || '';
+                inputStreet.value = data.street_address || '';
+                inputBarangay.value = data.barangay || '';
+                inputCity.value = data.city || '';
+                inputProvince.value = data.province || '';
+                inputRegion.value = data.region || '';
+                inputZip.value = data.zip_code || '';
 
                 if (data.profile_picture) {
                     avatarDisplay.innerHTML = `<img src="${data.profile_picture}" alt="Profile Picture" class="w-full h-full object-cover rounded-full">`;
@@ -253,10 +414,6 @@
                     avatarDisplay.innerHTML = `<i class="fas fa-user"></i>`;
                 }
 
-                if (data.created_at) {
-                    const date = new Date(data.created_at);
-                    memberSinceText.textContent = `Member since ${date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`;
-                }
 
             } catch (error) {
                 console.error("Error loading profile:", error);
@@ -268,12 +425,8 @@
             editBtn.classList.add('hidden');
             editActions.classList.remove('hidden');
 
-            fullNameDisplay.classList.add('hidden');
-            fullNameInput.classList.remove('hidden');
-            emailDisplay.classList.add('hidden');
-            emailInput.classList.remove('hidden');
-            mobileDisplay.classList.add('hidden');
-            mobileInput.classList.remove('hidden');
+            viewModeSection.classList.add('hidden');
+            editModeSection.classList.remove('hidden');
             
             if (avatarOverlay) {
                 avatarOverlay.classList.remove('hidden');
@@ -287,12 +440,8 @@
             editBtn.classList.remove('hidden');
             editActions.classList.add('hidden');
 
-            fullNameDisplay.classList.remove('hidden');
-            fullNameInput.classList.add('hidden');
-            emailDisplay.classList.remove('hidden');
-            emailInput.classList.add('hidden');
-            mobileDisplay.classList.remove('hidden');
-            mobileInput.classList.add('hidden');
+            viewModeSection.classList.remove('hidden');
+            editModeSection.classList.add('hidden');
             
             if (avatarOverlay) {
                 avatarOverlay.classList.add('hidden');
@@ -302,14 +451,24 @@
         }
 
         async function saveProfile() {
-            const updatedData = {
-                fullName: fullNameInput.value.trim(),
-                email: emailInput.value.trim(),
-                mobile: mobileInput.value.trim()
+            const payload = {
+                firstName: inputFirstName.value.trim(),
+                lastName: inputLastName.value.trim(),
+                email: inputEmail.value.trim(),
+                mobile: inputMobile.value.trim(),
+                birthday: inputBirthday.value,
+                civilStatus: inputCivilStatus.value,
+                occupation: inputOccupation.value.trim(),
+                streetAddress: inputStreet.value.trim(),
+                barangay: inputBarangay.value.trim(),
+                city: inputCity.value.trim(),
+                province: inputProvince.value.trim(),
+                region: inputRegion.value.trim(),
+                zipCode: inputZip.value.trim()
             };
 
-            if (!updatedData.fullName || !updatedData.email) {
-                alert('Full name and Email cannot be left empty.');
+            if (!payload.firstName || !payload.lastName || !payload.email) {
+                alert('First Name, Last Name, and Email are required.');
                 return;
             }
 
@@ -317,14 +476,14 @@
                 const response = await fetch('/api/user/profile/update', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(updatedData)
+                    body: JSON.stringify(payload)
                 });
 
                 const result = await response.json();
 
                 if (result.success) {
-                    alert('Profile Updated Successfully in Database!');
-                    fetchProfileData();
+                    alert('Profile Updated Successfully!');
+                    await fetchProfileData();
                     exitEditMode();
                     
                     if(typeof loadComponent === "function") {
@@ -342,6 +501,27 @@
         function cancelEdit() {
             fetchProfileData(); 
             exitEditMode();
+        }
+
+        function formatBirthdayView(dateStr) {
+            if (!dateStr) return 'N/A';
+            
+            // Kunin ang YYYY-MM-DD para iwas timezone bug
+            const cleanDate = dateStr.toString().split('T')[0];
+            const [year, month, day] = cleanDate.split('-');
+            
+            if (!year || !month || !day) return 'N/A';
+
+            const fullMonthNames = [
+                "January", "February", "March", "April", "May", "June",
+                "July", "August", "September", "October", "November", "December"
+            ];
+
+            const monthIndex = parseInt(month, 10) - 1;
+            const formattedDay = day.padStart(2, '0');
+            const formattedMonth = fullMonthNames[monthIndex] || '';
+
+            return `${formattedMonth} ${formattedDay}, ${year}`;
         }
 
         function togglePasswordForm() {

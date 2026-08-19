@@ -383,3 +383,41 @@ ALTER TABLE `user_adoption_applications`
 
 irespeleta@my.cspc.edu.ph pass: irespeleta@my.cspc.edu.ph2A
 eneriatelpse@gmail.com pass: 1Eneriatelepse@gmail.com
+
+# new functions na need iupdate:
+
+user profile
+org profile
+
+
+sa edit user profile:
+
+dapat kung paano yung sa create an account ganun din ang nasa edit
+
+
+account type palitan ng role ✓
+
+remove the account type ✓
+
+sa profile: ✓
+makikita ng user are:
+birthday
+civil status (if meron, else if = none, hide the civil status)
+occupation
+full address
+
+kapag nasa edit profile na:  ✓
+
+First Name
+Last Name
+Email
+Mobile Number
+Birthday
+Civil Status
+Occupation
+Street Address
+Barangay
+City / Municipality
+Province
+Region
+ZIP Code
