@@ -284,53 +284,6 @@ exports.getPets = async (req, res) => {
     }
 };
 
-// exports.getPetDetails = async (req, res) => {
-//     try {
-//         // Get pet information
-//         const [rows] = await pool.query(
-//             `
-//             SELECT *
-//             FROM animals
-//             WHERE animal_id = ?
-//             `,
-//             [req.params.id]
-//         );
-
-//         if (!rows.length) {
-//             return res.json({
-//                 success: false,
-//                 message: "Pet not found."
-//             });
-//         }
-
-//         // Get medical history
-//         const [medical] = await pool.query(
-//             `
-//             SELECT *
-//             FROM animal_medical_history
-//             WHERE animal_id = ?
-//             ORDER BY administered_date DESC
-//             `,
-//             [req.params.id]
-//         );
-
-//         // Attach medical history to the pet object
-//         rows[0].medical_history = medical;
-
-//         res.json({
-//             success: true,
-//             pet: rows[0]
-//         });
-
-//     } catch (err) {
-//         console.error(err);
-//         res.status(500).json({
-//             success: false,
-//             message: "Server error"
-//         });
-//     }
-// };
-
 //nasa taas yung lumang code neto nakacomment, if hindi to gumana, ibalik na lang sa lumang code
 // para hindi makita or maedit ng ibang org ang pets na nasa ibang org (pets page)
 exports.getPetDetails = async (req, res) => {
@@ -572,32 +525,40 @@ exports.updatePet = async (req, res) => {
 };
 
 exports.deletePet = async (req, res) => {
-    //dinagdag lang ang AND organization_id=?
     try {
-        const id = req.params.id;
+        const { id } = req.params;
 
-        // Delete medical history first
+        // Get logged-in organization
+        const [organizations] = await pool.query(
+            "SELECT organization_id FROM organizations WHERE account_id = ?",
+            [req.session.accountId]
+        );
+
+        if (!organizations.length) {
+            return res.status(403).json({
+                success: false,
+                message: "Organization not found."
+            });
+        }
+
+        const organizationId = organizations[0].organization_id;
+
+        // Delete medical history
         await pool.query(
-            `
-            DELETE FROM animal_medical_history
-            WHERE animal_id = ?
-            `,
+            "DELETE FROM animal_medical_history WHERE animal_id = ?",
             [id]
         );
 
-        // Delete pet
+        // Delete pet (ensure ownership)
         const [result] = await pool.query(
-            `
-            DELETE FROM animals
-            WHERE animal_id = ? AND organization_id = ?
-            `,
-            [id]
+            "DELETE FROM animals WHERE animal_id = ? AND organization_id = ?",
+            [id, organizationId]
         );
 
         if (result.affectedRows === 0) {
-            return res.json({
+            return res.status(404).json({
                 success: false,
-                message: "Pet not found."
+                message: "Pet not found or does not belong to your organization."
             });
         }
 
@@ -605,8 +566,9 @@ exports.deletePet = async (req, res) => {
             success: true,
             message: "Pet deleted successfully."
         });
+
     } catch (err) {
-        console.error(err);
+        console.error("DELETE PET ERROR:", err);
         res.status(500).json({
             success: false,
             message: err.message
