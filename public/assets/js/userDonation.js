@@ -51,9 +51,10 @@
                 detailsHtml += `<p class="text-xs text-gray-400 mt-0.5">Ref No: ${item.reference_number}</p>`;
             }
 
+            // Updated para gamitin ang item_name at quantity kung in-kind
             const amountOrItems = isCash 
                 ? `₱ ${parseFloat(item.amount).toLocaleString('en-US', {minimumFractionDigits: 2})}`
-                : (item.items || 'In-Kind Items');
+                : (item.item_name ? `${item.item_name} (${item.quantity || ''})` : (item.items || 'In-Kind Items'));
 
             let statusBadge = '';
             const statusStr = (item.status || 'Pending').toLowerCase();
@@ -99,7 +100,6 @@
             tbody.appendChild(tr);
         });
     }
-
     /**
      * Calculates and updates dashboard statistics.
      */
@@ -161,7 +161,10 @@
         } else {
             document.getElementById("modalAmountContainer").classList.remove("hidden");
             document.getElementById("modalRefContainer").classList.add("hidden");
-            document.getElementById("modalAmount").textContent = donation.items || 'In-Kind Resource Item';
+            
+            // Dito pinalitan ang hardcoded string para makuha ang dynamic item name at quantity mula sa database
+            const itemDisplay = donation.item_name ? `${donation.item_name} (${donation.quantity || ''})` : (donation.items || 'In-Kind Resource Item');
+            document.getElementById("modalAmount").textContent = itemDisplay;
         }
 
         const proofSection = document.getElementById("modalProofSection");
@@ -220,8 +223,7 @@
         modal.classList.remove("opacity-0", "pointer-events-none");
         modal.querySelector("div").classList.remove("scale-95");
     }
-
-    function closeDetailsModal() {
+       function closeDetailsModal() {
         const modal = document.getElementById("detailsModal");
         modal.classList.add("opacity-0", "pointer-events-none");
         modal.querySelector("div").classList.add("scale-95");

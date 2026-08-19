@@ -171,7 +171,7 @@ Notification:
     Under My Application:
         Dapat kapag may bagong update is may notif like parang read or unread sa may under review, interview sched, pending, declined
 
-Profile: 
+Profile: -- ok na ( Jhy ) - pa check nalang
 	
 	Dapat nakikita yung picture sa lahat ng page, Hindi lang profile nakalagay hindi pa gumagana sa dashboard, kamustahan, donations, profile, matchmaking pages
 
