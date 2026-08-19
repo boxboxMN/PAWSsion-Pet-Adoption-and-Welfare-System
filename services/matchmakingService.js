@@ -71,8 +71,8 @@ async function matchPets(preferences) {
         )
     )
 
-    ${type !== "Any" ? "AND a.species = ?" : ""} 
-`, type !== "Any" ? [type] : []);
+        ${type !== "Any" ? "AND a.species = ?" : ""} 
+    `, type !== "Any" ? [type] : []);
 
     const matches = [];
 
@@ -88,59 +88,59 @@ async function matchPets(preferences) {
             ORDER BY administered_date DESC;
         `, [pet.animal_id]);
 
- // Convert JSON stored in MySQL
-const petEmbedding = typeof pet.embedding === "string" ? JSON.parse(pet.embedding) : pet.embedding;
+        // Convert JSON stored in MySQL
+        const petEmbedding = typeof pet.embedding === "string" ? JSON.parse(pet.embedding) : pet.embedding;
 
-// Cosine similarity (-1 to 1) and normalize to 0-1
-const similarity = cosineSimilarity(userEmbedding, petEmbedding);
-let behaviorSimilarity = (similarity + 1) / 2;
+        // Cosine similarity (-1 to 1) and normalize to 0-1
+        const similarity = cosineSimilarity(userEmbedding, petEmbedding);
+        let behaviorSimilarity = (similarity + 1) / 2;
 
-console.log("====================================");
-console.log("Pet:", pet.name);
-console.log("Raw Cosine Similarity:", similarity.toFixed(4));
-console.log("Behavior Similarity BEFORE Boost:", (behaviorSimilarity * 100).toFixed(2) + "%");
+        console.log("====================================");
+        console.log("Pet:", pet.name);
+        console.log("Raw Cosine Similarity:", similarity.toFixed(4));
+        console.log("Behavior Similarity BEFORE Boost:", (behaviorSimilarity * 100).toFixed(2) + "%");
 
-// -----------------------------------
-// Smooth Boost
-// -----------------------------------
-// Only boost if already a decent match.
-if (behaviorSimilarity >= 0.50) {
-    // Increase by up to 30% of the remaining distance to 1.0
-    behaviorSimilarity += (1 - behaviorSimilarity) * 0.30;
-}
+        // -----------------------------------
+        // Smooth Boost
+        // -----------------------------------
+        // Only boost if already a decent match.
+        if (behaviorSimilarity >= 0.50) {
+            // Increase by up to 30% of the remaining distance to 1.0
+            behaviorSimilarity += (1 - behaviorSimilarity) * 0.30;
+        }
 
-console.log("Behavior Similarity AFTER Boost :", (behaviorSimilarity * 100).toFixed(2) + "%");
+        console.log("Behavior Similarity AFTER Boost :", (behaviorSimilarity * 100).toFixed(2) + "%");
 
-// =========================================
-// SEX & AGE SCORES
-// =========================================
-const sexScore = sex === "Any" ? 1 : (pet.gender === sex ? 1 : 0);
-const ageScore = age === "Any" ? 1 : (pet.age === age ? 1 : 0);
+        // =========================================
+        // SEX & AGE SCORES
+        // =========================================
+        const sexScore = sex === "Any" ? 1 : (pet.gender === sex ? 1 : 0);
+        const ageScore = age === "Any" ? 1 : (pet.age === age ? 1 : 0);
 
-console.log("Sex Match :", sex === "Any" ? "ANY" : (sexScore === 1 ? "YES" : "NO"));
-console.log("Age Match :", age === "Any" ? "ANY" : (ageScore === 1 ? "YES" : "NO"));
-// =========================================
-// FIXED WEIGHTS
-// =========================================
+        console.log("Sex Match :", sex === "Any" ? "ANY" : (sexScore === 1 ? "YES" : "NO"));
+        console.log("Age Match :", age === "Any" ? "ANY" : (ageScore === 1 ? "YES" : "NO"));
+        // =========================================
+        // FIXED WEIGHTS
+        // =========================================
 
-const behaviorWeight = 0.70;
-const ageWeight = 0.20;
-const sexWeight = 0.10;
+        const behaviorWeight = 0.70;
+        const ageWeight = 0.20;
+        const sexWeight = 0.10;
 
-// =========================================
-// FINAL MATCH SCORE
-// =========================================
-const finalScore = (behaviorSimilarity * behaviorWeight) + (ageScore * ageWeight) + (sexScore * sexWeight);
+        // =========================================
+        // FINAL MATCH SCORE
+        // =========================================
+        const finalScore = (behaviorSimilarity * behaviorWeight) + (ageScore * ageWeight) + (sexScore * sexWeight);
 
-console.log("Behavior Weight       :", (behaviorWeight * 100).toFixed(0) + "%");
-console.log("Age Weight            :", (ageWeight * 100).toFixed(0) + "%");
-console.log("Sex Weight            :", (sexWeight * 100).toFixed(0) + "%");
-console.log("Behavior Contribution :", (behaviorSimilarity * behaviorWeight * 100).toFixed(2) + "%");
-console.log("Age Contribution      :", (ageScore * ageWeight * 100).toFixed(2) + "%");
-console.log("Sex Contribution      :", (sexScore * sexWeight * 100).toFixed(2) + "%");
-console.log("------------------------------------");
-console.log("FINAL MATCH SCORE     :", (finalScore * 100).toFixed(2) + "%");
-console.log("====================================\n");
+        console.log("Behavior Weight       :", (behaviorWeight * 100).toFixed(0) + "%");
+        console.log("Age Weight            :", (ageWeight * 100).toFixed(0) + "%");
+        console.log("Sex Weight            :", (sexWeight * 100).toFixed(0) + "%");
+        console.log("Behavior Contribution :", (behaviorSimilarity * behaviorWeight * 100).toFixed(2) + "%");
+        console.log("Age Contribution      :", (ageScore * ageWeight * 100).toFixed(2) + "%");
+        console.log("Sex Contribution      :", (sexScore * sexWeight * 100).toFixed(2) + "%");
+        console.log("------------------------------------");
+        console.log("FINAL MATCH SCORE     :", (finalScore * 100).toFixed(2) + "%");
+        console.log("====================================\n");
             
         matches.push({
             animal_id: pet.animal_id,
