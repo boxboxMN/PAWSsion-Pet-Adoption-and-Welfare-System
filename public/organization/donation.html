@@ -8,6 +8,23 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <script src="../assets/js/orgSidebar.js"></script>
     <script src="../assets/js/orgTopbar.js"></script>
+    
+    <script src="/assets/js/orgProfile.js"></script> 
+    <script src="/assets/js/org-donation.js"></script>
+</head>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Organization Dashboard - Donations</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <script src="../assets/js/orgSidebar.js"></script>
+    <script src="../assets/js/orgTopbar.js"></script>
+    
+    <script src="/assets/js/orgProfile.js"></script> 
+    <script src="/assets/js/org-donation.js"></script>
 </head>
 <body class="bg-slate-100 font-['Inter',_sans-serif] min-h-screen">
 
@@ -323,7 +340,6 @@
 
                     <div>
                         <h4 class="text-xs font-bold text-gray-800 mb-3">2. Proof of Donation</h4>
-                        <!-- Naka-set sa h-52 at bg-slate-900 para mas malinaw ang contrast -->
                         <div class="w-full h-52 bg-slate-900 border border-gray-200 rounded-xl overflow-hidden flex items-center justify-center relative group cursor-pointer" onclick="triggerViewReceiptFromReview()">
                             <img id="reviewReceiptImg" src="" alt="Proof of Donation" class="max-h-full w-auto object-contain p-1 transition-transform duration-200 group-hover:scale-105" />
                             <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-semibold gap-2">
@@ -331,6 +347,7 @@
                             </div>
                         </div>
                     </div>
+                </div> <!-- Dito naisara nang tama ang grid container -->
 
                 <div id="rejectionSection" class="hidden mt-6 pt-4 border-t border-gray-100 space-y-4">
                     <div>
@@ -490,12 +507,28 @@
                 </div>
             </div>
         </div>
+        <!--Logout Modal-->
+<div id="logoutModal" class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/45 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-200">
+    <div class="bg-white rounded-2xl max-w-sm w-full mx-4 p-6 shadow-2xl scale-95 transition-transform duration-200">
+        <div class="text-center">
+            <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-50 mb-4">
+                <i class="fa-solid fa-right-from-bracket text-red-600 text-lg"></i>
+            </div>
+            <h3 class="text-lg font-bold text-gray-900">Logging Out?</h3>
+            <p class="text-sm text-gray-500 mt-2">Are you sure you want to leave the Pawpon Org Portal?</p>
+        </div>
+        <div class="mt-6 flex gap-3">
+            <button id="cancelLogoutBtn" class="flex-1 px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-xl transition text-sm">
+                Cancel
+            </button>
+            <button id="confirmLogoutBtn" class="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white font-medium rounded-xl transition shadow-sm shadow-red-200 text-sm">
+                Yes, Logout
+            </button>
+        </div>
+    </div>
+</div>
         <!-- UI Toast Notification Container -->
         <div id="toastContainer" class="fixed bottom-5 right-5 z-[100000] flex flex-col gap-2 pointer-events-none"></div>
     </main>
-
-
-<script src="/assets/js/orgProfile.js"></script> 
-<script src="/assets/js/org-donation.js"></script>
 </body>
 </html>
