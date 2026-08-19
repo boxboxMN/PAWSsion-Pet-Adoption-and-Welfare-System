@@ -1371,3 +1371,23 @@ exports.logout = (req, res) => {
 
     });
 };
+exports.getOrganizationById = async (req, res) => {
+    try {
+        const orgId = req.params.id;
+        
+        // Gamitin ang SELECT * para iwasan ang 'Unknown column' error
+        const [rows] = await pool.query(
+            "SELECT * FROM organizations WHERE organization_id = ?", 
+            [orgId]
+        );
+
+        if (rows.length === 0) {
+            return res.status(404).json({ error: "Organization not found" });
+        }
+
+        res.json(rows[0]);
+    } catch (err) {
+        console.error("Error fetching organization profile:", err);
+        res.status(500).json({ error: "Server error" });
+    }
+};

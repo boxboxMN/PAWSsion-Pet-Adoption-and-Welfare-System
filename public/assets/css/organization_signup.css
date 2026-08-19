@@ -6,11 +6,10 @@
 }
 
 body {
-    height: 100vh;
+    min-height: 100vh;
     display: flex;
     justify-content: space-between;
     background: #f6f8ff;
-    overflow: hidden;
 }
 
 /* =========================
@@ -41,18 +40,21 @@ body {
 
 .left {
     width: 50%;
+    min-height: 100vh;
     background: white;
     border-top-right-radius: 220px;
-    padding: 80px 0 80px 80px;
+    padding: 80px;
     box-shadow: 5px 0 30px rgba(90, 125, 252, .08);
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     z-index: 2;
 }
 
 .container {
-    margin-top: -40px;
-    width: 500px;
-    margin-left: 40px;
-    /* border:2px solid #1656ff; */
+    width: 100%;
+    max-width: 500px;
 }
 
 /* =========================
@@ -113,6 +115,18 @@ label {
     margin-bottom: 8px;
 }
 
+/* Checkbox fields wrap the input inside the label ("I certify...") —
+   lay those out inline instead of inheriting the block label style. */
+label:has(input[type="checkbox"]) {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 400;
+    margin-bottom: 0;
+    cursor: pointer;
+}
+
 .required {
     color: red;
 }
@@ -129,6 +143,15 @@ input {
 
 input:focus {
     border-color: #1656ff;
+}
+
+/* The global input rule above shouldn't blow up checkboxes/radios
+   to full field size — scope them back down. */
+input[type="checkbox"],
+input[type="radio"] {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
 }
 
 /* =========================
@@ -211,24 +234,28 @@ button {
     cursor: pointer;
 }
 
-/*
 button:hover {
     background: #004cff;
 }
-*/
 
+button:disabled {
+    background: #bdc3c7 !important;
+    cursor: not-allowed !important;
+}
 /* =========================
    RIGHT SIDE
 ========================= */
 
 .right {
     width: 50%;
+    min-height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
     flex-direction: column;
     padding: 40px;
     text-align: center;
+    box-sizing: border-box;
 }
 
 .right img {
@@ -313,21 +340,69 @@ textarea:focus {
 .city-field input,
 .province-field input {
     height: 40px;
-}/* Address, City and Province in one row */
-
-.address-row {
-    display: grid;
-    grid-template-columns: 2fr 1fr 1fr;
-    gap: 12px;
-    align-items: end;
 }
 
-.address-row .field {
-    margin-bottom: 0;
+/* ========================================================
+   RESPONSIVE BREAKPOINTS
+   ======================================================== */
+
+@media (max-width: 1100px) {
+    body {
+        flex-direction: column;
+    }
+
+    .left,
+    .right {
+        width: 100%;
+        min-height: auto;
+    }
+
+    .left {
+        border-top-right-radius: 0;
+        border-bottom-left-radius: 120px;
+        padding: 60px 40px;
+    }
+
+    .right {
+        padding: 50px 40px;
+    }
+
+    .right h2 {
+        font-size: 44px;
+    }
 }
 
-.address-field input,
-.city-field input,
-.province-field input {
-    height: 40px;
+@media (max-width: 600px) {
+    .left {
+        padding: 40px 24px;
+        border-bottom-left-radius: 60px;
+    }
+
+    .right {
+        padding: 36px 20px;
+    }
+
+    h1 {
+        font-size: 30px;
+    }
+
+    .right h2 {
+        font-size: 34px;
+    }
+
+    .right h3 {
+        font-size: 17px;
+    }
+
+    .right p {
+        width: 100%;
+    }
+
+    .step2-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .address-row {
+        grid-template-columns: 1fr;
+    }
 }

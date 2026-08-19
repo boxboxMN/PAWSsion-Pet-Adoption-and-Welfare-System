@@ -14,7 +14,7 @@
         /* I-override o tiyakin ang tamang agwat ng bawat field container */
         .form-box form .row,
         .form-box form .full {
-            margin-bottom: 14px !important; /* Binawasan para hindi masyadong malayo ang gap */
+            margin-bottom: 14px !important;
         }
 
         .form-box form .checkbox {
@@ -22,63 +22,142 @@
             margin-top: 5px !important;
         }
 
-        /* Inline helper texts para sa real-time fields */
+        .form-step {
+            display: none;
+        }
+        .form-step.active {
+            display: block;
+        }
+
+        .step-indicator {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: 26px;
+            padding: 20px 24px;
+            background: #fafbff;
+            border: 1px solid #eef0f6;
+            border-radius: 14px;
+        }
+        .step-item {
+            position: relative;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 10.5px;
+            font-weight: 700;
+            letter-spacing: .4px;
+            text-transform: uppercase;
+            color: #b7bcc7;
+        }
+        .step-item:not(:first-child)::before {
+            content: '';
+            position: absolute;
+            top: 15px;
+            left: -50%;
+            width: 100%;
+            height: 2px;
+            background: #e3e6ee;
+            z-index: 0;
+        }
+        .step-circle {
+            position: relative;
+            z-index: 1;
+            width: 30px;
+            height: 30px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: #fff;
+            border: 2px solid #dcdfe8;
+            color: #b7bcc7;
+            font-size: 13px;
+            font-weight: 700;
+            transition: background .2s ease, border-color .2s ease, color .2s ease;
+        }
+        .step-item.active {
+            color: #1656ff;
+        }
+        .step-item.active .step-circle {
+            background: #1656ff;
+            border-color: #1656ff;
+            color: #fff;
+        }
+
+        .next-btn {
+            margin-top: 20px;
+            text-align: right;
+        }
+        .btn-group {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .btn-group button,
+        .next-btn button {
+            width: auto;
+            height: auto;
+            padding: 10px 22px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+        }
+        .btn-prev,
+        .btn-next,
+        .submit-btn {
+            background: #1656ff;
+            color: white;
+        }
+        .btn-prev:hover,
+        .btn-next:hover,
+        .submit-btn:hover {
+            background: #004cff;
+        }
+        .btn-next:disabled, .submit-btn:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+        }
+
         .input-helper-text {
             font-size: 12px;
-            margin-top: 4px; /* Malapit lang sa ilalim ng input box */
-            margin-bottom: 0px;
+            margin-top: 4px;
+            min-height: 16px;
             color: #7f8c8d;
             display: flex;
             align-items: center;
             gap: 5px;
-            font-family: sans-serif;
-            min-height: 16px;
         }
+        .input-helper-text.error { color: #e74c3c; }
+        .input-helper-text.success { color: #2ecc71; }
 
-        .input-helper-text.error {
-            color: #e74c3c;
-        }
-
-        .input-helper-text.success {
-            color: #2ecc71;
-        }
-
-        /* Password live requirements card checklist */
         .password-requirements {
             display: none;
             margin-top: 6px;
-            padding: 8px 12px; /* Mas siksik na padding */
+            padding: 8px 12px;
             background-color: #f8f9fa;
             border-radius: 6px;
             border: 1px solid #e9ecef;
-            box-shadow: inset 0 1px 3px rgba(0,0,0,0.02);
         }
-
         .requirement-item {
-            font-size: 12px; /* Bahagyang pinaliit para sa compact layout */
-            margin: 3px 0; /* Mas maliit na agwat sa bawat linya ng checklist */
+            font-size: 12px;
+            margin: 3px 0;
             display: flex;
             align-items: center;
             gap: 6px;
             color: #95a5a6;
-            transition: color 0.2s ease;
         }
+        .requirement-item.invalid { color: #e74c3c; }
+        .requirement-item.valid { color: #2ecc71; }
 
-        .requirement-item.invalid {
-            color: #e74c3c;
-        }
-
-        .requirement-item.valid {
-            color: #2ecc71;
-        }
-
-        /* Custom Modal Overlay Window Container */
         .custom-alert-overlay {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0, 0, 0, 0.4);
             backdrop-filter: blur(4px);
             display: flex;
@@ -89,13 +168,10 @@
             pointer-events: none;
             transition: opacity 0.3s ease;
         }
-
         .custom-alert-overlay.active {
             opacity: 1;
             pointer-events: auto;
         }
-
-        /* Modal Box Design Card */
         .custom-alert-box {
             background: #ffffff;
             padding: 25px;
@@ -107,47 +183,16 @@
             transform: scale(0.85);
             transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
-
         .custom-alert-overlay.active .custom-alert-box {
             transform: scale(1);
         }
-
-        /* Icon Wrapper Inside the Modal Window */
-        .custom-alert-icon {
-            font-size: 44px;
-            color: #e74c3c; 
-            margin-bottom: 12px;
-            display: inline-block;
-        }
-
-        .custom-alert-icon.success-icon {
-            color: #2ecc71; 
-        }
-
-        .custom-alert-message {
-            font-size: 14px;
-            color: #2c3e50;
-            margin-bottom: 18px;
-            line-height: 1.4;
-            font-family: sans-serif;
-        }
-
-        /* Custom Modal Interactive Close Button */
+        .custom-alert-icon { font-size: 44px; color: #e74c3c; margin-bottom: 12px; }
+        .custom-alert-icon.success-icon { color: #2ecc71; }
+        .custom-alert-message { font-size: 14px; color: #2c3e50; margin-bottom: 18px; }
         .custom-alert-btn {
-            background: #3498db;
-            color: white;
-            border: none;
-            padding: 9px 22px;
-            font-size: 14px;
-            font-weight: 600;
-            border-radius: 6px;
-            cursor: pointer;
-            outline: none;
-            transition: background 0.2s ease;
-        }
-
-        .custom-alert-btn:hover {
-            background: #2980b9;
+            background: #3498db; color: white; border: none;
+            padding: 9px 22px; font-size: 14px; font-weight: 600;
+            border-radius: 6px; cursor: pointer;
         }
     </style>
 </head>
@@ -175,94 +220,198 @@
             <p class="subtitle">Sign up as an Adopter or Donor to get started.</p>
             <div class="line"></div>
 
-            <div class="row">
-                <div class="field">
-                    <label>First Name <span class="required">*</span></label>
-                    <input id="firstName" name="firstName" type="text" placeholder="Enter First Name" required>
+            <!-- bagong dagdag-->
+            <div class="step-indicator">
+                <div class="step-item active" id="stepIndicator1">
+                    <div class="step-circle">1</div>
+                    <span class="step-label">Personal Info</span>
+                </div>
+                <div class="step-item" id="stepIndicator2">
+                    <div class="step-circle">2</div>
+                    <span class="step-label">Address</span>
+                </div>
+                <div class="step-item" id="stepIndicator3">
+                    <div class="step-circle">3</div>
+                    <span class="step-label">Account</span>
+                </div>
+            </div>
+            <!-- end of bagong dagdag-->
+
+            <!-- STEP 1: PERSONAL INFORMATION -->
+            <div class="form-step active" id="step1">
+                <div class="row">
+                    <div class="field">
+                        <label>First Name <span class="required">*</span></label>
+                        <input id="firstName" name="firstName" type="text" placeholder="Enter First Name" required>
+                    </div>
+                    <div class="field">
+                        <label>Last Name <span class="required">*</span></label>
+                        <input id="lastName" name="lastName" type="text" placeholder="Enter Last Name" required>
+                    </div>
                 </div>
 
-                <div class="field">
-                    <label>Last Name <span class="required">*</span></label>
-                    <input id="lastName" name="lastName" type="text" placeholder="Enter Last Name" required>
+                <div class="full">
+                    <label>Birthday <span class="required">*</span></label>
+                    <input id="birthday" name="birthday" type="date" required>
+                    <div id="birthdayHelper" class="input-helper-text"></div>
+                </div>
+
+                <div class="row">
+                    <div class="field">
+                        <label>Civil Status (Optional)</label>
+                        <select id="civilStatus" name="civilStatus">
+                            <option value="">Select Civil Status</option>
+                            <option value="Single">Single</option>
+                            <option value="Married">Married</option>
+                            <option value="Widowed">Widowed</option>
+                            <option value="Separated">Separated</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label>Occupation / Income (Optional)</label>
+                        <input id="occupation" name="occupation" type="text" placeholder="e.g. Software Engineer">
+                    </div>
+                </div>
+                <div class="next-btn">
+                    <button type="button" class="btn-next" id="nextToStep2" disabled>Next: Address</button>
+                </div>
+            </div>
+
+            <!-- STEP 2: HOME ADDRESS -->
+            <div class="form-step" id="step2">
+                <div class="full">
+                    <label>Street Address / House No. & Street <span class="required">*</span></label>
+                    <input id="streetAddress" name="streetAddress" type="text" placeholder="House No. / Street" required>
+                </div>
+
+                <div class="row">
+                    <div class="field">
+                        <label>Region <span class="required">*</span></label>
+                        <select id="region" name="region" required>
+                            <option value="">Select Region</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label>Province <span class="required">*</span></label>
+                        <select id="province" name="province" required disabled>
+                            <option value="">Select Province</option>
+                        </select>
+                    </div>
+                </div>
+            
+                <div class="row">
+                    <div class="field">
+                        <label>City / Municipality <span class="required">*</span></label>
+                        <select id="city" name="city" required disabled>
+                            <option value="">Select City / Municipality</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label>Barangay <span class="required">*</span></label>
+                        <select id="barangay" name="barangay" required disabled>
+                            <option value="">Select Barangay</option>
+                        </select>
+                    </div>
+                </div>
+            
+                <div class="full">
+                    <label>Zip Code <span class="required">*</span>
+                        <a href="https://www.google.com/search?q=zip+code+philippines" target="_blank" style="font-size: 11px; margin-left: 5px; color: #3498db;">
+                            (Find my Zip Code?)
+                        </a>
+                    </label>
+                    <input id="zipCode" name="zipCode" type="text" placeholder="e.g. 4434" maxlength="4" required>
+                    <div id="zipHelper" class="input-helper-text"></div>
+                </div>
+
+                <div class="btn-group">
+                    <button type="button" class="btn-prev" id="prevToStep1">Back</button>
+                    <button type="button" class="btn-next" id="nextToStep3" disabled>Next: Account</button>
                 </div>
             </div>
             
-            <div class="full">
-                <label>Phone Number <span class="required">*</span></label>
-                <div class="input-box">
-                    <i class="fa-solid fa-phone icon"></i>
-                    <input
-                        id="phoneNumber"
-                        name="phoneNumber"
-                        type="tel"
-                        placeholder="09XXXXXXXXX"
-                        maxlength="11"
-                        required
-                    >
+            <!-- STEP 3: ACCOUNT CREDENTIALS -->
+            <div class="form-step" id="step3">
+                <div class="full">
+                    <label>Phone Number <span class="required">*</span></label>
+                    <div class="input-box">
+                        <i class="fa-solid fa-phone icon"></i>
+                        <input
+                            id="phoneNumber"
+                            name="phoneNumber"
+                            type="tel"
+                            placeholder="09XXXXXXXXX"
+                            maxlength="11"
+                            required
+                        >
+                    </div>
+                    <div id="phoneHelper" class="input-helper-text"></div>
                 </div>
-                <div id="phoneHelper" class="input-helper-text"></div>
-            </div>
 
-            <div class="full">
-                <label>Email Address <span class="required">*</span></label>
-                <div class="input-box">
-                    <i class="fa-regular fa-envelope icon"></i>
-                    <input id="email" name="email" type="email" placeholder="Enter Email" required>
+                <div class="full">
+                    <label>Email Address <span class="required">*</span></label>
+                    <div class="input-box">
+                        <i class="fa-regular fa-envelope icon"></i>
+                        <input id="email" name="email" type="email" placeholder="Enter Email" required>
+                    </div>
+                    <div id="emailHelper" class="input-helper-text"></div>
                 </div>
-                <div id="emailHelper" class="input-helper-text"></div>
-            </div>
 
-            <div class="full">
-                <label>Password <span class="required">*</span></label>
-                <div class="input-box">
-                    <i class="fa-solid fa-lock icon"></i>
-                    <input id="password" name="password" type="password" placeholder="Enter Password" required>
-                    <button type="button" class="toggle-password" id="togglePassword" aria-label="Show password">
-                        <i class="fa-solid fa-eye"></i>
-                    </button>
-                </div>
+                <div class="full">
+                    <label>Password <span class="required">*</span></label>
+                    <div class="input-box">
+                        <i class="fa-solid fa-lock icon"></i>
+                        <input id="password" name="password" type="password" placeholder="Enter Password" required>
+                        <button type="button" class="toggle-password" id="togglePassword" aria-label="Show password">
+                            <i class="fa-solid fa-eye"></i>
+                        </button>
+                    </div>
                 
-                <div class="password-requirements" id="passwordRequirements">
-                    <div class="requirement-item invalid" id="reqLength">
-                        <i class="fa-solid fa-circle-xmark status-icon"></i> At least 8 characters
+                    <div class="password-requirements" id="passwordRequirements">
+                        <div class="requirement-item invalid" id="reqLength">
+                            <i class="fa-solid fa-circle-xmark status-icon"></i> At least 8 characters
+                        </div>
+                        <div class="requirement-item invalid" id="reqUppercase">
+                            <i class="fa-solid fa-circle-xmark status-icon"></i> One uppercase letter (A-Z)
+                        </div>
+                        <div class="requirement-item invalid" id="reqLowercase">
+                            <i class="fa-solid fa-circle-xmark status-icon"></i> One lowercase letter (a-z)
+                        </div>
+                        <div class="requirement-item invalid" id="reqNumber">
+                            <i class="fa-solid fa-circle-xmark status-icon"></i> One number (0-9)
+                        </div>
+                        <div class="requirement-item invalid" id="reqSpecial">
+                            <i class="fa-solid fa-circle-xmark status-icon"></i> One special character (@$!%*?&#)
+                        </div>
                     </div>
-                    <div class="requirement-item invalid" id="reqUppercase">
-                        <i class="fa-solid fa-circle-xmark status-icon"></i> One uppercase letter (A-Z)
+                </div>
+
+                <div class="full">
+                    <label>Confirm Password <span class="required">*</span></label>
+                    <div class="input-box">
+                        <i class="fa-solid fa-lock icon"></i>
+                        <input id="confirmPassword" name="confirmPassword" type="password" placeholder="Confirm Password" required>
+                        <button type="button" class="toggle-password" id="toggleConfirmPassword" aria-label="Show password">
+                            <i class="fa-solid fa-eye"></i>
+                        </button>
                     </div>
-                    <div class="requirement-item invalid" id="reqLowercase">
-                        <i class="fa-solid fa-circle-xmark status-icon"></i> One lowercase letter (a-z)
+                    <div class="requirement-item invalid" id="reqMatch" style="margin-top: 5px; display: none;">
+                        <i class="fa-solid fa-circle-xmark status-icon"></i> Passwords do not match
                     </div>
-                    <div class="requirement-item invalid" id="reqNumber">
-                        <i class="fa-solid fa-circle-xmark status-icon"></i> One number (0-9)
+                </div>
+
+                <div class="checkbox">
+                    <input type="checkbox" id="termsAgreement" required>
+                    <div>
+                        I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>
                     </div>
-                    <div class="requirement-item invalid" id="reqSpecial">
-                        <i class="fa-solid fa-circle-xmark status-icon"></i> One special character (@$!%*?&#)
-                    </div>
+                </div>
+
+                <div class="btn-group">
+                    <button type="button" class="btn-prev" id="prevToStep2">Back</button>
+                    <button type="submit" class="submit-btn">Sign Up</button>
                 </div>
             </div>
-
-            <div class="full">
-                <label>Confirm Password <span class="required">*</span></label>
-                <div class="input-box">
-                    <i class="fa-solid fa-lock icon"></i>
-                    <input id="confirmPassword" name="confirmPassword" type="password" placeholder="Confirm Password" required>
-                    <button type="button" class="toggle-password" id="toggleConfirmPassword" aria-label="Show password">
-                        <i class="fa-solid fa-eye"></i>
-                    </button>
-                </div>
-                <div class="requirement-item invalid" id="reqMatch" style="margin-top: 5px; display: none;">
-                    <i class="fa-solid fa-circle-xmark status-icon"></i> Passwords do not match
-                </div>
-            </div>
-
-            <div class="checkbox">
-                <input type="checkbox" id="termsAgreement" required>
-                <div>
-                    I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>
-                </div>
-            </div>
-
-            <button type="submit" class="submit-btn">Sign Up</button>
 
             <div class="signin">
                 Already have an account? <a href="login.html">Sign in</a>
@@ -289,10 +438,37 @@
     const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#]).{8,}$/;
     const phoneRegex = /^09\d{9}$/;
     const emailValidatorRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
+    
     // ===================================
     // DOM ELEMENTS
     // ===================================
+    // Steps
+    const step1 = document.getElementById('step1');
+    const step2 = document.getElementById('step2');
+    const step3 = document.getElementById('step3');
+    const ind1 = document.getElementById('stepIndicator1');
+    const ind2 = document.getElementById('stepIndicator2');
+    const ind3 = document.getElementById('stepIndicator3');
+
+    // Inputs Step 1
+    const firstName = document.getElementById('firstName');
+    const lastName = document.getElementById('lastName');
+    const birthdayInput = document.getElementById('birthday');
+    const birthdayHelper = document.getElementById('birthdayHelper');
+    const nextToStep2 = document.getElementById('nextToStep2');
+
+    // Inputs Step 2
+    const streetAddress = document.getElementById('streetAddress');
+    const regionSelect = document.getElementById('region');
+    const provinceSelect = document.getElementById('province');
+    const citySelect = document.getElementById('city');
+    const barangaySelect = document.getElementById('barangay');
+    const zipCode = document.getElementById('zipCode');
+    const zipRegex = /^\d{4}$/;
+    const zipHelper = document.getElementById('zipHelper');
+    const nextToStep3 = document.getElementById('nextToStep3');
+
+    // Inputs Step 3
     const form = document.getElementById('createAccountForm');
     const emailInput = document.getElementById('email');
     const emailHelper = document.getElementById('emailHelper');
@@ -300,7 +476,9 @@
     const phoneHelper = document.getElementById('phoneHelper');
     const passwordInput = document.getElementById('password');
     const confirmPasswordInput = document.getElementById('confirmPassword');
-    
+    const termsAgreement = document.getElementById('termsAgreement');
+
+
     const passwordRequirements = document.getElementById('passwordRequirements');
     const reqLength = document.getElementById('reqLength');
     const reqUppercase = document.getElementById('reqUppercase');
@@ -317,6 +495,121 @@
     let currentAlertCallback = null;
 
     let isEmailValidAndAvailable = false;
+
+    let isBirthdayValid = false;
+
+    // Caching Variables (Safety Precaution para hindi paulit-ulit mag-download)
+    let regionsData = [];
+    let provincesData = [];
+    let citiesData = [];
+    let barangaysData = [];
+
+    // Birthday validation & age calculation helper
+    function validateAgeAndBirthday() {
+        const value = birthdayInput.value;
+        if (!value) {
+            birthdayHelper.innerHTML = "";
+            isBirthdayValid = false;
+            return false;
+        }
+
+        const birthDate = new Date(value);
+        const today = new Date();
+
+        if (isNaN(birthDate.getTime())) {
+            birthdayHelper.className = "input-helper-text error";
+            birthdayHelper.innerHTML = "<i class='fa-solid fa-circle-xmark'></i> Please enter a valid date.";
+            isBirthdayValid = false;
+            return false;
+        }
+
+        let age = today.getFullYear() - birthDate.getFullYear();
+        const monthDiff = today.getMonth() - birthDate.getMonth();
+        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+            age--;
+        }
+
+        if (birthDate > today) {
+            birthdayHelper.className = "input-helper-text error";
+            birthdayHelper.innerHTML = "<i class='fa-solid fa-circle-xmark'></i> Birthday cannot be in the future.";
+            isBirthdayValid = false;
+            return false;
+        } else if (age < 18) {
+            birthdayHelper.className = "input-helper-text error";
+            birthdayHelper.innerHTML = "<i class='fa-solid fa-circle-xmark'></i> You must be at least 18 years old to register.";
+            isBirthdayValid = false;
+            return false;
+        } else if (age > 120) {
+            birthdayHelper.className = "input-helper-text error";
+            birthdayHelper.innerHTML = "<i class='fa-solid fa-circle-xmark'></i> Please enter a valid birth date.";
+            isBirthdayValid = false;
+            return false;
+        } else {
+            birthdayHelper.className = "input-helper-text success";
+            birthdayHelper.innerHTML = "<i class='fa-solid fa-circle-check'></i> Age verified (" + age + " years old).";
+            isBirthdayValid = true;
+            return true;
+        }
+    }
+
+    // STEP VALIDATION
+    function validateStep1() {
+        const hasNames = firstName.value.trim().length > 0 && lastName.value.trim().length > 0;
+        nextToStep2.disabled = !(hasNames && isBirthdayValid);
+    }
+
+    // Event listeners para sa validateStep 1
+    birthdayInput.addEventListener('input', () => {
+        validateAgeAndBirthday();
+        validateStep1();
+    });
+    birthdayInput.addEventListener('change', () => {
+        validateAgeAndBirthday();
+        validateStep1();
+    });
+
+    [firstName, lastName].forEach(el => el.addEventListener('input', validateStep1));
+
+    function validateStep2() {
+        const isZipValid = zipRegex.test(zipCode.value.trim());
+        const isComplete = 
+            streetAddress.value.trim().length > 0 &&
+            regionSelect.value.trim().length > 0 &&
+            provinceSelect.value.trim().length > 0 &&
+            citySelect.value.trim().length > 0 &&
+            barangaySelect.value.trim().length > 0 &&
+            isZipValid;
+
+        nextToStep3.disabled = !isComplete;
+    }
+
+    [firstName, lastName, birthday].forEach(el => el.addEventListener('input', validateStep1));
+    [streetAddress, barangay, city, province, zipCode].forEach(el => el.addEventListener('input', validateStep2));
+
+    // STEP NAVIGATION
+    document.getElementById('nextToStep2').addEventListener('click', () => {
+        step1.classList.remove('active');
+        step2.classList.add('active');
+        ind2.classList.add('active');
+    });
+
+    document.getElementById('prevToStep1').addEventListener('click', () => {
+        step2.classList.remove('active');
+        step1.classList.add('active');
+        ind2.classList.remove('active');
+    });
+
+    document.getElementById('nextToStep3').addEventListener('click', () => {
+        step2.classList.remove('active');
+        step3.classList.add('active');
+        ind3.classList.add('active');
+    });
+
+    document.getElementById('prevToStep2').addEventListener('click', () => {
+        step3.classList.remove('active');
+        step2.classList.add('active');
+        ind3.classList.remove('active');
+    });
 
     // ===================================
     // CUSTOM ALERT ENGINE FUNCTION
@@ -479,6 +772,11 @@
     form.addEventListener("submit", async function(e) {
         e.preventDefault();
 
+        if (!termsAgreement.checked) {
+            showCustomAlert("Please accept the Terms of Service and Privacy Policy.", "error");
+            return;
+        }
+
         const email = emailInput.value.trim();
         const password = passwordInput.value;
         const confirmPassword = confirmPasswordInput.value;
@@ -510,6 +808,15 @@
         const payload = {
             firstName: document.getElementById("firstName").value.trim(),
             lastName: document.getElementById("lastName").value.trim(),
+            birthday: birthday.value.trim(),
+            civilStatus: document.getElementById("civilStatus").value.trim(),
+            occupation: document.getElementById("occupation").value.trim(),
+            streetAddress: streetAddress.value.trim(),
+            region: regionSelect.value.trim(),
+            barangay: barangay.value.trim(),
+            city: city.value.trim(),
+            province: province.value.trim(),
+            zipCode: zipCode.value.trim(),
             phoneNumber: phoneNumber,
             email: email,
             password: password,
@@ -538,6 +845,186 @@
             console.error(err);
             showCustomAlert("Unable to process your registration request. Please try again later.", "error");
         }
+    });
+
+    // ===================================
+    // LOCAL PHILIPPINE ADDRESS CASCADING
+    // ===================================
+
+    // 1. I-load ang Provinces sa pag-open ng page
+    async function loadRegions() {
+        try {
+            regionSelect.innerHTML = '<option value="">Loading regions...</option>';
+            const res = await fetch('/data/regions.json');
+            if (!res.ok) throw new Error("Local file not found");
+            regionsData = await res.json();
+
+            regionSelect.innerHTML = '<option value="">Select Region</option>';
+            regionsData.forEach(reg => {
+                const opt = document.createElement('option');
+                opt.value = reg.region_name;
+                opt.textContent = reg.region_name;
+                opt.dataset.code = reg.region_code;
+                regionSelect.appendChild(opt);
+            });
+        } catch (err) {
+            console.error("Error loading regions:", err);
+            regionSelect.innerHTML = '<option value="">System error: Missing data</option>';
+        }
+    }
+
+    // 2. Region Change -> Filter Provinces
+    regionSelect.addEventListener('change', async function() {
+        const selectedOption = this.options[this.selectedIndex];
+        const regCode = selectedOption ? selectedOption.dataset.code : null;
+
+        provinceSelect.innerHTML = '<option value="">Loading provinces...</option>';
+        provinceSelect.disabled = true;
+        citySelect.innerHTML = '<option value="">Select City / Municipality</option>';
+        citySelect.disabled = true;
+        barangaySelect.innerHTML = '<option value="">Select Barangay</option>';
+        barangaySelect.disabled = true;
+
+        validateStep2();
+
+        if (!regCode) {
+            provinceSelect.innerHTML = '<option value="">Select Province</option>';
+            return;
+        }
+
+        try {
+            if (provincesData.length === 0) {
+                const res = await fetch('/data/provinces.json');
+                if (!res.ok) throw new Error("Local file not found");
+                provincesData = await res.json();
+            }
+
+            let filteredProvinces = provincesData.filter(p => p.region_code === regCode);
+            filteredProvinces.sort((a, b) => a.province_name.localeCompare(b.province_name));
+
+            // Para sa NCR o mga lugar na walang hiwalay na province list
+            if (filteredProvinces.length === 0) {
+                filteredProvinces = [{ province_code: regCode, province_name: selectedOption.value }];
+            }
+
+            provinceSelect.innerHTML = '<option value="">Select Province</option>';
+            filteredProvinces.forEach(p => {
+                const opt = document.createElement('option');
+                opt.value = p.province_name;
+                opt.textContent = p.province_name;
+                opt.dataset.code = p.province_code;
+                provinceSelect.appendChild(opt);
+            });
+            provinceSelect.disabled = false;
+        } catch (err) {
+            console.error("Error loading provinces:", err);
+            provinceSelect.innerHTML = '<option value="">System error: Missing data</option>';
+        }
+    });
+
+    // 3. Province Change -> Filter Cities
+    provinceSelect.addEventListener('change', async function() {
+        const selectedOption = this.options[this.selectedIndex];
+        const provCode = selectedOption ? selectedOption.dataset.code : null;
+        const regCode = regionSelect.options[regionSelect.selectedIndex]?.dataset.code;
+
+        citySelect.innerHTML = '<option value="">Loading cities...</option>';
+        citySelect.disabled = true;
+        barangaySelect.innerHTML = '<option value="">Select Barangay</option>';
+        barangaySelect.disabled = true;
+
+        validateStep2();
+
+        if (!provCode) {
+            citySelect.innerHTML = '<option value="">Select City / Municipality</option>';
+            return;
+        }
+
+        try {
+            if (citiesData.length === 0) {
+                const res = await fetch('/data/cities.json');
+                if (!res.ok) throw new Error("Local file not found");
+                citiesData = await res.json();
+            }
+
+            const filteredCities = citiesData.filter(c => c.province_code === provCode || c.region_desc === regCode);
+            filteredCities.sort((a, b) => a.city_name.localeCompare(b.city_name));
+
+            citySelect.innerHTML = '<option value="">Select City / Municipality</option>';
+            filteredCities.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c.city_name;
+                opt.textContent = c.city_name;
+                opt.dataset.code = c.city_code;
+                citySelect.appendChild(opt);
+            });
+            citySelect.disabled = false;
+        } catch (err) {
+            console.error("Error loading cities:", err);
+            citySelect.innerHTML = '<option value="">System error: Missing data</option>';
+        }
+    });
+
+    // 4. City Change -> Filter Barangays
+    citySelect.addEventListener('change', async function() {
+        const selectedOption = this.options[this.selectedIndex];
+        const cityCode = selectedOption ? selectedOption.dataset.code : null;
+
+        barangaySelect.innerHTML = '<option value="">Loading barangays...</option>';
+        barangaySelect.disabled = true;
+
+        validateStep2();
+
+        if (!cityCode) {
+            barangaySelect.innerHTML = '<option value="">Select Barangay</option>';
+            return;
+        }
+
+        try {
+            if (barangaysData.length === 0) {
+                const res = await fetch('/data/barangays.json');
+                if (!res.ok) throw new Error("Local file not found");
+                barangaysData = await res.json();
+            }
+
+            const filteredBarangays = barangaysData.filter(b => b.city_code === cityCode);
+            filteredBarangays.sort((a, b) => a.brgy_name.localeCompare(b.brgy_name));
+
+            barangaySelect.innerHTML = '<option value="">Select Barangay</option>';
+            filteredBarangays.forEach(b => {
+                const opt = document.createElement('option');
+                opt.value = b.brgy_name;
+                opt.textContent = b.brgy_name;
+                barangaySelect.appendChild(opt);
+            });
+            barangaySelect.disabled = false;
+        } catch (err) {
+            console.error("Error loading barangays:", err);
+            barangaySelect.innerHTML = '<option value="">System error: Missing data</option>';
+        }
+    });
+
+    barangaySelect.addEventListener('change', validateStep2);
+
+    // Initial load
+    loadRegions();
+
+    //add event listener for zip code
+    zipCode.addEventListener('input', function() {
+        // remove any non-digit characters from the input
+        this.value = this.value.replace(/\D/g, '');
+
+        if (this.value === '') {
+            zipHelper.innerHTML = '';
+        } else if (zipRegex.test(this.value)) {
+            zipHelper.className = 'input-helper-text success';
+            zipHelper.innerHTML = "<i class='fa-solid fa-circle-check'></i> Valid ZIP code.";
+        } else {
+            zipHelper.className = 'input-helper-text error';
+            zipHelper.innerHTML = "<i class='fa-solid fa-circle-xmark'></i> Must be exactly 4 digits.";
+        }
+
+        validateStep2();
     });
 </script>
 </body>

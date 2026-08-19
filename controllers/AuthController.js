@@ -3,6 +3,7 @@ const validator = require('validator');
 const pool = require('../config/database');
 const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#]).{8,}$/;
 const phoneRegex = /^(09\d{9}|\+639\d{9})$/;
+const zipRegex = /^\d{4}$/; //for zip code
 const crypto = require("crypto");
 const transporter = require("../config/email");
 
@@ -13,13 +14,49 @@ exports.register = async (req, res) => {
   try {
     const firstName = (req.body.firstName || '').trim();
     const lastName = (req.body.lastName || '').trim();
+    const birthday = (req.body.birthday || '').trim();
+    const civilStatus = (req.body.civilStatus || '').trim() || null;
+    const occupation = (req.body.occupation || '').trim() || null;
+
+    const streetAddress = (req.body.streetAddress || '').trim();
+    const region = (req.body.region || '').trim();
+    const barangay = (req.body.barangay || '').trim();
+    const city = (req.body.city || '').trim();
+    const province = (req.body.province || '').trim();
+    const zipCode = (req.body.zipCode || '').toString().trim().replace(/\D/g, '');
     const phoneNumber = (req.body.phoneNumber || '').trim();
     const email = (req.body.email || '').trim().toLowerCase();
     const password = req.body.password || '';
     const confirmPassword = req.body.confirmPassword || '';
+    
 
-    if (!firstName || !lastName || !phoneNumber || !email || !password || !confirmPassword) {
-        return res.status(400).send('All fields are required.');
+    if (!firstName || !lastName || !birthday || !streetAddress || !region || !barangay || !city || !province || !zipCode || !phoneNumber || !email || !password || !confirmPassword) {
+        return res.status(400).send('Please fill out all required fields.');
+    }
+
+    // ZIP Code format validation
+    if (!zipRegex.test(zipCode)) {
+        return res.status(400).send('Please enter a valid 4-digit Philippine ZIP code.');
+    }
+
+    // Birthday validation & 18+ calculation
+    const birthDate = new Date(birthday);
+    if (isNaN(birthDate.getTime())) {
+      return res.status(400).send('Please enter a valid birthday.');
+    }
+
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+
+    if (age < 18) {
+      return res.status(400).send('You must be at least 18 years old to create an account.');
+    }
+    if (age > 120) {
+      return res.status(400).send('Please enter a realistic birth date.');
     }
 
     if (!validator.isEmail(email)) {
@@ -57,8 +94,14 @@ exports.register = async (req, res) => {
       );
 
       await connection.execute(
-          `INSERT INTO adopters (account_id, first_name, last_name, phone_number) VALUES (?, ?, ?, ?)`,
-          [accountResult.insertId, firstName, lastName, phoneNumber]
+          `INSERT INTO adopters (
+            account_id, first_name, last_name, birthday, civil_status, occupation,
+            street_address, region, barangay, city, province, zip_code, phone_number
+           ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          [
+            accountResult.insertId, firstName, lastName, birthday, civilStatus, occupation,
+            streetAddress, region, barangay, city, province, zipCode, phoneNumber
+          ]
       );
 
       await connection.commit();
@@ -211,17 +254,23 @@ exports.registerOrganization = async (req, res) => {
         const organizationType = (req.body.organizationType || '').trim();
         const contactPerson = (req.body.contactPerson || '').trim();
         const contactNumber = (req.body.contactNumber || '').trim();
-        const address = (req.body.address || '').trim();
-        const city = (req.body.city || '').trim();
+        const streetAddress = (req.body.streetAddress || req.body.address || '').trim();
+        const region = (req.body.region || '').trim();
         const province = (req.body.province || '').trim();
+        const city = (req.body.city || '').trim();
+        const barangay = (req.body.barangay || '').trim();
+        const zipCode = (req.body.zipCode || '').toString().trim().replace(/\D/g, '');
         const description = (req.body.description || '').trim();
 
         if (
             !email || !password || !confirmPassword || !organizationName || 
             !organizationType || !contactPerson || !contactNumber || 
-            !address || !city || !province
+            !streetAddress || !region || !province || !city || !barangay || !zipCode
         ) {
             return res.status(400).send("Please complete all required fields.");
+        }
+        if (!zipRegex.test(zipCode)) {
+            return res.status(400).send("Please enter a valid 4-digit Philippine ZIP code.");
         }
         if (!validator.isEmail(email)) {
             return res.status(400).send("Please enter a valid email address.");
@@ -265,11 +314,13 @@ exports.registerOrganization = async (req, res) => {
             const [organizationResult] = await connection.query(
                 `INSERT INTO organizations (
                     account_id, organization_name, organization_type, contact_person, 
-                    contact_number, address, city, province, description, verification_status
-                ) VALUES (?,?,?,?,?,?,?,?,?,?)`,
+                    contact_number, address, region, province, city, 
+                    barangay, zip_code, description, verification_status
+                ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)`,
                 [
                     accountId, organizationName, organizationType, contactPerson,
-                    contactNumber, address, city, province, description, "Pending"
+                    contactNumber, streetAddress, region, province, city, barangay, 
+                    zipCode, description, "Pending"
                 ]
             );
             

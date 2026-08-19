@@ -194,11 +194,10 @@
                             <i class="fa-solid fa-ellipsis-vertical text-lg"></i>
                         </button>
                         <div id="actionMenu-${donationId}" class="action-dropdown-menu hidden absolute right-6 top-12 z-50 w-40 bg-white border border-gray-100 rounded-xl shadow-lg py-1 text-left text-xs font-medium">
-                            <button onclick="openReviewModal(${donationId})" class="w-full px-4 py-2 hover:bg-gray-50 text-gray-700 flex items-center gap-2">
-                                <i class="fa-regular fa-eye text-indigo-600"></i> Review Details
-                            </button>
-                            ${d.receipt_path ? `<button onclick="viewReceiptDirect('${d.receipt_path}')" class="w-full px-4 py-2 hover:bg-gray-50 text-gray-700 flex items-center gap-2"><i class="fa-solid fa-receipt text-emerald-600"></i> View Receipt</button>` : ''}
-                        </div>
+                        <button onclick="openReviewModal(${donationId})" class="w-full px-4 py-2 hover:bg-gray-50 text-gray-700 flex items-center gap-2">
+                            <i class="fa-regular fa-eye text-indigo-600"></i> Review Details
+                        </button>
+                    </div>
                     </td>
                 </tr>
             `;
@@ -206,6 +205,52 @@
 
         updatePaginationInfo(donations.length);
     }
+    // ==========================
+// LOGOUT MODAL LOGIC
+// ==========================
+const logoutModal = document.getElementById("logoutModal");
+const cancelLogoutBtn = document.getElementById("cancelLogoutBtn");
+const confirmLogoutBtn = document.getElementById("confirmLogoutBtn");
+
+// Function para buksan ang logout modal (Maaari itong i-trigger mula sa sidebar logout button)
+function openLogoutModal() {
+    if (logoutModal) {
+        logoutModal.classList.remove("opacity-0", "pointer-events-none");
+        logoutModal.querySelector("div > div").classList.remove("scale-95");
+        logoutModal.querySelector("div > div").classList.add("scale-100");
+    }
+}
+
+// Function para isara ang logout modal
+function closeLogoutModal() {
+    if (logoutModal) {
+        logoutModal.classList.add("opacity-0", "pointer-events-none");
+        logoutModal.querySelector("div > div").classList.remove("scale-100");
+        logoutModal.querySelector("div > div").classList.add("scale-95");
+    }
+}
+
+// Event listener para sa Cancel button
+if (cancelLogoutBtn) {
+    cancelLogoutBtn.addEventListener("click", closeLogoutModal);
+}
+
+// Isara kapag pinindot ang background sa labas ng modal
+if (logoutModal) {
+    logoutModal.addEventListener("click", (e) => {
+        if (e.target === logoutModal) {
+            closeLogoutModal();
+        }
+    });
+}
+
+// Event listener para sa pag-confirm ng logout (Redirect sa backend logout route)
+if (confirmLogoutBtn) {
+    confirmLogoutBtn.addEventListener("click", () => {
+        // Ilagay dito ang tamang route para sa logout ng iyong backend
+        window.location.href = "/logout"; 
+    });
+}
 /**
  * Retrieves all in-kind donations from the server
  * and updates the donation summary.
@@ -558,91 +603,99 @@ async function fetchInKindDonations() {
  * Opens the cash donation review modal
  * and displays the selected donation details.
  */
-    function openReviewModal(id) {
-        selectedDonationId = id;
-        const donation = allDonations.find(item => (item.cash_donation_id || item.id) == id);
-        if (!donation) return;
+   function openReviewModal(id) {
+    selectedDonationId = id; 
+    const donation = allDonations.find(item => (item.cash_donation_id || item.id) == id);
+    if (!donation) return;
 
-        hideRejectionFlow();
+    // Isara muna ang in-kind modal para walang patong
+    closeInKindModal();
 
-        document.getElementById("reviewDonorName").value = donation.donor_name || "N/A";
-        document.getElementById("reviewAmount").value = parseFloat(donation.amount || 0).toFixed(2);
-        document.getElementById("reviewRefNo").value = donation.reference_number || "N/A";
-        
-        let receiptPath = "";
-        if (donation.receipt_path) {
-            receiptPath = donation.receipt_path.startsWith('/') 
-                ? donation.receipt_path 
-                : `/uploads/receipts/${donation.receipt_path}`;
-        } else {
-            receiptPath = "https://via.placeholder.com/400x600?text=No+Receipt+Uploaded";
-        }
+    // Populate cash modal fields
+    document.getElementById("reviewDonorName").value = donation.donor_name || "N/A";
+    document.getElementById("reviewAmount").value = parseFloat(donation.amount || 0).toFixed(2);
+    document.getElementById("reviewRefNo").value = donation.reference_number || donation.reference_no || "N/A";
+    
+    // Handle Receipt Image Path
+    let receiptPath = "";
+    if (donation.receipt_path) {
+        receiptPath = donation.receipt_path.startsWith('/') 
+            ? donation.receipt_path 
+            : `/uploads/receipts/${donation.receipt_path}`;
+    } else {
+        receiptPath = "https://via.placeholder.com/400x600?text=No+Receipt+Uploaded";
+    }
 
-        currentReceiptPath = receiptPath;
-        const reviewImg = document.getElementById("reviewReceiptImg");
-        if (reviewImg) {
-            reviewImg.src = receiptPath;
-            reviewImg.setAttribute("data-raw-path", receiptPath);
-        }
+    currentReceiptPath = receiptPath;
+    const reviewImg = document.getElementById("reviewReceiptImg");
+    if (reviewImg) {
+        reviewImg.src = receiptPath;
+        reviewImg.setAttribute("data-raw-path", receiptPath);
+    }
 
-        const bannerContainer = document.getElementById("statusVerificationBanner");
-        const confirmBtn = document.getElementById("confirmVerifyBtn");
-        const rejectBtn = document.getElementById("rejectBtnInModal");
+    const bannerContainer = document.getElementById("statusVerificationBanner");
+    const confirmBtn = document.getElementById("confirmVerifyBtn");
+    const rejectBtn = document.getElementById("rejectBtnInModal");
 
-        const status = (donation.status || 'Pending').toLowerCase();
+    const status = (donation.status || 'Pending').toLowerCase();
 
-        if (status === 'approved' || status === 'verified') {
-            bannerContainer.className = "mt-4 p-3 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-between text-emerald-800 text-xs font-semibold";
-            bannerContainer.innerHTML = `
+    if (status === 'approved' || status === 'verified') {
+        bannerContainer.className = "mt-4 p-3 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-between text-emerald-800 text-xs font-semibold";
+        bannerContainer.innerHTML = `
+            <div class="flex items-center gap-2">
+                <i class="fa-solid fa-circle-check text-emerald-600 text-base"></i>
+                <span>This donation has been verified and approved.</span>
+            </div>
+            <span class="px-2.5 py-0.5 bg-emerald-200/60 text-emerald-800 rounded-full text-[11px]">Verified</span>
+        `;
+        bannerContainer.classList.remove("hidden");
+        confirmBtn.disabled = true;
+        confirmBtn.className = "px-4 py-2 bg-gray-300 text-gray-500 text-xs font-semibold rounded-lg cursor-not-allowed";
+        rejectBtn.classList.add("hidden");
+    } else if (status === 'rejected') {
+        bannerContainer.className = "mt-4 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold space-y-1";
+        bannerContainer.innerHTML = `
+            <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2">
-                    <i class="fa-solid fa-circle-check text-emerald-600 text-base"></i>
-                    <span>This donation has been verified and approved.</span>
+                    <i class="fa-solid fa-circle-xmark text-rose-600 text-base"></i>
+                    <span>This donation was rejected.</span>
                 </div>
-                <span class="px-2.5 py-0.5 bg-emerald-200/60 text-emerald-800 rounded-full text-[11px]">Verified</span>
-            `;
-            bannerContainer.classList.remove("hidden");
-            confirmBtn.disabled = true;
-            confirmBtn.className = "px-4 py-2 bg-gray-300 text-gray-500 text-xs font-semibold rounded-lg cursor-not-allowed";
-            rejectBtn.classList.add("hidden");
-        } else if (status === 'rejected') {
-            bannerContainer.className = "mt-4 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold space-y-1";
-            bannerContainer.innerHTML = `
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-2">
-                        <i class="fa-solid fa-circle-xmark text-rose-600 text-base"></i>
-                        <span>This donation was rejected.</span>
-                    </div>
-                    <span class="px-2.5 py-0.5 bg-rose-200/60 text-rose-800 rounded-full text-[11px]">Rejected</span>
-                </div>
-                ${donation.rejection_reason ? `<p class="text-[11px] font-normal text-rose-700 pl-6">Reason: ${donation.rejection_reason}</p>` : ''}
-            `;
-            bannerContainer.classList.remove("hidden");
-            confirmBtn.disabled = false;
-            confirmBtn.className = "px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg transition";
-            confirmBtn.textContent = "Re-verify & Approve";
-            rejectBtn.classList.add("hidden");
-        } else {
-            bannerContainer.classList.add("hidden");
-            confirmBtn.disabled = false;
-            confirmBtn.className = "px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg transition";
-            confirmBtn.textContent = "Confirm & Verify";
-            rejectBtn.classList.remove("hidden");
-        }
+                <span class="px-2.5 py-0.5 bg-rose-200/60 text-rose-800 rounded-full text-[11px]">Rejected</span>
+            </div>
+            ${donation.rejection_reason ? `<p class="text-[11px] font-normal text-rose-700 pl-6">Reason: ${donation.rejection_reason}</p>` : ''}
+        `;
+        bannerContainer.classList.remove("hidden");
+        confirmBtn.disabled = false;
+        confirmBtn.className = "px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg transition";
+        confirmBtn.textContent = "Re-verify & Approve";
+        rejectBtn.classList.add("hidden");
+    } else {
+        bannerContainer.classList.add("hidden");
+        confirmBtn.disabled = false;
+        confirmBtn.className = "px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg transition";
+        confirmBtn.textContent = "Confirm & Verify";
+        rejectBtn.classList.remove("hidden");
+    }
 
-        const modal = document.getElementById("reviewDonationModal");
+    // Buksan ang Cash Modal gamit ang tamang ID sa HTML (`reviewDonationModal`)
+    const modal = document.getElementById("reviewDonationModal");
+    if (modal) {
         modal.classList.remove("opacity-0", "pointer-events-none");
         modal.querySelector("div").classList.remove("scale-95");
     }
+}
 /**
  * Closes the cash donation review modal.
  */
-    function closeReviewModal() {
-        const modal = document.getElementById("reviewDonationModal");
+ function closeReviewModal() {
+    const modal = document.getElementById("reviewDonationModal");
+    if (modal) {
         modal.classList.add("opacity-0", "pointer-events-none");
         modal.querySelector("div").classList.add("scale-95");
-        selectedDonationId = null;
-        currentReceiptPath = null;
     }
+    selectedDonationId = null;
+    currentReceiptPath = null;
+}
 /**
  * Displays the rejection form
  * for a cash donation.
