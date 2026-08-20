@@ -454,10 +454,13 @@ app.get('/api/organization/applications', async (req, res) => {
                 console.error("JSON parse error:", e);
             }
 
+            const applicantData = snapshot.applicant || snapshot;
+
             return {
                 id: app.id,
-                applicant_name: snapshot.full_name || 'N/A',
-                applicant_email: snapshot.email || 'N/A',
+                applicant_name: applicantData.fullName || applicantData.full_name || 'N/A',
+                applicant_email: applicantData.email || 'N/A',
+                applicant_phone: applicantData.phone || applicantData.contact_number || 'N/A',
                 pet_name: app.pet_name,
                 pet_type: app.pet_type,
                 pet_gender: app.pet_gender,
@@ -468,7 +471,7 @@ app.get('/api/organization/applications', async (req, res) => {
             };
         });
 
-        res.status(200).json(rows);
+        res.status(200).json(formattedApplications);
     } catch (error) {
         console.error("Database Error:", error);
         res.status(500).json({ error: "Failed to fetch applications from database" });
