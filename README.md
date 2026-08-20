@@ -421,3 +421,8 @@ City / Municipality
 Province
 Region
 ZIP Code
+
+# AUG 21, 2026
+ALTER TABLE animals
+DROP COLUMN color,
+DROP COLUMN personality_tags;
