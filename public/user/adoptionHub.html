@@ -471,6 +471,7 @@
 
                     console.log("Opening form for pet:", petId);
                     await loadSelectedPet(petId);
+                    await autoFillUserProfile();
 
                     document.getElementById("list-view").classList.add("hidden");
                     document.getElementById("application-view").classList.remove("hidden");
@@ -577,6 +578,7 @@
                     window.history.replaceState({}, "", "/adoption-hub");
 
                     await loadSelectedPet(selectedPetId);
+                    await autoFillUserProfile();
                     closePetModal();
 
                     // Ipakita ang Application Form View

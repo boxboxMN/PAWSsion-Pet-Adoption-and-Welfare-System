@@ -506,3 +506,72 @@ function closePetModal(){
 
     document.getElementById("viewPetModal").classList.remove("flex");
 }
+
+// Function para i-fetch at i-auto-fill ang Profile Information ng User
+async function autoFillUserProfile() {
+    try {
+        const response = await fetch('/api/user/profile', { credentials: 'include' });
+        if (!response.ok) return;
+
+        const user = await response.json();
+
+        // 1. Full Name (Pinagsamang first_name at last_name)
+        const fullNameInput = document.getElementById('app-fullname');
+        if (fullNameInput && (user.first_name || user.last_name)) {
+            fullNameInput.value = `${user.first_name || ''} ${user.last_name || ''}`.trim();
+        }
+
+        // 2. Phone / Mobile Number
+        const phoneInput = document.getElementById('app-phone');
+        if (phoneInput && user.phone_number) {
+            phoneInput.value = user.phone_number;
+        }
+
+        // 3. Email Address
+        const emailInput = document.getElementById('app-email');
+        if (emailInput && user.email) {
+            emailInput.value = user.email;
+        }
+
+        // 4. Full Address (Pinagsama-samang address fields mula sa Database)
+        const addressInput = document.getElementById('app-address');
+        if (addressInput) {
+            const addressParts = [
+                user.street_address,
+                user.barangay,
+                user.city,
+                user.province,
+                user.region
+            ].filter(Boolean); // Tatanggalin ang null/empty values
+            
+            if (addressParts.length > 0) {
+                addressInput.value = addressParts.join(', ');
+            }
+        }
+
+        // 5. Civil Status
+        const civilInput = document.getElementById('app-civil');
+        if (civilInput && user.civil_status) {
+            civilInput.value = user.civil_status;
+        }
+
+        // 6. Age (Kukwentahin batay sa birthday kung mayroon)
+        const ageInput = document.getElementById('app-age');
+        if (ageInput && user.birthday) {
+            const birthDate = new Date(user.birthday);
+            const ageDifMs = Date.now() - birthDate.getTime();
+            const ageDate = new Date(ageDifMs);
+            const calculatedAge = Math.abs(ageDate.getUTCFullYear() - 1970);
+            ageInput.value = calculatedAge;
+        }
+
+        // 7. Occupation
+        const occupationInput = document.getElementById('app-occupation');
+        if (occupationInput && user.occupation) {
+            occupationInput.value = user.occupation;
+        }
+
+    } catch (err) {
+        console.error("Error auto-filling user profile:", err);
+    }
+}

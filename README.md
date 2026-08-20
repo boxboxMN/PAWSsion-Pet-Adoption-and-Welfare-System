@@ -392,7 +392,7 @@ org profile
 
 sa edit user profile:  ✓
 
-dapat kung paano yung sa create an account ganun din ang nasa edit
+dapat kung paano yung sa create an account ganun din ang nasa edit ✓
 
 
 account type palitan ng role ✓
@@ -422,7 +422,12 @@ Province
 Region
 ZIP Code
 
-# AUG 21, 2026
+user side:
+
+    adoption hub : 
+        prefilled pero pwede naman iedit dapat yung sa name, wag daw ang age, birthday na lang or through bday macocompute na ang age
+ 
+# AUG 21, 2026 ✓
 ALTER TABLE animals
 DROP COLUMN color,
 DROP COLUMN personality_tags;
