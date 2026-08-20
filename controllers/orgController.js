@@ -12,16 +12,12 @@ exports.addPet = async (req, res) => {
             species,
             gender,
             age,
-            color,
             pet_description,
             health_status,
             vaccination_status,
             adoption_status,
-            personality_tags,
             medical_history
         } = req.body;
-
-        console.log("Received tags:", personality_tags);
 
         if (!name || !species || !gender || !age) {
             return res.status(400).json({
@@ -30,7 +26,10 @@ exports.addPet = async (req, res) => {
             });
         }
 
-        // Get organization using logged account
+        // ==========================================
+        // GET LOGGED-IN ORGANIZATION
+        // ==========================================
+
         const [org] = await pool.query(
             `
             SELECT organization_id
@@ -39,6 +38,7 @@ exports.addPet = async (req, res) => {
             `,
             [req.session.accountId]
         );
+
         console.log("Organization Query Result:", org);
 
         if (!org.length) {
@@ -50,18 +50,19 @@ exports.addPet = async (req, res) => {
 
         const organization_id = org[0].organization_id;
 
+        // ==========================================
+        // IMAGE
+        // ==========================================
+
         let image_path = null;
+
         if (req.file) {
             image_path = req.file.filename;
         }
 
-        console.log("===== ADD PET REQUEST =====");
-        console.log("Session:", req.session);
-        console.log("Body:", req.body);
-        console.log("File:", req.file);
-        console.log("Organization ID:", organization_id);
-
-        console.log("INSERTING PET...");
+        // ==========================================
+        // INSERT PET
+        // ==========================================
 
         const [result] = await pool.query(
             `
@@ -72,15 +73,13 @@ exports.addPet = async (req, res) => {
                 species,
                 gender,
                 age,
-                color,
                 pet_description,
                 health_status,
                 vaccination_status,
                 adoption_status,
-                image_path,
-                personality_tags
+                image_path
             )
-            VALUES (?,?,?,?,?,?,?,?,?,?,?,?)
+            VALUES (?,?,?,?,?,?,?,?,?,?)
             `,
             [
                 organization_id,
@@ -88,120 +87,130 @@ exports.addPet = async (req, res) => {
                 species,
                 gender,
                 age,
-                color || null,
                 pet_description || null,
-                health_status || 'Healthy',
-                vaccination_status || 'Unknown',
-                adoption_status || 'Available',
-                image_path,
-                personality_tags || null
+                health_status || "Healthy",
+                vaccination_status || "Unknown",
+                adoption_status || "Available",
+                image_path
             ]
         );
 
         console.log("Insert Result:", result);
 
-            // Get the newly inserted pet ID
-            const animal_id = result.insertId;
+        const animal_id = result.insertId;
 
-            // KUNG 'ADOPTED' ANG PINILI, ISAVE DIN ANG ADOPTER DETAILS SA USER_ADOPTION_APPLICATIONS TABLE
-            if (adoption_status === 'Adopted' && req.body.adopter_full_name) {
+        // ==========================================
+        // SAVE ADOPTER DETAILS IF ADOPTED
+        // ==========================================
 
-                const phPhoneRegex = /^09\d{9}$/;
-                const contactNum = req.body.adopter_contact_number ? req.body.adopter_contact_number.trim() : '';
-                const emergencyNum = req.body.adopter_emergency_phone ? req.body.adopter_emergency_phone.trim() : '';
+        if (adoption_status === "Adopted" && req.body.adopter_full_name) {
 
-                if (!phPhoneRegex.test(contactNum)) {
-                    return res.status(400).json({
-                        success: false,
-                        message: "Invalid Contact Number. It must be an 11-digit Philippine mobile number starting with 09."
-                    });
-                }
+            const phPhoneRegex = /^09\d{9}$/;
 
-                if (!phPhoneRegex.test(emergencyNum)) {
-                    return res.status(400).json({
-                        success: false,
-                        message: "Invalid Emergency Phone Number. It must be an 11-digit Philippine mobile number starting with 09."
-                    });
-                }
+            const contactNum = req.body.adopter_contact_number
+                ? req.body.adopter_contact_number.trim()
+                : "";
 
-                await pool.query(
-                    `
-                    INSERT INTO user_adoption_applications
-                    (
-                        adopter_id,
-                        organization_id,
-                        animal_id,
-                        full_name,
-                        contact_number,
-                        email,
-                        full_address,
-                        civil_status,
-                        age,
-                        occupation,
-                        emergency_name,
-                        emergency_phone,
-                        emergency_relation,
-                        status
-                    )
-                    VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Approved')
-                    `,
-                    [
-                        organization_id,
-                        animal_id,
-                        req.body.adopter_full_name,
-                        req.body.adopter_contact_number,
-                        req.body.adopter_email,
-                        req.body.adopter_full_address,
-                        req.body.adopter_civil_status,
-                        req.body.adopter_age,
-                        req.body.adopter_occupation,
-                        req.body.adopter_emergency_name,
-                        req.body.adopter_emergency_phone,
-                        req.body.adopter_emergency_relation
-                    ]
-                );
+            const emergencyNum = req.body.adopter_emergency_phone
+                ? req.body.adopter_emergency_phone.trim()
+                : "";
+
+            if (!phPhoneRegex.test(contactNum)) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Invalid Contact Number. It must be an 11-digit Philippine mobile number starting with 09."
+                });
             }
 
-            // ============================
-            // Generate embedding
-            // ============================
-            try {
-                console.log("Generating embedding...");
-
-                const embedding = await generateEmbedding(
-                    pet_description || ""
-                );
-
-                console.log("Embedding generated.");
-
-                // Save embedding
-                await pool.query(
-                    `
-                    INSERT INTO animal_embeddings
-                    (
-                        animal_id,
-                        embedding
-                    )
-                    VALUES (?, ?)
-                    `,
-                    [
-                        animal_id,
-                        JSON.stringify(embedding)
-                    ]
-                );
-
-                console.log("Embedding saved.");
-
-            } catch (embedErr) {
-                console.warn("⚠️ Embedding service offline or skipped:", embedErr.message);
+            if (!phPhoneRegex.test(emergencyNum)) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Invalid Emergency Phone Number. It must be an 11-digit Philippine mobile number starting with 09."
+                });
             }
 
-        // Parse medical history from frontend
+            await pool.query(
+                `
+                INSERT INTO user_adoption_applications
+                (
+                    adopter_id,
+                    organization_id,
+                    animal_id,
+                    full_name,
+                    contact_number,
+                    email,
+                    full_address,
+                    civil_status,
+                    age,
+                    occupation,
+                    adoption_intent,
+                    emergency_name,
+                    emergency_phone,
+                    emergency_relation,
+                    document_path,
+                    status
+                )
+                VALUES (
+                    NULL,
+                    ?, ?, ?, ?, ?, ?, ?, ?, ?,
+                    NULL,
+                    ?, ?, ?, ?,
+                    NULL,
+                    'Approved'
+                )
+                `,
+                [
+                    organization_id,
+                    animal_id,
+                    req.body.adopter_full_name,
+                    req.body.adopter_contact_number,
+                    req.body.adopter_email,
+                    req.body.adopter_full_address,
+                    req.body.adopter_civil_status,
+                    req.body.adopter_age,
+                    req.body.adopter_occupation,
+                    req.body.adopter_emergency_name,
+                    req.body.adopter_emergency_phone,
+                    req.body.adopter_emergency_relation
+                ]
+            );
+        }
+        // ==========================================
+        // GENERATE EMBEDDING
+        // ==========================================
+        try {
+            console.log("Generating embedding...");
+            const embedding = await generateEmbedding(
+                pet_description || ""
+            );
+            console.log("Embedding generated.");
+            await pool.query(
+                `
+                INSERT INTO animal_embeddings
+                (
+                    animal_id,
+                    embedding
+                )
+                VALUES (?, ?)
+                `,
+                [
+                    animal_id,
+                    JSON.stringify(embedding)
+                ]
+            );
+            console.log("Embedding saved.");
+        } catch (embedErr) {
+            console.warn(
+                "⚠️ Embedding service offline or skipped:",
+                embedErr.message
+            );
+        }
+        // ==========================================
+        // MEDICAL HISTORY
+        // ==========================================
         const medicalHistory = medical_history
             ? JSON.parse(medical_history)
             : [];
-
-        // Save each medical record
         for (const medical of medicalHistory) {
             await pool.query(
                 `
@@ -212,7 +221,7 @@ exports.addPet = async (req, res) => {
                     administered_date,
                     administered_by
                 )
-                VALUES (?,?,?,?)
+                VALUES (?, ?, ?, ?)
                 `,
                 [
                     animal_id,
@@ -222,24 +231,26 @@ exports.addPet = async (req, res) => {
                 ]
             );
         }
-
+        // ==========================================
+        // SUCCESS
+        // ==========================================
         res.json({
             success: true,
             message: "Pet added successfully"
         });
-
     } catch (error) {
         console.error("========== PET INSERT ERROR ==========");
         console.error(error);
-
         res.status(500).json({
             success: false,
-            success: false,
-            message: error.message || "Failed to add pet. Please make sure all required fields are complete."
+            message: error.message ||
+                "Failed to add pet. Please make sure all required fields are complete."
         });
     }
 };
-
+// ==========================================
+// GET PETS
+// =========================================
 exports.getPets = async (req, res) => {
     try {
         const [org] = await pool.query(
@@ -250,16 +261,13 @@ exports.getPets = async (req, res) => {
             `,
             [req.session.accountId]
         );
-
         if (!org.length) {
             return res.json({
                 success: false,
                 message: "Organization not found"
             });
         }
-
         const organization_id = org[0].organization_id;
-
         const [pets] = await pool.query(
             `
             SELECT *
@@ -269,7 +277,6 @@ exports.getPets = async (req, res) => {
             `,
             [organization_id]
         );
-
         res.json({
             success: true,
             pets
@@ -284,82 +291,12 @@ exports.getPets = async (req, res) => {
     }
 };
 
-//nasa taas yung lumang code neto nakacomment, if hindi to gumana, ibalik na lang sa lumang code
-// para hindi makita or maedit ng ibang org ang pets na nasa ibang org (pets page)
+// ==========================================
+// GET PET DETAILS
+// ==========================================
 exports.getPetDetails = async (req, res) => {
     try {
-        // 1. Kunin muna ang org_id ng naka-login
         const [org] = await pool.query(
-            `SELECT organization_id FROM organizations WHERE account_id = ?`,
-            [req.session.accountId]
-        );
-
-        if (!org.length) {
-            return res.json({ success: false, message: "Organization not found." });
-        }
-
-        const organization_id = org[0].organization_id;
-
-        // 2. Isama ang organization_id sa query check
-        const [rows] = await pool.query(
-            `SELECT * FROM animals WHERE animal_id = ? AND organization_id = ?`,
-            [req.params.id, organization_id]
-        );
-
-        if (!rows.length) {
-            return res.json({
-                success: false,
-                message: "Pet not found or unauthorized access."
-            });
-        }
-
-        // Get medical history
-        const [medical] = await pool.query(
-            `SELECT 
-                medical_id,
-                animal_id,
-                treatment,
-                DATE_FORMAT(administered_date, '%Y-%m-%d') AS administered_date,
-                administered_by
-             FROM animal_medical_history 
-             WHERE animal_id = ? 
-             ORDER BY administered_date DESC`,
-            [req.params.id]
-        );
-
-        rows[0].medical_history = medical;
-
-        res.json({ success: true, pet: rows[0] });
-
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ success: false, message: "Server error" });
-    }
-};
-
-exports.updatePet = async (req, res) => {
-    try {
-        const id = req.params.id;
-
-        const {
-            name,
-            species,
-            gender,
-            age,
-            color,
-            pet_description,
-            health_status,
-            vaccination_status,
-            adoption_status,
-            personality_tags,
-            medical_history
-        } = req.body;
-
-        // =====================================================
-        // GET LOGGED-IN ORGANIZATION
-        // =====================================================
-
-        const [organizations] = await pool.query(
             `
             SELECT organization_id
             FROM organizations
@@ -368,113 +305,197 @@ exports.updatePet = async (req, res) => {
             [req.session.accountId]
         );
 
+        if (!org.length) {
+            return res.json({
+                success: false,
+                message: "Organization not found."
+            });
+        }
+
+        const organization_id = org[0].organization_id;
+
+        const [rows] = await pool.query(
+            `
+            SELECT *
+            FROM animals
+            WHERE animal_id = ?
+              AND organization_id = ?
+            `,
+            [
+                req.params.id,
+                organization_id
+            ]
+        );
+        if (!rows.length) {
+            return res.json({
+                success: false,
+                message: "Pet not found or unauthorized access."
+            });
+        }
+        // =========================================
+        // MEDICAL HISTORY
+        // ==========================================
+        const [medical] = await pool.query(
+            `
+            SELECT
+                medical_id,
+                animal_id,
+                treatment,
+                DATE_FORMAT(
+                    administered_date,
+                    '%Y-%m-%d'
+                ) AS administered_date,
+                administered_by
+            FROM animal_medical_history
+            WHERE animal_id = ?
+            ORDER BY administered_date DESC
+            `,
+            [req.params.id]
+        );
+        rows[0].medical_history = medical;
+        res.json({
+            success: true,
+            pet: rows[0]
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({
+            success: false,
+            message: "Server error"
+        });
+    }
+};
+// ==========================================
+// UPDATE PET
+// ==========================================
+exports.updatePet = async (req, res) => {
+    try {
+        const id = req.params.id;
+        const {
+            name,
+            species,
+            gender,
+            age,
+            pet_description,
+            health_status,
+            vaccination_status,
+            adoption_status,
+            medical_history
+        } = req.body;
+        // ==========================================
+        // GET LOGGED-IN ORGANIZATION
+        // ==========================================
+        const [organizations] = await pool.query(
+            `
+            SELECT organization_id
+            FROM organizations
+            WHERE account_id = ?
+            `,
+            [req.session.accountId]
+        );
         if (!organizations.length) {
             return res.status(403).json({
                 success: false,
                 message: "Organization not found."
             });
         }
-
-        const organizationId = organizations[0].organization_id;
-
-        // =====================================================
-        // PREPARE UPDATE
-        // =====================================================
-
-        let imageSQL = "";
-
+        const organizationId =
+            organizations[0].organization_id;
+        // ==========================================
+        // UPDATE PET
+        // ==========================================
+        let updateSQL = `
+            UPDATE animals
+            SET
+                name = ?,
+                species = ?,
+                gender = ?,
+                age = ?,
+                pet_description = ?,
+                health_status = ?,
+                vaccination_status = ?,
+                adoption_status = ?
+        `;
         const values = [
             name,
             species,
             gender,
             age,
-            color || null,
             pet_description || null,
             health_status,
             vaccination_status,
-            adoption_status,
-            personality_tags || null
+            adoption_status
         ];
-
-        // =====================================================
-        // UPDATE IMAGE IF NEW IMAGE WAS UPLOADED
-        // =====================================================
-
+        // ==========================================
+        // UPDATE IMAGE ONLY IF NEW IMAGE EXISTS
+        // ==========================================
         if (req.file) {
-            imageSQL = ", image_path=?";
+            updateSQL += `,
+                image_path = ?
+            `;
             values.push(req.file.filename);
         }
-
-        // =====================================================
-        // ADD IDs FOR WHERE CLAUSE
-        // =====================================================
-
+        updateSQL += `
+            WHERE animal_id = ?
+              AND organization_id = ?
+        `;
         values.push(id);
         values.push(organizationId);
-
-        // =====================================================
-        // UPDATE PET
-        // =====================================================
-
         const [result] = await pool.query(
-            `
-            UPDATE animals
-            SET
-                name=?,
-                species=?,
-                gender=?,
-                age=?,
-                color=?,
-                pet_description=?,
-                health_status=?,
-                vaccination_status=?,
-                adoption_status=?,
-                personality_tags=?
-                ${imageSQL}
-            WHERE animal_id=?
-              AND organization_id=?
-            `,
+            updateSQL,
             values
         );
-
-        // =====================================================
-        // CHECK IF PET EXISTS / BELONGS TO ORGANIZATION
-        // =====================================================
-
+        // ==========================================
+        // CHECK PET
+        // ==========================================
         if (result.affectedRows === 0) {
             return res.status(404).json({
                 success: false,
                 message: "Pet not found or does not belong to your organization."
             });
         }
-
-        // =====================================================
-        // UPDATE PET EMBEDDING
-        // =====================================================
+        // ==========================================
+        // UPDATE EMBEDDING
+        // ==========================================
         try {
-            const embedding = await generateEmbedding(pet_description || "");
-
+            const embedding = await generateEmbedding(
+                pet_description || ""
+            );
             await pool.query(
                 `
-                INSERT INTO animal_embeddings (animal_id, embedding)
+                INSERT INTO animal_embeddings
+                (
+                    animal_id,
+                    embedding
+                )
                 VALUES (?, ?)
+
                 ON DUPLICATE KEY UPDATE
                     embedding = VALUES(embedding),
                     updated_at = CURRENT_TIMESTAMP
                 `,
-                [id, JSON.stringify(embedding)]
+                [
+                    id,
+                    JSON.stringify(embedding)
+                ]
             );
+
         } catch (embedErr) {
-            console.warn("⚠️ Embedding service offline or skipped:", embedErr.message);
+
+            console.warn(
+                "⚠️ Embedding service offline or skipped:",
+                embedErr.message
+            );
         }
 
-        // =====================================================
+        // ==========================================
         // UPDATE MEDICAL HISTORY
-        // =====================================================
+        // ==========================================
 
-        const medical = medical_history ? JSON.parse(medical_history) : [];
+        const medical = medical_history
+            ? JSON.parse(medical_history)
+            : [];
 
-        // Delete old records
         await pool.query(
             `
             DELETE FROM animal_medical_history
@@ -483,7 +504,6 @@ exports.updatePet = async (req, res) => {
             [id]
         );
 
-        // Insert new records
         for (const m of medical) {
             await pool.query(
                 `
@@ -504,17 +524,16 @@ exports.updatePet = async (req, res) => {
                 ]
             );
         }
-
-        // =====================================================
+        // ==========================================
         // SUCCESS
-        // =====================================================
-
+        // ==========================================
         res.json({
             success: true,
             message: "Pet updated successfully."
         });
 
     } catch (err) {
+
         console.error("UPDATE PET ERROR:", err);
 
         res.status(500).json({
@@ -523,7 +542,6 @@ exports.updatePet = async (req, res) => {
         });
     }
 };
-
 exports.deletePet = async (req, res) => {
     try {
         const { id } = req.params;

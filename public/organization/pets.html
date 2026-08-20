@@ -178,11 +178,6 @@
                         </select>
                     </div>
 
-                    <!-- COLOR -->
-                    <div>
-                        <label class="block text-sm font-medium mb-1">Color</label>
-                        <input type="text" name="color" maxlength="100" placeholder="Ex. Brown and White" class="w-full rounded-lg border p-2.5">
-                    </div>
                 </div>
             </div>
 
@@ -334,40 +329,6 @@
                 </div>
             </div>
            
-            <!-- PERSONALITY TAGS -->
-            <div class="mt-6">
-                <label class="block text-sm font-medium text-slate-700 mb-2">
-                    Personality & Traits
-                </label>
-
-                <div class="flex gap-2">
-                    <input
-                        type="text"
-                        id="traitInput"
-                        placeholder="e.g. Friendly"
-                        class="flex-1 rounded-lg border border-slate-300 px-3 py-2.5 focus:ring-2 focus:ring-blue-600">
-
-                    <button
-                        type="button"
-                        id="addTraitBtn"
-                        class="bg-blue-700 hover:bg-blue-800 text-white rounded-lg px-4">
-                        <i class="fa-solid fa-plus"></i>
-                    </button>
-                </div>
-
-                <!-- Hidden field sent to server -->
-                <input
-                    type="hidden"
-                    name="personality_tags"
-                    id="personalityTags">
-
-                <div
-                    id="traitsContainer"
-                    class="flex flex-wrap gap-2 mt-4">
-                </div>
-            </div>
-
-
             <!-- DESCRIPTION -->
             <div>
                 <label class="block text-sm font-medium mb-1">Pet Description</label>
@@ -420,11 +381,6 @@
                                 <p id="viewAge" class="font-semibold text-xs text-slate-800 mt-1"></p>
                             </div>
 
-                            <div>
-                                <p class="text-[10px] uppercase tracking-wide text-slate-400">Color</p>
-                                <p id="viewColor" class="font-semibold text-xs text-slate-800 mt-1"></p>
-                            </div>
-
                         </div>
                     </div>
                 </div>
@@ -470,20 +426,6 @@
                     <span id="viewAgeCard"></span>
                     <span id="viewStatusCard"></span>
                 </div>
-
-                <!-- Personality -->
-                <section class="mt-6">
-
-                    <h3 class="text-xs font-bold text-blue-900 uppercase tracking-wide mb-1">
-                        Personality & Traits
-                    </h3>
-
-                    <div
-                        id="viewTags"
-                        class="text-sm flex flex-wrap gap-2">
-                    </div>
-
-                </section>
 
                 <!-- Description -->
                 <section class="mt-5">
