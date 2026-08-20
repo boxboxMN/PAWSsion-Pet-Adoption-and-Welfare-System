@@ -1,6 +1,7 @@
 //logic para sa lahat ng User modules.
 const pool = require("../config/database"); 
 const bcrypt = require("bcrypt");
+const validator = require('validator');
 const AdoptionModel = require('../models/userModel');
 
 exports.getProfile = async (req, res) => {
@@ -47,25 +48,72 @@ exports.updateProfile = async (req, res) => {
         return res.status(401).json({ error: "Unauthorized access" });
     }
 
-    const { 
-        firstName, 
-        lastName, 
-        email, 
-        mobile, 
-        birthday, 
-        civilStatus, 
-        occupation, 
-        streetAddress, 
-        barangay, 
-        city, 
-        province, 
-        region, 
-        zipCode
-    } = req.body;
+    const firstName = (req.body.firstName || '').trim();
+    const lastName = (req.body.lastName || '').trim();
+    
+    const email = (req.body.email || '')
+        .trim()
+        .toLowerCase();
+    
+    const mobile = (req.body.mobile || '')
+        .trim()
+        .replace(/\s+/g, '');
+    
+    const birthday = (req.body.birthday || '').trim();
+    const civilStatus = (req.body.civilStatus || '').trim();
+    const occupation = (req.body.occupation || '').trim();
+    const streetAddress = (req.body.streetAddress || '').trim();
+    const barangay = (req.body.barangay || '').trim();
+    const city = (req.body.city || '').trim();
+    const province = (req.body.province || '').trim();
+    const region = (req.body.region || '').trim();
+    const zipCode = (req.body.zipCode || '')
+        .toString()
+        .trim()
+        .replace(/\D/g, '');
 
-   
-    if (!firstName || !lastName || !email) {
+     if (!firstName || !lastName || !email) {
         return res.status(400).json({ error: "First name, Last name, and Email are required." });
+    }
+
+    // ==========================================
+    // EMAIL VALIDATION
+    // ==========================================
+    const strictEmailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
+
+    if (!validator.isEmail(email) || !strictEmailRegex.test(email)) {
+        return res.status(400).json({
+            success: false,
+            error: "Please enter a valid email address."
+        });
+    }
+
+    // ==========================================
+    // MOBILE NUMBER VALIDATION
+    // ==========================================
+    const phoneRegex = /^(09\d{9}|\+639\d{9})$/;
+
+    if (mobile && !phoneRegex.test(mobile)) {
+        return res.status(400).json({
+            success: false,
+            error: "Please enter a valid Philippine mobile number."
+        });
+    }
+
+    const [existingEmail] = await pool.query(
+        `SELECT account_id 
+         FROM accounts 
+         WHERE LOWER(email) = LOWER(?) 
+         AND account_id != ?
+         LIMIT 1`,
+        [email, accountId]
+    );
+    
+    if (existingEmail.length > 0) {
+        return res.status(409).json({
+            success: false,
+            error: "An account with this email already exists."
+        });
     }
 
     const connection = await pool.getConnection();
@@ -96,18 +144,18 @@ exports.updateProfile = async (req, res) => {
                 zip_code = ?
              WHERE account_id = ?`,
             [
-                firstName.trim(),
-                lastName.trim(),
-                mobile ? mobile.trim() : null,
+                firstName,
+                lastName,
+                mobile || null,
                 birthday || null,
-                civilStatus ? civilStatus.trim() : null,
-                occupation ? occupation.trim() : null,
-                streetAddress ? streetAddress.trim() : null,
-                barangay ? barangay.trim() : null,
-                city ? city.trim() : null,
-                province ? province.trim() : null,
-                region ? region.trim() : null,
-                zipCode ? zipCode.trim() : null,
+                civilStatus || null,
+                occupation || null,
+                streetAddress || null,
+                barangay || null,
+                city || null,
+                province || null,
+                region || null,
+                zipCode || null,
                 accountId
             ]
         );

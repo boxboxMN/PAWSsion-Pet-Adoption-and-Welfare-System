@@ -390,7 +390,7 @@ user profile
 org profile
 
 
-sa edit user profile:
+sa edit user profile:  ✓
 
 dapat kung paano yung sa create an account ganun din ang nasa edit
 

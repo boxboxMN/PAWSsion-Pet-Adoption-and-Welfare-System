@@ -164,12 +164,12 @@
 
                             <div>
                                 <label class="text-xs uppercase tracking-wider text-slate-500 font-semibold">Email</label>
-                                <input id="input-email" type="email" class="w-full mt-1 border border-slate-300 rounded-xl px-3 py-2 focus:ring-2 focus:ring-blue-300">
+                                <input id="input-email" type="email"  maxlength="254" autocomplete="email" class="w-full mt-1 border border-slate-300 rounded-xl px-3 py-2 focus:ring-2 focus:ring-blue-300">
                             </div>
 
                             <div>
                                 <label class="text-xs uppercase tracking-wider text-slate-500 font-semibold">Mobile Number</label>
-                                <input id="input-mobile" type="text" class="w-full mt-1 border border-slate-300 rounded-xl px-3 py-2 focus:ring-2 focus:ring-blue-300">
+                                <input id="input-mobile" type="text"  maxlength="11" placeholder="09XXXXXXXXX" autocomplete="tel" class="w-full mt-1 border border-slate-300 rounded-xl px-3 py-2 focus:ring-2 focus:ring-blue-300">
                             </div>
 
                             <div>
@@ -198,29 +198,46 @@
                                 <input id="input-street" type="text" class="w-full mt-1 border border-slate-300 rounded-xl px-3 py-2 focus:ring-2 focus:ring-blue-300">
                             </div>
 
-                            <div>
-                                <label class="text-xs uppercase tracking-wider text-slate-500 font-semibold">Barangay</label>
-                                <input id="input-barangay" type="text" class="w-full mt-1 border border-slate-300 rounded-xl px-3 py-2 focus:ring-2 focus:ring-blue-300">
-                            </div>
-
-                            <div>
-                                <label class="text-xs uppercase tracking-wider text-slate-500 font-semibold">City / Municipality</label>
-                                <input id="input-city" type="text" class="w-full mt-1 border border-slate-300 rounded-xl px-3 py-2 focus:ring-2 focus:ring-blue-300">
-                            </div>
-
-                            <div>
-                                <label class="text-xs uppercase tracking-wider text-slate-500 font-semibold">Province</label>
-                                <input id="input-province" type="text" class="w-full mt-1 border border-slate-300 rounded-xl px-3 py-2 focus:ring-2 focus:ring-blue-300">
-                            </div>
-
-                            <div>
+                            <!-- REGION & PROVINCE -->
+                            <div class="rounded-2xl bg-slate-50 border border-slate-200 p-4">
                                 <label class="text-xs uppercase tracking-wider text-slate-500 font-semibold">Region</label>
-                                <input id="input-region" type="text" class="w-full mt-1 border border-slate-300 rounded-xl px-3 py-2 focus:ring-2 focus:ring-blue-300">
+                                <div id="region-display" class="mt-2 text-slate-800 font-semibold">N/A</div>
+                                <select id="region-input" class="hidden w-full mt-2 border border-slate-300 rounded-xl px-3 py-2 focus:ring-2 focus:ring-blue-300">
+                                    <option value="">Select Region</option>
+                                </select>
                             </div>
 
-                            <div class="md:col-span-2">
-                                <label class="text-xs uppercase tracking-wider text-slate-500 font-semibold">ZIP Code</label>
-                                <input id="input-zip" type="text" class="w-full mt-1 border border-slate-300 rounded-xl px-3 py-2 focus:ring-2 focus:ring-blue-300">
+                            <div class="rounded-2xl bg-slate-50 border border-slate-200 p-4">
+                                <label class="text-xs uppercase tracking-wider text-slate-500 font-semibold">Province</label>
+                                <div id="province-display" class="mt-2 text-slate-800 font-semibold">N/A</div>
+                                <select id="province-input" class="hidden w-full mt-2 border border-slate-300 rounded-xl px-3 py-2 focus:ring-2 focus:ring-blue-300" disabled>
+                                    <option value="">Select Province</option>
+                                </select>
+                            </div>
+
+                            <!-- CITY & BARANGAY -->
+                            <div class="rounded-2xl bg-slate-50 border border-slate-200 p-4">
+                                <label class="text-xs uppercase tracking-wider text-slate-500 font-semibold">City / Municipality</label>
+                                <div id="city-display" class="mt-2 text-slate-800 font-semibold">N/A</div>
+                                <select id="city-input" class="hidden w-full mt-2 border border-slate-300 rounded-xl px-3 py-2 focus:ring-2 focus:ring-blue-300" disabled>
+                                    <option value="">Select City / Municipality</option>
+                                </select>
+                            </div>
+
+                            <div class="rounded-2xl bg-slate-50 border border-slate-200 p-4">
+                                <label class="text-xs uppercase tracking-wider text-slate-500 font-semibold">Barangay</label>
+                                <div id="barangay-display" class="mt-2 text-slate-800 font-semibold">N/A</div>
+                                <select id="barangay-input" class="hidden w-full mt-2 border border-slate-300 rounded-xl px-3 py-2 focus:ring-2 focus:ring-blue-300" disabled>
+                                    <option value="">Select Barangay</option>
+                                </select>
+                            </div>
+
+                            <!-- ZIP CODE -->
+                            <div class="rounded-2xl bg-slate-50 border border-slate-200 p-4">
+                                <label class="text-xs uppercase tracking-wider text-slate-500 font-semibold">Zip Code</label>
+                                <div id="zip-display" class="mt-2 text-slate-800 font-semibold">N/A</div>
+                                <input id="zip-input" type="text" maxlength="4" placeholder="e.g. 4434" class="hidden w-full mt-2 border border-slate-300 rounded-xl px-3 py-2 focus:ring-2 focus:ring-blue-300">
+                                <div id="zipHelper" class="text-xs mt-1 text-red-500"></div>
                             </div>
                         </div>
                     </div>
@@ -268,6 +285,12 @@
         let isEditing = false;
         let isPasswordFormVisible = false;
 
+        let currentProfile = {};
+        let regionsData = [];
+        let provincesData = [];
+        let citiesData = [];
+        let barangaysData = [];
+
         const displayName = document.getElementById('display-name');
         const memberSinceText = document.querySelector('.fa-calendar-alt').nextElementSibling;
 
@@ -294,11 +317,17 @@
         const inputCivilStatus = document.getElementById('input-civil-status');
         const inputOccupation = document.getElementById('input-occupation');
         const inputStreet = document.getElementById('input-street');
-        const inputBarangay = document.getElementById('input-barangay');
-        const inputCity = document.getElementById('input-city');
-        const inputProvince = document.getElementById('input-province');
-        const inputRegion = document.getElementById('input-region');
-        const inputZip = document.getElementById('input-zip');
+        const regionDisplay = document.getElementById('region-display');
+        const regionInput = document.getElementById('region-input');
+        const provinceDisplay = document.getElementById('province-display');
+        const provinceInput = document.getElementById('province-input');
+        const cityDisplay = document.getElementById('city-display');
+        const cityInput = document.getElementById('city-input');
+        const barangayDisplay = document.getElementById('barangay-display');
+        const barangayInput = document.getElementById('barangay-input');
+        const zipDisplay = document.getElementById('zip-display');
+        const zipInput = document.getElementById('zip-input');
+        const zipHelper = document.getElementById('zipHelper');
 
         const editBtn = document.getElementById('edit-btn');
         const editActions = document.getElementById('edit-actions');
@@ -331,6 +360,7 @@
                 if (!response.ok) throw new Error("Failed to fetch profile");
                 
                 const data = await response.json();
+                currentProfile = data;
                 
                 const fName = data.first_name || '';
                 const lName = data.last_name || '';
@@ -402,11 +432,12 @@
                 inputCivilStatus.value = data.civil_status || '';
                 inputOccupation.value = data.occupation || '';
                 inputStreet.value = data.street_address || '';
-                inputBarangay.value = data.barangay || '';
-                inputCity.value = data.city || '';
-                inputProvince.value = data.province || '';
-                inputRegion.value = data.region || '';
-                inputZip.value = data.zip_code || '';
+                regionDisplay.textContent = data.region || 'N/A';
+                provinceDisplay.textContent = data.province || 'N/A';
+                cityDisplay.textContent = data.city || 'N/A';
+                barangayDisplay.textContent = data.barangay || 'N/A';
+                zipDisplay.textContent = data.zip_code || 'N/A';
+                zipInput.value = data.zip_code || '';
 
                 if (data.profile_picture) {
                     avatarDisplay.innerHTML = `<img src="${data.profile_picture}" alt="Profile Picture" class="w-full h-full object-cover rounded-full">`;
@@ -420,28 +451,98 @@
             }
         }
 
-        function enterEditMode() {
+        function sanitizeEmail(value) {
+            return value
+                .trim()
+                .toLowerCase();
+        }
+
+
+        function sanitizeMobile(value) {
+            return value
+                .replace(/[^\d+]/g, '')
+                .replace(/(?!^)\+/g, '');
+        }
+
+
+        function validateEmail(email) {
+            // Regex na pumipigil sa mga may sobra o maling characters sa dulo ng TLD
+            const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,8}$/;
+            return emailRegex.test(email);
+        }
+
+
+        function validatePhilippineMobile(mobile) {
+            return /^(09\d{9}|\+639\d{9})$/.test(mobile);
+        }
+
+        inputEmail.addEventListener('input', function () {
+            this.value = sanitizeEmail(this.value);
+
+            if (!this.value) {
+                this.setCustomValidity('');
+                return;
+            }
+
+            if (!validateEmail(this.value)) {
+                this.setCustomValidity(
+                    'Please enter a valid email address.'
+                );
+            } else {
+                this.setCustomValidity('');
+            }
+        });
+
+
+        inputMobile.addEventListener('input', function () {
+            this.value = sanitizeMobile(this.value);
+
+            if (!this.value) {
+                this.setCustomValidity('');
+                return;
+            }
+
+            if (!validatePhilippineMobile(this.value)) {
+                this.setCustomValidity(
+                    'Please enter a valid Philippine mobile number.'
+                );
+            } else {
+                this.setCustomValidity('');
+            }
+        });
+
+        async function enterEditMode() {
             isEditing = true;
             editBtn.classList.add('hidden');
             editActions.classList.remove('hidden');
-
-            viewModeSection.classList.add('hidden');
+            viewModeSection.classList.add('hidden'); // Show Edit Mode 
             editModeSection.classList.remove('hidden');
+
+            // Itago ang mga static display spans/divs
+            document.querySelectorAll('[id$="-display"]').forEach(el => el.classList.add('hidden'));
+            
+            // Ipakita ang lahat ng input at select dropdowns
+            document.querySelectorAll('[id$="-input"]').forEach(el => el.classList.remove('hidden'));
             
             if (avatarOverlay) {
                 avatarOverlay.classList.remove('hidden');
                 avatarOverlay.style.opacity = "1"; 
             }
             setAvatarEditMode(true);
+            
+            // I-load ang mga Region, Province, City, Barangay dropdowns at i-prefill gamit ang kasalukuyang address ng user
+            await setEditAddressValues();
         }
 
         function exitEditMode() {
             isEditing = false;
             editBtn.classList.remove('hidden');
             editActions.classList.add('hidden');
-
             viewModeSection.classList.remove('hidden');
             editModeSection.classList.add('hidden');
+
+            document.querySelectorAll('[id$="-display"]').forEach(el => el.classList.remove('hidden'));
+            document.querySelectorAll('[id$="-input"]').forEach(el => el.classList.add('hidden'));
             
             if (avatarOverlay) {
                 avatarOverlay.classList.add('hidden');
@@ -451,32 +552,106 @@
         }
 
         async function saveProfile() {
-            const payload = {
-                firstName: inputFirstName.value.trim(),
-                lastName: inputLastName.value.trim(),
-                email: inputEmail.value.trim(),
-                mobile: inputMobile.value.trim(),
-                birthday: inputBirthday.value,
-                civilStatus: inputCivilStatus.value,
-                occupation: inputOccupation.value.trim(),
-                streetAddress: inputStreet.value.trim(),
-                barangay: inputBarangay.value.trim(),
-                city: inputCity.value.trim(),
-                province: inputProvince.value.trim(),
-                region: inputRegion.value.trim(),
-                zipCode: inputZip.value.trim()
-            };
+            let firstName = '';
+            let lastName = '';
 
-            if (!payload.firstName || !payload.lastName || !payload.email) {
-                alert('First Name, Last Name, and Email are required.');
-                return;
-            }
+            const firstNameInputEl = document.getElementById('input-first-name');
+            const lastNameInputEl = document.getElementById('input-last-name');
+
+    if (firstNameInputEl && lastNameInputEl) {
+        firstName = firstNameInputEl.value.trim();
+        lastName = lastNameInputEl.value.trim();
+    } else if (fullNameInputEl) {
+        const nameParts = fullNameInputEl.value.trim().split(" ");
+        firstName = nameParts[0] || "";
+        lastName = nameParts.slice(1).join(" ") || "";
+    }
+
+    const email = sanitizeEmail(inputEmail.value);
+    const mobile = sanitizeMobile(inputMobile.value);
+    const birthday = inputBirthday.value.trim();
+    const civilStatus = inputCivilStatus.value.trim();
+    const occupation = inputOccupation.value.trim();
+    const streetAddress = inputStreet.value.trim();
+    
+    const region = regionInput.value.trim();
+    const province = provinceInput.value.trim();
+    const city = cityInput.value.trim();
+    const barangay = barangayInput.value.trim();
+    const zipCode = zipInput.value.trim().replace(/\D/g, '');
+
+    // 2. Client-side Validations
+    if (!firstName || !lastName) {
+        alert('Please provide your complete First and Last Name.');
+        return;
+    }
+
+    if (!email) {
+        alert('Email cannot be empty.');
+        return;
+    }
+
+    if (!validateEmail(email)) {
+        alert('Please enter a valid email address.');
+        inputEmail.focus();
+        return;
+    }
+
+    if (!mobile || !validatePhilippineMobile(mobile)) {
+        alert('Please enter a valid Philippine mobile number.');
+        return;
+    }
+
+    if (!birthday) {
+        alert('Please enter your birthday.');
+        return;
+    }
+
+    // 18+ Age Validation
+    const birthDate = new Date(birthday);
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+    }
+    if (age < 18) {
+        alert('You must be at least 18 years old.');
+        return;
+    }
+
+    if (!streetAddress || !region || !province || !city || !barangay) {
+        alert('Please complete all address dropdowns and street address.');
+        return;
+    }
+
+    if (!/^\d{4}$/.test(zipCode)) {
+        alert('Please enter a valid 4-digit Philippine ZIP code.');
+        return;
+    }
+
+    // 3. Payload Construction
+    const updatedData = {
+        firstName,
+        lastName,
+        email,
+        mobile,
+        birthday,
+        civilStatus,
+        occupation,
+        streetAddress,
+        region,
+        province,
+        city,
+        barangay,
+        zipCode
+    };
 
             try {
                 const response = await fetch('/api/user/profile/update', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
+                    body: JSON.stringify(updatedData)
                 });
 
                 const result = await response.json();
@@ -678,6 +853,154 @@
                 document.body.style.visibility = "visible";
             }
         });
+
+        //for address
+        // 1. JSON Cascading Loaders
+        async function loadRegions() {
+            try {
+                if (regionsData.length === 0) {
+                    const res = await fetch('/data/regions.json');
+                    regionsData = await res.json();
+                }
+                regionInput.innerHTML = '<option value="">Select Region</option>';
+                regionsData.forEach(reg => {
+                    const opt = document.createElement('option');
+                    opt.value = reg.region_name;
+                    opt.textContent = reg.region_name;
+                    opt.dataset.code = reg.region_code;
+                    regionInput.appendChild(opt);
+                });
+            } catch (err) {
+                console.error("Error loading regions:", err);
+            }
+        }
+
+        async function populateProvinces(regionName, selectedProvince = null) {
+            const selectedOption = Array.from(regionInput.options).find(opt => opt.value === regionName);
+            const regCode = selectedOption ? selectedOption.dataset.code : null;
+
+            provinceInput.innerHTML = '<option value="">Select Province</option>';
+            provinceInput.disabled = true;
+            cityInput.innerHTML = '<option value="">Select City / Municipality</option>';
+            cityInput.disabled = true;
+            barangayInput.innerHTML = '<option value="">Select Barangay</option>';
+            barangayInput.disabled = true;
+
+            if (!regCode) return;
+
+            if (provincesData.length === 0) {
+                const res = await fetch('/data/provinces.json');
+                provincesData = await res.json();
+            }
+
+            let filtered = provincesData.filter(p => p.region_code === regCode);
+            filtered.sort((a, b) => a.province_name.localeCompare(b.province_name));
+
+            if (filtered.length === 0) {
+                filtered = [{ province_code: regCode, province_name: regionName }];
+            }
+
+            filtered.forEach(p => {
+                const opt = document.createElement('option');
+                opt.value = p.province_name;
+                opt.textContent = p.province_name;
+                opt.dataset.code = p.province_code;
+                provinceInput.appendChild(opt);
+            });
+
+            provinceInput.disabled = false;
+            if (selectedProvince) provinceInput.value = selectedProvince;
+        }
+
+        async function populateCities(provinceName, selectedCity = null) {
+            const selectedOption = Array.from(provinceInput.options).find(opt => opt.value === provinceName);
+            const provCode = selectedOption ? selectedOption.dataset.code : null;
+            const regCode = regionInput.options[regionInput.selectedIndex]?.dataset.code;
+
+            cityInput.innerHTML = '<option value="">Select City / Municipality</option>';
+            cityInput.disabled = true;
+            barangayInput.innerHTML = '<option value="">Select Barangay</option>';
+            barangayInput.disabled = true;
+
+            if (!provCode) return;
+
+            if (citiesData.length === 0) {
+                const res = await fetch('/data/cities.json');
+                citiesData = await res.json();
+            }
+
+            const filtered = citiesData.filter(c => c.province_code === provCode || c.region_desc === regCode);
+            filtered.sort((a, b) => a.city_name.localeCompare(b.city_name));
+
+            filtered.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c.city_name;
+                opt.textContent = c.city_name;
+                opt.dataset.code = c.city_code;
+                cityInput.appendChild(opt);
+            });
+
+            cityInput.disabled = false;
+            if (selectedCity) cityInput.value = selectedCity;
+        }
+
+        async function populateBarangays(cityName, selectedBarangay = null) {
+            const selectedOption = Array.from(cityInput.options).find(opt => opt.value === cityName);
+            const cityCode = selectedOption ? selectedOption.dataset.code : null;
+
+            barangayInput.innerHTML = '<option value="">Select Barangay</option>';
+            barangayInput.disabled = true;
+
+            if (!cityCode) return;
+
+            if (barangaysData.length === 0) {
+                const res = await fetch('/data/barangays.json');
+                barangaysData = await res.json();
+            }
+
+            const filtered = barangaysData.filter(b => b.city_code === cityCode);
+            filtered.sort((a, b) => a.brgy_name.localeCompare(b.brgy_name));
+
+            filtered.forEach(b => {
+                const opt = document.createElement('option');
+                opt.value = b.brgy_name;
+                opt.textContent = b.brgy_name;
+                barangayInput.appendChild(opt);
+            });
+
+            barangayInput.disabled = false;
+            if (selectedBarangay) barangayInput.value = selectedBarangay;
+        }
+
+        // 2. Event Listeners para sa Cascading
+        regionInput.addEventListener('change', () => populateProvinces(regionInput.value));
+        provinceInput.addEventListener('change', () => populateCities(provinceInput.value));
+        cityInput.addEventListener('change', () => populateBarangays(cityInput.value));
+
+        // 3. ZIP Code validation mask (Numbers only & exact 4 digits)
+        zipInput.addEventListener('input', function() {
+            this.value = this.value.replace(/\D/g, '');
+            if (this.value.length === 4) {
+                zipHelper.textContent = '';
+            } else if (this.value.length > 0) {
+                zipHelper.textContent = 'ZIP code must be 4 digits.';
+            }
+        });
+
+        // 4. Pre-fill Dropdowns sa Edit Mode
+        async function setEditAddressValues() {
+            await loadRegions();
+            if (currentProfile.region) {
+                regionInput.value = currentProfile.region;
+                await populateProvinces(currentProfile.region, currentProfile.province);
+            }
+            if (currentProfile.province) {
+                await populateCities(currentProfile.province, currentProfile.city);
+            }
+            if (currentProfile.city) {
+                await populateBarangays(currentProfile.city, currentProfile.barangay);
+            }
+        }
     </script>
 </body>
 </html>
