@@ -732,6 +732,21 @@ exports.submitAdoptionApplication = async (req, res) => {
 
         const organizationId = petRows[0].organization_id;
 
+        // 4. BUOIN ANG IMMUTABLE JSON SNAPSHOT
+        //For future reference, this snapshot can be used for auditing or historical purposes.
+        const applicantSnapshot = {
+            full_name: full_name || null,
+            contact_number: contact_number || null,
+            email: email || null,
+            full_address: full_address || null,
+            civil_status: civil_status || null,
+            age: age ? parseInt(age, 10) : null,
+            occupation: occupation || null,
+            submitted_at: new Date().toISOString()
+        };
+
+        const snapshotJSON = JSON.stringify(applicantSnapshot);
+
         // 2. CHECK KUNG MAY EXISTING APPLICATION NA PARA SA PET NA ITO
         const [existingApp] = await pool.query(
             `SELECT application_id, status FROM user_adoption_applications 
@@ -745,13 +760,7 @@ exports.submitAdoptionApplication = async (req, res) => {
             const updateQuery = `
                 UPDATE user_adoption_applications SET
                     organization_id = ?,
-                    full_name = ?,
-                    contact_number = ?,
-                    email = ?,
-                    full_address = ?,
-                    civil_status = ?,
-                    age = ?,
-                    occupation = ?,
+                    applicant_snapshot = ?,
                     adoption_intent = ?,
                     emergency_name = ?,
                     emergency_phone = ?,
@@ -766,13 +775,7 @@ exports.submitAdoptionApplication = async (req, res) => {
 
             const updateValues = [
                 organizationId,
-                full_name || null,
-                contact_number || null,
-                email || null,
-                full_address || null,
-                civil_status || null,
-                age ? parseInt(age, 10) : null,
-                occupation || null,
+                snapshotJSON,
                 adoption_intent || null,
                 emergency_name || null,
                 emergency_phone || null,
@@ -794,13 +797,7 @@ exports.submitAdoptionApplication = async (req, res) => {
                 organization_id,
                 adopter_id,
                 animal_id,
-                full_name,
-                contact_number,
-                email,
-                full_address,
-                civil_status,
-                age,
-                occupation,
+                applicant_snapshot,
                 adoption_intent,
                 emergency_name,
                 emergency_phone,
@@ -809,20 +806,14 @@ exports.submitAdoptionApplication = async (req, res) => {
                 status,
                 created_at,
                 updated_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
         `;
 
         const values = [
             organizationId,
             adopterId || null,
             animal_id ? parseInt(animal_id, 10) : null,
-            full_name || null,
-            contact_number || null,
-            email || null,
-            full_address || null,
-            civil_status || null,
-            age ? parseInt(age, 10) : null,
-            occupation || null,
+            snapshotJSON,
             adoption_intent || null,
             emergency_name || null,
             emergency_phone || null,
@@ -929,13 +920,7 @@ exports.getUserApplications = async (req, res) => {
                 app.application_id,
                 app.adopter_id,
                 app.animal_id,
-                app.full_name,
-                app.contact_number,
-                app.email,
-                app.full_address,
-                app.civil_status,
-                app.age,
-                app.occupation,
+                app.applicant_snapshot,
                 app.adoption_intent,
                 app.emergency_name,
                 app.emergency_phone,
@@ -973,6 +958,29 @@ exports.getUserApplications = async (req, res) => {
             `,
             [adopterId]
         );
+
+        // MAP FUNCTION: I-parse ang JSON snapshot para madaling basahin sa Frontend
+        const formattedApplications = applications.map(app => {
+            let parsedSnapshot = {};
+            try {
+                parsedSnapshot = typeof app.applicant_snapshot === 'string' 
+                    ? JSON.parse(app.applicant_snapshot) 
+                    : (app.applicant_snapshot || {});
+            } catch (e) {
+                console.error("JSON parse error:", e);
+            }
+
+            return {
+                ...app,
+                full_name: parsedSnapshot.full_name || 'N/A',
+                contact_number: parsedSnapshot.contact_number || 'N/A',
+                email: parsedSnapshot.email || 'N/A',
+                full_address: parsedSnapshot.full_address || 'N/A',
+                civil_status: parsedSnapshot.civil_status || 'N/A',
+                age: parsedSnapshot.age || 'N/A',
+                occupation: parsedSnapshot.occupation || 'N/A'
+            };
+        });
 
         // =====================================================
         // 5. SEND RESPONSE

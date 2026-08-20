@@ -129,6 +129,17 @@ exports.addPet = async (req, res) => {
                 });
             }
 
+            // Built snapshot object para sa direct admin entry
+            const snapshotData = {
+                full_name: req.body.adopter_full_name || null,
+                contact_number: req.body.adopter_contact_number || null,
+                email: req.body.adopter_email || null,
+                full_address: req.body.adopter_full_address || null,
+                civil_status: req.body.adopter_civil_status || null,
+                age: req.body.adopter_age || null,
+                occupation: req.body.adopter_occupation || null
+            };
+
             await pool.query(
                 `
                 INSERT INTO user_adoption_applications
@@ -136,13 +147,7 @@ exports.addPet = async (req, res) => {
                     adopter_id,
                     organization_id,
                     animal_id,
-                    full_name,
-                    contact_number,
-                    email,
-                    full_address,
-                    civil_status,
-                    age,
-                    occupation,
+                    applicant_snapshot,
                     adoption_intent,
                     emergency_name,
                     emergency_phone,
@@ -152,26 +157,21 @@ exports.addPet = async (req, res) => {
                 )
                 VALUES (
                     NULL,
-                    ?, ?, ?, ?, ?, ?, ?, ?, ?,
+                    ?, ?, ?, NULL,
+                    ?, ?, ?,
                     NULL,
-                    ?, ?, ?, ?,
-                    NULL,
-                    'Approved'
+                    'Approved',
+                    NOW(),
+                    NOW()
                 )
                 `,
                 [
                     organization_id,
                     animal_id,
-                    req.body.adopter_full_name,
-                    req.body.adopter_contact_number,
-                    req.body.adopter_email,
-                    req.body.adopter_full_address,
-                    req.body.adopter_civil_status,
-                    req.body.adopter_age,
-                    req.body.adopter_occupation,
-                    req.body.adopter_emergency_name,
-                    req.body.adopter_emergency_phone,
-                    req.body.adopter_emergency_relation
+                    JSON.stringify(snapshotData),
+                    req.body.adopter_emergency_name || null,
+                    req.body.adopter_emergency_phone || null,
+                    req.body.adopter_emergency_relation || null
                 ]
             );
         }
@@ -1305,7 +1305,7 @@ exports.getRecentApplications = async (req, res) => {
         // GET RECENT APPLICATIONS
         const [applications] = await pool.query(
             `
-            SELECT app.application_id, app.animal_id, app.adopter_id, app.full_name, app.email, app.contact_number, app.status, app.created_at, animal.name AS pet_name
+            SELECT app.application_id, app.animal_id, app.adopter_id, app.applicant_snapshot, app.status, app.created_at, animal.name AS pet_name
             FROM user_adoption_applications app
             INNER JOIN animals animal ON app.animal_id = animal.animal_id
             WHERE animal.organization_id = ?
@@ -1314,6 +1314,30 @@ exports.getRecentApplications = async (req, res) => {
             `,
             [organizationId]
         );
+
+        // MAP FUNCTION: Parse JSON snapshot para mabasa ng Dashboard UI
+        const formattedApplications = applications.map(app => {
+            let snapshot = {};
+            try {
+                snapshot = typeof app.applicant_snapshot === 'string' 
+                    ? JSON.parse(app.applicant_snapshot) 
+                    : (app.applicant_snapshot || {});
+            } catch (e) {
+                console.error("JSON parse error:", e);
+            }
+
+            return {
+                application_id: app.application_id,
+                animal_id: app.animal_id,
+                adopter_id: app.adopter_id,
+                full_name: snapshot.full_name || 'N/A',
+                email: snapshot.email || 'N/A',
+                contact_number: snapshot.contact_number || 'N/A',
+                status: app.status,
+                created_at: app.created_at,
+                pet_name: app.pet_name
+            };
+        });
 
         // ACTION REQUIRED
         const [[actionRequired]] = await pool.query(
@@ -1328,7 +1352,7 @@ exports.getRecentApplications = async (req, res) => {
 
         res.json({
             success: true,
-            applications,
+            applications: formattedApplications,
             actionRequired: Number(actionRequired.count || 0)
         });
 

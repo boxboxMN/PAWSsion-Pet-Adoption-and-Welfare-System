@@ -170,13 +170,7 @@ router.get('/applications/:id', async (req, res) => {
             app.application_id,
             app.animal_id,
             app.adopter_id,
-            app.full_name,
-            app.contact_number,
-            app.email,
-            app.full_address,
-            app.civil_status,
-            app.age,
-            app.occupation,
+            app.applicant_snapshot,
             app.adoption_intent,
             app.emergency_name,
             app.emergency_phone,
@@ -205,8 +199,32 @@ router.get('/applications/:id', async (req, res) => {
     if (!rows || rows.length === 0) {
         return res.status(404).json({ message: "Application not found or unauthorized access." });
     }
+
+    const appData = rows[0];
+
+    // Safely parse JSON applicant_snapshot
+    let snapshot = {};
+    try {
+        snapshot = typeof appData.applicant_snapshot === 'string'
+            ? JSON.parse(appData.applicant_snapshot)
+            : (appData.applicant_snapshot || {});
+    } catch (e) {
+        console.error("JSON parse error:", e);
+    }
+
+    // Merge parsed snapshot details with the main response object
+    const responseData = {
+        ...appData,
+        full_name: snapshot.full_name || 'N/A',
+        contact_number: snapshot.contact_number || 'N/A',
+        email: snapshot.email || 'N/A',
+        full_address: snapshot.full_address || 'N/A',
+        civil_status: snapshot.civil_status || 'N/A',
+        age: snapshot.age || 'N/A',
+        occupation: snapshot.occupation || 'N/A'
+    };
     
-    res.json(rows[0]);
+    res.json(responseData);
 
     } catch (err) {
         console.error("❌ SQL Error:", err);
@@ -444,16 +462,12 @@ router.get("/applications/export/summary", async (req, res) => {
         const query = `
             SELECT 
                 app.application_id,
-                COALESCE(NULLIF(TRIM(app.full_name), ''), CONCAT(adopt.first_name, ' ', adopt.last_name), 'N/A') AS applicant_name,
-                COALESCE(NULLIF(TRIM(app.email), ''), acc.email, '') AS applicant_email,
-                app.contact_number,
+                app.applicant_snapshot,
                 p.name AS pet_name,
                 p.species AS pet_species,
                 app.status,
                 DATE_FORMAT(app.created_at, '%Y-%m-%d %h:%i %p') AS applied_at
             FROM user_adoption_applications app
-            LEFT JOIN adopters adopt ON app.adopter_id = adopt.adopter_id
-            LEFT JOIN accounts acc ON adopt.account_id = acc.account_id
             INNER JOIN animals p ON app.animal_id = p.animal_id
             WHERE p.organization_id = ?
             ORDER BY app.created_at DESC;
@@ -464,7 +478,20 @@ router.get("/applications/export/summary", async (req, res) => {
         // Construct CSV
         let csv = "Application ID,Applicant Name,Email,Contact Number,Pet Name,Species,Status,Applied At\n";
         rows.forEach(r => {
-            csv += `"${r.application_id}","${r.applicant_name}","${r.applicant_email}","${r.contact_number}","${r.pet_name}","${r.pet_species}","${r.status}","${r.applied_at}"\n`;
+            let snapshot = {};
+            try {
+                snapshot = typeof r.applicant_snapshot === 'string'
+                    ? JSON.parse(r.applicant_snapshot)
+                    : (r.applicant_snapshot || {});
+            } catch (e) {
+                console.error("CSV JSON parse error:", e);
+            }
+
+            const name = snapshot.full_name || 'N/A';
+            const email = snapshot.email || 'N/A';
+            const contact = snapshot.contact_number || 'N/A';
+
+            csv += `"${r.application_id}","${name}","${email}","${contact}","${r.pet_name}","${r.pet_species}","${r.status}","${r.applied_at}"\n`;
         });
 
         res.setHeader("Content-Type", "text/csv; charset=utf-8");

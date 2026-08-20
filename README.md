@@ -431,3 +431,19 @@ user side:
 ALTER TABLE animals
 DROP COLUMN color,
 DROP COLUMN personality_tags;
+
+
+# Aug 21, 2026 (5 am)
+
+ALTER TABLE user_adoption_applications
+-- 1. Idagdag ang JSON column para sa snapshot
+ADD COLUMN applicant_snapshot JSON AFTER adopter_id,
+
+-- 2. Tatanggalin ang mga redundant user profile columns
+DROP COLUMN full_name,
+DROP COLUMN contact_number,
+DROP COLUMN email,
+DROP COLUMN full_address,
+DROP COLUMN civil_status,
+DROP COLUMN age,
+DROP COLUMN occupation;

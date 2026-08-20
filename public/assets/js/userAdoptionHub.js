@@ -533,29 +533,27 @@ async function autoFillUserProfile() {
             emailInput.value = user.email;
         }
 
-        // 4. Full Address (Pinagsama-samang address fields mula sa Database)
-        const addressInput = document.getElementById('app-address');
-        if (addressInput) {
-            const addressParts = [
-                user.street_address,
-                user.barangay,
-                user.city,
-                user.province,
-                user.region
-            ].filter(Boolean); // Tatanggalin ang null/empty values
-            
-            if (addressParts.length > 0) {
-                addressInput.value = addressParts.join(', ');
-            }
+        // 4. Street Address / House No.
+        const streetInput = document.getElementById('app-street');
+        if (streetInput && user.street_address) {
+            streetInput.value = user.street_address;
         }
 
-        // 5. Civil Status
-        const civilInput = document.getElementById('app-civil');
-        if (civilInput && user.civil_status) {
-            civilInput.value = user.civil_status;
+        // 5. Zip Code
+        const zipInput = document.getElementById('app-zip');
+        if (zipInput && user.zip_code) {
+            zipInput.value = user.zip_code;
+            // Trigger input event para mag-update ang live validation ng ZIP code
+            zipInput.dispatchEvent(new Event('input'));
         }
 
-        // 6. Age (Kukwentahin batay sa birthday kung mayroon)
+        // 6. Civil Status
+        const civilSelect = document.getElementById('app-civil');
+        if (civilSelect && user.civil_status) {
+            civilSelect.value = user.civil_status;
+        }
+
+        // 7. Age (Kukwentahin batay sa birthday kung mayroon)
         const ageInput = document.getElementById('app-age');
         if (ageInput && user.birthday) {
             const birthDate = new Date(user.birthday);
@@ -565,10 +563,52 @@ async function autoFillUserProfile() {
             ageInput.value = calculatedAge;
         }
 
-        // 7. Occupation
+        // 8. Occupation
         const occupationInput = document.getElementById('app-occupation');
         if (occupationInput && user.occupation) {
             occupationInput.value = user.occupation;
+        }
+
+        // =========================================================
+        // 9. CASCADING ADDRESS AUTO-FILL (Region -> Province -> City -> Barangay)
+        // =========================================================
+        const regionSelect = document.getElementById('app-region');
+        const provinceSelect = document.getElementById('app-province');
+        const citySelect = document.getElementById('app-city');
+        const barangaySelect = document.getElementById('app-barangay');
+
+        if (regionSelect && user.region) {
+            // Step 9a. Select Region
+            regionSelect.value = user.region;
+            
+            // I-trigger ang 'change' event ng Region para ma-load ang mga Provinces
+            regionSelect.dispatchEvent(new Event('change'));
+
+            // Bigyan ng konting oras para matapos ang fetch/load ng Provinces
+            setTimeout(async () => {
+                if (provinceSelect && user.province) {
+                    // Step 9b. Select Province
+                    provinceSelect.value = user.province;
+                    provinceSelect.dispatchEvent(new Event('change'));
+
+                    // Bigyan ng oras para matapos ang fetch/load ng Cities
+                    setTimeout(async () => {
+                        if (citySelect && user.city) {
+                            // Step 9c. Select City
+                            citySelect.value = user.city;
+                            citySelect.dispatchEvent(new Event('change'));
+
+                            // Bigyan ng oras para matapos ang fetch/load ng Barangays
+                            setTimeout(() => {
+                                if (barangaySelect && user.barangay) {
+                                    // Step 9d. Select Barangay
+                                    barangaySelect.value = user.barangay;
+                                }
+                            }, 250);
+                        }
+                    }, 250);
+                }
+            }, 250);
         }
 
     } catch (err) {
