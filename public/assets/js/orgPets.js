@@ -338,7 +338,7 @@ function renderPets(pets) {
     }
 
     container.innerHTML = `
-        <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div class="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-5">
             ${pets.map(createPetCard).join("")}
         </div>
     `;
@@ -359,56 +359,81 @@ function createPetCard(pet) {
         Cat: "bg-orange-500"
     };
 
-    const image = pet.image_path ? `/uploads/pets/${pet.image_path}` : "/assets/images/no-image.png";
+    const image = pet.image_path
+        ? `/uploads/pets/${pet.image_path}`
+        : "/assets/images/no-image.png";
 
     // Personality Tags
     const tags = pet.personality_tags
-        ? pet.personality_tags
-            .split(",")
-            .map(tag => tag.trim())
-            .filter(tag => tag.length > 0)
+        ? pet.personality_tags.split(",").map(tag => tag.trim()).filter(tag => tag.length > 0)
         : [];
 
     return `
-        <div class="bg-white rounded-3xl overflow-hidden shadow-md hover:shadow-xl transition duration-300">
-            <div class="relative">
-                <img src="${image}" alt="${pet.name}" class="w-full h-64 object-cover">
-                <span class="absolute top-4 left-4 ${speciesColor[pet.species] || "bg-blue-600"} text-white text-xs font-bold uppercase px-4 py-2 rounded-full shadow">
+        <div class="bg-white rounded-3xl overflow-hidden shadow-md hover:shadow-xl transition duration-300 flex flex-col">
+
+            <!-- Image -->
+            <div class="relative overflow-hidden bg-slate-100">
+                <img src="${image}" alt="${pet.name}" class="w-full h-60 object-cover">
+
+                <span class="absolute top-3 left-3 ${speciesColor[pet.species] || "bg-blue-600"} text-white text-xs font-bold uppercase px-3 py-1 rounded-xl shadow-md">
                     ${pet.species}
                 </span>
-                <span class="absolute top-4 right-4 ${statusColor[pet.adoption_status] || "bg-slate-500"} text-white text-xs font-bold uppercase px-4 py-2 rounded-full shadow">
+
+                <span class="absolute top-3 right-3 ${statusColor[pet.adoption_status] || "bg-slate-500"} text-white text-xs font-bold uppercase px-3 py-1 rounded-xl shadow-md">
                     ${pet.adoption_status}
                 </span>
             </div>
-            <div class="p-6">
-                <h2 class="text-3xl font-bold text-slate-800">${pet.name}</h2>
-                <p class="mt-1 text-slate-500 flex items-center flex-wrap gap-2 text-sm font-bold">
-                    <span>${pet.species}</span>
-                    <span>•</span>
-                    <span>${pet.age}</span>
-                    <span>•</span>
-                    <span class="${genderColor}">
-                        <i class="fa-solid ${genderIcon}"></i>
-                        ${pet.gender}
-                    </span>
-                </p>
-               <div class="flex flex-wrap gap-2 mt-5">
-                    ${
-                        tags.length
-                            ? tags.map(tag => `
-                                <span class="bg-slate-100 text-slate-700 text-sm font-medium px-4 py-1 rounded-full">
-                                    ${tag}
-                                </span>
-                            `).join("")
-                            : `<span class="text-slate-400 text-sm italic">No personality tags</span>`
+
+            <!-- Body -->
+            <div class="p-5 flex flex-col flex-1 justify-between gap-4">
+
+                <!-- Name + Details -->
+                <div>
+                    <h2 class="text-xl font-extrabold text-slate-900 tracking-tight">
+                        ${pet.name}
+                    </h2>
+
+                    <div class="flex items-center gap-2 mt-3 overflow-x-auto whitespace-nowrap no-scrollbar">
+                        <span class="inline-flex shrink-0 items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 text-xs font-semibold border border-slate-200/60">
+                            <i class="fa-solid fa-paw text-slate-400 text-[10px]"></i>
+                            ${pet.species}
+                        </span>
+
+                        <span class="inline-flex shrink-0 items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 text-xs font-semibold border border-slate-200/60">
+                            <i class="fa-regular fa-calendar-days text-slate-400 text-[10px]"></i>
+                            ${pet.age}
+                        </span>
+
+                        <span class="inline-flex shrink-0 items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 text-xs font-semibold border border-slate-200/60 ${genderColor}">
+                            <i class="fa-solid ${genderIcon} text-[10px]"></i>
+                            ${pet.gender}
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Personality Tags -->
+                <div class="flex flex-wrap gap-2">
+                    ${tags.length
+                        ? tags.map(tag => `
+                            <span class="bg-slate-100 text-slate-700 text-xs font-semibold px-2.5 py-1 rounded-lg border border-slate-200/60">
+                                ${tag}
+                            </span>
+                        `).join("")
+                        : `
+                            <span class="text-slate-400 text-xs italic">
+                                No personality tags
+                            </span>
+                        `
                     }
                 </div>
-                <button
-                    class="viewPetBtn mt-5 w-full rounded-2xl border border-slate-200 bg-white py-3 text-base font-semibold text-blue-900 transition-all duration-200 hover:border-blue-600 hover:bg-blue-50 hover:text-blue-700"
-                    data-id="${pet.animal_id}">
+
+                <!-- Button -->
+                <button class="viewPetBtn w-full rounded-xl border border-slate-200 bg-white py-3 text-xs font-bold text-blue-900 transition-all duration-200 hover:border-blue-600 hover:bg-blue-50 hover:text-blue-700" data-id="${pet.animal_id}">
                     View Profile
                 </button>
+
             </div>
+
         </div>
     `;
 }

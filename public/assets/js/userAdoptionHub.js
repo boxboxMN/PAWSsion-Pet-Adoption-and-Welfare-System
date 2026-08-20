@@ -289,7 +289,7 @@ async function openPetModal(pet){
     switch (pet.status) {
 
         case "Available":
-            statusBadge.textContent = "🟢 Available";
+            statusBadge.textContent = "Available";
             statusBadge.classList.add(
                 "bg-emerald-50",
                 "border",
@@ -299,7 +299,7 @@ async function openPetModal(pet){
             break;
 
         case "Pending":
-            statusBadge.textContent = "🟡 Adoption in Progress";
+            statusBadge.textContent = "Adoption in Progress";
             statusBadge.classList.add(
                 "bg-yellow-50",
                 "border",
@@ -309,7 +309,7 @@ async function openPetModal(pet){
             break;
 
         case "Adopted":
-            statusBadge.textContent = "💙 Successfully Adopted";
+            statusBadge.textContent = "Successfully Adopted";
             statusBadge.classList.add(
                 "bg-blue-50",
                 "border",
@@ -319,7 +319,7 @@ async function openPetModal(pet){
             break;
 
         case "Archived":
-            statusBadge.textContent = "⚪ No Longer Listed";
+            statusBadge.textContent = "No Longer Listed";
             statusBadge.classList.add(
                 "bg-slate-100",
                 "border",
@@ -348,7 +348,7 @@ async function openPetModal(pet){
     switch (pet.health) {
 
         case "Healthy":
-            healthBadge.textContent = "💚 Excellent Condition";
+            healthBadge.textContent = "Excellent Condition";
             healthBadge.classList.add(
                 "bg-emerald-50",
                 "border",
@@ -358,7 +358,7 @@ async function openPetModal(pet){
             break;
 
         case "Recovered":
-            healthBadge.textContent = "🌿 Recovered";
+            healthBadge.textContent = "Recovered";
             healthBadge.classList.add(
                 "bg-green-50",
                 "border",
@@ -368,7 +368,7 @@ async function openPetModal(pet){
             break;
 
         case "Under Treatment":
-            healthBadge.textContent = "🩺 Under Treatment";
+            healthBadge.textContent = "Under Treatment";
             healthBadge.classList.add(
                 "bg-yellow-50",
                 "border",
@@ -378,7 +378,7 @@ async function openPetModal(pet){
             break;
 
         case "Sick":
-            healthBadge.textContent = "❤️ Needs Extra Care";
+            healthBadge.textContent = "Needs Extra Care";
             healthBadge.classList.add(
                 "bg-red-50",
                 "border",
@@ -407,7 +407,7 @@ async function openPetModal(pet){
     switch (pet.vaccination) {
 
         case "Vaccinated":
-            vaccinationBadge.textContent = "💉 Vaccinated";
+            vaccinationBadge.textContent = "Vaccinated";
             vaccinationBadge.classList.add(
                 "bg-blue-50",
                 "border",
@@ -417,7 +417,7 @@ async function openPetModal(pet){
             break;
 
         case "Not Vaccinated":
-            vaccinationBadge.textContent = "⚠️ Not Yet Vaccinated";
+            vaccinationBadge.textContent = "Not Yet Vaccinated";
             vaccinationBadge.classList.add(
                 "bg-orange-50",
                 "border",
@@ -427,7 +427,7 @@ async function openPetModal(pet){
             break;
 
         case "Unknown":
-            vaccinationBadge.textContent = "❓ Vaccination Unknown";
+            vaccinationBadge.textContent = "Vaccination Unknown";
             vaccinationBadge.classList.add(
                 "bg-slate-100",
                 "border",
@@ -455,38 +455,10 @@ async function openPetModal(pet){
 
     document.getElementById("viewPetModal").classList.remove("hidden");
     document.getElementById("viewPetModal").classList.add("flex");
-    // tags.innerHTML = "";
-
-// if (pet.personality) {
-
-//     pet.personality.split(",").forEach(tag => {
-
-//         tags.innerHTML += `
-//             <span
-//                 class="
-//                 bg-blue-600
-//                 text-white
-//                 text-sm
-//                 font-semibold
-//                 px-4
-//                 py-2
-//                 rounded-full">
-
-//                 ${tag.trim()}
-
-//             </span>
-//         `;
-
-//     });
-
-// }
-
     document.getElementById("viewPetModal").classList.remove("hidden");
-
     document.getElementById("viewPetModal").classList.add("flex");
 
 }
-
 
 function renderMedicalHistory(history) {
     const tbody = document.getElementById("modalMedicalBody");
