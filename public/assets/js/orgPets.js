@@ -132,8 +132,6 @@ addPetBtn.addEventListener("click", () => {
     petForm.reset();
     medicalList = [];
     renderMedicalTable();
-    traitsContainer.innerHTML = "";
-    personalityTags.value = "";
 
     // Tanggalin ang required sa hidden adopter inputs
     const adopterDetailsSection = document.getElementById('adopterDetailsSection');
@@ -186,8 +184,6 @@ petForm.addEventListener("submit", async (e)=>{
         "medical_history",
         JSON.stringify(medicalList)
     );
-
-    console.log("Hidden field:", personalityTags.value);
 
     console.log("FormData:");
     for (const [key, value] of formData.entries()) {
@@ -363,10 +359,6 @@ function createPetCard(pet) {
         ? `/uploads/pets/${pet.image_path}`
         : "/assets/images/no-image.png";
 
-    // Personality Tags
-    const tags = pet.personality_tags
-        ? pet.personality_tags.split(",").map(tag => tag.trim()).filter(tag => tag.length > 0)
-        : [];
 
     return `
         <div class="bg-white rounded-3xl overflow-hidden shadow-md hover:shadow-xl transition duration-300 flex flex-col">
@@ -409,22 +401,6 @@ function createPetCard(pet) {
                             ${pet.gender}
                         </span>
                     </div>
-                </div>
-
-                <!-- Personality Tags -->
-                <div class="flex flex-wrap gap-2">
-                    ${tags.length
-                        ? tags.map(tag => `
-                            <span class="bg-slate-100 text-slate-700 text-xs font-semibold px-2.5 py-1 rounded-lg border border-slate-200/60">
-                                ${tag}
-                            </span>
-                        `).join("")
-                        : `
-                            <span class="text-slate-400 text-xs italic">
-                                No personality tags
-                            </span>
-                        `
-                    }
                 </div>
 
                 <!-- Button -->
@@ -606,18 +582,10 @@ function openPetDetailsModal(pet){
         petForm.species.value = pet.species;
         petForm.gender.value = pet.gender;
         petForm.age.value = pet.age;
-        petForm.color.value = pet.color || "";
         petForm.health_status.value = pet.health_status;
         petForm.vaccination_status.value = pet.vaccination_status;
         petForm.adoption_status.value = pet.adoption_status;
         petForm.pet_description.value = pet.pet_description || "";
-        traitsContainer.innerHTML = "";
-
-        if (pet.personality_tags) {
-            pet.personality_tags
-                .split(",")
-                .forEach(tag => addTrait(tag.trim()));
-        }
 
         medicalList = pet.medical_history ? [...pet.medical_history] : [];
         renderMedicalTable();
@@ -675,9 +643,6 @@ function openPetDetailsModal(pet){
 
     document.getElementById("viewAge").textContent = pet.age;
 
-    document.getElementById("viewColor").textContent =
-        pet.color || "Unknown";
-
     document.getElementById("viewVaccination").textContent =
         pet.vaccination_status;
 
@@ -692,24 +657,6 @@ function openPetDetailsModal(pet){
 
     document.getElementById("viewDescription").textContent =
         pet.pet_description || "No description.";
-
-    // Personality Tags
-    const tags = document.getElementById("viewTags");
-    tags.innerHTML = "";
-
-    if (pet.personality_tags) {
-
-        pet.personality_tags.split(",").forEach(tag => {
-
-            tags.innerHTML += `
-                <span class="bg-blue-700 text-white px-3 py-1 rounded-full text-sm">
-                    ${tag.trim()}
-                </span>
-            `;
-
-        });
-
-    }
 
     // ============================
     // MEDICAL HISTORY
@@ -772,77 +719,6 @@ function closeViewPetModal(){
 
 }
 
-// ==========================
-// PERSONALITY TAGS
-// ==========================
-
-const traitInput = document.getElementById("traitInput");
-const addTraitBtn = document.getElementById("addTraitBtn");
-const traitsContainer = document.getElementById("traitsContainer");
-const personalityTags = document.getElementById("personalityTags");
-let medicalList = [];
-
-function addTrait(value) {
-
-    value = value.trim();
-
-    if (!value) return;
-
-    // prevent duplicates
-    const exists = [...traitsContainer.querySelectorAll(".trait-tag")]
-        .some(tag => tag.dataset.value.toLowerCase() === value.toLowerCase());
-
-    if (exists) {
-        traitInput.value = "";
-        return;
-    }
-
-    const span = document.createElement("span");
-
-    span.className =
-        "trait-tag inline-flex items-center gap-2 bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium";
-
-    span.dataset.value = value;
-
-    span.innerHTML = `
-        ${value}
-        <button
-            type="button"
-            class="text-red-500 hover:text-red-700 font-bold">
-            <i class="fa-solid fa-xmark text-xs"></i>
-        </button>
-    `;
-
-    span.querySelector("button").addEventListener("click", () => {
-
-        span.remove();
-
-        updateTraitField();
-
-    });
-
-    traitsContainer.appendChild(span);
-
-    traitInput.value = "";
-
-    updateTraitField();
-}
-addTraitBtn.addEventListener("click", () => {
-
-    addTrait(traitInput.value);
-
-});
-traitInput.addEventListener("keypress", (e) => {
-
-    if (e.key === "Enter") {
-
-        e.preventDefault();
-
-        addTrait(traitInput.value);
-
-    }
-
-});
 function closeModal(){
 
     modal.classList.remove("flex");
@@ -856,8 +732,6 @@ function closeModal(){
     uploadPlaceholder.classList.remove("hidden");
     selectedFileName.textContent = "";
 
-    traitsContainer.innerHTML = "";
-    personalityTags.value = "";
 
     // LIGTAS NA PAG-RESET NG ADOPTER DETAILS
     const adopterDetailsSection = document.getElementById('adopterDetailsSection');
@@ -872,15 +746,6 @@ function closeModal(){
     }
 }
 
-function updateTraitField() {
-
-    const tags = [...traitsContainer.querySelectorAll(".trait-tag")]
-        .map(tag => tag.dataset.value);
-
-    personalityTags.value = tags.join(",");
-
-    console.log("Updated tags:", personalityTags.value);
-}
 document.querySelector(".add-med-btn").addEventListener("click", () => {
 
     const treatment = document.getElementById("m-treatment").value.trim();
@@ -986,11 +851,8 @@ function filterPets() {
             pet.name.toLowerCase().includes(keyword) ||
             pet.species.toLowerCase().includes(keyword) ||
             pet.gender.toLowerCase().includes(keyword) ||
-            pet.age.toLowerCase().includes(keyword) ||
-            (pet.personality_tags || "")
-                .toLowerCase()
-                .includes(keyword);
-
+            pet.age.toLowerCase().includes(keyword);
+            
         const matchesSpecies = !species || pet.species === species;
 
         if (currentViewMode === "adopted") {
