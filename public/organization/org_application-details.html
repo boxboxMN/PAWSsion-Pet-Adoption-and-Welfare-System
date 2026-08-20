@@ -409,29 +409,44 @@
             }
 
             const lowerStatus = status.toLowerCase();
-            const isInterviewScheduled = lowerStatus.includes("interview") || lowerStatus.includes("scheduled");
 
             // CHECK KUNG TAPOS NA ANG INTERVIEW DATE/TIME
             const now = new Date();
+            let hasInterviewSchedule = false;
             let isPastInterview = false;
 
-            if (app.interview_date && isInterviewScheduled) {
-                const interviewDateTime = new Date(app.interview_date);
+            if (app.interview_date) {
+                hasInterviewSchedule = true;
+
+                // Parse local date nang maayos (YYYY-MM-DD)
+                let interviewDateTime;
+                if (typeof app.interview_date === 'string' && app.interview_date.includes('T')) {
+                    const raw = new Date(app.interview_date);
+                    const yr = raw.getFullYear();
+                    const mo = String(raw.getMonth() + 1).padStart(2, '0');
+                    const dy = String(raw.getDate()).padStart(2, '0');
+                    interviewDateTime = new Date(`${yr}-${mo}-${dy}T00:00:00`);
+                } else {
+                    interviewDateTime = new Date(app.interview_date);
+                }
+
                 if (app.interview_time) {
-                    const [hours, minutes] = app.interview_time.split(':');
-                    interviewDateTime.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0);
+                    const timeParts = app.interview_time.split(':');
+                    interviewDateTime.setHours(parseInt(timeParts[0], 10), parseInt(timeParts[1], 10), 0, 0);
                 } else {
                     interviewDateTime.setHours(23, 59, 59, 999);
                 }
+
                 if (now > interviewDateTime) {
                     isPastInterview = true;
                 }
             }
 
+            const isInterviewScheduled = lowerStatus.includes("interview") || lowerStatus.includes("scheduled");
             const statusBadge = document.getElementById("appStatusBadge");
 
             if (statusBadge) {
-                if (isPastInterview) {
+                if (hasInterviewSchedule && isPastInterview && !["approved", "declined", "rejected"].includes(lowerStatus)) {
                     statusBadge.textContent = "Post-Interview Review";
                     statusBadge.className = "inline-flex px-4 py-1.5 rounded-full text-sm font-medium bg-purple-100 text-purple-700 border border-purple-200";
                 } else {
@@ -461,9 +476,17 @@
             const isDeclined = ["declined", "rejected"].includes(lowerStatus);
             const isApproved = lowerStatus === "approved";
             const isCancelled = lowerStatus.includes("cancelled"); // Check kung kinansela ng adopter
+            const isFinalized = isApproved || isDeclined || isCancelled;
 
-            const isFinalized = isApproved || isDeclined || isCancelled; // Kasama na ang Cancelled sa Finalized
+            // Awtomatikong magiging true (disabled) kung:
+            // - Naka-Under Review o Pending pa ang status, O
+            // - Walang interview schedule, O
+            // - May interview date/time pa sa hinaharap (upcoming o kakareschedule lang ng org)
+            const isUnderReviewOrPending = lowerStatus.includes("under review") || lowerStatus.includes("pending") || !isInterviewScheduled;
+            const hasUpcomingOrOngoingInterview = Boolean(app.interview_date) && !isPastInterview;
 
+            const shouldDisable = isFinalized || isUnderReviewOrPending || hasUpcomingOrOngoingInterview;
+                        
             if (declineBtn) {
                 if (isDeclined) {
                     declineBtn.disabled = false;
@@ -471,8 +494,7 @@
                     declineBtn.className = "px-5 py-2.5 rounded-xl border border-amber-500 bg-amber-50 text-amber-700 hover:bg-amber-100 text-sm font-semibold transition cursor-pointer";
                     declineBtn.onclick = handleViewDeclineReason;
                 } else {
-                    // Naka-disable kapag Approved, Declined, o Cancelled
-                    declineBtn.disabled = isFinalized;
+                    declineBtn.disabled = shouldDisable;
                     declineBtn.textContent = "Decline Application";
                     declineBtn.className = "px-5 py-2.5 rounded-xl border border-red-500 text-red-500 hover:bg-red-50 text-sm font-semibold transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent";
                     declineBtn.onclick = handleDecline;
@@ -481,19 +503,21 @@
 
             if (scheduleBtn) {
                 if (isInterviewScheduled) {
-                    scheduleBtn.disabled = false; // Naka-enable pa rin para ma-click at ma-edit
-                    scheduleBtn.textContent = "Reschedule Interview"; // Binago ang text para malinaw
-                    scheduleBtn.className = "px-5 py-2.5 rounded-xl border border-blue-500 bg-blue-50 text-blue-600 hover:bg-blue-100 text-sm font-semibold transition cursor-pointer";
+                    scheduleBtn.disabled = isFinalized; 
+                    scheduleBtn.textContent = "Reschedule Interview"; 
+                    scheduleBtn.className = "px-5 py-2.5 rounded-xl border border-blue-500 bg-blue-50 text-blue-600 hover:bg-blue-100 text-sm font-semibold transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed";
                 } else {
-                    scheduleBtn.disabled = isFinalized; // Disable lang kung Finalized o Cancelled
+                    scheduleBtn.disabled = isFinalized; 
                     scheduleBtn.textContent = "Schedule Interview";
                     scheduleBtn.className = "px-5 py-2.5 rounded-xl border border-gray-300 text-gray-700 hover:bg-gray-100 text-sm font-semibold transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent";
                 }
             }
 
-            // I-disable ang Approve at Schedule Interview buttons kapag Cancelled o Finalized na
-            if (approveBtn) approveBtn.disabled = isFinalized;
-    
+            // DISABLE APPROVE & FINALIZE BUTTON
+            if (approveBtn) {
+                approveBtn.disabled = shouldDisable;
+            }
+
             // 3. Applied Date
             document.getElementById("appSubmittedDate").textContent = app.applied_date ? `Submitted on ${app.applied_date}` : 'Submitted on N/A';
     
@@ -549,14 +573,70 @@
             // 8. Render Status Action Box
             renderApplicationStatusDetails(app, isPastInterview);
         }
+
+        // ================= CHECK IF INTERVIEW IS INCOMPLETE =================
+        function isInterviewIncomplete() {
+        if (!currentAppDetails || !currentAppDetails.interview_date) return false;
+
+        const now = new Date();
+        let schedDate;
+        if (typeof currentAppDetails.interview_date === 'string' && currentAppDetails.interview_date.includes('T')) {
+            const raw = new Date(currentAppDetails.interview_date);
+            const yr = raw.getFullYear();
+            const mo = String(raw.getMonth() + 1).padStart(2, '0');
+            const dy = String(raw.getDate()).padStart(2, '0');
+            schedDate = new Date(`${yr}-${mo}-${dy}T00:00:00`);
+        } else {
+            schedDate = new Date(currentAppDetails.interview_date);
+        }
+
+        if (currentAppDetails.interview_time) {
+            const [h, m] = currentAppDetails.interview_time.split(':');
+            schedDate.setHours(parseInt(h, 10), parseInt(m, 10), 0, 0);
+        } else {
+            schedDate.setHours(23, 59, 59, 999);
+        }
+
+        return now < schedDate;
+    }
     
         // ================= DECLINE LOGIC =================
         function handleDecline() {
             if (!currentAppId) {
                 return Swal.fire({ icon: 'warning', title: 'Attention', text: 'No application selected.', confirmButtonColor: '#2563EB' });
             }
+
+            // CHECK: Huwag payagan kung hindi pa tapos ang interview
+            if (currentAppDetails) {
+                const lowerStatus = (currentAppDetails.status || "").toLowerCase();
+                const isUnderReview = lowerStatus.includes("under review") || lowerStatus.includes("pending") || !lowerStatus.includes("interview");
+                
+                let isPast = false;
+                if (currentAppDetails.interview_date) {
+                    const now = new Date();
+                    const interviewDateTime = new Date(currentAppDetails.interview_date);
+                    if (currentAppDetails.interview_time) {
+                        const [h, m] = currentAppDetails.interview_time.split(':');
+                        interviewDateTime.setHours(parseInt(h, 10), parseInt(m, 10), 0, 0);
+                    } else {
+                        interviewDateTime.setHours(23, 59, 59, 999);
+                    }
+                    if (now > interviewDateTime) isPast = true;
+                }
+
+                if (isUnderReview || (currentAppDetails.interview_date && !isPast)) {
+                    return Swal.fire({
+                        icon: 'warning',
+                        title: 'Action Restricted',
+                        text: 'Hindi maaring i-decline ang application habang naka-Under Review pa o habang may ongoing/upcoming interview schedule.',
+                        confirmButtonColor: '#2563EB'
+                    });
+                }
+            }
+
             const modal = document.getElementById("declineModal");
             if (modal) modal.classList.remove("hidden");
+
         }
     
         function closeDeclineModal() {
@@ -608,6 +688,35 @@
             if (!currentAppId) {
                 return Swal.fire({ icon: 'warning', title: 'Attention', text: 'No application selected.', confirmButtonColor: '#2563EB' });
             }
+
+            // CHECK: Huwag payagan kung hindi pa tapos ang interview
+            if (currentAppDetails) {
+                const lowerStatus = (currentAppDetails.status || "").toLowerCase();
+                const isUnderReview = lowerStatus.includes("under review") || lowerStatus.includes("pending") || !lowerStatus.includes("interview");
+                
+                let isPast = false;
+                if (currentAppDetails.interview_date) {
+                    const now = new Date();
+                    const interviewDateTime = new Date(currentAppDetails.interview_date);
+                    if (currentAppDetails.interview_time) {
+                        const [h, m] = currentAppDetails.interview_time.split(':');
+                        interviewDateTime.setHours(parseInt(h, 10), parseInt(m, 10), 0, 0);
+                    } else {
+                        interviewDateTime.setHours(23, 59, 59, 999);
+                    }
+                    if (now > interviewDateTime) isPast = true;
+                }
+
+                if (isUnderReview || (currentAppDetails.interview_date && !isPast)) {
+                    return Swal.fire({
+                        icon: 'warning',
+                        title: 'Action Restricted',
+                        text: 'Hindi maaring i-approve ang application habang naka-Under Review pa o habang may ongoing/upcoming interview schedule.',
+                        confirmButtonColor: '#2563EB'
+                    });
+                }
+            }
+
             const modal = document.getElementById("approveModal");
             if (modal) modal.classList.remove("hidden");
         }
