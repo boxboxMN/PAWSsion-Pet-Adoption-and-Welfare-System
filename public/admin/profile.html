@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-50">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pawpon | Admin Profile Settings</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="../assets/js/adminSidebar.js"></script>
+    <script src="../assets/js/adminTopbar.js"></script>
+</head>
+<body class="h-full font-sans text-slate-800 antialiased flex overflow-hidden bg-slate-50">
+
+    <div id="sidebar" class="flex-shrink-0"></div>
+
+    <main class="flex-1 flex flex-col min-w-0 h-full overflow-hidden bg-white">
+        <div id="topbar" class="flex-shrink-0 border-b border-slate-200"></div>
+
+        <div class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-6">
+            <div class="max-w-3xl mx-auto bg-white border border-slate-200 rounded-2xl shadow-sm p-6 sm:p-8">
+                <h2 class="text-lg font-bold text-slate-900 mb-1">Admin Profile Settings</h2>
+                <p class="text-xs text-slate-500 mb-6">Update your account profile information and credentials.</p>
+
+                <div id="alertBox" class="hidden mb-4 p-3 rounded-xl text-xs font-semibold"></div>
+
+                <form id="adminProfileForm" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">Full Name</label>
+                        <input type="text" id="adminName" name="name" disabled class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-100 text-sm text-slate-500 cursor-not-allowed focus:outline-none" />
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">Email Address</label>
+                        <input type="email" id="adminEmail" name="email" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-blue-600" />
+                    </div>
+
+                    <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">New Password <span class="text-slate-400 font-normal">(Leave blank if unchanged)</span></label>
+                    <div class="relative">
+                        <input type="password" id="adminPassword" name="password" placeholder="••••••••" class="w-full px-4 py-2.5 pr-10 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-blue-600" />
+                        <button type="button" id="togglePassword" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 focus:outline-none">
+                            <i id="eyeIcon" class="fa-solid fa-eye text-sm"></i>
+                        </button>
+                    </div>
+                </div>
+
+                    <div class="pt-4 flex justify-end">
+                        <button type="submit" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs rounded-xl shadow-sm transition-all">
+                            Save Changes
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", async () => {
+            loadSidebar("setting");
+            loadTopbar({ title: "Profile Settings", subtitle: "Manage your administrator account details." });
+
+            const form = document.getElementById("adminProfileForm");
+            const alertBox = document.getElementById("alertBox");
+
+            // Fetch current profile data
+            try {
+                const res = await fetch('/admin/current-user');
+                const data = await res.json();
+                if (data.success && data.user) {
+                    document.getElementById("adminName").value = data.user.name || "";
+                    document.getElementById("adminEmail").value = data.user.email || "";
+                }
+            } catch (err) {
+                console.error("Failed to load profile data", err);
+            }
+
+         // Handle Form Submit
+        form.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const email = document.getElementById("adminEmail").value;
+            const password = document.getElementById("adminPassword").value;
+
+            try {
+                const res = await fetch('/admin/profile/update', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                const result = await res.json();
+
+                alertBox.classList.remove("hidden");
+                if (result.success) {
+                    alertBox.className = "mb-4 p-3 rounded-xl text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200";
+                    alertBox.textContent = "Profile updated successfully!";
+                    document.getElementById("adminPassword").value = "";
+                } else {
+                    alertBox.className = "mb-4 p-3 rounded-xl text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200";
+                    alertBox.textContent = result.message || "Failed to update profile.";
+                }
+
+                // Mawawala ang alert box pagkalipas ng 4 na segundo (4000 milliseconds)
+                setTimeout(() => {
+                    alertBox.classList.add("hidden");
+                }, 4000);
+
+            } catch (err) {
+                console.error(err);
+            }
+        });
+        });
+                // Password Toggle Logic
+        const togglePassword = document.getElementById("togglePassword");
+        const passwordInput = document.getElementById("adminPassword");
+        const eyeIcon = document.getElementById("eyeIcon");
+
+        togglePassword.addEventListener("click", () => {
+            // Palitan ang type ng input kung password o text
+            const isPassword = passwordInput.type === "password";
+            passwordInput.type = isPassword ? "text" : "password";
+            
+            // Palitan ang icon ng mata (eye / eye-slash)
+            eyeIcon.className = isPassword ? "fa-solid fa-eye-slash text-sm" : "fa-solid fa-eye text-sm";
+        });
+    </script>
+</body>
+</html>

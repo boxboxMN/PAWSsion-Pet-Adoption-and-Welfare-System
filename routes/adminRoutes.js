@@ -1,6 +1,8 @@
 const express = require("express");
 const path = require("path");
+
 const pool = require("../config/database");
+const adminController = require("../controllers/adminController"); // <--- Idagdag ito
 
 
 const router = express.Router();
@@ -112,6 +114,14 @@ router.get("/users", async (req, res) => {
         res.status(500).json({ message: "Database Error" });
     }
 });
+// Ruta para sa Profile Page view
+router.get("/profile", (req, res) => {
+    res.sendFile(path.join(__dirname, "../public/admin/profile.html"));
+});
+
+// Mga API Routes na nakakonekta sa controller
+router.get("/current-user", adminController.getCurrentAdmin);
+router.put("/profile/update", adminController.updateAdminProfile);
 /*
 =================================================
 GET ALL PENDING ORGANIZATIONS

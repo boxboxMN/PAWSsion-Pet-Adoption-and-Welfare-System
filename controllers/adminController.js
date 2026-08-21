@@ -1,7 +1,7 @@
 //logic para sa lahat ng Admin modules.
 
 const pool = require("../config/database");
-
+const bcrypt = require("bcrypt")
 /**
  * GET ALL PENDING ORGANIZATION REQUESTS
  * GET /admin/api/partner-requests
@@ -106,56 +106,7 @@ exports.getOrganizations = async (req, res) => {
     }
 
 };
-router.get("/dashboard/stats", async (req, res) => {
-    try {
-        // Bilang ng mga Approved Applications sa user_adoption_applications
-        const [appRows] = await pool.query(`
-            SELECT COUNT(*) AS totalApprovedApplications
-            FROM user_adoption_applications
-            WHERE status = 'Approved'
-        `);
-        const totalApprovedApplications = appRows[0]?.totalApprovedApplications || 0;
 
-        // Total Organizations
-        const [orgRows] = await pool.query(`
-            SELECT COUNT(*) AS totalOrganizations
-            FROM organizations
-            WHERE verification_status = 'Approved'
-        `);
-        const totalOrganizations = orgRows[0]?.totalOrganizations || 0;
-
-        // Total Active Users
-        const [userRows] = await pool.query(`
-            SELECT COUNT(*) AS totalActiveUsers
-            FROM accounts
-            WHERE status = 'active'
-        `);
-        const totalActiveUsers = userRows[0]?.totalActiveUsers || 0;
-
-        // Total Pets
-        const [petRows] = await pool.query(`
-            SELECT COUNT(*) AS totalPets
-            FROM animals
-        `);
-        const totalPets = petRows[0]?.totalPets || 0;
-
-        res.json({
-            success: true,
-            totalApprovedApplications,
-            totalOrganizations,
-            totalActiveUsers,
-            totalPets
-        });
-
-    } catch (err) {
-        console.error("Dashboard Stats Error:", err);
-        res.status(500).json({
-            success: false,
-            message: "Database Error",
-            error: err.message
-        });
-    }
-});
 exports.getUsers = async (req, res) => {
 
     try {
@@ -235,5 +186,62 @@ exports.updateUserStatus = async (req, res) => {
     } catch (err) {
         console.error(err);
         res.status(500).json({ success: false, message: "Failed to update status." });
+    }
+};
+exports.getCurrentAdmin = async (req, res) => {
+    try {
+        const accountId = req.session?.accountId; // <--- Alisin ang underscore
+        if (!accountId) {
+            return res.status(401).json({ success: false, message: "Unauthorized" });
+        }
+
+        const [[user]] = await pool.query(`
+            SELECT account_id, email, role, profile_pic
+            FROM accounts
+            WHERE account_id = ?
+        `, [accountId]);
+
+        if (!user) return res.status(404).json({ success: false, message: "User not found" });
+
+        user.name = user.role === 'admin' ? "System Administrator" : user.email;
+
+        res.json({ success: true, user });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false, message: "Database Error" });
+    }
+};
+
+exports.updateAdminProfile = async (req, res) => {
+    try {
+        const accountId = req.session?.accountId;
+        
+        if (!accountId) {
+            return res.status(401).json({ success: false, message: "Unauthorized. Please log in again." });
+        }
+
+        const { email, password } = req.body; // Hindi na natin kailangan ang 'name' dito
+
+        // 1. I-update ang email at updated_at timestamp lamang
+        await pool.query(
+            `UPDATE accounts SET email = ?, updated_at = NOW() WHERE account_id = ?`,
+            [email, accountId]
+        );
+
+        // 2. I-update ang password_hash kung may inilagay na bago
+        if (password && password.trim() !== "") {
+            const saltRounds = 10;
+            const hashedPassword = await bcrypt.hash(password, saltRounds);
+            
+            await pool.query(
+                `UPDATE accounts SET password_hash = ?, updated_at = NOW() WHERE account_id = ?`,
+                [hashedPassword, accountId]
+            );
+        }
+
+        res.json({ success: true, message: "Profile updated successfully in the database!" });
+    } catch (err) {
+        console.error("Database Update Error:", err);
+        res.status(500).json({ success: false, message: "Database Error: " + err.message });
     }
 };
