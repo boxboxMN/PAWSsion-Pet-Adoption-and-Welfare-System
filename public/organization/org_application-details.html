@@ -1297,132 +1297,145 @@
             const today = new Date().toLocaleDateString("en-US", { year: 'numeric', month: 'long', day: 'numeric' });
 
             // ================= 1. HEADER & LOGO/TITLE =================
-            // Main Document Title
             doc.setFontSize(18);
             doc.setFont("helvetica", "bold");
             doc.setTextColor(30, 58, 138); // Darker Indigo/Blue (#1E3A8A)
             doc.text("ADOPTION APPLICATION REPORT", 14, 20);
 
-            // Decorative Accent Line below header
             doc.setDrawColor(37, 99, 235); // Primary Blue
             doc.setLineWidth(1);
             doc.line(14, 24, 196, 24);
 
-            // Metadata Block (Right & Left Aligned)
             doc.setFontSize(9.5);
             doc.setFont("helvetica", "bold");
-            doc.setTextColor(15, 23, 42); // Dark slate
+            doc.setTextColor(15, 23, 42); 
             doc.text(`Organization: ${orgName}`, 14, 32);
 
             doc.setFont("helvetica", "normal");
-            doc.setTextColor(100, 116, 139); // Muted slate gray
+            doc.setTextColor(100, 116, 139); 
             doc.text(`Generated Date: ${today}`, 14, 38);
 
             // Status Badge Block (Top Right)
             const appStatus = (currentAppDetails.status || 'Under Review').toUpperCase();
             doc.setFont("helvetica", "bold");
             doc.setFontSize(9);
-            doc.setFillColor(239, 246, 255); // Soft blue background badge
+            doc.setFillColor(239, 246, 255); 
             doc.setDrawColor(191, 219, 254);
             doc.roundedRect(135, 28, 61, 10, 2, 2, "FD");
             doc.setTextColor(29, 78, 216);
             doc.text(`STATUS: ${appStatus}`, 140, 34.5);
 
-            // Helper Function para sa malinis na Section Banners
+            // Helper Function para sa Section Banners
             function createSectionHeader(title, yPos) {
-                doc.setFillColor(241, 245, 249); // Light Gray Background (#F1F5F9)
+                doc.setFillColor(241, 245, 249); 
                 doc.roundedRect(14, yPos, 182, 7, 1, 1, "F");
                 doc.setFont("helvetica", "bold");
                 doc.setFontSize(9.5);
-                doc.setTextColor(30, 58, 138); // Dark Blue text
+                doc.setTextColor(30, 58, 138); 
                 doc.text(title, 18, yPos + 4.8);
             }
 
-            // Helper Function para sa 2-Column Key-Value Labels
-            function drawField(label, value, x, y) {
+            // Helper Function para sa Responsive/Auto-wrapped 2-Column Fields
+            function drawResponsiveField(label, value, x, y, maxWidth = 85) {
                 doc.setFont("helvetica", "bold");
                 doc.setFontSize(8.5);
-                doc.setTextColor(100, 116, 139); // Gray Label
+                doc.setTextColor(100, 116, 139); 
                 doc.text(label, x, y);
 
                 doc.setFont("helvetica", "normal");
                 doc.setFontSize(9.5);
-                doc.setTextColor(15, 23, 42); // Dark Value Text
-                doc.text(String(value || 'N/A'), x, y + 5);
+                doc.setTextColor(15, 23, 42); 
+
+                // I-auto wrap ang value sakaling mahaba (tulad ng kumpletong address)
+                const wrappedText = doc.splitTextToSize(String(value || 'N/A'), maxWidth);
+                doc.text(wrappedText, x, y + 5);
+
+                // Ibabalik ang total height na nakonsumo para magamit sa dynamic Y spacing ng kasunod na rows
+                return wrappedText.length * 4.5;
             }
 
-            // ================= 2. SECTION 1: APPLICANT INFORMATION =================
-            createSectionHeader("1. APPLICANT INFORMATION", 46);
+            let currentY = 46;
+            createSectionHeader("1. APPLICANT INFORMATION", currentY);
 
-            let currentY = 59;
-            // Row 1
-            drawField("FULL NAME", currentAppDetails.full_name, 18, currentY);
-            drawField("EMAIL ADDRESS", currentAppDetails.email, 105, currentY);
-
-            // Row 2
             currentY += 13;
-            drawField("CONTACT NUMBER", currentAppDetails.contact_number, 18, currentY);
-            drawField("AGE / CIVIL STATUS", `${currentAppDetails.age || 'N/A'} yrs old • ${currentAppDetails.civil_status || 'N/A'}`, 105, currentY);
+            // Row 1 (Full Name vs Email)
+            const h1 = Math.max(
+                drawResponsiveField("FULL NAME", currentAppDetails.full_name, 18, currentY, 80),
+                drawResponsiveField("EMAIL ADDRESS", currentAppDetails.email, 105, currentY, 85)
+            );
 
-            // Row 3
-            currentY += 13;
-            drawField("OCCUPATION", currentAppDetails.occupation, 18, currentY);
-            drawField("COMPLETE ADDRESS", currentAppDetails.full_address, 105, currentY);
+            currentY += h1 + 8;
+            // Row 2 (Contact vs Age/Civil Status)
+            const h2 = Math.max(
+                drawResponsiveField("CONTACT NUMBER", currentAppDetails.contact_number, 18, currentY, 80),
+                drawResponsiveField("AGE / CIVIL STATUS", `${currentAppDetails.age || 'N/A'} yrs old • ${currentAppDetails.civil_status || 'N/A'}`, 105, currentY, 85)
+            );
 
-            // ================= 3. SECTION 2: PREFERRED PET & ADOPTION INTENT =================
-            currentY += 18;
+            currentY += h2 + 8;
+            // Row 3 (Occupation vs Complete Address - ito madalas ang mahaba)
+            const h3 = Math.max(
+                drawResponsiveField("OCCUPATION", currentAppDetails.occupation, 18, currentY, 80),
+                drawResponsiveField("COMPLETE ADDRESS", currentAppDetails.full_address, 105, currentY, 85)
+            );
+
+            currentY += h3 + 12;
+
+            // ================= 2. SECTION 2: PREFERRED PET & ADOPTION INTENT =================
             createSectionHeader("2. PREFERRED PET & ADOPTION INTENT", currentY);
 
             currentY += 13;
-            drawField("TARGET PET NAME", currentAppDetails.pet_name, 18, currentY);
+            const hPet = drawResponsiveField("TARGET PET NAME", currentAppDetails.pet_name, 18, currentY, 170);
 
-            currentY += 13;
+            currentY += hPet + 8;
             doc.setFont("helvetica", "bold");
             doc.setFontSize(8.5);
             doc.setTextColor(100, 116, 139);
             doc.text("REASON FOR ADOPTION", 18, currentY);
 
             doc.setFont("helvetica", "normal");
-            doc.setFontSize(9);
+            doc.setFontSize(9.5);
             doc.setTextColor(15, 23, 42);
             
-            // Auto-wrap long paragraph text safely with margins
             const splitReason = doc.splitTextToSize(currentAppDetails.adoption_intent || "No reason provided.", 174);
             doc.text(splitReason, 18, currentY + 5);
 
-            currentY += 8 + (splitReason.length * 4.5);
+            currentY += 12 + (splitReason.length * 4.5);
 
-            // ================= 4. SECTION 3: EMERGENCY CONTACT =================
+            // ================= 3. SECTION 3: EMERGENCY CONTACT =================
             createSectionHeader("3. EMERGENCY CONTACT DETAILS", currentY);
 
             currentY += 13;
-            drawField("CONTACT PERSON", currentAppDetails.emergency_name, 18, currentY);
-            drawField("RELATIONSHIP", currentAppDetails.emergency_relation, 105, currentY);
+            const hEmg1 = Math.max(
+                drawResponsiveField("CONTACT PERSON", currentAppDetails.emergency_name, 18, currentY, 80),
+                drawResponsiveField("RELATIONSHIP", currentAppDetails.emergency_relation, 105, currentY, 85)
+            );
 
-            currentY += 13;
-            drawField("CONTACT NUMBER", currentAppDetails.emergency_phone, 18, currentY);
+            currentY += hEmg1 + 8;
+            drawResponsiveField("CONTACT NUMBER", currentAppDetails.emergency_phone, 18, currentY, 80);
 
-            // ================= 5. SECTION 4: INTERVIEW SCHEDULE (IF SET) =================
+            currentY += 18;
+
+            // ================= 4. SECTION 4: INTERVIEW SCHEDULE (IF SET) =================
             if (currentAppDetails.interview_date || currentAppDetails.interview_time) {
-                currentY += 18;
                 createSectionHeader("4. INTERVIEW SCHEDULE DETAILS", currentY);
 
                 currentY += 13;
-                drawField("INTERVIEW METHOD", (currentAppDetails.interview_method || 'N/A').toUpperCase(), 18, currentY);
-                drawField("SCHEDULED DATE & TIME", `${currentAppDetails.interview_date || 'N/A'} @ ${currentAppDetails.interview_time || 'N/A'}`, 105, currentY);
+                const hInt1 = Math.max(
+                    drawResponsiveField("INTERVIEW METHOD", (currentAppDetails.interview_method || 'N/A').toUpperCase(), 18, currentY, 80),
+                    drawResponsiveField("SCHEDULED DATE & TIME", `${currentAppDetails.interview_date || 'N/A'} @ ${currentAppDetails.interview_time || 'N/A'}`, 105, currentY, 85)
+                );
 
-                currentY += 13;
-                drawField("LOCATION / MEETING LINK", currentAppDetails.interview_location_link, 18, currentY);
+                currentY += hInt1 + 8;
+                drawResponsiveField("LOCATION / MEETING LINK", currentAppDetails.interview_location_link, 18, currentY, 170);
             }
 
-            // ================= FOOTER PAGE NUMBER & CONFIDENTIALITY =================
+            // ================= FOOTER =================
             doc.setFontSize(8);
             doc.setFont("helvetica", "normal");
             doc.setTextColor(148, 163, 184);
             doc.text("Confidential Document — For Organization Internal Adoption Review Only", 14, 285);
             doc.text("Page 1 of 1", 182, 285);
 
-            // Save File
             const cleanFileName = (currentAppDetails.full_name || "Applicant").replace(/[^a-zA-Z0-9]/g, "_");
             doc.save(`Adoption_Form_${cleanFileName}.pdf`);
         }

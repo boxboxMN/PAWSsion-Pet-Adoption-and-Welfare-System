@@ -94,9 +94,23 @@
                     <option value="CANCELLED">Cancelled by Adopter</option>
                 </select>
 
-                <button id="exportBtn" class="bg-white border border-gray-200 text-gray-700 px-4 py-2.5 rounded-lg text-sm font-medium inline-flex items-center gap-2 hover:bg-gray-50">
-                    <i class="fa-solid fa-file-export text-gray-500"></i> Export Summary
-                </button>
+                <!-- Export Summary Dropdown Container -->
+                <div class="relative inline-block text-left">
+                    <button id="exportBtn" type="button" class="bg-white border border-gray-200 text-gray-700 px-4 py-2.5 rounded-lg text-sm font-medium inline-flex items-center gap-2 hover:bg-gray-50 cursor-pointer">
+                        <i class="fa-solid fa-file-export text-gray-500"></i> Export Summary
+                        <i class="fa-solid fa-chevron-down text-xs text-gray-400 ml-1"></i>
+                    </button>
+        
+                    <!-- Dropdown Menu (Naka-hidden by default) -->
+                    <div id="exportDropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 z-50 overflow-hidden py-1">
+                        <button onclick="handleExportChoice('csv')" class="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 transition cursor-pointer">
+                            <i class="fa-solid fa-file-csv text-emerald-600 text-base"></i> Export Excel (CSV)
+                        </button>
+                        <button onclick="handleExportChoice('pdf')" class="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 transition cursor-pointer">
+                            <i class="fa-solid fa-file-pdf text-red-500 text-base"></i> Export PDF
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -179,9 +193,6 @@
         // 3. Search & Filter Event Listeners
         document.getElementById("searchInput")?.addEventListener("input", filterAndRenderTable);
         document.getElementById("statusFilter")?.addEventListener("change", filterAndRenderTable);
-
-        // 4. Export Summary Event Listener (Prompt for CSV or PDF)
-        document.getElementById("exportBtn")?.addEventListener("click", showExportOptionsModal);
 
         const params = new URLSearchParams(window.location.search);
             const applicationId = params.get("application_id");
@@ -483,8 +494,24 @@
         });
     }
 
+    const exportBtn = document.getElementById("exportBtn");
+    const exportDropdown = document.getElementById("exportDropdown");
+
+    exportBtn?.addEventListener("click", (e) => {
+        e.stopPropagation();
+        exportDropdown.classList.toggle("hidden");
+    });
+
+    document.addEventListener("click", (e) => {
+        if (!exportBtn?.contains(e.target) && !exportDropdown?.contains(e.target)) {
+            exportDropdown?.classList.add("hidden");
+        }
+    });
+
     // Modal para sa pagpili ng format (CSV or PDF)
-    function showExportOptionsModal() {
+    function handleExportChoice(type) {
+        exportDropdown?.classList.add("hidden"); // Isara agad ang dropdown
+
         const exportData = filteredApplications.length > 0 ? filteredApplications : allApplications;
 
         if (!exportData || exportData.length === 0) {
@@ -497,31 +524,11 @@
             return;
         }
 
-        Swal.fire({
-            title: 'Export Summary',
-            text: 'Choose your preferred export format:',
-            icon: 'question',
-            showCancelButton: true,
-            showDenyButton: true,
-            confirmButtonText: '<i class="fa-solid fa-file-csv mr-1"></i> Export as CSV',
-            denyButtonText: '<i class="fa-solid fa-file-pdf mr-1"></i> Export as PDF',
-            cancelButtonText: 'Cancel',
-            confirmButtonColor: '#059669', // Green for CSV/Excel
-            denyButtonColor: '#DC2626',    // Red for PDF
-            cancelButtonColor: '#6B7280',
-            customClass: {
-                popup: 'rounded-2xl',
-                confirmButton: 'px-4 py-2 text-sm font-semibold rounded-xl',
-                denyButton: 'px-4 py-2 text-sm font-semibold rounded-xl',
-                cancelButton: 'px-4 py-2 text-sm font-semibold rounded-xl'
-            }
-        }).then((result) => {
-            if (result.isConfirmed) {
-                exportAdoptionSummaryCSV(exportData);
-            } else if (result.isDenied) {
-                exportAdoptionSummaryPDF(exportData);
-            }
-        });
+        if (type === 'csv') {
+            exportAdoptionSummaryCSV(exportData);
+        } else if (type === 'pdf') {
+            exportAdoptionSummaryPDF(exportData);
+        }
     }
 
     // Variable para i-cache ang organization profile data
