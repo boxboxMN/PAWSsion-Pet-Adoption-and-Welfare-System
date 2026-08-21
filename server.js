@@ -427,8 +427,7 @@ app.get('/api/organization/applications', async (req, res) => {
         const query = `
            SELECT 
                 app.application_id AS id,
-                COALESCE(NULLIF(TRIM(app.full_name), ''), CONCAT(adopt.first_name, ' ', adopt.last_name), 'N/A') AS applicant_name,
-                COALESCE(NULLIF(TRIM(app.email), ''), acc.email, '') AS applicant_email,
+                app.applicant_snapshot,
                 p.name AS pet_name,
                 p.species AS pet_type,
                 p.gender AS pet_gender,
@@ -437,8 +436,6 @@ app.get('/api/organization/applications', async (req, res) => {
                 DATE_FORMAT(app.created_at, '%b %d, %Y') AS applied_date,
                 DATE_FORMAT(app.created_at, '%h:%i %p') AS applied_time
             FROM user_adoption_applications app
-            LEFT JOIN adopters adopt ON app.adopter_id = adopt.adopter_id
-            LEFT JOIN accounts acc ON adopt.account_id = acc.account_id
             INNER JOIN animals p ON app.animal_id = p.animal_id
             WHERE p.organization_id = ?
             ORDER BY app.created_at DESC;
@@ -446,7 +443,35 @@ app.get('/api/organization/applications', async (req, res) => {
 
         const [rows] = await pool.query(query, [orgId]);
 
-        res.status(200).json(rows);
+        // 3. MAP FUNCTION: I-parse ang JSON snapshot para sa bawat application record
+        const formattedApplications = rows.map(app => {
+            let snapshot = {};
+            try {
+                snapshot = typeof app.applicant_snapshot === 'string'
+                    ? JSON.parse(app.applicant_snapshot)
+                    : (app.applicant_snapshot || {});
+            } catch (e) {
+                console.error("JSON parse error:", e);
+            }
+
+            const applicantData = snapshot.applicant || snapshot;
+
+            return {
+                id: app.id,
+                applicant_name: applicantData.fullName || applicantData.full_name || 'N/A',
+                applicant_email: applicantData.email || 'N/A',
+                applicant_phone: applicantData.phone || applicantData.contact_number || 'N/A',
+                pet_name: app.pet_name,
+                pet_type: app.pet_type,
+                pet_gender: app.pet_gender,
+                pet_image: app.pet_image,
+                status: app.status,
+                applied_date: app.applied_date,
+                applied_time: app.applied_time
+            };
+        });
+
+        res.status(200).json(formattedApplications);
     } catch (error) {
         console.error("Database Error:", error);
         res.status(500).json({ error: "Failed to fetch applications from database" });

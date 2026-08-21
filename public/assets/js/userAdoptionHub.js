@@ -289,7 +289,7 @@ async function openPetModal(pet){
     switch (pet.status) {
 
         case "Available":
-            statusBadge.textContent = "🟢 Available";
+            statusBadge.textContent = "Available";
             statusBadge.classList.add(
                 "bg-emerald-50",
                 "border",
@@ -299,7 +299,7 @@ async function openPetModal(pet){
             break;
 
         case "Pending":
-            statusBadge.textContent = "🟡 Adoption in Progress";
+            statusBadge.textContent = "Adoption in Progress";
             statusBadge.classList.add(
                 "bg-yellow-50",
                 "border",
@@ -309,7 +309,7 @@ async function openPetModal(pet){
             break;
 
         case "Adopted":
-            statusBadge.textContent = "💙 Successfully Adopted";
+            statusBadge.textContent = "Successfully Adopted";
             statusBadge.classList.add(
                 "bg-blue-50",
                 "border",
@@ -319,7 +319,7 @@ async function openPetModal(pet){
             break;
 
         case "Archived":
-            statusBadge.textContent = "⚪ No Longer Listed";
+            statusBadge.textContent = "No Longer Listed";
             statusBadge.classList.add(
                 "bg-slate-100",
                 "border",
@@ -348,7 +348,7 @@ async function openPetModal(pet){
     switch (pet.health) {
 
         case "Healthy":
-            healthBadge.textContent = "💚 Excellent Condition";
+            healthBadge.textContent = "Excellent Condition";
             healthBadge.classList.add(
                 "bg-emerald-50",
                 "border",
@@ -358,7 +358,7 @@ async function openPetModal(pet){
             break;
 
         case "Recovered":
-            healthBadge.textContent = "🌿 Recovered";
+            healthBadge.textContent = "Recovered";
             healthBadge.classList.add(
                 "bg-green-50",
                 "border",
@@ -368,7 +368,7 @@ async function openPetModal(pet){
             break;
 
         case "Under Treatment":
-            healthBadge.textContent = "🩺 Under Treatment";
+            healthBadge.textContent = "Under Treatment";
             healthBadge.classList.add(
                 "bg-yellow-50",
                 "border",
@@ -378,7 +378,7 @@ async function openPetModal(pet){
             break;
 
         case "Sick":
-            healthBadge.textContent = "❤️ Needs Extra Care";
+            healthBadge.textContent = "Needs Extra Care";
             healthBadge.classList.add(
                 "bg-red-50",
                 "border",
@@ -407,7 +407,7 @@ async function openPetModal(pet){
     switch (pet.vaccination) {
 
         case "Vaccinated":
-            vaccinationBadge.textContent = "💉 Vaccinated";
+            vaccinationBadge.textContent = "Vaccinated";
             vaccinationBadge.classList.add(
                 "bg-blue-50",
                 "border",
@@ -417,7 +417,7 @@ async function openPetModal(pet){
             break;
 
         case "Not Vaccinated":
-            vaccinationBadge.textContent = "⚠️ Not Yet Vaccinated";
+            vaccinationBadge.textContent = "Not Yet Vaccinated";
             vaccinationBadge.classList.add(
                 "bg-orange-50",
                 "border",
@@ -427,7 +427,7 @@ async function openPetModal(pet){
             break;
 
         case "Unknown":
-            vaccinationBadge.textContent = "❓ Vaccination Unknown";
+            vaccinationBadge.textContent = "Vaccination Unknown";
             vaccinationBadge.classList.add(
                 "bg-slate-100",
                 "border",
@@ -455,38 +455,10 @@ async function openPetModal(pet){
 
     document.getElementById("viewPetModal").classList.remove("hidden");
     document.getElementById("viewPetModal").classList.add("flex");
-    // tags.innerHTML = "";
-
-// if (pet.personality) {
-
-//     pet.personality.split(",").forEach(tag => {
-
-//         tags.innerHTML += `
-//             <span
-//                 class="
-//                 bg-blue-600
-//                 text-white
-//                 text-sm
-//                 font-semibold
-//                 px-4
-//                 py-2
-//                 rounded-full">
-
-//                 ${tag.trim()}
-
-//             </span>
-//         `;
-
-//     });
-
-// }
-
     document.getElementById("viewPetModal").classList.remove("hidden");
-
     document.getElementById("viewPetModal").classList.add("flex");
 
 }
-
 
 function renderMedicalHistory(history) {
     const tbody = document.getElementById("modalMedicalBody");
@@ -533,4 +505,113 @@ function closePetModal(){
     document.getElementById("viewPetModal").classList.add("hidden");
 
     document.getElementById("viewPetModal").classList.remove("flex");
+}
+
+// Function para i-fetch at i-auto-fill ang Profile Information ng User
+async function autoFillUserProfile() {
+    try {
+        const response = await fetch('/api/user/profile', { credentials: 'include' });
+        if (!response.ok) return;
+
+        const user = await response.json();
+
+        // 1. Full Name (Pinagsamang first_name at last_name)
+        const fullNameInput = document.getElementById('app-fullname');
+        if (fullNameInput && (user.first_name || user.last_name)) {
+            fullNameInput.value = `${user.first_name || ''} ${user.last_name || ''}`.trim();
+        }
+
+        // 2. Phone / Mobile Number
+        const phoneInput = document.getElementById('app-phone');
+        if (phoneInput && user.phone_number) {
+            phoneInput.value = user.phone_number;
+        }
+
+        // 3. Email Address
+        const emailInput = document.getElementById('app-email');
+        if (emailInput && user.email) {
+            emailInput.value = user.email;
+        }
+
+        // 4. Street Address / House No.
+        const streetInput = document.getElementById('app-street');
+        if (streetInput && user.street_address) {
+            streetInput.value = user.street_address;
+        }
+
+        // 5. Zip Code
+        const zipInput = document.getElementById('app-zip');
+        if (zipInput && user.zip_code) {
+            zipInput.value = user.zip_code;
+            // Trigger input event para mag-update ang live validation ng ZIP code
+            zipInput.dispatchEvent(new Event('input'));
+        }
+
+        // 6. Civil Status
+        const civilSelect = document.getElementById('app-civil');
+        if (civilSelect && user.civil_status) {
+            civilSelect.value = user.civil_status;
+        }
+
+        // 7. Age (Kukwentahin batay sa birthday kung mayroon)
+        const ageInput = document.getElementById('app-age');
+        if (ageInput && user.birthday) {
+            const birthDate = new Date(user.birthday);
+            const ageDifMs = Date.now() - birthDate.getTime();
+            const ageDate = new Date(ageDifMs);
+            const calculatedAge = Math.abs(ageDate.getUTCFullYear() - 1970);
+            ageInput.value = calculatedAge;
+        }
+
+        // 8. Occupation
+        const occupationInput = document.getElementById('app-occupation');
+        if (occupationInput && user.occupation) {
+            occupationInput.value = user.occupation;
+        }
+
+        // =========================================================
+        // 9. CASCADING ADDRESS AUTO-FILL (Region -> Province -> City -> Barangay)
+        // =========================================================
+        const regionSelect = document.getElementById('app-region');
+        const provinceSelect = document.getElementById('app-province');
+        const citySelect = document.getElementById('app-city');
+        const barangaySelect = document.getElementById('app-barangay');
+
+        if (regionSelect && user.region) {
+            // Step 9a. Select Region
+            regionSelect.value = user.region;
+            
+            // I-trigger ang 'change' event ng Region para ma-load ang mga Provinces
+            regionSelect.dispatchEvent(new Event('change'));
+
+            // Bigyan ng konting oras para matapos ang fetch/load ng Provinces
+            setTimeout(async () => {
+                if (provinceSelect && user.province) {
+                    // Step 9b. Select Province
+                    provinceSelect.value = user.province;
+                    provinceSelect.dispatchEvent(new Event('change'));
+
+                    // Bigyan ng oras para matapos ang fetch/load ng Cities
+                    setTimeout(async () => {
+                        if (citySelect && user.city) {
+                            // Step 9c. Select City
+                            citySelect.value = user.city;
+                            citySelect.dispatchEvent(new Event('change'));
+
+                            // Bigyan ng oras para matapos ang fetch/load ng Barangays
+                            setTimeout(() => {
+                                if (barangaySelect && user.barangay) {
+                                    // Step 9d. Select Barangay
+                                    barangaySelect.value = user.barangay;
+                                }
+                            }, 250);
+                        }
+                    }, 250);
+                }
+            }, 250);
+        }
+
+    } catch (err) {
+        console.error("Error auto-filling user profile:", err);
+    }
 }

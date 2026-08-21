@@ -383,3 +383,67 @@ ALTER TABLE `user_adoption_applications`
 
 irespeleta@my.cspc.edu.ph pass: irespeleta@my.cspc.edu.ph2A
 eneriatelpse@gmail.com pass: 1Eneriatelepse@gmail.com
+
+# new functions na need iupdate:
+
+user profile
+org profile
+
+
+sa edit user profile:  ✓
+
+dapat kung paano yung sa create an account ganun din ang nasa edit ✓
+
+
+account type palitan ng role ✓
+
+remove the account type ✓
+
+sa profile: ✓
+makikita ng user are:
+birthday
+civil status (if meron, else if = none, hide the civil status)
+occupation
+full address
+
+kapag nasa edit profile na:  ✓
+
+First Name
+Last Name
+Email
+Mobile Number
+Birthday
+Civil Status
+Occupation
+Street Address
+Barangay
+City / Municipality
+Province
+Region
+ZIP Code
+
+user side:
+
+    adoption hub : 
+        prefilled pero pwede naman iedit dapat yung sa name, wag daw ang age, birthday na lang or through bday macocompute na ang age
+ 
+# AUG 21, 2026 ✓
+ALTER TABLE animals
+DROP COLUMN color,
+DROP COLUMN personality_tags;
+
+
+# Aug 21, 2026 (5 am)
+
+ALTER TABLE user_adoption_applications
+-- 1. Idagdag ang JSON column para sa snapshot
+ADD COLUMN applicant_snapshot JSON AFTER adopter_id,
+
+-- 2. Tatanggalin ang mga redundant user profile columns
+DROP COLUMN full_name,
+DROP COLUMN contact_number,
+DROP COLUMN email,
+DROP COLUMN full_address,
+DROP COLUMN civil_status,
+DROP COLUMN age,
+DROP COLUMN occupation;

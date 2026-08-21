@@ -1,6 +1,7 @@
 //logic para sa lahat ng User modules.
 const pool = require("../config/database"); 
 const bcrypt = require("bcrypt");
+const validator = require('validator');
 const AdoptionModel = require('../models/userModel');
 
 exports.getProfile = async (req, res) => {
@@ -10,17 +11,33 @@ exports.getProfile = async (req, res) => {
     try {
         
         const [rows] = await pool.query(
-            `SELECT first_name, last_name, email, phone_number, profile_picture, created_at 
-             FROM adopters 
+            `SELECT 
+                adopters.first_name, 
+                adopters.last_name, 
+                accounts.email, 
+                accounts.role,
+                adopters.phone_number, 
+                adopters.birthday,
+                adopters.civil_status,
+                adopters.occupation,
+                adopters.street_address,
+                adopters.barangay,
+                adopters.city,
+                adopters.province,
+                adopters.region,
+                adopters.zip_code,
+                adopters.profile_picture, 
+                accounts.created_at
+                FROM adopters 
              JOIN accounts ON adopters.account_id = accounts.account_id 
-             WHERE adopters.account_id = ?`, 
+             WHERE adopters.account_id = ?`,
             [accountId]
         );
 
         if (rows.length === 0) return res.status(404).json({ error: "Profile not found" });
         res.json(rows[0]);
     } catch (error) {
-        console.error(error);
+        console.error("Get Profile Error:", error);
         res.status(500).json({ error: "Server error" });
     }
 };
@@ -31,12 +48,73 @@ exports.updateProfile = async (req, res) => {
         return res.status(401).json({ error: "Unauthorized access" });
     }
 
-    const { fullName, email, mobile } = req.body;
+    const firstName = (req.body.firstName || '').trim();
+    const lastName = (req.body.lastName || '').trim();
+    
+    const email = (req.body.email || '')
+        .trim()
+        .toLowerCase();
+    
+    const mobile = (req.body.mobile || '')
+        .trim()
+        .replace(/\s+/g, '');
+    
+    const birthday = (req.body.birthday || '').trim();
+    const civilStatus = (req.body.civilStatus || '').trim();
+    const occupation = (req.body.occupation || '').trim();
+    const streetAddress = (req.body.streetAddress || '').trim();
+    const barangay = (req.body.barangay || '').trim();
+    const city = (req.body.city || '').trim();
+    const province = (req.body.province || '').trim();
+    const region = (req.body.region || '').trim();
+    const zipCode = (req.body.zipCode || '')
+        .toString()
+        .trim()
+        .replace(/\D/g, '');
 
-   
-    const nameParts = fullName.trim().split(" ");
-    const firstName = nameParts[0] || "";
-    const lastName = nameParts.slice(1).join(" ") || "";
+     if (!firstName || !lastName || !email) {
+        return res.status(400).json({ error: "First name, Last name, and Email are required." });
+    }
+
+    // ==========================================
+    // EMAIL VALIDATION
+    // ==========================================
+    const strictEmailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
+
+    if (!validator.isEmail(email) || !strictEmailRegex.test(email)) {
+        return res.status(400).json({
+            success: false,
+            error: "Please enter a valid email address."
+        });
+    }
+
+    // ==========================================
+    // MOBILE NUMBER VALIDATION
+    // ==========================================
+    const phoneRegex = /^(09\d{9}|\+639\d{9})$/;
+
+    if (mobile && !phoneRegex.test(mobile)) {
+        return res.status(400).json({
+            success: false,
+            error: "Please enter a valid Philippine mobile number."
+        });
+    }
+
+    const [existingEmail] = await pool.query(
+        `SELECT account_id 
+         FROM accounts 
+         WHERE LOWER(email) = LOWER(?) 
+         AND account_id != ?
+         LIMIT 1`,
+        [email, accountId]
+    );
+    
+    if (existingEmail.length > 0) {
+        return res.status(409).json({
+            success: false,
+            error: "An account with this email already exists."
+        });
+    }
 
     const connection = await pool.getConnection();
     try {
@@ -51,8 +129,35 @@ exports.updateProfile = async (req, res) => {
 
         
         await connection.query(
-            `UPDATE adopters SET first_name = ?, last_name = ?, phone_number = ? WHERE account_id = ?`,
-            [firstName, lastName, mobile, accountId]
+            `UPDATE adopters SET 
+                first_name = ?, 
+                last_name = ?, 
+                phone_number = ?, 
+                birthday = ?, 
+                civil_status = ?, 
+                occupation = ?, 
+                street_address = ?, 
+                barangay = ?, 
+                city = ?, 
+                province = ?, 
+                region = ?, 
+                zip_code = ?
+             WHERE account_id = ?`,
+            [
+                firstName,
+                lastName,
+                mobile || null,
+                birthday || null,
+                civilStatus || null,
+                occupation || null,
+                streetAddress || null,
+                barangay || null,
+                city || null,
+                province || null,
+                region || null,
+                zipCode || null,
+                accountId
+            ]
         );
 
         await connection.commit();
@@ -627,6 +732,21 @@ exports.submitAdoptionApplication = async (req, res) => {
 
         const organizationId = petRows[0].organization_id;
 
+        // 4. BUOIN ANG IMMUTABLE JSON SNAPSHOT
+        //For future reference, this snapshot can be used for auditing or historical purposes.
+        const applicantSnapshot = {
+            full_name: full_name || null,
+            contact_number: contact_number || null,
+            email: email || null,
+            full_address: full_address || null,
+            civil_status: civil_status || null,
+            age: age ? parseInt(age, 10) : null,
+            occupation: occupation || null,
+            submitted_at: new Date().toISOString()
+        };
+
+        const snapshotJSON = JSON.stringify(applicantSnapshot);
+
         // 2. CHECK KUNG MAY EXISTING APPLICATION NA PARA SA PET NA ITO
         const [existingApp] = await pool.query(
             `SELECT application_id, status FROM user_adoption_applications 
@@ -640,13 +760,7 @@ exports.submitAdoptionApplication = async (req, res) => {
             const updateQuery = `
                 UPDATE user_adoption_applications SET
                     organization_id = ?,
-                    full_name = ?,
-                    contact_number = ?,
-                    email = ?,
-                    full_address = ?,
-                    civil_status = ?,
-                    age = ?,
-                    occupation = ?,
+                    applicant_snapshot = ?,
                     adoption_intent = ?,
                     emergency_name = ?,
                     emergency_phone = ?,
@@ -661,13 +775,7 @@ exports.submitAdoptionApplication = async (req, res) => {
 
             const updateValues = [
                 organizationId,
-                full_name || null,
-                contact_number || null,
-                email || null,
-                full_address || null,
-                civil_status || null,
-                age ? parseInt(age, 10) : null,
-                occupation || null,
+                snapshotJSON,
                 adoption_intent || null,
                 emergency_name || null,
                 emergency_phone || null,
@@ -689,13 +797,7 @@ exports.submitAdoptionApplication = async (req, res) => {
                 organization_id,
                 adopter_id,
                 animal_id,
-                full_name,
-                contact_number,
-                email,
-                full_address,
-                civil_status,
-                age,
-                occupation,
+                applicant_snapshot,
                 adoption_intent,
                 emergency_name,
                 emergency_phone,
@@ -704,20 +806,14 @@ exports.submitAdoptionApplication = async (req, res) => {
                 status,
                 created_at,
                 updated_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
         `;
 
         const values = [
             organizationId,
             adopterId || null,
             animal_id ? parseInt(animal_id, 10) : null,
-            full_name || null,
-            contact_number || null,
-            email || null,
-            full_address || null,
-            civil_status || null,
-            age ? parseInt(age, 10) : null,
-            occupation || null,
+            snapshotJSON,
             adoption_intent || null,
             emergency_name || null,
             emergency_phone || null,
@@ -824,13 +920,7 @@ exports.getUserApplications = async (req, res) => {
                 app.application_id,
                 app.adopter_id,
                 app.animal_id,
-                app.full_name,
-                app.contact_number,
-                app.email,
-                app.full_address,
-                app.civil_status,
-                app.age,
-                app.occupation,
+                app.applicant_snapshot,
                 app.adoption_intent,
                 app.emergency_name,
                 app.emergency_phone,
@@ -868,6 +958,29 @@ exports.getUserApplications = async (req, res) => {
             `,
             [adopterId]
         );
+
+        // MAP FUNCTION: I-parse ang JSON snapshot para madaling basahin sa Frontend
+        const formattedApplications = applications.map(app => {
+            let parsedSnapshot = {};
+            try {
+                parsedSnapshot = typeof app.applicant_snapshot === 'string' 
+                    ? JSON.parse(app.applicant_snapshot) 
+                    : (app.applicant_snapshot || {});
+            } catch (e) {
+                console.error("JSON parse error:", e);
+            }
+
+            return {
+                ...app,
+                full_name: parsedSnapshot.full_name || 'N/A',
+                contact_number: parsedSnapshot.contact_number || 'N/A',
+                email: parsedSnapshot.email || 'N/A',
+                full_address: parsedSnapshot.full_address || 'N/A',
+                civil_status: parsedSnapshot.civil_status || 'N/A',
+                age: parsedSnapshot.age || 'N/A',
+                occupation: parsedSnapshot.occupation || 'N/A'
+            };
+        });
 
         // =====================================================
         // 5. SEND RESPONSE
