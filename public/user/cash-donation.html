@@ -14,9 +14,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet" />
 
-    <script src="../assets/js/userSidebar.js"></script>
-    <script src="../assets/js/userHeader.js"></script>
-    <script src="/assets/js/userCash-donation.js" defer></script>
+    <script src="../assets/js/userSidebar.js"[cite: 5]></script>
+    <script src="../assets/js/userHeader.js"[cite: 5]></script>
+    <script src="/assets/js/userCash-donation.js" defer[cite: 5]></script>
 
     <style>
         *{
@@ -80,6 +80,7 @@
             z-index: 999;
             align-items: center;
             justify-content: center;
+            padding: 1rem;
         }
 
         .modal-overlay.active {
@@ -88,9 +89,8 @@
 
         .modal-box {
             background: white;
-            max-width: 500px;
-            width: 90%;
-            padding: 2rem;
+            max-width: 550px;
+            width: 100%;
             border-radius: 1rem;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
             position: relative;
@@ -129,176 +129,178 @@
 </head>
 
 <body class="bg-gray-100 h-full overflow-hidden">
-    <div id="sidebar" class="fixed left-0 top-0 w-64 h-screen bg-white border-r border-gray-200 z-50"></div>
+    <div id="sidebar" class="fixed left-0 top-0 w-64 h-screen bg-white border-r border-gray-200 z-50"[cite: 5]></div>
 
-    <main class="ml-64 pt-24 h-screen overflow-hidden bg-gray-50">
+    <main class="ml-64 pt-24 h-screen overflow-hidden bg-gray-50"[cite: 5]>
         
-        <div id="header" class="fixed top-0 left-64 right-0 h-24 bg-white border-b border-gray-200 z-40"></div>
+        <div id="header" class="fixed top-0 left-64 right-0 h-24 bg-white border-b border-gray-200 z-40"[cite: 5]></div>
 
-        <div class="h-[calc(100vh-6rem)] overflow-y-auto p-8">
-            <div class="text-center mb-8">
-                <h1 class="text-4xl font-bold text-blue-700">
+        <div class="h-[calc(100vh-6rem)] overflow-y-auto p-8"[cite: 5]>
+            <div class="text-center mb-8"[cite: 5]>
+                <h1 class="text-4xl font-bold text-blue-700"[cite: 5]>
                     Your Donation Makes a Difference
                 </h1>
-                <p class="text-gray-600 mt-2">
+                <p class="text-gray-600 mt-2"[cite: 5]>
                     Help us continue our mission to care for and rehome animals in need
                 </p>
-                <div class="flex justify-center gap-4 mt-6">
-                    <a href="/cash-donation" id="cashBtn" class="donation-btn bg-blue-700 text-white px-8 py-3 rounded-lg font-medium inline-block">
+                <div class="flex justify-center gap-4 mt-6"[cite: 5]>
+                    <a href="/cash-donation" id="cashBtn" class="donation-btn bg-blue-700 text-white px-8 py-3 rounded-lg font-medium inline-block"[cite: 5]>
                         Cash Donation
                     </a>
-                    <a href="/inkind-donation" id="inkindBtn" class="donation-btn border border-blue-700 text-blue-700 hover:bg-blue-700 hover:text-white px-8 py-3 rounded-lg font-medium inline-block">
+                    <a href="/inkind-donation" id="inkindBtn" class="donation-btn border border-blue-700 text-blue-700 hover:bg-blue-700 hover:text-white px-8 py-3 rounded-lg font-medium inline-block"[cite: 5]>
                         In-Kind Donation
                     </a>
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6"[cite: 5]>
                 
-                <div class="lg:col-span-2 bg-white rounded-2xl shadow p-6">
-                    <h2 class="text-xl font-bold mb-4">Step 1: Select Organization</h2>
-                    <div id="orgContainer" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-                        <p class="text-gray-500 text-center col-span-3">Loading organizations...</p>
+                <div class="lg:col-span-2 bg-white rounded-2xl shadow p-6"[cite: 5]>
+                    <h2 class="text-xl font-bold mb-4"[cite: 5]>Step 1: Select Organization</h2>
+                    <div id="orgContainer" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8"[cite: 5]>
+                        <p class="text-gray-500 text-center col-span-3"[cite: 5]>Loading organizations...</p>
                     </div>
 
-                    <h2 class="text-xl font-bold mb-4">Step 2: Donations Details</h2>
-                    <h3 class="font-semibold mb-3">General Information</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                        <input type="text" placeholder="Name" class="border rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500" />
-                        <input type="email" placeholder="Email Address" class="border rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500" />
+                    <h2 class="text-xl font-bold mb-4"[cite: 5]>Step 2: Donations Details</h2>
+                   <h3 class="font-semibold mb-3"[cite: 5]>General Information</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6"[cite: 5]>
+                        <input type="text" id="donorName" placeholder="Name" class="border rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 bg-gray-50" readonly[cite: 5] />
+                        <input type="email" id="donorEmail" placeholder="Email Address" class="border rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 bg-gray-50" readonly[cite: 5] />
                     </div>
 
-                    <h3 class="font-semibold mb-3">Payment-Specific Details</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                        <input type="text" placeholder="GCASH account name" class="border rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500" />
-                        <input type="text" placeholder="Reference Number" class="border rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500" />
+                    <h3 class="font-semibold mb-3"[cite: 5]>Payment-Specific Details</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4"[cite: 5]>
+                        <input type="text" placeholder="GCASH account name" class="border rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500"[cite: 5] />
+                        <input type="text" placeholder="Reference Number" class="border rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500"[cite: 5] />
                     </div>
 
-                    <div class="mb-6">
-                        <input type="number" placeholder="Enter custom amount" class="w-full md:w-[300px] border rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500" />
+                    <div class="mb-6"[cite: 5]>
+                        <input type="number" id="customAmount" placeholder="Enter custom amount" min="1" step="any" oninput="if(this.value < 0) this.value = '';" class="w-full md:w-[300px] border rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500"[cite: 5] />
                     </div>
 
-                    <div class="flex items-start gap-2 mb-6">
-                        <input type="checkbox" class="mt-1" />
-                        <p class="text-sm text-gray-600">
+                    <div class="flex items-start gap-2 mb-6"[cite: 5]>
+                        <input type="checkbox" class="mt-1"[cite: 5] />
+                        <p class="text-sm text-gray-600"[cite: 5]>
                             By submitting this form, I agree to the processing of my personal
                             information in accordance with Privacy Policy
                         </p>
                     </div>
 
-                    <button class="w-full bg-blue-700 hover:bg-blue-800 text-white py-3 rounded-lg font-semibold transition cursor-pointer">
+                    <button class="w-full bg-blue-700 hover:bg-blue-800 text-white py-3 rounded-lg font-semibold transition cursor-pointer"[cite: 5]>
                         Complete Donation
                     </button>
-                    <p class="text-xs text-gray-400 mt-4">
+                    <p class="text-xs text-gray-400 mt-4"[cite: 5]>
                         Note: Payment details, purposes and requirements are dynamically
                         configured by the organization
                     </p>
                 </div>
 
-                <div class="bg-white rounded-2xl shadow p-6 h-fit">
-                    <h2 class="text-xl font-bold text-center text-blue-700 mb-2">
+                <div class="bg-white rounded-2xl shadow p-6 h-fit"[cite: 5]>
+                    <h2 class="text-xl font-bold text-center text-blue-700 mb-2"[cite: 5]>
                         Scan to QR code to Donate
                     </h2>
-                    <p class="text-sm text-gray-500 text-center mb-5">
+                    <p class="text-sm text-gray-500 text-center mb-5"[cite: 5]>
                         Used your app to scan this QR code
                     </p>
-                    <div class="flex justify-center mb-6">
-                        <img id="qrImage" class="rounded-lg border max-h-[200px] object-contain" />
+                    <div class="flex justify-center mb-6"[cite: 5]>
+                        <img id="qrImage" class="rounded-lg border max-h-[200px] object-contain"[cite: 5] />
                     </div>
-                    <div class="space-y-4 text-sm">
+                    <div class="space-y-4 text-sm"[cite: 5]>
                         <div>
-                            <p class="text-gray-500">GCASH Account Name:</p>
-                            <p id="gcashName" class="font-semibold">Loading...</p>
+                            <p class="text-gray-500"[cite: 5]>GCASH Account Name:</p>
+                            <p id="gcashName" class="font-semibold"[cite: 5]>Loading...</p>
                         </div>
                         <div>
-                            <p class="text-gray-500">GCASH Number</p>
-                            <p id="gcashNumber" class="font-semibold">Loading...</p>
+                            <p class="text-gray-500"[cite: 5]>GCASH Number</p>
+                            <p id="gcashNumber" class="font-semibold"[cite: 5]>Loading...</p>
                         </div>
                     </div>
                     <div class="mt-6">
-                        <label class="border-2 border-dashed border-blue-400 rounded-xl p-5 flex flex-col items-center justify-center cursor-pointer hover:bg-blue-50 transition">
-                            <span class="text-blue-700 font-semibold">Upload Receipt</span>
-                            <span class="text-xs text-gray-500 mt-1">Accepted file type: jpg, png, pdf</span>
-                            <input type="file" class="hidden" />
-                        </label>
-                    </div>
-                    <div class="mt-5 border rounded-xl p-4 bg-blue-50">
-                        <h3 class="font-semibold text-blue-700 mb-2">Important Notes</h3>
-                        <ul class="text-sm text-gray-600 list-disc pl-5">
-                            <li>All donations will be verified by the organization.</li>
+                    <label class="border-2 border-dashed border-blue-400 rounded-xl p-5 flex flex-col items-center justify-center cursor-pointer hover:bg-blue-50 transition overflow-hidden">
+                        <span class="text-blue-700 font-semibold text-center">Upload Receipt</span>
+                        <!-- Dinagdagan natin ng max-w-full at truncate para hindi sumabog ang layout kapag mahaba ang file name -->
+                        <span id="receiptFileName" class="text-xs text-gray-500 mt-1 text-center max-w-full truncate px-2">Accepted file type: jpg, png, pdf</span>
+                        <input type="file" class="hidden" />
+                    </label>
+                </div>
+                    <div class="mt-5 border rounded-xl p-4 bg-blue-50"[cite: 5]>
+                        <h3 class="font-semibold text-blue-700 mb-2"[cite: 5]>Important Notes</h3>
+                        <ul class="text-sm text-gray-600 list-disc pl-5"[cite: 5]>
+                            <li[cite: 5]>All donations will be verified by the organization.</li>
                         </ul>
                     </div>
                 </div>
 
             </div>
         </div>
-        <div id="orgModal" class="modal-overlay">
-    <div class="modal-box p-0 overflow-hidden rounded-2xl">
-        <!-- Modal Header na may Blue Gradient at Logo Container -->
-        <div class="bg-gradient-to-r from-blue-600 to-blue-700 p-6 text-white relative">
-            <span id="modalClose" class="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-black/20 hover:bg-black/40 text-white cursor-pointer transition">
-                <i class="fa-solid fa-xmark"></i>
-            </span>
-            <div class="flex items-center gap-4">
-                <div id="modalOrgLogoContainer" class="w-16 h-16 bg-white rounded-full p-1 shadow-md flex-shrink-0 flex items-center justify-center text-blue-700 font-bold text-xl overflow-hidden">
-                    <i id="modalOrgLogo" class="fa-solid fa-building-user"></i>
+
+        <!-- REVISED ORGANIZATION PROFILE MODAL -->
+        <div id="orgModal" class="modal-overlay"[cite: 5]>
+            <div class="modal-box p-0 overflow-hidden rounded-2xl"[cite: 5]>
+                <!-- Header na may Blue Gradient at Logo Container -->
+                <div class="bg-gradient-to-r from-blue-600 to-blue-700 p-6 text-white relative"[cite: 5]>
+                    <span id="modalClose" class="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-black/20 hover:bg-black/40 text-white cursor-pointer transition"[cite: 5]>
+                        <i class="fa-solid fa-xmark"[cite: 5]></i>
+                    </span>
+                    <div class="flex items-center gap-4 pr-8"[cite: 5]>
+                        <div id="modalOrgLogoContainer" class="w-16 h-16 bg-white rounded-full p-1 shadow-md flex-shrink-0 flex items-center justify-center text-blue-700 font-bold text-xl overflow-hidden"[cite: 5]>
+                            <i id="modalOrgLogo" class="fa-solid fa-building-user"[cite: 5]></i>
+                        </div>
+                        <div class="overflow-hidden">
+                            <h2 id="modalOrgName" class="text-xl font-bold leading-tight truncate"[cite: 5]>Organization Name</h2>
+                            <p id="modalOrgAddress" class="text-blue-100 text-xs mt-1 flex items-center gap-1 truncate"[cite: 5]>
+                                <i class="fa-solid fa-location-dot"[cite: 5]></i> Address
+                            </p>
+                        </div>
+                    </div>
                 </div>
-                <div>
-                    <h2 id="modalOrgName" class="text-xl font-bold leading-tight">Organization Name</h2>
-                    <p id="modalOrgAddress" class="text-blue-100 text-xs mt-1 flex items-center gap-1">
-                        <i class="fa-solid fa-location-dot"></i> Address
-                    </p>
+
+                <!-- Modal Body Content -->
+                <div class="p-6 space-y-4"[cite: 5]>
+                    <!-- Pinalitan ang grid para maging stacked o full-width para magkasya ang mahabang email -->
+                    <div class="space-y-3">
+                        <div class="bg-gray-50 p-3.5 rounded-xl border border-gray-100 flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center flex-shrink-0"[cite: 5]>
+                                <i class="fa-solid fa-phone"></i>
+                            </div>
+                            <div class="overflow-hidden flex-1">
+                                <p class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Contact Number</p>
+                                <p id="modalOrgPhone" class="text-sm font-medium text-gray-800 truncate">N/A</p>
+                            </div>
+                        </div>
+
+                        <div class="bg-gray-50 p-3.5 rounded-xl border border-gray-100 flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center flex-shrink-0"[cite: 5]>
+                                <i class="fa-solid fa-envelope"></i>
+                            </div>
+                            <div class="overflow-hidden flex-1">
+                                <p class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Email Address</p>
+                                <!-- Ginamit ang break-all at break-words para masigurong magkasya at pumalya pababa ang mahabang email -->
+                                <p id="modalOrgEmail" class="text-sm font-medium text-gray-800 break-all">N/A</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="border-t border-gray-100 pt-4"[cite: 5]>
+                        <h3 class="text-xs font-bold text-blue-600 uppercase tracking-wider mb-2 flex items-center gap-1.5"[cite: 5]>
+                            <i class="fa-solid fa-bullseye"[cite: 5]></i> Mission & Description
+                        </h3>
+                        <div class="bg-gray-50 p-3.5 rounded-xl border border-gray-100 max-h-36 overflow-y-auto"[cite: 5]>
+                            <p id="modalOrgMission" class="text-sm text-gray-600 leading-relaxed"[cite: 5]>No description available.</p>
+                        </div>
+                    </div>
+
+                    <button id="modalCloseBtn" class="mt-4 w-full bg-blue-700 hover:bg-blue-800 text-white py-2.5 rounded-xl font-semibold transition cursor-pointer"[cite: 5]>Close</button>
                 </div>
             </div>
         </div>
 
-        <!-- Modal Body Content -->
-        <div class="p-6 space-y-4">
-            <div class="grid grid-cols-2 gap-4">
-                <div class="bg-gray-50 p-3 rounded-xl border border-gray-100 flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center flex-shrink-0">
-                        <i class="fa-solid fa-phone"></i>
-                    </div>
-                    <div class="overflow-hidden">
-                        <p class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Contact Number</p>
-                        <p id="modalOrgPhone" class="text-sm font-medium text-gray-800 truncate">N/A</p>
-                    </div>
-                </div>
-                <div class="bg-gray-50 p-3 rounded-xl border border-gray-100 flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center flex-shrink-0">
-                        <i class="fa-solid fa-envelope"></i>
-                    </div>
-                    <div class="overflow-hidden">
-                        <p class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Email Address</p>
-                        <p id="modalOrgEmail" class="text-sm font-medium text-gray-800 truncate">N/A</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="border-t border-gray-100 pt-4">
-                <h3 class="text-xs font-bold text-blue-600 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                    <i class="fa-solid fa-bullseye"></i> Mission & Description
-                </h3>
-                <div class="bg-gray-50 p-3.5 rounded-xl border border-gray-100 max-h-36 overflow-y-auto">
-                    <p id="modalOrgMission" class="text-sm text-gray-600 leading-relaxed">No description available.</p>
-                </div>
-            </div>
-
-            <button id="modalCloseBtn" class="mt-4 w-full bg-blue-700 hover:bg-blue-800 text-white py-2.5 rounded-xl font-semibold transition cursor-pointer">Close</button>
-        </div>
-    </div>
-</div>
-
-        <div id="toastContainer" class="fixed bottom-5 right-5 z-[10000] flex flex-col gap-3 pointer-events-none"></div>
+        <div id="toastContainer" class="fixed bottom-5 right-5 z-[10000] flex flex-col gap-3 pointer-events-none"[cite: 5]></div>
     </main>
-
-    
 
     <script>
     document.addEventListener("DOMContentLoaded", async () => {
-
         await loadSidebar();
-
        
         requestAnimationFrame(() => {
             loadTopbar({
