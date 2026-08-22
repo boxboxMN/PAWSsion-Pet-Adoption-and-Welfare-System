@@ -452,13 +452,9 @@ DROP COLUMN occupation;
 
 kapag nainterview sched at nadecline then nag re apply ulit, nakikita sa dashboard recent activities na interview scheduled kahit under review pa naman
 
-sa org naman kahit under review after ng decline, hindi naerase ang dating interview sched 
+sa org naman kahit under review after ng decline, hindi naerase ang dating interview sched ✓
 
 
 # important notes:
 
 pagsamahin ang sa adoptionHub.html & yung sa vcalude ai na nasa cspc acc ✓
-
-# woiii
-
-isend mo yung org controller kay claude mamayang 3
