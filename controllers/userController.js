@@ -757,6 +757,15 @@ exports.submitAdoptionApplication = async (req, res) => {
         
         // KUNG MAY LALABAS AT STATUS AY DECLINED/REJECTED/CANCELLED -> UPDATE (RE-APPLY LOGIC)
         if (existingApp.length > 0 && ['Declined', 'Rejected', 'Cancelled'].includes(existingApp[0].status)) {
+            
+            // Kunin ang lumang document_path ng application kung walang bagong file na na-upload
+            const [oldAppRows] = await pool.query(
+                `SELECT document_path FROM user_adoption_applications WHERE application_id = ?`,
+                [existingApp[0].application_id]
+            );
+            const oldDocumentPath = oldAppRows.length > 0 ? oldAppRows[0].document_path : null;
+            const finalDocumentPath = documentPath || oldDocumentPath;
+
             const updateQuery = `
                 UPDATE user_adoption_applications SET
                     organization_id = ?,
@@ -765,7 +774,7 @@ exports.submitAdoptionApplication = async (req, res) => {
                     emergency_name = ?,
                     emergency_phone = ?,
                     emergency_relation = ?,
-                    document_path = COALESCE(?, document_path),
+                    document_path = ?,
                     status = 'Under Review',
                     decline_reason = NULL,
                     created_at = NOW(),
@@ -780,7 +789,7 @@ exports.submitAdoptionApplication = async (req, res) => {
                 emergency_name || null,
                 emergency_phone || null,
                 emergency_relation || null,
-                documentPath,
+                finalDocumentPath,
                 existingApp[0].application_id
             ];
 

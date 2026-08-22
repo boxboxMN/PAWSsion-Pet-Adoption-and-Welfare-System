@@ -474,7 +474,246 @@
 
             // Wait until sidebar + header are loaded
             await loadSidebar();
-            const params = new URLSearchParams(window.location.search);
+
+// ==========================================================
+// PHILIPPINE ADDRESS CASCADING (Region -> Province -> City -> Barangay)
+// ==========================================================
+const streetInput = document.getElementById('app-street');
+const regionSelect = document.getElementById('app-region');
+const provinceSelect = document.getElementById('app-province');
+const citySelect = document.getElementById('app-city');
+const barangaySelect = document.getElementById('app-barangay');
+const zipInput = document.getElementById('app-zip');
+const zipHelper = document.getElementById('app-zip-helper');
+const zipRegex = /^\d{4}$/;
+const fullAddressHidden = document.getElementById('app-address');
+
+let appRegionsData = [];
+let appProvincesData = [];
+let appCitiesData = [];
+let appBarangaysData = [];
+
+async function loadAppRegions() {
+    try {
+        regionSelect.innerHTML = '<option value="">Loading regions...</option>';
+        const res = await fetch('/data/regions.json');
+        appRegionsData = await res.json();
+
+        regionSelect.innerHTML = '<option value="">Select Region</option>';
+        appRegionsData.forEach(reg => {
+            const opt = document.createElement('option');
+            opt.value = reg.region_name;
+            opt.textContent = reg.region_name;
+            opt.dataset.code = reg.region_code;
+            regionSelect.appendChild(opt);
+        });
+    } catch (err) {
+        console.error("Error loading regions:", err);
+        regionSelect.innerHTML = '<option value="">System error: Missing data</option>';
+    }
+}
+
+async function loadProvincesForRegion(regCode, fallbackName) {
+    provinceSelect.innerHTML = '<option value="">Loading provinces...</option>';
+    provinceSelect.disabled = true;
+    citySelect.innerHTML = '<option value="">Select City / Municipality</option>';
+    citySelect.disabled = true;
+    barangaySelect.innerHTML = '<option value="">Select Barangay</option>';
+    barangaySelect.disabled = true;
+
+    if (!regCode) {
+        provinceSelect.innerHTML = '<option value="">Select Province</option>';
+        return;
+    }
+
+    try {
+        if (appProvincesData.length === 0) {
+            const res = await fetch('/data/provinces.json');
+            appProvincesData = await res.json();
+        }
+
+        let filteredProvinces = appProvincesData.filter(p => p.region_code === regCode);
+        filteredProvinces.sort((a, b) => a.province_name.localeCompare(b.province_name));
+
+        if (filteredProvinces.length === 0) {
+            filteredProvinces = [{ province_code: regCode, province_name: fallbackName }];
+        }
+
+        provinceSelect.innerHTML = '<option value="">Select Province</option>';
+        filteredProvinces.forEach(p => {
+            const opt = document.createElement('option');
+            opt.value = p.province_name;
+            opt.textContent = p.province_name;
+            opt.dataset.code = p.province_code;
+            provinceSelect.appendChild(opt);
+        });
+        provinceSelect.disabled = false;
+    } catch (err) {
+        console.error("Error loading provinces:", err);
+        provinceSelect.innerHTML = '<option value="">System error: Missing data</option>';
+    }
+}
+
+async function loadCitiesForProvince(provCode, regCode) {
+    citySelect.innerHTML = '<option value="">Loading cities...</option>';
+    citySelect.disabled = true;
+    barangaySelect.innerHTML = '<option value="">Select Barangay</option>';
+    barangaySelect.disabled = true;
+
+    if (!provCode) {
+        citySelect.innerHTML = '<option value="">Select City / Municipality</option>';
+        return;
+    }
+
+    try {
+        if (appCitiesData.length === 0) {
+            const res = await fetch('/data/cities.json');
+            appCitiesData = await res.json();
+        }
+
+        const filteredCities = appCitiesData.filter(c => c.province_code === provCode || c.region_desc === regCode);
+        filteredCities.sort((a, b) => a.city_name.localeCompare(b.city_name));
+
+        citySelect.innerHTML = '<option value="">Select City / Municipality</option>';
+        filteredCities.forEach(c => {
+            const opt = document.createElement('option');
+            opt.value = c.city_name;
+            opt.textContent = c.city_name;
+            opt.dataset.code = c.city_code;
+            citySelect.appendChild(opt);
+        });
+        citySelect.disabled = false;
+    } catch (err) {
+        console.error("Error loading cities:", err);
+        citySelect.innerHTML = '<option value="">System error: Missing data</option>';
+    }
+}
+
+async function loadBarangaysForCity(cityCode) {
+    barangaySelect.innerHTML = '<option value="">Loading barangays...</option>';
+    barangaySelect.disabled = true;
+
+    if (!cityCode) {
+        barangaySelect.innerHTML = '<option value="">Select Barangay</option>';
+        return;
+    }
+
+    try {
+        if (appBarangaysData.length === 0) {
+            const res = await fetch('/data/barangays.json');
+            appBarangaysData = await res.json();
+        }
+
+        const filteredBarangays = appBarangaysData.filter(b => b.city_code === cityCode);
+        filteredBarangays.sort((a, b) => a.brgy_name.localeCompare(b.brgy_name));
+
+        barangaySelect.innerHTML = '<option value="">Select Barangay</option>';
+        filteredBarangays.forEach(b => {
+            const opt = document.createElement('option');
+            opt.value = b.brgy_name;
+            opt.textContent = b.brgy_name;
+            barangaySelect.appendChild(opt);
+        });
+        barangaySelect.disabled = false;
+    } catch (err) {
+        console.error("Error loading barangays:", err);
+        barangaySelect.innerHTML = '<option value="">System error: Missing data</option>';
+    }
+}
+
+regionSelect.addEventListener('change', async function () {
+    const selectedOption = this.options[this.selectedIndex];
+    const regCode = selectedOption ? selectedOption.dataset.code : null;
+    await loadProvincesForRegion(regCode, selectedOption ? selectedOption.value : '');
+});
+
+provinceSelect.addEventListener('change', async function () {
+    const selectedOption = this.options[this.selectedIndex];
+    const provCode = selectedOption ? selectedOption.dataset.code : null;
+    const regCode = regionSelect.options[regionSelect.selectedIndex]?.dataset.code;
+    await loadCitiesForProvince(provCode, regCode);
+});
+
+citySelect.addEventListener('change', async function () {
+    const selectedOption = this.options[this.selectedIndex];
+    const cityCode = selectedOption ? selectedOption.dataset.code : null;
+    await loadBarangaysForCity(cityCode);
+});
+
+await loadAppRegions();
+
+async function applyAddressCascade({ region, province, city, barangay } = {}) {
+    if (regionSelect.options.length <= 1) {
+        await loadAppRegions();
+    }
+
+    if (!region) return;
+    const regionOption = [...regionSelect.options].find(o => o.value === region);
+    if (!regionOption) {
+        console.warn("applyAddressCascade: region not found in list:", region);
+        return;
+    }
+    regionSelect.value = region;
+    await loadProvincesForRegion(regionOption.dataset.code, region);
+
+    if (!province) return;
+    const provinceOption = [...provinceSelect.options].find(o => o.value === province);
+    if (!provinceOption) {
+        console.warn("applyAddressCascade: province not found in list:", province);
+        return;
+    }
+    provinceSelect.value = province;
+    await loadCitiesForProvince(provinceOption.dataset.code, regionOption.dataset.code);
+
+    if (!city) return;
+    const cityOption = [...citySelect.options].find(o => o.value === city);
+    if (!cityOption) {
+        console.warn("applyAddressCascade: city not found in list:", city);
+        return;
+    }
+    citySelect.value = city;
+    await loadBarangaysForCity(cityOption.dataset.code);
+
+    if (!barangay) return;
+    const barangayOption = [...barangaySelect.options].find(o => o.value === barangay);
+    if (barangayOption) {
+        barangaySelect.value = barangay;
+    } else {
+        console.warn("applyAddressCascade: barangay not found in list:", barangay);
+    }
+}
+window.applyAddressCascade = applyAddressCascade;
+
+async function autofillAddressCascade(address) {
+    if (!address) return;
+
+    const parts = address.split(',').map(s => s.trim()).filter(Boolean);
+    if (parts.length < 5) {
+        console.warn("autofillAddressCascade: address string doesn't have enough parts to parse:", address);
+        return;
+    }
+
+    const zip = parts[parts.length - 1];
+    const regionName = parts[parts.length - 2];
+    const provinceName = parts[parts.length - 3];
+    const cityName = parts[parts.length - 4];
+
+    const streetParts = parts.slice(0, parts.length - 4);
+    let barangayName = '';
+    if (streetParts.length && /^Barangay\s+/i.test(streetParts[streetParts.length - 1])) {
+        barangayName = streetParts.pop().replace(/^Barangay\s+/i, '').trim();
+    }
+
+    if (streetInput) streetInput.value = streetParts.join(', ');
+    if (zipInput) zipInput.value = zip;
+
+    await applyAddressCascade({ region: regionName, province: provinceName, city: cityName, barangay: barangayName });
+
+    if (typeof buildFullAddress === 'function') buildFullAddress();
+}
+
+const params = new URLSearchParams(window.location.search);
+
             const urlPetId = params.get("petId");
             const sessionPetId = sessionStorage.getItem("autoOpenPetId");
 
@@ -485,6 +724,7 @@
             const petId = urlPetId || sessionPetId;
 
             let isFormOpened = false;
+            let pendingReapplyApp = null; // holds previous application data until the address cascade is ready
 
             if (petId) {
                 try {
@@ -503,8 +743,9 @@
                     }
 
                     console.log("Opening form for pet:", petId);
-                    await loadSelectedPet(petId);
-                    await autoFillUserProfile();
+                   // 2. Palaging buksan muna ang form view para hindi ito maipit sakaling magka-error ang auto-fill
+                   const hiddenInput = document.getElementById("selectedPetId");
+                    if (hiddenInput) hiddenInput.value = petId;
 
                     document.getElementById("list-view").classList.add("hidden");
                     document.getElementById("application-view").classList.remove("hidden");
@@ -516,8 +757,30 @@
 
                     isFormOpened = true;
 
+                    // 3. I-load ang pet details at profile nang hiwalay para ligtas sa error
+                    await loadSelectedPet(petId);
+                    
+                    try {
+                        await autoFillUserProfile();
+                    } catch (profileErr) {
+                        console.warn("Warning: Could not auto-fill profile data:", profileErr);
+                    }
+
+                    // 4. Kung ito ay re-application, i-load ang dating data
+                    if (sessionStorage.getItem("isReapply") === "true") {
+                        sessionStorage.removeItem("isReapply");
+                        const reapplyDataRaw = sessionStorage.getItem("reapplyData");
+                        if (reapplyDataRaw) {
+                            sessionStorage.removeItem("reapplyData");
+                            pendingReapplyApp = JSON.parse(reapplyDataRaw);
+                            autofillAdoptionForm(pendingReapplyApp);           
+                        }
+                    }
+
                 } catch (err) {
-                    console.error("Error checking application status:", err);
+                    console.error("Error opening adoption form:", err);
+                    alert("Unable to open the adoption form. Please try again.");
+                    window.location.href = "/adoption-hub";
                 }
             }
 
@@ -595,6 +858,23 @@
                 console.error(err);
             }
         }
+        function autofillAdoptionForm(app) {
+    if (!app) return;
+    const a = app.applicant || {};
+    const e = app.emergency || {};
+
+    document.getElementById("app-fullname").value = a.fullName || "";
+    document.getElementById("app-phone").value = a.phone || "";
+    document.getElementById("app-email").value = a.email || "";
+    document.getElementById("app-address").value = a.address || "";
+    document.getElementById("app-civil").value = a.civilStatus || "";
+    document.getElementById("app-age").value = a.age || "";
+    document.getElementById("app-occupation").value = a.occupation || "";
+    document.getElementById("app-intent").value = app.intent || "";
+    document.getElementById("app-emergency-name").value = e.name || "";
+    document.getElementById("app-emergency-phone").value = e.phone || "";
+    document.getElementById("app-emergency-relation").value = e.relation || "";
+}
             // 1. Kapag pinindot ang Apply Button sa Modal
             const applyBtn = document.getElementById('applyModalBtn');
             if (applyBtn) {
@@ -662,161 +942,87 @@
             }
 
             // 6. Submit Application Event Handler
-            // 6a. PHILIPPINE ADDRESS CASCADING (Region -> Province -> City -> Barangay)
-            const streetInput = document.getElementById('app-street');
-            const regionSelect = document.getElementById('app-region');
-            const provinceSelect = document.getElementById('app-province');
-            const citySelect = document.getElementById('app-city');
-            const barangaySelect = document.getElementById('app-barangay');
-            const zipInput = document.getElementById('app-zip');
-            const zipHelper = document.getElementById('app-zip-helper');
-            const zipRegex = /^\d{4}$/;
-            const fullAddressHidden = document.getElementById('app-address');
-
-            let appRegionsData = [];
-            let appProvincesData = [];
-            let appCitiesData = [];
-            let appBarangaysData = [];
-
-            async function loadAppRegions() {
-                try {
-                    regionSelect.innerHTML = '<option value="">Loading regions...</option>';
-                    const res = await fetch('/data/regions.json');
-                    appRegionsData = await res.json();
-
-                    regionSelect.innerHTML = '<option value="">Select Region</option>';
-                    appRegionsData.forEach(reg => {
-                        const opt = document.createElement('option');
-                        opt.value = reg.region_name;
-                        opt.textContent = reg.region_name;
-                        opt.dataset.code = reg.region_code;
-                        regionSelect.appendChild(opt);
-                    });
-                } catch (err) {
-                    console.error("Error loading regions:", err);
-                    regionSelect.innerHTML = '<option value="">System error: Missing data</option>';
-                }
+            if (pendingReapplyApp) {
+                await autofillAddressCascade(pendingReapplyApp.applicant?.address);
             }
 
-            regionSelect.addEventListener('change', async function () {
-                const selectedOption = this.options[this.selectedIndex];
-                const regCode = selectedOption ? selectedOption.dataset.code : null;
+            // FIX (bug #2, main issue): autofillAddressCascade() was being called but was never
+            // defined anywhere in this file or in userAdoptionHub.js, so re-apply always threw
+            // "autofillAddressCascade is not defined" (silently masked before by the pendingReapplyApp
+            // shadowing bug, since this code was never actually reached). It now parses the saved
+            // "full_address" string (built by buildFullAddress() as:
+            // "Street, Barangay X, City, Province, Region, Zip") and walks the cascade in order -
+            // Region first, then (after its options load) Province, then City, then Barangay -
+            // instead of relying on the old select's disconnected change listeners.
+            async function autofillAddressCascade(address) {
+                if (!address) return;
 
-                provinceSelect.innerHTML = '<option value="">Loading provinces...</option>';
-                provinceSelect.disabled = true;
-                citySelect.innerHTML = '<option value="">Select City / Municipality</option>';
-                citySelect.disabled = true;
-                barangaySelect.innerHTML = '<option value="">Select Barangay</option>';
-                barangaySelect.disabled = true;
-
-                if (!regCode) {
-                    provinceSelect.innerHTML = '<option value="">Select Province</option>';
+                const parts = address.split(',').map(s => s.trim()).filter(Boolean);
+                if (parts.length < 5) {
+                    console.warn("autofillAddressCascade: address string doesn't have enough parts to parse:", address);
                     return;
                 }
 
-                try {
-                    if (appProvincesData.length === 0) {
-                        const res = await fetch('/data/provinces.json');
-                        appProvincesData = await res.json();
-                    }
+                const zip = parts[parts.length - 1];
+                const regionName = parts[parts.length - 2];
+                const provinceName = parts[parts.length - 3];
+                const cityName = parts[parts.length - 4];
 
-                    let filteredProvinces = appProvincesData.filter(p => p.region_code === regCode);
-                    filteredProvinces.sort((a, b) => a.province_name.localeCompare(b.province_name));
-
-                    if (filteredProvinces.length === 0) {
-                        filteredProvinces = [{ province_code: regCode, province_name: selectedOption.value }];
-                    }
-
-                    provinceSelect.innerHTML = '<option value="">Select Province</option>';
-                    filteredProvinces.forEach(p => {
-                        const opt = document.createElement('option');
-                        opt.value = p.province_name;
-                        opt.textContent = p.province_name;
-                        opt.dataset.code = p.province_code;
-                        provinceSelect.appendChild(opt);
-                    });
-                    provinceSelect.disabled = false;
-                } catch (err) {
-                    console.error("Error loading provinces:", err);
-                    provinceSelect.innerHTML = '<option value="">System error: Missing data</option>';
+                const streetParts = parts.slice(0, parts.length - 4);
+                let barangayName = '';
+                if (streetParts.length && /^Barangay\s+/i.test(streetParts[streetParts.length - 1])) {
+                    barangayName = streetParts.pop().replace(/^Barangay\s+/i, '').trim();
                 }
-            });
 
-            provinceSelect.addEventListener('change', async function () {
-                const selectedOption = this.options[this.selectedIndex];
-                const provCode = selectedOption ? selectedOption.dataset.code : null;
-                const regCode = regionSelect.options[regionSelect.selectedIndex]?.dataset.code;
+                if (streetInput) streetInput.value = streetParts.join(', ');
+                if (zipInput) zipInput.value = zip;
 
-                citySelect.innerHTML = '<option value="">Loading cities...</option>';
-                citySelect.disabled = true;
-                barangaySelect.innerHTML = '<option value="">Select Barangay</option>';
-                barangaySelect.disabled = true;
+                if (regionSelect.options.length <= 1) {
+                    await loadAppRegions();
+                }
 
-                if (!provCode) {
-                    citySelect.innerHTML = '<option value="">Select City / Municipality</option>';
+                const regionOption = [...regionSelect.options].find(o => o.value === regionName);
+                if (!regionOption) {
+                    console.warn("autofillAddressCascade: region not found in list:", regionName);
                     return;
                 }
+                regionSelect.value = regionName;
+                await loadProvincesForRegion(regionOption.dataset.code, regionName);
 
-                try {
-                    if (appCitiesData.length === 0) {
-                        const res = await fetch('/data/cities.json');
-                        appCitiesData = await res.json();
-                    }
-
-                    const filteredCities = appCitiesData.filter(c => c.province_code === provCode || c.region_desc === regCode);
-                    filteredCities.sort((a, b) => a.city_name.localeCompare(b.city_name));
-
-                    citySelect.innerHTML = '<option value="">Select City / Municipality</option>';
-                    filteredCities.forEach(c => {
-                        const opt = document.createElement('option');
-                        opt.value = c.city_name;
-                        opt.textContent = c.city_name;
-                        opt.dataset.code = c.city_code;
-                        citySelect.appendChild(opt);
-                    });
-                    citySelect.disabled = false;
-                } catch (err) {
-                    console.error("Error loading cities:", err);
-                    citySelect.innerHTML = '<option value="">System error: Missing data</option>';
-                }
-            });
-
-            citySelect.addEventListener('change', async function () {
-                const selectedOption = this.options[this.selectedIndex];
-                const cityCode = selectedOption ? selectedOption.dataset.code : null;
-
-                barangaySelect.innerHTML = '<option value="">Loading barangays...</option>';
-                barangaySelect.disabled = true;
-
-                if (!cityCode) {
-                    barangaySelect.innerHTML = '<option value="">Select Barangay</option>';
+                const provinceOption = [...provinceSelect.options].find(o => o.value === provinceName);
+                if (!provinceOption) {
+                    console.warn("autofillAddressCascade: province not found in list:", provinceName);
                     return;
                 }
+                provinceSelect.value = provinceName;
+                await loadCitiesForProvince(provinceOption.dataset.code, regionOption.dataset.code);
 
-                try {
-                    if (appBarangaysData.length === 0) {
-                        const res = await fetch('/data/barangays.json');
-                        appBarangaysData = await res.json();
-                    }
-
-                    const filteredBarangays = appBarangaysData.filter(b => b.city_code === cityCode);
-                    filteredBarangays.sort((a, b) => a.brgy_name.localeCompare(b.brgy_name));
-
-                    barangaySelect.innerHTML = '<option value="">Select Barangay</option>';
-                    filteredBarangays.forEach(b => {
-                        const opt = document.createElement('option');
-                        opt.value = b.brgy_name;
-                        opt.textContent = b.brgy_name;
-                        barangaySelect.appendChild(opt);
-                    });
-                    barangaySelect.disabled = false;
-                } catch (err) {
-                    console.error("Error loading barangays:", err);
-                    barangaySelect.innerHTML = '<option value="">System error: Missing data</option>';
+                const cityOption = [...citySelect.options].find(o => o.value === cityName);
+                if (!cityOption) {
+                    console.warn("autofillAddressCascade: city not found in list:", cityName);
+                    return;
                 }
-            });
+                citySelect.value = cityName;
+                await loadBarangaysForCity(cityOption.dataset.code);
 
-            loadAppRegions();
+                if (barangayName) {
+                    const barangayOption = [...barangaySelect.options].find(o => o.value === barangayName);
+                    if (barangayOption) {
+                        barangaySelect.value = barangayName;
+                    } else {
+                        console.warn("autofillAddressCascade: barangay not found in list:", barangayName);
+                    }
+                }
+
+                buildFullAddress();
+            }
+
+
+            await loadAppRegions();
+
+            if (pendingReapplyApp) {
+                await autofillAddressCascade(pendingReapplyApp.applicant?.address);
+            }
 
             // Restrict Zip Code input to digits only, with live validation feedback
             zipInput.addEventListener('input', function () {
@@ -910,21 +1116,21 @@
             // ==========================================
             // Auto-open application form from Matchmaker
             // ==========================================
-            if (petId) {
+            // if (petId) {
 
-                const hiddenInput = document.getElementById("selectedPetId");
-                hiddenInput.value = petId;
+            //     const hiddenInput = document.getElementById("selectedPetId");
+            //     hiddenInput.value = petId;
 
-                document.getElementById("list-view").classList.add("hidden");
-                document.getElementById("application-view").classList.remove("hidden");
+            //     document.getElementById("list-view").classList.add("hidden");
+            //     document.getElementById("application-view").classList.remove("hidden");
 
-                loadTopbar({
-                    title: "Adoption Form",
-                    subtitle: "Please fill out the form below to start your adoption journey"
-                });
+            //     loadTopbar({
+            //         title: "Adoption Form",
+            //         subtitle: "Please fill out the form below to start your adoption journey"
+            //     });
 
-                console.log("Application form opened!");
-            }
+            //     console.log("Application form opened!");
+            // }
         });
 
         let modalCallback = null;
