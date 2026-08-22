@@ -41,9 +41,15 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 // Toggle visibility of GCash vs Maya configuration inputs inside the modal
 function togglePaymentMethodFields() {
-    const selectedMethod = document.getElementById('inputPaymentMethod').value;
+    const methodSelect = document.getElementById('inputPaymentMethod');
     const gcashGroup = document.getElementById('gcashFieldsGroup');
     const mayaGroup = document.getElementById('mayaFieldsGroup');
+
+    if (!methodSelect || !gcashGroup || !mayaGroup) {
+        return;
+    }
+
+    const selectedMethod = (methodSelect.value || 'gcash').toLowerCase();
 
     if (selectedMethod === 'maya') {
         mayaGroup.classList.remove('hidden');
@@ -57,25 +63,81 @@ function togglePaymentMethodFields() {
 /**
  * Switches between the Cash Donations and In-Kind Donations tabs.
  */
-function switchDonationTab(tab) {
-    activeTab = tab;
-    const tabCash = document.getElementById("tabCash");
-    const tabInKind = document.getElementById("tabInKind");
-    const cashTable = document.getElementById("cashTableContainer");
-    const inkindTable = document.getElementById("inkindTableContainer");
+function switchModalConfigTab(tab) {
 
-    if (tab === 'cash') {
-        tabCash.className = "flex-1 py-3 px-6 text-sm font-bold rounded-lg border-b-2 border-indigo-600 text-indigo-600 flex items-center justify-center gap-2 transition-all";
-        tabInKind.className = "flex-1 py-3 px-6 text-sm font-bold rounded-lg border-b-2 border-transparent text-gray-500 hover:text-gray-700 flex items-center justify-center gap-2 transition-all";
-        cashTable.classList.remove("hidden");
-        inkindTable.classList.add("hidden");
-    } else {
-        tabInKind.className = "flex-1 py-3 px-6 text-sm font-bold rounded-lg border-b-2 border-indigo-600 text-indigo-600 flex items-center justify-center gap-2 transition-all";
-        tabCash.className = "flex-1 py-3 px-6 text-sm font-bold rounded-lg border-b-2 border-transparent text-gray-500 hover:text-gray-700 flex items-center justify-center gap-2 transition-all";
-        inkindTable.classList.remove("hidden");
-        cashTable.classList.add("hidden");
+    const cashSection =
+        document.getElementById("modalCashSection");
+
+    const inkindSection =
+        document.getElementById("modalInKindSection");
+
+    const cashTab =
+        document.getElementById("modalTabCash");
+
+    const inkindTab =
+        document.getElementById("modalTabInKind");
+
+    const sectionInput =
+        document.getElementById("settingsSection");
+
+
+    if (tab === "cash") {
+
+        cashSection.classList.remove("hidden");
+        inkindSection.classList.add("hidden");
+
+        cashTab.classList.add(
+            "text-indigo-600",
+            "bg-white",
+            "shadow-sm"
+        );
+
+        cashTab.classList.remove(
+            "text-gray-500"
+        );
+
+        inkindTab.classList.remove(
+            "text-indigo-600",
+            "bg-white",
+            "shadow-sm"
+        );
+
+        inkindTab.classList.add(
+            "text-gray-500"
+        );
+
+        sectionInput.value = "cash";
+
     }
-    filterDonations();
+
+
+    if (tab === "inkind") {
+
+        cashSection.classList.add("hidden");
+        inkindSection.classList.remove("hidden");
+
+        inkindTab.classList.add(
+            "text-indigo-600",
+            "bg-white",
+            "shadow-sm"
+        );
+
+        inkindTab.classList.remove(
+            "text-gray-500"
+        );
+
+        cashTab.classList.remove(
+            "text-indigo-600",
+            "bg-white",
+            "shadow-sm"
+        );
+
+        cashTab.classList.add(
+            "text-gray-500"
+        );
+
+        sectionInput.value = "inkind";
+    }
 }
 
 /**
@@ -105,51 +167,341 @@ function switchModalConfigTab(type) {
  * Retrieves the organization's payment information
  * and in-kind drop-off details from the server[cite: 5].
  */
+/**
+ * Retrieves the organization's payment information
+ * and in-kind drop-off details from the server.
+ *
+ * Loads BOTH GCash and Maya information from the database.
+ * The active payment method determines what is shown
+ * in the account summary.
+ */
 async function fetchPaymentDetails() {
     try {
+
         const res = await fetch("/org/payment-info");
         const result = await res.json();
 
-        if (result.success && result.data) {
-            const data = result.data;
-            
-            // Payment Method Selector & GCash / Maya Fields
-            if (document.getElementById('inputPaymentMethod')) {
-                document.getElementById('inputPaymentMethod').value = data.payment_method || 'gcash';
-                togglePaymentMethodFields();
-            }
+        if (!result.success || !result.data) {
+            console.error(
+                "Unable to fetch payment details:",
+                result.message
+            );
+            return;
+        }
 
-            document.getElementById('displayAccountName').textContent = data.gcash_name || data.organization_name || "N/A";
-            document.getElementById('displayAccountNum').textContent = data.gcash_number ? `${data.gcash_number} (GCash)` : "No account set";
-            
-            document.getElementById('inputAccountName').value = data.gcash_name || "";
-            document.getElementById('inputAccountNum').value = data.gcash_number || "";
-            document.getElementById('inputMayaName').value = data.maya_name || "";
-            document.getElementById('inputMayaNum').value = data.maya_number || "";
-            document.getElementById('inputPhone').value = data.contact_number || "";
+        const data = result.data;
 
-            if (data.qr_code) {
-                document.getElementById('qrPreview').src = data.qr_code;
-            }
-            if (data.maya_qr_code) {
-                document.getElementById('mayaQrPreview').src = data.maya_qr_code;
-            }
+        // =====================================================
+        // PAYMENT METHOD
+        // =====================================================
 
-            // In-Kind Location Fields
-            document.getElementById('inputLocationName').value = data.organization_name || "";
-            document.getElementById('inputLocationAddress').value = data.dropoff_address || "";
-            document.getElementById('inputOperatingHours').value = data.dropoff_hours || "";
-            document.getElementById('inputImportantNotes').value = data.dropoff_notes || "";
+        const paymentMethod =
+            String(data.payment_method || "gcash")
+                .toLowerCase()
+                .trim();
 
-            if (data.dropoff_image) {
-                document.getElementById('locationPreview').src = data.dropoff_image;
+        // =====================================================
+        // PAYMENT METHOD SELECT
+        // =====================================================
+
+        const paymentMethodInput =
+            document.getElementById("inputPaymentMethod");
+
+        if (paymentMethodInput) {
+            paymentMethodInput.value = paymentMethod;
+        }
+
+        // =====================================================
+        // SHOW / HIDE PAYMENT FIELDS
+        // =====================================================
+
+        if (typeof togglePaymentMethodFields === "function") {
+            togglePaymentMethodFields();
+        }
+
+        // =====================================================
+        // GCASH DATA
+        // =====================================================
+
+        const gcashNameInput =
+            document.getElementById("inputAccountName");
+
+        const gcashNumberInput =
+            document.getElementById("inputAccountNum");
+
+        if (gcashNameInput) {
+            gcashNameInput.value =
+                data.gcash_name || "";
+        }
+
+        if (gcashNumberInput) {
+            gcashNumberInput.value =
+                data.gcash_number || "";
+        }
+
+        // =====================================================
+        // MAYA DATA
+        // =====================================================
+
+        const mayaNameInput =
+            document.getElementById("inputMayaName");
+
+        const mayaNumberInput =
+            document.getElementById("inputMayaNum");
+
+        if (mayaNameInput) {
+            mayaNameInput.value =
+                data.maya_name || "";
+        }
+
+        if (mayaNumberInput) {
+            mayaNumberInput.value =
+                data.maya_number || "";
+        }
+
+        // =====================================================
+        // CONTACT NUMBER
+        // =====================================================
+
+        const phoneInput =
+            document.getElementById("inputPhone");
+
+        if (phoneInput) {
+            phoneInput.value =
+                data.contact_number || "";
+        }
+
+        // =====================================================
+        // DISPLAY ACTIVE PAYMENT ACCOUNT
+        // =====================================================
+
+        const displayAccountName =
+            document.getElementById(
+                "displayAccountName"
+            );
+
+        const displayAccountNum =
+            document.getElementById(
+                "displayAccountNum"
+            );
+
+        if (
+            displayAccountName &&
+            displayAccountNum
+        ) {
+
+            if (paymentMethod === "maya") {
+
+                // ---------------------------------------------
+                // MAYA
+                // ---------------------------------------------
+
+                displayAccountName.textContent =
+                    data.maya_name ||
+                    "N/A";
+
+                displayAccountNum.textContent =
+                    data.maya_number
+                        ? `${data.maya_number} (Maya)`
+                        : "No Maya account set";
+
+            } else {
+
+                // ---------------------------------------------
+                // GCASH
+                // ---------------------------------------------
+
+                displayAccountName.textContent =
+                    data.gcash_name ||
+                    "N/A";
+
+                displayAccountNum.textContent =
+                    data.gcash_number
+                        ? `${data.gcash_number} (GCash)`
+                        : "No GCash account set";
             }
         }
+
+        // =====================================================
+        // GCASH QR
+        // =====================================================
+
+        const qrPreview =
+            document.getElementById("qrPreview");
+
+        if (qrPreview) {
+
+            if (data.qr_code) {
+
+                qrPreview.src =
+                    data.qr_code;
+
+                qrPreview.classList.remove(
+                    "hidden"
+                );
+
+            } else {
+
+                qrPreview.removeAttribute("src");
+
+                qrPreview.classList.add(
+                    "hidden"
+                );
+            }
+        }
+
+        // =====================================================
+        // MAYA QR
+        // =====================================================
+
+        const mayaQrPreview =
+            document.getElementById(
+                "mayaQrPreview"
+            );
+
+        if (mayaQrPreview) {
+
+            if (data.maya_qr_code) {
+
+                mayaQrPreview.src =
+                    data.maya_qr_code;
+
+                mayaQrPreview.classList.remove(
+                    "hidden"
+                );
+
+            } else {
+
+                mayaQrPreview.removeAttribute(
+                    "src"
+                );
+
+                mayaQrPreview.classList.add(
+                    "hidden"
+                );
+            }
+        }
+
+        // =====================================================
+        // IN-KIND INFORMATION
+        // =====================================================
+
+        const locationName =
+            document.getElementById(
+                "inputLocationName"
+            );
+
+        const locationAddress =
+            document.getElementById(
+                "inputLocationAddress"
+            );
+
+        const operatingHours =
+            document.getElementById(
+                "inputOperatingHours"
+            );
+
+        const importantNotes =
+            document.getElementById(
+                "inputImportantNotes"
+            );
+
+        if (locationName) {
+            locationName.value =
+                data.organization_name || "";
+        }
+
+        if (locationAddress) {
+            locationAddress.value =
+                data.dropoff_address || "";
+        }
+
+        if (operatingHours) {
+            operatingHours.value =
+                data.dropoff_hours || "";
+        }
+
+        if (importantNotes) {
+            importantNotes.value =
+                data.dropoff_notes || "";
+        }
+
+        // =====================================================
+        // SAVE INITIAL STATE
+        // =====================================================
+        // IMPORTANT:
+        // Used by savePaymentDetails() to determine which
+        // section was actually changed.
+        // =====================================================
+
+        initialPaymentFormState = {
+
+            payment_method:
+                paymentMethod,
+
+            gcash_name:
+                data.gcash_name || "",
+
+            gcash_number:
+                data.gcash_number || "",
+
+            maya_name:
+                data.maya_name || "",
+
+            maya_number:
+                data.maya_number || "",
+
+            contact_number:
+                data.contact_number || "",
+
+            dropoff_address:
+                data.dropoff_address || "",
+
+            dropoff_hours:
+                data.dropoff_hours || "",
+
+            dropoff_notes:
+                data.dropoff_notes || ""
+        };
+
+        // =====================================================
+        // DEBUG
+        // =====================================================
+
+        console.log(
+            "Payment details loaded:",
+            {
+                payment_method:
+                    paymentMethod,
+
+                gcash_name:
+                    data.gcash_name,
+
+                gcash_number:
+                    data.gcash_number,
+
+                maya_name:
+                    data.maya_name,
+
+                maya_number:
+                    data.maya_number,
+
+                maya_qr_code:
+                    data.maya_qr_code,
+
+                dropoff_address:
+                    data.dropoff_address
+            }
+        );
+
     } catch (error) {
-        console.error("Error fetching payment/in-kind details:", error);
+
+        console.error(
+            "fetchPaymentDetails error:",
+            error
+        );
     }
 }
-
 /**
  * Retrieves all cash donations and displays
  * them in the donations table[cite: 5].
@@ -884,40 +1236,264 @@ function previewImage(event, targetImgId) {
  * Saves the organization's payment
  * information and in-kind drop-off settings[cite: 5].
  */
+
 async function savePaymentDetails(e) {
     e.preventDefault();
 
-    const saveBtn = document.getElementById("saveBtn");
-    const originalBtnText = saveBtn.innerHTML;
+    const saveBtn =
+        document.getElementById("saveBtn");
+
+    const originalBtnText =
+        saveBtn.innerHTML;
+
     saveBtn.disabled = true;
-    saveBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i> Saving...`;
+
+    saveBtn.innerHTML =
+        `<i class="fa-solid fa-spinner fa-spin mr-1"></i> Saving...`;
 
     try {
-        const form = document.getElementById("paymentConfigForm");
-        const formData = new FormData(form);
 
-        const response = await fetch("/org/payment-info", {
-            method: "POST",
-            body: formData
-        });
+        const getValue = (id) =>
+            document.getElementById(id)
+                ?.value
+                ?.trim() || "";
 
-        const result = await response.json();
+        const current = {
 
-        if (result.success) {
-            showToast("Donation settings and In-Kind drop-off details saved successfully!", 'success'); 
-            closeConfigModal();
-            await fetchPaymentDetails();
-        } else {
-            showToast("Error: " + result.message, 'error'); 
+            payment_method:
+                getValue(
+                    "inputPaymentMethod"
+                ),
+
+            gcash_name:
+                getValue(
+                    "inputAccountName"
+                ),
+
+            gcash_number:
+                getValue(
+                    "inputAccountNum"
+                ),
+
+            maya_name:
+                getValue(
+                    "inputMayaName"
+                ),
+
+            maya_number:
+                getValue(
+                    "inputMayaNum"
+                ),
+
+            contact_number:
+                getValue(
+                    "inputPhone"
+                ),
+
+            dropoff_address:
+                getValue(
+                    "inputLocationAddress"
+                ),
+
+            dropoff_hours:
+                getValue(
+                    "inputOperatingHours"
+                ),
+
+            dropoff_notes:
+                getValue(
+                    "inputImportantNotes"
+                )
+        };
+
+        // =====================================================
+        // CHECK CHANGES
+        // =====================================================
+
+        const previous =
+            initialPaymentFormState || {};
+
+        const paymentChanged =
+            current.payment_method !==
+                previous.payment_method ||
+
+            current.gcash_name !==
+                previous.gcash_name ||
+
+            current.gcash_number !==
+                previous.gcash_number ||
+
+            current.maya_name !==
+                previous.maya_name ||
+
+            current.maya_number !==
+                previous.maya_number;
+
+        const inkindChanged =
+            current.dropoff_address !==
+                previous.dropoff_address ||
+
+            current.dropoff_hours !==
+                previous.dropoff_hours ||
+
+            current.dropoff_notes !==
+                previous.dropoff_notes;
+
+        // =====================================================
+        // CHECK QR FILES
+        // =====================================================
+
+        const gcashQrChanged =
+            document.getElementById(
+                "qrCodeInput"
+            )?.files?.length > 0;
+
+        const mayaQrChanged =
+            document.getElementById(
+                "mayaQrCodeInput"
+            )?.files?.length > 0;
+
+        const dropoffImageChanged =
+            document.getElementById(
+                "dropoffImageInput"
+            )?.files?.length > 0;
+
+        // =====================================================
+        // FINAL SECTION DETECTION
+        // =====================================================
+
+        const actualPaymentChanged =
+            paymentChanged ||
+            gcashQrChanged ||
+            mayaQrChanged;
+
+        const actualInKindChanged =
+            inkindChanged ||
+            dropoffImageChanged;
+
+        // =====================================================
+        // SUBMIT
+        // =====================================================
+
+        const form =
+            document.getElementById(
+                "paymentConfigForm"
+            );
+
+        const formData =
+            new FormData(form);
+
+        const response =
+            await fetch(
+                "/org/payment-info",
+                {
+                    method: "POST",
+                    body: formData
+                }
+            );
+
+        const result =
+            await response.json();
+
+        if (!result.success) {
+
+            showToast(
+                result.message ||
+                "Unable to save settings.",
+                "error"
+            );
+
+            return;
         }
+
+        // =====================================================
+        // BUILD REAL CONFIRMATION
+        // =====================================================
+
+        const sections = [];
+
+        if (actualPaymentChanged) {
+
+            const method =
+                current.payment_method
+                    .toLowerCase();
+
+            if (method === "maya") {
+
+                sections.push(
+                    "Maya payment information"
+                );
+
+            } else {
+
+                sections.push(
+                    "GCash payment information"
+                );
+            }
+        }
+
+        if (actualInKindChanged) {
+
+            sections.push(
+                "In-Kind donation information"
+            );
+        }
+
+        // =====================================================
+        // SHOW CONFIRMATION
+        // =====================================================
+
+        let message;
+
+        if (sections.length === 0) {
+
+            message =
+                "No changes were detected.";
+
+        } else if (
+            sections.length === 1
+        ) {
+
+            message =
+                `${sections[0]} saved successfully!`;
+
+        } else {
+
+            message =
+                `${sections.join(
+                    " and "
+                )} saved successfully!`;
+        }
+
+        showToast(
+            message,
+            "success"
+        );
+
+        closeConfigModal();
+
+        await fetchPaymentDetails();
+
     } catch (error) {
-        showToast("An unexpected error occurred while saving.", 'error'); 
+
+        console.error(
+            "Save settings error:",
+            error
+        );
+
+        showToast(
+            "An unexpected error occurred while saving.",
+            "error"
+        );
+
     } finally {
+
         saveBtn.disabled = false;
-        saveBtn.innerHTML = originalBtnText;
+
+        saveBtn.innerHTML =
+            originalBtnText;
     }
 }
-
 /**
  * Displays a toast notification
  * to inform the user of the result[cite: 5].

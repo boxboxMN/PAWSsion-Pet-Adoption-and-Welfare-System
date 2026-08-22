@@ -593,132 +593,763 @@ exports.deletePet = async (req, res) => {
         });
     }
 };
-// ==========================================
-// PAYMENT & QR DETAILS CONTROLLERS
-// ==========================================
 exports.getPaymentInfo = async (req, res) => {
     try {
-        if (!req.session || !req.session.accountId) {
+
+        // =====================================================
+        // CHECK SESSION
+        // =====================================================
+
+        if (
+            !req.session ||
+            !req.session.accountId
+        ) {
             return res.status(401).json({
                 success: false,
                 message: "Unauthorized access."
             });
         }
 
+        // =====================================================
+        // GET PAYMENT INFORMATION
+        // =====================================================
+
         const [rows] = await pool.query(
             `
-            SELECT 
+            SELECT
                 o.organization_id,
                 o.organization_name,
                 o.contact_number,
+
+                /* GCash */
+                p.payment_id,
                 p.gcash_name,
                 p.gcash_number,
                 p.qr_code,
+
+                /* Maya */
                 p.maya_name,
                 p.maya_number,
                 p.maya_qr_code,
+
+                /* Active Payment Method */
+                p.payment_method,
+
+                /* In-Kind */
                 d.dropoff_address,
                 d.dropoff_hours,
                 d.dropoff_notes,
                 d.dropoff_image
+
             FROM organizations o
-            LEFT JOIN organization_payment_details p ON o.organization_id = p.organization_id
-            LEFT JOIN organization_dropoff_details d ON o.organization_id = d.organization_id
+
+            LEFT JOIN organization_payment_details p
+                ON o.organization_id = p.organization_id
+
+            LEFT JOIN organization_dropoff_details d
+                ON o.organization_id = d.organization_id
+
             WHERE o.account_id = ?
+
+            ORDER BY p.payment_id DESC
+
+            LIMIT 1
             `,
-            [req.session.accountId]
+            [
+                req.session.accountId
+            ]
         );
+
+        // =====================================================
+        // CHECK DATA
+        // =====================================================
 
         if (!rows.length) {
             return res.status(404).json({
                 success: false,
-                message: "Organization details not found."
+                message:
+                    "Organization details not found."
             });
         }
 
         const orgData = rows[0];
 
-        // Format Image URLs
-        if (orgData.qr_code && !orgData.qr_code.startsWith('/') && !orgData.qr_code.startsWith('http')) {
-            orgData.qr_code = `/uploads/qr/${orgData.qr_code}`;
-        }
-        if (orgData.maya_qr_code && !orgData.maya_qr_code.startsWith('/') && !orgData.maya_qr_code.startsWith('http')) {
-            orgData.maya_qr_code = `/uploads/qr/${orgData.maya_qr_code}`;
-        }
-        if (orgData.dropoff_image && !orgData.dropoff_image.startsWith('/') && !orgData.dropoff_image.startsWith('http')) {
-            orgData.dropoff_image = `/uploads/qr/${orgData.dropoff_image}`;
+        // =====================================================
+        // NORMALIZE PAYMENT METHOD
+        // =====================================================
+
+        let paymentMethod =
+            orgData.payment_method
+                ? String(
+                    orgData.payment_method
+                ).toLowerCase().trim()
+                : "";
+
+        // Fallback for old records
+        if (
+            paymentMethod !== "maya" &&
+            paymentMethod !== "gcash"
+        ) {
+
+            if (
+                orgData.maya_name ||
+                orgData.maya_number ||
+                orgData.maya_qr_code
+            ) {
+                paymentMethod = "maya";
+            } else {
+                paymentMethod = "gcash";
+            }
         }
 
-        res.json({
+        orgData.payment_method =
+            paymentMethod;
+
+        // =====================================================
+        // FORMAT GCASH QR
+        // =====================================================
+
+        if (
+            orgData.qr_code &&
+            !orgData.qr_code.startsWith("/") &&
+            !orgData.qr_code.startsWith("http")
+        ) {
+            orgData.qr_code =
+                `/uploads/qr/${orgData.qr_code}`;
+        }
+
+        // =====================================================
+        // FORMAT MAYA QR
+        // =====================================================
+
+        if (
+            orgData.maya_qr_code &&
+            !orgData.maya_qr_code.startsWith("/") &&
+            !orgData.maya_qr_code.startsWith("http")
+        ) {
+            orgData.maya_qr_code =
+                `/uploads/qr/${orgData.maya_qr_code}`;
+        }
+
+        // =====================================================
+        // FORMAT DROP-OFF IMAGE
+        // =====================================================
+
+        if (
+            orgData.dropoff_image &&
+            !orgData.dropoff_image.startsWith("/") &&
+            !orgData.dropoff_image.startsWith("http")
+        ) {
+            orgData.dropoff_image =
+                `/uploads/qr/${orgData.dropoff_image}`;
+        }
+
+        // =====================================================
+        // RESPONSE
+        // =====================================================
+
+        return res.json({
             success: true,
             data: orgData
         });
 
     } catch (err) {
-        console.error("Get Payment Info Error:", err);
-        res.status(500).json({
+
+        console.error(
+            "Get Payment Info Error:",
+            err
+        );
+
+        return res.status(500).json({
             success: false,
-            message: "Unable to load payment details."
+            message:
+                "Unable to load payment details."
         });
     }
 };
 exports.updatePaymentInfo = async (req, res) => {
     try {
-        if (!req.session || !req.session.accountId) {
-            return res.status(401).json({ success: false, message: "Unauthorized access." });
+
+        // =====================================================
+        // CHECK SESSION
+        // =====================================================
+
+        if (
+            !req.session ||
+            !req.session.accountId
+        ) {
+            return res.status(401).json({
+                success: false,
+                message: "Unauthorized access."
+            });
         }
 
-        const { 
-            gcash_name, gcash_number, 
-            maya_name, maya_number, 
-            contact_number 
+        // =====================================================
+        // GET FORM DATA
+        // =====================================================
+
+        const {
+            gcash_name,
+            gcash_number,
+
+            maya_name,
+            maya_number,
+
+            contact_number,
+
+            payment_method,
+
+            // IN-KIND
+            dropoff_address,
+            dropoff_hours,
+            dropoff_notes
         } = req.body;
 
+        // =====================================================
+        // NORMALIZE PAYMENT METHOD
+        // =====================================================
+
+        const selectedPaymentMethod =
+            String(
+                payment_method || "gcash"
+            )
+                .toLowerCase()
+                .trim() === "maya"
+                ? "maya"
+                : "gcash";
+
+        // =====================================================
+        // GET ORGANIZATION
+        // =====================================================
+
         const [org] = await pool.query(
-            `SELECT organization_id FROM organizations WHERE account_id = ?`,
-            [req.session.accountId]
+            `
+            SELECT organization_id
+            FROM organizations
+            WHERE account_id = ?
+            LIMIT 1
+            `,
+            [
+                req.session.accountId
+            ]
         );
 
-        if (!org.length) return res.status(404).json({ success: false, message: "Organization not found." });
-        const organization_id = org[0].organization_id;
+        if (!org.length) {
+            return res.status(404).json({
+                success: false,
+                message: "Organization not found."
+            });
+        }
 
-        // 1. Update contact number in organizations table
+        const organization_id =
+            org[0].organization_id;
+
+        // =====================================================
+        // UPDATE CONTACT NUMBER
+        // =====================================================
+
         await pool.query(
-            `UPDATE organizations SET contact_number = ? WHERE organization_id = ?`,
-            [contact_number || null, organization_id]
+            `
+            UPDATE organizations
+            SET contact_number = ?
+            WHERE organization_id = ?
+            `,
+            [
+                contact_number &&
+                String(contact_number).trim()
+                    ? String(contact_number).trim()
+                    : null,
+
+                organization_id
+            ]
         );
 
-        // 2. File extraction for QR codes
-        let gcashQrFile = req.files && req.files['qr_code'] ? req.files['qr_code'][0].filename : null;
-        let mayaQrFile = req.files && req.files['maya_qr_code'] ? req.files['maya_qr_code'][0].filename : null;
+        // =====================================================
+        // GET EXISTING PAYMENT DATA
+        // =====================================================
 
-        // 3. Upsert into organization_payment_details (handles both GCash and Maya columns)
-        await pool.query(`
-            INSERT INTO organization_payment_details 
-            (organization_id, gcash_name, gcash_number, qr_code, maya_name, maya_number, maya_qr_code)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+        const [existingRows] =
+            await pool.query(
+                `
+                SELECT
+                    payment_id,
+
+                    gcash_name,
+                    gcash_number,
+                    qr_code,
+
+                    maya_name,
+                    maya_number,
+                    maya_qr_code,
+
+                    payment_method
+
+                FROM organization_payment_details
+
+                WHERE organization_id = ?
+
+                ORDER BY payment_id DESC
+
+                LIMIT 1
+                `,
+                [
+                    organization_id
+                ]
+            );
+
+        const existing =
+            existingRows.length
+                ? existingRows[0]
+                : null;
+
+        // =====================================================
+        // GET EXISTING IN-KIND DATA
+        // =====================================================
+
+        const [existingDropoffRows] =
+            await pool.query(
+                `
+                SELECT
+                    dropoff_address,
+                    dropoff_hours,
+                    dropoff_notes,
+                    dropoff_image
+
+                FROM organization_dropoff_details
+
+                WHERE organization_id = ?
+
+                LIMIT 1
+                `,
+                [
+                    organization_id
+                ]
+            );
+
+        const existingDropoff =
+            existingDropoffRows.length
+                ? existingDropoffRows[0]
+                : null;
+
+        // =====================================================
+        // FILES
+        // =====================================================
+
+        let gcashQrFile = null;
+        let mayaQrFile = null;
+        let dropoffImageFile = null;
+
+        // -----------------------------------------------------
+        // GCASH QR
+        // -----------------------------------------------------
+
+        if (
+            req.files &&
+            req.files["qr_code"] &&
+            req.files["qr_code"].length
+        ) {
+            gcashQrFile =
+                req.files["qr_code"][0].filename;
+        }
+
+        // -----------------------------------------------------
+        // MAYA QR
+        // -----------------------------------------------------
+
+        if (
+            req.files &&
+            req.files["maya_qr_code"] &&
+            req.files["maya_qr_code"].length
+        ) {
+            mayaQrFile =
+                req.files["maya_qr_code"][0].filename;
+        }
+
+        // -----------------------------------------------------
+        // IN-KIND IMAGE
+        // -----------------------------------------------------
+
+        if (
+            req.files &&
+            req.files["dropoff_image"] &&
+            req.files["dropoff_image"].length
+        ) {
+            dropoffImageFile =
+                req.files["dropoff_image"][0].filename;
+        }
+
+        // =====================================================
+        // NORMALIZE PAYMENT VALUES
+        // =====================================================
+
+        const submittedGcashName =
+            gcash_name &&
+            String(gcash_name).trim()
+                ? String(gcash_name).trim()
+                : null;
+
+        const submittedGcashNumber =
+            gcash_number &&
+            String(gcash_number).trim()
+                ? String(gcash_number).trim()
+                : null;
+
+        const submittedMayaName =
+            maya_name &&
+            String(maya_name).trim()
+                ? String(maya_name).trim()
+                : null;
+
+        const submittedMayaNumber =
+            maya_number &&
+            String(maya_number).trim()
+                ? String(maya_number).trim()
+                : null;
+
+        // =====================================================
+        // NORMALIZE IN-KIND VALUES
+        // =====================================================
+
+        const submittedDropoffAddress =
+            dropoff_address &&
+            String(dropoff_address).trim()
+                ? String(dropoff_address).trim()
+                : null;
+
+        const submittedDropoffHours =
+            dropoff_hours &&
+            String(dropoff_hours).trim()
+                ? String(dropoff_hours).trim()
+                : null;
+
+        const submittedDropoffNotes =
+            dropoff_notes &&
+            String(dropoff_notes).trim()
+                ? String(dropoff_notes).trim()
+                : null;
+
+        // =====================================================
+        // PREPARE PAYMENT VALUES
+        // =====================================================
+
+        let finalGcashName =
+            existing
+                ? existing.gcash_name
+                : null;
+
+        let finalGcashNumber =
+            existing
+                ? existing.gcash_number
+                : null;
+
+        let finalGcashQr =
+            existing
+                ? existing.qr_code
+                : null;
+
+        let finalMayaName =
+            existing
+                ? existing.maya_name
+                : null;
+
+        let finalMayaNumber =
+            existing
+                ? existing.maya_number
+                : null;
+
+        let finalMayaQr =
+            existing
+                ? existing.maya_qr_code
+                : null;
+
+        // =====================================================
+        // SAVE GCASH
+        // =====================================================
+
+        if (
+            selectedPaymentMethod === "gcash"
+        ) {
+
+            if (
+                submittedGcashName !== null
+            ) {
+                finalGcashName =
+                    submittedGcashName;
+            }
+
+            if (
+                submittedGcashNumber !== null
+            ) {
+                finalGcashNumber =
+                    submittedGcashNumber;
+            }
+
+            if (gcashQrFile) {
+                finalGcashQr =
+                    gcashQrFile;
+            }
+        }
+
+        // =====================================================
+        // SAVE MAYA
+        // =====================================================
+
+        if (
+            selectedPaymentMethod === "maya"
+        ) {
+
+            if (
+                submittedMayaName !== null
+            ) {
+                finalMayaName =
+                    submittedMayaName;
+            }
+
+            if (
+                submittedMayaNumber !== null
+            ) {
+                finalMayaNumber =
+                    submittedMayaNumber;
+            }
+
+            if (mayaQrFile) {
+                finalMayaQr =
+                    mayaQrFile;
+            }
+        }
+
+        // =====================================================
+        // INSERT / UPDATE PAYMENT DETAILS
+        // =====================================================
+
+        await pool.query(
+            `
+            INSERT INTO organization_payment_details
+            (
+                organization_id,
+
+                gcash_name,
+                gcash_number,
+                qr_code,
+
+                maya_name,
+                maya_number,
+                maya_qr_code,
+
+                payment_method
+            )
+
+            VALUES
+            (
+                ?,
+                ?,
+                ?,
+                ?,
+                ?,
+                ?,
+                ?,
+                ?
+            )
+
             ON DUPLICATE KEY UPDATE
-                gcash_name = VALUES(gcash_name),
-                gcash_number = VALUES(gcash_number),
-                qr_code = COALESCE(VALUES(qr_code), qr_code),
-                maya_name = VALUES(maya_name),
-                maya_number = VALUES(maya_number),
-                maya_qr_code = COALESCE(VALUES(maya_qr_code), maya_qr_code)
-        `, [
-            organization_id, 
-            gcash_name || null, 
-            gcash_number || null, 
-            gcashQrFile, 
-            maya_name || null, 
-            maya_number || null, 
-            mayaQrFile
-        ]);
 
-        res.json({ success: true, message: "Payment settings updated successfully!" });
+                gcash_name =
+                    VALUES(gcash_name),
+
+                gcash_number =
+                    VALUES(gcash_number),
+
+                qr_code =
+                    VALUES(qr_code),
+
+                maya_name =
+                    VALUES(maya_name),
+
+                maya_number =
+                    VALUES(maya_number),
+
+                maya_qr_code =
+                    VALUES(maya_qr_code),
+
+                payment_method =
+                    VALUES(payment_method)
+            `,
+            [
+                organization_id,
+
+                finalGcashName,
+                finalGcashNumber,
+                finalGcashQr,
+
+                finalMayaName,
+                finalMayaNumber,
+                finalMayaQr,
+
+                selectedPaymentMethod
+            ]
+        );
+
+        // =====================================================
+        // PREPARE IN-KIND VALUES
+        // =====================================================
+
+        let finalDropoffAddress =
+            existingDropoff
+                ? existingDropoff.dropoff_address
+                : null;
+
+        let finalDropoffHours =
+            existingDropoff
+                ? existingDropoff.dropoff_hours
+                : null;
+
+        let finalDropoffNotes =
+            existingDropoff
+                ? existingDropoff.dropoff_notes
+                : null;
+
+        let finalDropoffImage =
+            existingDropoff
+                ? existingDropoff.dropoff_image
+                : null;
+
+        // =====================================================
+        // UPDATE ONLY WHAT WAS SUBMITTED
+        // =====================================================
+
+        if (
+            submittedDropoffAddress !== null
+        ) {
+            finalDropoffAddress =
+                submittedDropoffAddress;
+        }
+
+        if (
+            submittedDropoffHours !== null
+        ) {
+            finalDropoffHours =
+                submittedDropoffHours;
+        }
+
+        if (
+            submittedDropoffNotes !== null
+        ) {
+            finalDropoffNotes =
+                submittedDropoffNotes;
+        }
+
+        if (dropoffImageFile) {
+            finalDropoffImage =
+                dropoffImageFile;
+        }
+
+        // =====================================================
+        // SAVE IN-KIND / DROP-OFF DETAILS
+        // =====================================================
+
+       await pool.query(
+    `
+    INSERT INTO organization_dropoff_details
+    (
+        organization_id,
+        dropoff_address,
+        dropoff_hours,
+        dropoff_notes,
+        dropoff_image
+    )
+
+    VALUES
+    (
+        ?,
+        ?,
+        ?,
+        ?,
+        ?
+    )
+
+    ON DUPLICATE KEY UPDATE
+
+        dropoff_address =
+            VALUES(dropoff_address),
+
+        dropoff_hours =
+            VALUES(dropoff_hours),
+
+        dropoff_notes =
+            VALUES(dropoff_notes),
+
+        dropoff_image =
+            VALUES(dropoff_image),
+
+        updated_at =
+            CURRENT_TIMESTAMP
+    `,
+    [
+        organization_id,
+        finalDropoffAddress,
+        finalDropoffHours,
+        finalDropoffNotes,
+        finalDropoffImage
+    ]
+);
+
+        // =====================================================
+        // SUCCESS
+        // =====================================================
+
+        return res.json({
+            success: true,
+
+            message:
+                "Donation settings updated successfully!",
+
+            payment_method:
+                selectedPaymentMethod,
+
+            data: {
+                gcash_name:
+                    finalGcashName,
+
+                gcash_number:
+                    finalGcashNumber,
+
+                maya_name:
+                    finalMayaName,
+
+                maya_number:
+                    finalMayaNumber,
+
+                payment_method:
+                    selectedPaymentMethod,
+
+                dropoff_address:
+                    finalDropoffAddress,
+
+                dropoff_hours:
+                    finalDropoffHours,
+
+                dropoff_notes:
+                    finalDropoffNotes,
+
+                dropoff_image:
+                    finalDropoffImage
+            }
+        });
 
     } catch (err) {
-        console.error("Update Error:", err);
-        res.status(500).json({ success: false, message: "Server error: " + err.message });
+
+        console.error(
+            "Update Payment Info Error:",
+            err
+        );
+
+        return res.status(500).json({
+            success: false,
+
+            message:
+                "Server error: " +
+                err.message
+        });
     }
 };
 // ==========================================
