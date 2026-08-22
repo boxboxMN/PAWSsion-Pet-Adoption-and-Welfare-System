@@ -450,7 +450,7 @@ DROP COLUMN occupation;
 
 # may bugs pa sa dashboard:
 
-kapag nainterview sched at nadecline then nag re apply ulit, nakikita sa dashboard recent activities na interview scheduled kahit under review pa naman
+kapag nainterview sched at nadecline then nag re apply ulit, nakikita sa dashboard recent activities na interview scheduled kahit under review pa naman  ✓
 
 sa org naman kahit under review after ng decline, hindi naerase ang dating interview sched ✓
 
@@ -458,3 +458,7 @@ sa org naman kahit under review after ng decline, hindi naerase ang dating inter
 # important notes:
 
 pagsamahin ang sa adoptionHub.html & yung sa vcalude ai na nasa cspc acc ✓
+
+# itest tom (Aug 23, 2026 8 am):
+
+pag enable na ang decline, ideclined ang adoption thentry to re-apply and check if the address is match with the address in the user profile
