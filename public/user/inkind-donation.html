@@ -39,7 +39,9 @@
             visibility: hidden;
         }
 
-        input:focus {
+        input:focus,
+        select:focus,
+        textarea:focus {
             outline: none;
             box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
         }
@@ -83,6 +85,7 @@
             z-index: 999;
             align-items: center;
             justify-content: center;
+            padding: 1rem;
         }
 
         .modal-overlay.active {
@@ -91,9 +94,8 @@
 
         .modal-box {
             background: white;
-            max-width: 500px;
-            width: 90%;
-            padding: 2rem;
+            max-width: 550px;
+            width: 100%;
             border-radius: 1rem;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
             position: relative;
@@ -164,7 +166,6 @@
                             <label class="block text-sm font-semibold mb-2">
                                 Item Name <span class="text-red-500">*</span>
                             </label>
-                            <!-- Ginawa nang direktang Text Input (Wala nang dropdown) -->
                             <input type="text" id="itemNameInput" placeholder="e.g., Dry Dog Food, Canned Goods" class="w-full border rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500" />
                         </div>
                         <div>
@@ -208,71 +209,72 @@
                 </div>
             </div>
         </div>
+
+        <!-- REVISED ORGANIZATION PROFILE MODAL -->
         <div id="orgModal" class="modal-overlay">
-    <div class="modal-box p-0 overflow-hidden rounded-2xl">
-        <!-- Modal Header na may Blue Gradient at Logo Container -->
-        <div class="bg-gradient-to-r from-blue-600 to-blue-700 p-6 text-white relative">
-            <span id="modalClose" class="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-black/20 hover:bg-black/40 text-white cursor-pointer transition">
-                <i class="fa-solid fa-xmark"></i>
-            </span>
-            <div class="flex items-center gap-4">
-                <div id="modalOrgLogoContainer" class="w-16 h-16 bg-white rounded-full p-1 shadow-md flex-shrink-0 flex items-center justify-center text-blue-700 font-bold text-xl overflow-hidden">
-                    <i id="modalOrgLogo" class="fa-solid fa-building-user"></i>
+            <div class="modal-box p-0 overflow-hidden rounded-2xl">
+                <!-- Header na may Blue Gradient at Logo Container -->
+                <div class="bg-gradient-to-r from-blue-600 to-blue-700 p-6 text-white relative">
+                    <span id="modalClose" class="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-black/20 hover:bg-black/40 text-white cursor-pointer transition">
+                        <i class="fa-solid fa-xmark"></i>
+                    </span>
+                    <div class="flex items-center gap-4 pr-8">
+                        <div id="modalOrgLogoContainer" class="w-16 h-16 bg-white rounded-full p-1 shadow-md flex-shrink-0 flex items-center justify-center text-blue-700 font-bold text-xl overflow-hidden">
+                            <i id="modalOrgLogo" class="fa-solid fa-building-user"></i>
+                        </div>
+                        <div class="overflow-hidden">
+                            <h2 id="modalOrgName" class="text-xl font-bold leading-tight truncate">Organization Name</h2>
+                            <p id="modalOrgAddress" class="text-blue-100 text-xs mt-1 flex items-center gap-1 truncate">
+                                <i class="fa-solid fa-location-dot"></i> Address
+                            </p>
+                        </div>
+                    </div>
                 </div>
-                <div>
-                    <h2 id="modalOrgName" class="text-xl font-bold leading-tight">Organization Name</h2>
-                    <p id="modalOrgAddress" class="text-blue-100 text-xs mt-1 flex items-center gap-1">
-                        <i class="fa-solid fa-location-dot"></i> Address
-                    </p>
+
+                <!-- Modal Body Content -->
+                <div class="p-6 space-y-4">
+                    <div class="space-y-3">
+                        <div class="bg-gray-50 p-3.5 rounded-xl border border-gray-100 flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center flex-shrink-0">
+                                <i class="fa-solid fa-phone"></i>
+                            </div>
+                            <div class="overflow-hidden flex-1">
+                                <p class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Contact Number</p>
+                                <p id="modalOrgPhone" class="text-sm font-medium text-gray-800 truncate">N/A</p>
+                            </div>
+                        </div>
+
+                        <div class="bg-gray-50 p-3.5 rounded-xl border border-gray-100 flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center flex-shrink-0">
+                                <i class="fa-solid fa-envelope"></i>
+                            </div>
+                            <div class="overflow-hidden flex-1">
+                                <p class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Email Address</p>
+                                <!-- Ginamit ang break-all para siguradong mag-wrap ang mahahabang email -->
+                                <p id="modalOrgEmail" class="text-sm font-medium text-gray-800 break-all">N/A</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="border-t border-gray-100 pt-4">
+                        <h3 class="text-xs font-bold text-blue-600 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                            <i class="fa-solid fa-bullseye"></i> Mission & Description
+                        </h3>
+                        <div class="bg-gray-50 p-3.5 rounded-xl border border-gray-100 max-h-36 overflow-y-auto">
+                            <p id="modalOrgMission" class="text-sm text-gray-600 leading-relaxed">No description available.</p>
+                        </div>
+                    </div>
+
+                    <button id="modalCloseBtn" class="mt-4 w-full bg-blue-700 hover:bg-blue-800 text-white py-2.5 rounded-xl font-semibold transition cursor-pointer">Close</button>
                 </div>
             </div>
         </div>
-
-        <!-- Modal Body Content -->
-        <div class="p-6 space-y-4">
-            <div class="grid grid-cols-2 gap-4">
-                <div class="bg-gray-50 p-3 rounded-xl border border-gray-100 flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center flex-shrink-0">
-                        <i class="fa-solid fa-phone"></i>
-                    </div>
-                    <div class="overflow-hidden">
-                        <p class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Contact Number</p>
-                        <p id="modalOrgPhone" class="text-sm font-medium text-gray-800 truncate">N/A</p>
-                    </div>
-                </div>
-                <div class="bg-gray-50 p-3 rounded-xl border border-gray-100 flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center flex-shrink-0">
-                        <i class="fa-solid fa-envelope"></i>
-                    </div>
-                    <div class="overflow-hidden">
-                        <p class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Email Address</p>
-                        <p id="modalOrgEmail" class="text-sm font-medium text-gray-800 truncate">N/A</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="border-t border-gray-100 pt-4">
-                <h3 class="text-xs font-bold text-blue-600 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                    <i class="fa-solid fa-bullseye"></i> Mission & Description
-                </h3>
-                <div class="bg-gray-50 p-3.5 rounded-xl border border-gray-100 max-h-36 overflow-y-auto">
-                    <p id="modalOrgMission" class="text-sm text-gray-600 leading-relaxed">No description available.</p>
-                </div>
-            </div>
-
-            <button id="modalCloseBtn" class="mt-4 w-full bg-blue-700 hover:bg-blue-800 text-white py-2.5 rounded-xl font-semibold transition cursor-pointer">Close</button>
-        </div>
-    </div>
-</div>
         
         <div id="toastContainer" class="fixed bottom-5 right-5 z-[10000] flex flex-col gap-3 pointer-events-none"></div>
     </main>
 
-    
-
     <script>
     document.addEventListener("DOMContentLoaded", async () => {
-     
         await loadSidebar();
 
         requestAnimationFrame(() => {

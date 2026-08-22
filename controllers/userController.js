@@ -379,7 +379,6 @@ exports.getOrganizations = async (req, res) => {
 };
 // ==========================================
 // DONATION SUBMISSIONS (USER SIDE)
-// ==========================================
 exports.submitCashDonation = async (req, res) => {
     const accountId = req.session?.accountId;
     if (!accountId) {
@@ -399,11 +398,34 @@ exports.submitCashDonation = async (req, res) => {
         return res.status(400).json({ success: false, error: "Please fill in all required fields." });
     }
 
+    // --- VALIDATION: Remove negative amounts and enforce limits ---
+    const parsedAmount = parseFloat(amount);
+    if (isNaN(parsedAmount) || parsedAmount <= 0) {
+        return res.status(400).json({ success: false, error: "Donation amount must be greater than zero and cannot be negative." });
+    }
+
+    // --- VALIDATION: Ensure valid reference number format (e.g., standard 13-digit alphanumeric GCash ref) ---
+    const cleanRefNum = reference_number.trim();
+    const gcashRefRegex = /^[a-zA-Z0-9]{10,15}$/; // Standard GCash reference numbers are alphanumeric lengths around 13
+    if (!gcashRefRegex.test(cleanRefNum)) {
+        return res.status(400).json({ success: false, error: "Please enter a valid GCash reference number (typically 10-15 alphanumeric characters)." });
+    }
+
     if (!req.file) {
         return res.status(400).json({ success: false, error: "Please upload your proof of payment (Receipt)." });
     }
 
     try {
+        // --- CHECK: Duplicate reference number to prevent reuse ---
+        const [existingRef] = await pool.query(
+            `SELECT cash_donation_id FROM cash_donations WHERE reference_number = ? LIMIT 1`,
+            [cleanRefNum]
+        );
+
+        if (existingRef.length > 0) {
+            return res.status(400).json({ success: false, error: "This GCash reference number has already been submitted." });
+        }
+
         // --- ADDED CONDITION: Check if GCash details exist for the org ---
         const [paymentRows] = await pool.query(
             `SELECT gcash_number, gcash_name FROM organization_payment_details WHERE organization_id = ?`,
@@ -436,8 +458,8 @@ exports.submitCashDonation = async (req, res) => {
                 donor_name,
                 donor_email,
                 gcash_account_name || donor_name,
-                reference_number,
-                amount,
+                cleanRefNum,
+                parsedAmount,
                 receipt_path
             ]
         );
@@ -453,7 +475,6 @@ exports.submitCashDonation = async (req, res) => {
         return res.status(500).json({ success: false, error: "Database error while processing donation: " + error.message });
     }
 };
-
 // ==========================================
 // GET USER DONATIONS & HISTORY
 // ==========================================
@@ -1497,9 +1518,14 @@ exports.getOrganizationById = async (req, res) => {
     try {
         const orgId = req.params.id;
         
-        // Gamitin ang SELECT * para iwasan ang 'Unknown column' error
+        // I-JOIN ang organizations at accounts table para makuha ang email
         const [rows] = await pool.query(
-            "SELECT * FROM organizations WHERE organization_id = ?", 
+            `SELECT 
+                o.*, 
+                accounts.email 
+             FROM organizations o
+             JOIN accounts ON o.account_id = accounts.account_id
+             WHERE o.organization_id = ?`, 
             [orgId]
         );
 
