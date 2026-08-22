@@ -424,7 +424,7 @@ ZIP Code
 
 user side:
 
-    adoption hub : 
+    adoption hub : ✓
         prefilled pero pwede naman iedit dapat yung sa name, wag daw ang age, birthday na lang or through bday macocompute na ang age
  
 # AUG 21, 2026 ✓
@@ -447,3 +447,18 @@ DROP COLUMN full_address,
 DROP COLUMN civil_status,
 DROP COLUMN age,
 DROP COLUMN occupation;
+
+# may bugs pa sa dashboard:
+
+kapag nainterview sched at nadecline then nag re apply ulit, nakikita sa dashboard recent activities na interview scheduled kahit under review pa naman
+
+sa org naman kahit under review after ng decline, hindi naerase ang dating interview sched 
+
+
+# important notes:
+
+pagsamahin ang sa adoptionHub.html & yung sa vcalude ai na nasa cspc acc ✓
+
+# woiii
+
+isend mo yung org controller kay claude mamayang 3

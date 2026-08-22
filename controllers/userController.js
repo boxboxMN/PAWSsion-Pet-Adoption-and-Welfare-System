@@ -775,9 +775,21 @@ exports.submitAdoptionApplication = async (req, res) => {
              ORDER BY created_at DESC LIMIT 1`,
             [adopterId, animal_id]
         );
+
+        // Gawing lowercase para iwas case-sensitivity issues (hal. 'declined' vs 'Declined')
+        const currentStatus = existingApp.length > 0 ? (existingApp[0].status || '').trim().toLowerCase() : '';
         
         // KUNG MAY LALABAS AT STATUS AY DECLINED/REJECTED/CANCELLED -> UPDATE (RE-APPLY LOGIC)
-        if (existingApp.length > 0 && ['Declined', 'Rejected', 'Cancelled'].includes(existingApp[0].status)) {
+        if (existingApp.length > 0 && ['declined', 'rejected', 'cancelled'].includes(currentStatus)) {
+            
+            // Kunin ang lumang document_path ng application kung walang bagong file na na-upload
+            const [oldAppRows] = await pool.query(
+                `SELECT document_path FROM user_adoption_applications WHERE application_id = ?`,
+                [existingApp[0].application_id]
+            );
+            const oldDocumentPath = oldAppRows.length > 0 ? oldAppRows[0].document_path : null;
+            const finalDocumentPath = documentPath || oldDocumentPath;
+
             const updateQuery = `
                 UPDATE user_adoption_applications SET
                     organization_id = ?,
@@ -786,7 +798,7 @@ exports.submitAdoptionApplication = async (req, res) => {
                     emergency_name = ?,
                     emergency_phone = ?,
                     emergency_relation = ?,
-                    document_path = COALESCE(?, document_path),
+                    document_path = ?,
                     status = 'Under Review',
                     decline_reason = NULL,
                     created_at = NOW(),
@@ -801,11 +813,20 @@ exports.submitAdoptionApplication = async (req, res) => {
                 emergency_name || null,
                 emergency_phone || null,
                 emergency_relation || null,
-                documentPath,
+                finalDocumentPath,
                 existingApp[0].application_id
             ];
 
             await pool.query(updateQuery, updateValues);
+
+            // Clear stale interview data from the applicant's previous (declined) cycle -
+            // application_interviews is a separate table joined on application_id, and
+            // since re-apply reuses the same application_id, the old row would otherwise
+            // stick around and show up as if it belonged to this new cycle.
+            await pool.query(
+                `DELETE FROM application_interviews WHERE application_id = ?`,
+                [existingApp[0].application_id]
+            );
 
             return res.status(200).json({
                 status: 'success',

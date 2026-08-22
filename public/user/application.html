@@ -793,6 +793,11 @@ function handleReapply(petId) {
     // 1. I-save ang Pet ID sa sessionStorage para mabasa ng Adoption Hub page
     sessionStorage.setItem("autoOpenPetId", petId);
 
+    if (selectedApp) {
+        sessionStorage.setItem("isReapply", "true");
+        sessionStorage.setItem("reapplyData", JSON.stringify(selectedApp));
+    }
+    
     // 2. Pumunta sa Adoption Hub page
     window.location.href = "/adoption-hub";
 }

@@ -205,6 +205,8 @@ async function checkPetApplicationStatus(petId) {
     const applyBtn = document.getElementById('applyModalBtn');
     if (!applyBtn) return;
 
+    applyBtn.onclick = null;
+
     try {
         const res = await fetch(`/check-applied/${petId}`, {
             credentials: 'include'
@@ -252,6 +254,7 @@ async function checkPetApplicationStatus(petId) {
         } else {
             // KAPAG WALA PANG APPLICATION
             applyBtn.disabled = false;
+            applyBtn.onclick = null;   
             applyBtn.className = "w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 transition-all duration-200 text-white py-3 rounded-xl font-bold text-xs shadow-md shadow-indigo-100 hover:shadow-indigo-200 active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer";
             applyBtn.innerHTML = `
                 <i class="fa-regular fa-heart text-sm"></i>
@@ -507,6 +510,20 @@ function closePetModal(){
     document.getElementById("viewPetModal").classList.remove("flex");
 }
 
+// Helper para hintayin munang lumabas ang options bago i-set ang value
+async function selectOptionWhenReady(selectElement, targetValue, maxAttempts = 30) {
+    for (let i = 0; i < maxAttempts; i++) {
+        const optionExists = Array.from(selectElement.options).some(opt => opt.value === targetValue);
+        if (optionExists) {
+            selectElement.value = targetValue;
+            selectElement.dispatchEvent(new Event('change'));
+            return true;
+        }
+        await new Promise(resolve => setTimeout(resolve, 100)); // Hintay ng 100ms bago ulitin
+    }
+    return false;
+}
+
 // Function para i-fetch at i-auto-fill ang Profile Information ng User
 async function autoFillUserProfile() {
     try {
@@ -572,43 +589,15 @@ async function autoFillUserProfile() {
         // =========================================================
         // 9. CASCADING ADDRESS AUTO-FILL (Region -> Province -> City -> Barangay)
         // =========================================================
-        const regionSelect = document.getElementById('app-region');
-        const provinceSelect = document.getElementById('app-province');
-        const citySelect = document.getElementById('app-city');
-        const barangaySelect = document.getElementById('app-barangay');
-
-        if (regionSelect && user.region) {
-            // Step 9a. Select Region
-            regionSelect.value = user.region;
-            
-            // I-trigger ang 'change' event ng Region para ma-load ang mga Provinces
-            regionSelect.dispatchEvent(new Event('change'));
-
-            // Bigyan ng konting oras para matapos ang fetch/load ng Provinces
-            setTimeout(async () => {
-                if (provinceSelect && user.province) {
-                    // Step 9b. Select Province
-                    provinceSelect.value = user.province;
-                    provinceSelect.dispatchEvent(new Event('change'));
-
-                    // Bigyan ng oras para matapos ang fetch/load ng Cities
-                    setTimeout(async () => {
-                        if (citySelect && user.city) {
-                            // Step 9c. Select City
-                            citySelect.value = user.city;
-                            citySelect.dispatchEvent(new Event('change'));
-
-                            // Bigyan ng oras para matapos ang fetch/load ng Barangays
-                            setTimeout(() => {
-                                if (barangaySelect && user.barangay) {
-                                    // Step 9d. Select Barangay
-                                    barangaySelect.value = user.barangay;
-                                }
-                            }, 250);
-                        }
-                    }, 250);
-                }
-            }, 250);
+        if (typeof window.applyAddressCascade === 'function') {
+            await window.applyAddressCascade({
+                region: user.region,
+                province: user.province,
+                city: user.city,
+                barangay: user.barangay
+            });
+        } else {
+            console.warn("autoFillUserProfile: window.applyAddressCascade is not available; skipping address cascade auto-fill.");
         }
 
     } catch (err) {
