@@ -459,6 +459,10 @@ sa org naman kahit under review after ng decline, hindi naerase ang dating inter
 
 pagsamahin ang sa adoptionHub.html & yung sa vcalude ai na nasa cspc acc ✓
 
+Added view profile organization ✓
+
 # itest tom (Aug 23, 2026 8 am):
 
 pag enable na ang decline, ideclined ang adoption thentry to re-apply and check if the address is match with the address in the user profile
+
+Tignan if yung view profile organization will appear in under review, approved, declined or cancelled

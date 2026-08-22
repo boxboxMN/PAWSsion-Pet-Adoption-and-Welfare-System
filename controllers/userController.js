@@ -1027,7 +1027,7 @@ exports.getUserApplications = async (req, res) => {
         // =====================================================
         // 5. SEND RESPONSE
         // =====================================================
-        return res.status(200).json({ success: true, applications: applications });
+        return res.status(200).json({ success: true, applications: formattedApplications });
 
     } catch (error) {
         console.error("Error fetching user adoption applications:", error);
