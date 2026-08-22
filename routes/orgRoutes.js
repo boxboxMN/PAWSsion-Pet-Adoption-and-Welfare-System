@@ -178,14 +178,14 @@ router.get('/applications/:id', async (req, res) => {
             app.document_path,
             app.status,
             app.decline_reason,
-            i.interview_date,
-            i.interview_time,
-            i.interview_method,
-            i.interview_location_link,
-            i.requested_interview_date,
-            i.requested_interview_time,
-            i.reschedule_reason,
-            i.resched_status,
+            CASE WHEN app.status = 'Under Review' THEN NULL ELSE i.interview_date END AS interview_date,
+            CASE WHEN app.status = 'Under Review' THEN NULL ELSE i.interview_time END AS interview_time,
+            CASE WHEN app.status = 'Under Review' THEN NULL ELSE i.interview_method END AS interview_method,
+            CASE WHEN app.status = 'Under Review' THEN NULL ELSE i.interview_location_link END AS interview_location_link,
+            CASE WHEN app.status = 'Under Review' THEN NULL ELSE i.requested_interview_date END AS requested_interview_date,
+            CASE WHEN app.status = 'Under Review' THEN NULL ELSE i.requested_interview_time END AS requested_interview_time,
+            CASE WHEN app.status = 'Under Review' THEN NULL ELSE i.reschedule_reason END AS reschedule_reason,
+            CASE WHEN app.status = 'Under Review' THEN NULL ELSE i.resched_status END AS resched_status,
             DATE_FORMAT(app.created_at, '%b %d, %Y • %h:%i %p') AS applied_date,
             p.name AS pet_name
         FROM user_adoption_applications app
@@ -248,6 +248,15 @@ router.patch('/applications/:id/status', async (req, res) => {
             return res.status(400).json({ 
                 success: false,
                 message: `Invalid status selected. Allowed: ${validStatuses.join(', ')}` 
+            });
+        }
+
+        // BAGONG VALIDATION: Siguraduhing may laman ang decline reason kapag 'Declined'
+        if (status === 'Declined' && (!decline_reason || decline_reason.trim() === '')) {
+            connection.release();
+            return res.status(400).json({
+                success: false,
+                message: "A decline reason is required when declining an application."
             });
         }
 
@@ -337,9 +346,43 @@ router.post('/applications/:id/schedule', async (req, res) => {
         const { id } = req.params;
         let { interview_date, interview_time, interview_method, interview_location_link } = req.body;
 
+        if (!interview_date || !interview_time) {
+            return res.status(400).json({ success: false, error: "Interview date and time are required." });
+        }
+
+        // BACKEND SANITIZATION: Siguraduhing hindi past date/time ang isinumite
+        const selectedDateTime = new Date(`${interview_date}T${interview_time}:00`);
+        const now = new Date();
+
+        if (selectedDateTime <= now) {
+            return res.status(400).json({ 
+                success: false, 
+                error: "Invalid schedule. You cannot set an interview date and time in the past." 
+            });
+        }
+
         // Siguraduhing lowercase 'virtual' o 'onsite' para tumugma sa ENUM ng interview_method
         const cleanMethod = (interview_method && interview_method.toLowerCase() === 'onsite') ? 'onsite' : 'virtual';
-
+        const urlCheckRegex = /https?:\/\/|www\./i;
+        
+        // BACKEND METHOD & LINK VALIDATION
+        if (cleanMethod === 'onsite') {
+            if (urlCheckRegex.test(interview_location_link)) {
+                return res.status(400).json({
+                    success: false,
+                    error: "On-site interviews cannot accept links or URLs as a venue address."
+                });
+            }
+        } else {
+            const gmeetRegex = /^https?:\/\/(www\.)?meet\.google\.com\/[a-z0-9]{3,4}-[a-z0-9]{3,4}-[a-z0-9]{3,4}(\?.*)?$/i;
+            if (!gmeetRegex.test(interview_location_link)) {
+                return res.status(400).json({
+                    success: false,
+                    error: "Virtual interviews require a valid Google Meet link."
+                });
+            }
+        }
+        
         // 1. Update main application status
         await pool.query(
             `UPDATE user_adoption_applications SET status = 'Interview Scheduled', updated_at = NOW() WHERE application_id = ?`,

@@ -180,7 +180,7 @@
             </p>
 
             <div>
-                <label for="declineReason" class="block text-xs font-semibold text-gray-700 mb-1">Reason / Feedback for Adopter (Optional)</label>
+                <label for="declineReason" class="block text-xs font-semibold text-gray-700 mb-1">Reason / Feedback for Adopter<span class="text-red-500">*Required</span></label>
                 <textarea id="declineReason" rows="3" class="w-full p-3 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none resize-none" placeholder="e.g. Living environment is not suitable for large dogs..."></textarea>
             </div>
 
@@ -269,9 +269,20 @@
                 </div>
 
                 <!-- Set Time -->
-                <div>
-                    <label for="interviewTime" class="block text-xs font-semibold text-gray-400 mb-1.5">Set Time</label>
-                    <input type="time" id="interviewTime" required class="w-full p-3.5 border border-gray-200 rounded-2xl text-sm font-semibold text-gray-700 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                <div class="relative">
+                    <label class="block text-xs font-semibold text-gray-400 mb-1.5">Set Time</label>
+                    <div class="relative">
+                        <!-- Clickable input field that acts like a select box -->
+                        <input type="text" id="interviewTimeDisplay" readonly placeholder="Select time" required class="w-full p-3.5 border border-gray-200 rounded-2xl text-sm font-semibold text-gray-700 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition cursor-pointer bg-white" onclick="toggleTimeDropdown()">
+                        
+                        <!-- Hidden input to store the actual 24-hour time value (e.g., "14:30") for backend processing -->
+                        <input type="hidden" id="interviewTime" required>
+                
+                        <!-- Dropdown menu list -->
+                        <div id="timeDropdownList" class="absolute left-0 right-0 mt-1 bg-white border border-gray-200 rounded-2xl shadow-xl max-h-52 overflow-y-auto hidden z-50 divide-y divide-gray-50">
+                            <!-- Time options will be injected here via JavaScript -->
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Interview Method Selection -->
@@ -280,13 +291,13 @@
                     <div class="grid grid-cols-2 gap-3">
                         
                         <!-- On-site Option -->
-                        <button type="button" id="btnMethodOnsite" onclick="selectInterviewMethod('onsite')" class="flex flex-col items-center justify-center py-4 px-3 border border-gray-200 rounded-2xl gap-2 transition cursor-pointer hover:border-blue-400">
+                        <button type="button" id="btnMethodOnsite" onclick="selectInterviewMethod('onsite', true)" class="flex flex-col items-center justify-center py-4 px-3 border border-gray-200 rounded-2xl gap-2 transition cursor-pointer hover:border-blue-400">
                             <i class="fa-solid fa-building text-2xl text-gray-400" id="iconOnsite"></i>
                             <span id="textOnsite" class="text-sm font-bold text-gray-600">On-site</span>
                         </button>
 
                         <!-- Virtual Option (Default Selected) -->
-                        <button type="button" id="btnMethodVirtual" onclick="selectInterviewMethod('virtual')" class="flex flex-col items-center justify-center py-4 px-3 border-2 border-blue-500 bg-blue-50/50 rounded-2xl gap-2 transition cursor-pointer">
+                        <button type="button" id="btnMethodVirtual" onclick="selectInterviewMethod('virtual', true)" class="flex flex-col items-center justify-center py-4 px-3 border-2 border-blue-500 bg-blue-50/50 rounded-2xl gap-2 transition cursor-pointer">
                             <i class="fa-solid fa-video text-2xl text-blue-500" id="iconVirtual"></i>
                             <span id="textVirtual" class="text-sm font-bold text-blue-600">Virtual</span>
                         </button>
@@ -364,6 +375,14 @@
                     window.location.href = "/org/adoption";
                 });
             }
+
+            // FORCE CLOSE TIME DROPDOWN: Kapag pinili na ang oras, automatic itong mag-blur para magsara
+            const timeInput = document.getElementById("interviewTime");
+            if (timeInput) {
+                timeInput.addEventListener("change", function() {
+                    this.blur();
+                });
+            }
         });
     
         async function fetchApplicationDetail(id) {
@@ -409,6 +428,10 @@
             }
 
             const lowerStatus = status.toLowerCase();
+
+            // FIX: Kung Under Review ang status, huwag hayaang maging "Post-Interview Review" 
+            // kahit may naiwan pang lumang interview date sa database.
+            const isUnderReview = lowerStatus.includes("under review") || lowerStatus.includes("pending");
 
             // CHECK KUNG TAPOS NA ANG INTERVIEW DATE/TIME
             const now = new Date();
@@ -650,7 +673,16 @@
     
             const confirmBtn = document.getElementById("confirmDeclineBtn");
             const reason = document.getElementById("declineReason").value.trim();
-    
+
+            // FRONTEND VALIDATION: Pigilan kung walang nilagay na dahilan
+            if (!reason) {
+                return Swal.fire({
+                    icon: 'warning',
+                    title: 'Reason Required',
+                    text: 'Please provide a reason or feedback for declining this application.',
+                    confirmButtonColor: '#2563EB'
+                });
+            }
             confirmBtn.disabled = true;
             confirmBtn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> Processing...`;
     
@@ -809,21 +841,24 @@
             if (currentAppDetails && (currentAppDetails.interview_date || currentAppDetails.interview_time)) {
                 if (currentAppDetails.interview_date) {
                     let rawDate = currentAppDetails.interview_date;
-
-                    // Isalin sa Totoong Local Timezone (Asia/Manila GMT+8)
                     const d = new Date(rawDate);
-                    const year = d.getFullYear(); // Local Year
-                    const month = String(d.getMonth() + 1).padStart(2, "0"); // Local Month
-                    const day = String(d.getDate()).padStart(2, "0"); // Local Day (lalabas na 14)
-                    
-                    const formattedInputDate = `${year}-${month}-${day}`;
-
-                    console.log("Corrected Local Date:", formattedInputDate);
-                    dateInput.value = formattedInputDate;
+                    const year = d.getFullYear();
+                    const month = String(d.getMonth() + 1).padStart(2, "0");
+                    const day = String(d.getDate()).padStart(2, "0");
+                    dateInput.value = `${year}-${month}-${day}`;
                 }
 
                 if (currentAppDetails.interview_time) {
-                    document.getElementById("interviewTime").value = currentAppDetails.interview_time;
+                    const rawTime = currentAppDetails.interview_time; 
+                    const timeOnly = rawTime.substring(0, 5); 
+                    
+                    document.getElementById("interviewTime").value = timeOnly;
+
+                    const [h, m] = timeOnly.split(':');
+                    let hrNum = parseInt(h, 10);
+                    const ampm = hrNum >= 12 ? 'PM' : 'AM';
+                    hrNum = hrNum % 12 || 12;
+                    document.getElementById("interviewTimeDisplay").value = `${String(hrNum).padStart(2, '0')}:${m} ${ampm}`;
                 }
                 
                 const method = (currentAppDetails.interview_method || 'virtual').toLowerCase();
@@ -832,6 +867,10 @@
                 document.getElementById("interviewLocationLink").value = currentAppDetails.interview_location_link || '';
             } else {
                 selectInterviewMethod('virtual');
+                document.getElementById("interviewTime").value = "";
+                document.getElementById("interviewTimeDisplay").value = "";
+                document.getElementById("interviewDate").value = "";
+                document.getElementById("interviewLocationLink").value = "";
             }
           
             const modal = document.getElementById("scheduleModal");
@@ -842,9 +881,13 @@
             const modal = document.getElementById("scheduleModal");
             if (modal) modal.classList.add("hidden");
             document.getElementById("scheduleForm").reset();
+
+            // Siguruhing nabubura rin ang custom display fields pag sinara
+            document.getElementById("interviewTime").value = "";
+            document.getElementById("interviewTimeDisplay").value = "";
         }
     
-        function selectInterviewMethod(method) {
+        function selectInterviewMethod(method, isUserClick = false) {
             selectedMethod = method;
             
             const btnOnsite = document.getElementById("btnMethodOnsite");
@@ -880,6 +923,11 @@
                 label.textContent = "GMeet Link:";
                 input.placeholder = "https://meet.google.com/xyz-abc-123";
             }
+
+            // Kung sadyang pinindot ng user ang button (hindi galing sa automatic modal load), burahin ang lumang laman
+            if (isUserClick) {
+                input.value = "";
+            }
         }
     
         async function submitInterviewSchedule(event) {
@@ -904,7 +952,22 @@
                 });
             }
 
+            // ================= PAST DATE & TIME VALIDATION =================
+            const selectedDateTime = new Date(`${dateVal}T${timeVal}:00`);
+            const now = new Date();
+
+            if (selectedDateTime <= now) {
+                return Swal.fire({
+                    icon: 'error',
+                    title: 'Invalid Schedule',
+                    text: 'You cannot schedule an interview in the past. Please select a future date and time.',
+                    confirmButtonColor: '#EF4444'
+                });
+            }
+
             // ================= GMEET LINK VALIDATION =================
+            const urlCheckRegex = /https?:\/\/|www\./i;
+
             if (selectedMethod === 'virtual') {
                 // Regex pattern para sa valid Google Meet links (meet.google.com/xxx-xxxx-xxx)
                 const gmeetRegex = /^https?:\/\/(www\.)?meet\.google\.com\/[a-z0-9]{3,4}-[a-z0-9]{3,4}-[a-z0-9]{3,4}(\?.*)?$/i;
@@ -913,7 +976,7 @@
                     return Swal.fire({
                         icon: 'error',
                         title: 'Invalid Google Meet Link',
-                        text: 'Please enter a valid Google Meet link (e.g., https://meet.google.com/abc-defg-hij).',
+                        text: 'Please enter a valid Google Meet link.',
                         confirmButtonColor: '#EF4444'
                     });
                 }
@@ -927,7 +990,17 @@
                         confirmButtonColor: '#2563EB'
                     });
                 }
+
+            // Pigilan ang paglagay ng link o URL kapag On-site
+            if (urlCheckRegex.test(detailVal)) {
+                    return Swal.fire({
+                        icon: 'error',
+                        title: 'Invalid On-site Address',
+                        text: 'On-site venue addresses cannot accept links or URLs. Please enter a physical location.',
+                        confirmButtonColor: '#EF4444'
+                    });
             }
+        }
 
             confirmBtn.disabled = true;
             confirmBtn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> Saving...`;
@@ -990,6 +1063,41 @@
             const hasSchedule = app.interview_date || app.interview_time || app.interview_location_link;
 
             if (!hasSchedule) {
+                container.classList.add("hidden");
+                return;
+            }
+
+            // FIX: hasSchedule alone isn't enough. If a re-applied application comes back
+            // from the backend with an interview_date/time still attached from its PREVIOUS
+            // (declined) cycle, this card would show that stale schedule even though the
+            // current status is a fresh "Under Review" with no interview of its own yet.
+            // Only show the card when the status actually reflects an active interview
+            // stage - "Interview Scheduled"/"Rescheduled", or the legitimate
+            // "Post-Interview Review" state (interview date has passed and the org hasn't
+            // finalized yet). A plain Under Review / Pending status with no interview
+            // keyword means this cycle hasn't reached the interview stage, so any
+            // interview_date present belongs to an earlier cycle and shouldn't be shown.
+            // NOTE: this only hides the stale data in the UI - the real fix is to make sure
+            // the backend clears interview_date/interview_time/interview_method/
+            // interview_location_link (and any resched_* fields) when an application is
+            // re-opened/re-applied for, so the record itself doesn't carry old data forward.
+            let statusForCardCheck = app.status;
+            if ((!statusForCardCheck || statusForCardCheck.trim() === "") && (app.interview_date || app.interview_time)) {
+                statusForCardCheck = "Interview Scheduled";
+            } else if (!statusForCardCheck || statusForCardCheck.trim() === "") {
+                statusForCardCheck = "Under Review";
+            }
+            const lowerStatusForCardCheck = statusForCardCheck.toLowerCase();
+
+            if (lowerStatusForCardCheck.includes("under review") || lowerStatusForCardCheck.includes("pending")) {
+                container.classList.add("hidden");
+                return;
+            }
+            const isInterviewScheduledForCardCheck = lowerStatusForCardCheck.includes("interview") || lowerStatusForCardCheck.includes("scheduled");
+            const isFinalizedForCardCheck = ["approved", "declined", "rejected"].includes(lowerStatusForCardCheck) || lowerStatusForCardCheck.includes("cancelled");
+            const isPostInterviewReviewForCardCheck = isPastInterview && !isFinalizedForCardCheck;
+
+            if (!isInterviewScheduledForCardCheck && !isPostInterviewReviewForCardCheck) {
                 container.classList.add("hidden");
                 return;
             }
@@ -1439,6 +1547,64 @@
             const cleanFileName = (currentAppDetails.full_name || "Applicant").replace(/[^a-zA-Z0-9]/g, "_");
             doc.save(`Adoption_Form_${cleanFileName}.pdf`);
         }
+
+        // Populate time slots (e.g., 8:00 AM to 5:00 PM in 30-minute intervals)
+        function generateTimeOptions() {
+            const dropdown = document.getElementById("timeDropdownList");
+            if (!dropdown) return;
+
+            let html = "";
+            for (let hour = 8; hour <= 17; hour++) {
+                for (let minute = 0; minute < 60; minute += 30) {
+                    // Skip 5:30 PM if 5:00 PM is the max limit, optional
+                    if (hour === 17 && minute > 0) break;
+
+                    const h24 = String(hour).padStart(2, '0') + ":" + String(minute).padStart(2, '0');
+                    
+                    // Format for display (e.g., 02:30 PM)
+                    let displayHour = hour % 12 || 12;
+                    displayHour = String(displayHour).padStart(2, '0');
+                    const displayMinute = String(minute).padStart(2, '0');
+                    const ampm = hour >= 12 ? 'PM' : 'AM';
+                    const timeLabel = `${displayHour}:${displayMinute} ${ampm}`;
+
+                    html += `<div class="p-3 text-sm font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-600 cursor-pointer transition" onclick="selectTime('${h24}', '${timeLabel}')">${timeLabel}</div>`;
+                }
+            }
+            dropdown.innerHTML = html;
+        }
+
+        function toggleTimeDropdown() {
+            const dropdown = document.getElementById("timeDropdownList");
+            if (dropdown) {
+                dropdown.classList.toggle("hidden");
+            }
+        }
+
+        function selectTime(value24, label) {
+            document.getElementById("interviewTime").value = value24;
+            document.getElementById("interviewTimeDisplay").value = label;
+            
+            // Immediately close the dropdown list
+            const dropdown = document.getElementById("timeDropdownList");
+            if (dropdown) {
+                dropdown.classList.add("hidden");
+            }
+        }
+
+        // Close dropdown when clicking outside of it
+        document.addEventListener("click", function(event) {
+            const container = document.getElementById("interviewTimeDisplay");
+            const dropdown = document.getElementById("timeDropdownList");
+            if (container && dropdown && !container.contains(event.target) && !dropdown.contains(event.target)) {
+                dropdown.classList.add("hidden");
+            }
+        });
+
+        // Call generator on page load
+        document.addEventListener("DOMContentLoaded", () => {
+            generateTimeOptions();
+        });
     </script>
     <script src="/assets/js/orgProfile.js"></script> 
 </body>
