@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pawpon - Find Your Perfect Companion</title>
     <style>
-        /* Base Reset & Typography */
-        *, *::before, *::after {
+            /* Base Reset & Typography */
+            *, *::before, *::after {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
@@ -415,6 +415,212 @@
     line-height: 1.8;
     font-size: 18px;
 }
+
+/* ===================
+RESPONSIVE
+=================== */
+
+/* Small desktops / tablets: trim outer spacing, shrink big type */
+@media (max-width: 1100px) {
+
+    .landing-container {
+        padding: 0 24px;
+    }
+
+    .navbar-section {
+        padding: 16px 24px;
+    }
+
+    .hero-layout-table {
+        margin-top: 120px;
+    }
+
+    .hero-column-content h1 {
+        font-size: 38px;
+    }
+
+    .about-column-content h2 {
+        font-size: 34px;
+    }
+
+    .articles-section {
+        padding: 0 24px 100px;
+        gap: 40px;
+    }
+
+    .feature-image-container img {
+        width: 100%;
+        max-width: 480px;
+        height: auto;
+        aspect-ratio: 650 / 430;
+    }
+
+    .footer {
+        padding: 60px 40px 30px;
+    }
+}
+
+/* Tablets: hero and about sections stack, article grid becomes one column */
+@media (max-width: 860px) {
+
+    .navbar-inner {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .hero-layout-table {
+        display: block;
+        margin-top: 110px;
+    }
+
+    .hero-column-content,
+    .hero-column-image {
+        display: block;
+        width: 100%;
+        padding-right: 0;
+    }
+
+    .hero-column-content {
+        text-align: center;
+        margin-bottom: 40px;
+    }
+
+    .hero-column-content p {
+        max-width: 100%;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .about-section {
+        flex-direction: column;
+        text-align: center;
+        margin-top: 80px;
+        padding-bottom: 70px;
+        gap: 30px;
+    }
+
+    .about-column-content {
+        max-width: 560px;
+    }
+
+    .articles-section {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 40px;
+        margin-top: 50px;
+    }
+
+    .feature-image-container img {
+        max-width: 100%;
+    }
+
+    .articles-content {
+        max-width: 100%;
+    }
+
+    .footer-top {
+        gap: 40px;
+    }
+
+    .footer-right h4 {
+        font-size: 24px;
+    }
+}
+
+/* Phones: single-column everything, smaller type, no floats in navbar */
+@media (max-width: 600px) {
+
+    .landing-container {
+        padding: 0 16px;
+    }
+
+    .navbar-section {
+        padding: 14px 16px;
+    }
+
+    .brand-logo,
+    .account-control {
+        float: none;
+    }
+
+    .logo-text {
+        font-size: 24px;
+    }
+
+    .btn-account {
+        padding: 6px 14px;
+        font-size: 14px;
+    }
+
+    .hero-layout-table {
+        margin-top: 90px;
+    }
+
+    .hero-column-content h1 {
+        font-size: 28px;
+    }
+
+    .hero-column-content p {
+        font-size: 15px;
+        margin-bottom: 24px;
+    }
+
+    .about-column-content h2 {
+        font-size: 26px;
+    }
+
+    .about-column-content p {
+        font-size: 15px;
+    }
+
+    .articles-section {
+        padding: 0 16px 60px;
+        margin-top: 40px;
+    }
+
+    .articles-content h2 {
+        font-size: 22px;
+    }
+
+    .article-item {
+        gap: 12px;
+    }
+
+    .article-thumbnail {
+        width: 96px;
+        height: 68px;
+        flex-shrink: 0;
+    }
+
+    .article-info h3 {
+        font-size: 15px;
+    }
+
+    .article-info p {
+        font-size: 13px;
+    }
+
+    .footer {
+        margin-top: 70px;
+        padding: 40px 20px 24px;
+    }
+
+    .footer-top {
+        flex-direction: column;
+        gap: 32px;
+    }
+
+    .footer-links {
+        grid-template-columns: 1fr;
+        gap: 14px;
+    }
+
+    .footer-bottom {
+        font-size: 14px;
+        margin-top: 40px;
+    }
+}
     </style>
 </head>
 <body>
@@ -429,9 +635,9 @@
             </div>
             <div class="account-control">
                 <a href="auth/login.html" class="btn-account">
-    Account
-    <img src="assets/images/account.png" alt="User Icon">
-</a>
+                    Account
+                    <img src="assets/images/account.png" alt="User Icon">
+                </a>
             </div>
         </div>
     </div>
