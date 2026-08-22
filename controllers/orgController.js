@@ -596,7 +596,6 @@ exports.deletePet = async (req, res) => {
 // ==========================================
 // PAYMENT & QR DETAILS CONTROLLERS
 // ==========================================
-
 exports.getPaymentInfo = async (req, res) => {
     try {
         if (!req.session || !req.session.accountId) {
@@ -606,7 +605,6 @@ exports.getPaymentInfo = async (req, res) => {
             });
         }
 
-        // Isinama ang d.* (Drop-off details) sa LEFT JOIN
         const [rows] = await pool.query(
             `
             SELECT 
@@ -616,6 +614,9 @@ exports.getPaymentInfo = async (req, res) => {
                 p.gcash_name,
                 p.gcash_number,
                 p.qr_code,
+                p.maya_name,
+                p.maya_number,
+                p.maya_qr_code,
                 d.dropoff_address,
                 d.dropoff_hours,
                 d.dropoff_notes,
@@ -641,6 +642,9 @@ exports.getPaymentInfo = async (req, res) => {
         if (orgData.qr_code && !orgData.qr_code.startsWith('/') && !orgData.qr_code.startsWith('http')) {
             orgData.qr_code = `/uploads/qr/${orgData.qr_code}`;
         }
+        if (orgData.maya_qr_code && !orgData.maya_qr_code.startsWith('/') && !orgData.maya_qr_code.startsWith('http')) {
+            orgData.maya_qr_code = `/uploads/qr/${orgData.maya_qr_code}`;
+        }
         if (orgData.dropoff_image && !orgData.dropoff_image.startsWith('/') && !orgData.dropoff_image.startsWith('http')) {
             orgData.dropoff_image = `/uploads/qr/${orgData.dropoff_image}`;
         }
@@ -661,19 +665,13 @@ exports.getPaymentInfo = async (req, res) => {
 exports.updatePaymentInfo = async (req, res) => {
     try {
         if (!req.session || !req.session.accountId) {
-            return res.status(401).json({
-                success: false,
-                message: "Unauthorized access."
-            });
+            return res.status(401).json({ success: false, message: "Unauthorized access." });
         }
 
         const { 
-            gcash_name, 
-            gcash_number, 
-            contact_number, 
-            dropoff_address, 
-            dropoff_hours, 
-            dropoff_notes 
+            gcash_name, gcash_number, 
+            maya_name, maya_number, 
+            contact_number 
         } = req.body;
 
         const [org] = await pool.query(
@@ -681,85 +679,46 @@ exports.updatePaymentInfo = async (req, res) => {
             [req.session.accountId]
         );
 
-        if (!org.length) {
-            return res.status(404).json({
-                success: false,
-                message: "Organization not found."
-            });
-        }
-
+        if (!org.length) return res.status(404).json({ success: false, message: "Organization not found." });
         const organization_id = org[0].organization_id;
 
-        // 1. Update contact number sa main organization table
+        // 1. Update contact number in organizations table
         await pool.query(
             `UPDATE organizations SET contact_number = ? WHERE organization_id = ?`,
             [contact_number || null, organization_id]
         );
 
-        // 2. Kunin ang files mula sa req.files
-        let qrCodeFile = null;
-        let dropoffImgFile = null;
+        // 2. File extraction for QR codes
+        let gcashQrFile = req.files && req.files['qr_code'] ? req.files['qr_code'][0].filename : null;
+        let mayaQrFile = req.files && req.files['maya_qr_code'] ? req.files['maya_qr_code'][0].filename : null;
 
-        if (req.files) {
-            if (req.files['qr_code'] && req.files['qr_code'][0]) {
-                qrCodeFile = req.files['qr_code'][0].filename;
-            }
-            if (req.files['location_image'] && req.files['location_image'][0]) {
-                dropoffImgFile = req.files['location_image'][0].filename;
-            }
-        }
-
-        // 3. Upsert GCash / Payment Details
-        await pool.query(
-            `
+        // 3. Upsert into organization_payment_details (handles both GCash and Maya columns)
+        await pool.query(`
             INSERT INTO organization_payment_details 
-            (organization_id, gcash_name, gcash_number, qr_code)
-            VALUES (?, ?, ?, ?)
+            (organization_id, gcash_name, gcash_number, qr_code, maya_name, maya_number, maya_qr_code)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
             ON DUPLICATE KEY UPDATE
                 gcash_name = VALUES(gcash_name),
                 gcash_number = VALUES(gcash_number),
-                qr_code = COALESCE(VALUES(qr_code), qr_code)
-            `,
-            [
-                organization_id, 
-                gcash_name || null, 
-                gcash_number || null, 
-                qrCodeFile
-            ]
-        );
+                qr_code = COALESCE(VALUES(qr_code), qr_code),
+                maya_name = VALUES(maya_name),
+                maya_number = VALUES(maya_number),
+                maya_qr_code = COALESCE(VALUES(maya_qr_code), maya_qr_code)
+        `, [
+            organization_id, 
+            gcash_name || null, 
+            gcash_number || null, 
+            gcashQrFile, 
+            maya_name || null, 
+            maya_number || null, 
+            mayaQrFile
+        ]);
 
-        // 4. Upsert Drop-off Details (Gagamitin ang totoong schema: dropoff_address, dropoff_hours, dropoff_notes, dropoff_image)
-        await pool.query(
-            `
-            INSERT INTO organization_dropoff_details 
-            (organization_id, dropoff_address, dropoff_hours, dropoff_notes, dropoff_image)
-            VALUES (?, ?, ?, ?, ?)
-            ON DUPLICATE KEY UPDATE
-                dropoff_address = VALUES(dropoff_address),
-                dropoff_hours = VALUES(dropoff_hours),
-                dropoff_notes = VALUES(dropoff_notes),
-                dropoff_image = COALESCE(VALUES(dropoff_image), dropoff_image)
-            `,
-            [
-                organization_id,
-                dropoff_address || null,
-                dropoff_hours || null,
-                dropoff_notes || null,
-                dropoffImgFile
-            ]
-        );
-
-        res.json({
-            success: true,
-            message: "Donation settings and In-Kind drop-off details saved successfully!"
-        });
+        res.json({ success: true, message: "Payment settings updated successfully!" });
 
     } catch (err) {
-        console.error("Update Payment Info Error:", err);
-        res.status(500).json({
-            success: false,
-            message: "Failed to update details: " + err.message
-        });
+        console.error("Update Error:", err);
+        res.status(500).json({ success: false, message: "Server error: " + err.message });
     }
 };
 // ==========================================
@@ -2040,5 +1999,30 @@ exports.archiveKamustahanUpdate = async (req, res) => {
         res.json({ success: true, message: "Matagumpay na na-archive ang update." });
     } catch (err) {
         res.status(500).json({ success: false, message: err.message });
+    }
+};
+exports.submitCashDonation = async (req, res) => {
+    try {
+        const { 
+            campaign_id, 
+            donor_name, 
+            amount, 
+            payment_method, // 'gcash' or 'maya'
+            reference_number, 
+            gcash_account_name 
+        } = req.body;
+
+        const proofFile = req.file ? req.file.filename : null;
+
+        await pool.query(`
+            INSERT INTO cash_donations 
+            (campaign_id, donor_name, amount, payment_method, reference_number, gcash_account_name, proof_image, status)
+            VALUES (?, ?, ?, ?, ?, ?, ?, 'Pending')
+        `, [campaign_id, donor_name, amount, payment_method || 'gcash', reference_number, gcash_account_name, proofFile]);
+
+        res.json({ success: true, message: "Donation submitted successfully and is pending verification." });
+    } catch (err) {
+        console.error("Donation Submit Error:", err);
+        res.status(500).json({ success: false, message: "Failed to submit donation." });
     }
 };

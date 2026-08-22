@@ -1,82 +1,111 @@
-    // Global state
-    let activeTab = 'cash'; // 'cash' or 'inkind'
-    let allDonations = [];
-    let allInKindDonations = [];
-    let selectedDonationId = null;
-    let selectedInKindId = null;
+/**
+ * org-donation.js
+ * Handles interactivity for the organization donation dashboard
+ */
 
-    document.addEventListener("DOMContentLoaded", async () => {
-        // Load Shared Layout Components
-        await loadTopbar({
-            title: "Donations Overview",
-            subtitle: "Track funds and in-kind resources submitted by sponsors"
-        });
-        await loadSidebar("donation");
+// Global state
+let activeTab = 'cash'; // 'cash' or 'inkind'
+let allDonations = [];
+let allInKindDonations = [];
+let selectedDonationId = null;
+let selectedInKindId = null;
+let currentReceiptPath = null;
 
-        // Close dropdowns on outside click
-        document.addEventListener('click', (e) => {
-            if (!e.target.closest('.action-dropdown-btn') && !e.target.closest('.action-dropdown-menu')) {
-                document.querySelectorAll('.action-dropdown-menu').forEach(m => m.classList.add('hidden'));
-            }
-        });
+document.addEventListener("DOMContentLoaded", async () => {
+    // Load Shared Layout Components
+    await loadTopbar({
+        title: "Donations Overview",
+        subtitle: "Track funds and in-kind resources submitted by sponsors"
+    });
+    await loadSidebar("donation");
 
-        // Load Initial Data
-        fetchPaymentDetails();
-        fetchDonations();
-        fetchInKindDonations();
+    // Close dropdowns on outside click
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.action-dropdown-btn') && !e.target.closest('.action-dropdown-menu')) {
+            document.querySelectorAll('.action-dropdown-menu').forEach(m => m.classList.add('hidden'));
+        }
     });
 
-    /**
-     * Switches between the Cash Donations and In-Kind Donations tabs.
-     */
-    function switchDonationTab(tab) {
-        activeTab = tab;
-        const tabCash = document.getElementById("tabCash");
-        const tabInKind = document.getElementById("tabInKind");
-        const cashTable = document.getElementById("cashTableContainer");
-        const inkindTable = document.getElementById("inkindTableContainer");
-
-        if (tab === 'cash') {
-            tabCash.className = "flex-1 py-3 px-6 text-sm font-bold rounded-lg border-b-2 border-indigo-600 text-indigo-600 flex items-center justify-center gap-2 transition-all";
-            tabInKind.className = "flex-1 py-3 px-6 text-sm font-bold rounded-lg border-b-2 border-transparent text-gray-500 hover:text-gray-700 flex items-center justify-center gap-2 transition-all";
-            cashTable.classList.remove("hidden");
-            inkindTable.classList.add("hidden");
-        } else {
-            tabInKind.className = "flex-1 py-3 px-6 text-sm font-bold rounded-lg border-b-2 border-indigo-600 text-indigo-600 flex items-center justify-center gap-2 transition-all";
-            tabCash.className = "flex-1 py-3 px-6 text-sm font-bold rounded-lg border-b-2 border-transparent text-gray-500 hover:text-gray-700 flex items-center justify-center gap-2 transition-all";
-            inkindTable.classList.remove("hidden");
-            cashTable.classList.add("hidden");
-        }
-        filterDonations();
+    // Add event listener for active payment method dropdown change
+    const methodSelect = document.getElementById('inputPaymentMethod');
+    if (methodSelect) {
+        methodSelect.addEventListener('change', togglePaymentMethodFields);
+        togglePaymentMethodFields(); // trigger initially
     }
 
-   /**
-     * Switches between the Cash and In-Kind configuration
-     * sections inside the settings modal.
-     */
-    function switchModalConfigTab(type) {
-        const modalTabCash = document.getElementById("modalTabCash");
-        const modalTabInKind = document.getElementById("modalTabInKind");
-        const modalCashSection = document.getElementById("modalCashSection");
-        const modalInKindSection = document.getElementById("modalInKindSection");
+    // Load Initial Data
+    fetchPaymentDetails();
+    fetchDonations();
+    fetchInKindDonations();
+});
 
-        if (type === 'cash') {
-            modalTabCash.className = "flex-1 py-2 text-xs font-bold rounded-lg text-indigo-600 bg-white shadow-sm transition-all";
-            modalTabInKind.className = "flex-1 py-2 text-xs font-bold rounded-lg text-gray-500 transition-all";
-            modalCashSection.classList.remove("hidden");
-            modalInKindSection.classList.add("hidden");
-        } else {
-            modalTabInKind.className = "flex-1 py-2 text-xs font-bold rounded-lg text-indigo-600 bg-white shadow-sm transition-all";
-            modalTabCash.className = "flex-1 py-2 text-xs font-bold rounded-lg text-gray-500 transition-all";
-            modalInKindSection.classList.remove("hidden");
-            modalCashSection.classList.add("hidden");
-        }
+// Toggle visibility of GCash vs Maya configuration inputs inside the modal
+function togglePaymentMethodFields() {
+    const selectedMethod = document.getElementById('inputPaymentMethod').value;
+    const gcashGroup = document.getElementById('gcashFieldsGroup');
+    const mayaGroup = document.getElementById('mayaFieldsGroup');
+
+    if (selectedMethod === 'maya') {
+        mayaGroup.classList.remove('hidden');
+        gcashGroup.classList.add('hidden');
+    } else {
+        gcashGroup.classList.remove('hidden');
+        mayaGroup.classList.add('hidden');
     }
-    /**
-     * Retrieves the organization's payment information
-     * and in-kind drop-off details from the server.
-     */
-    async function fetchPaymentDetails() {
+}
+
+/**
+ * Switches between the Cash Donations and In-Kind Donations tabs.
+ */
+function switchDonationTab(tab) {
+    activeTab = tab;
+    const tabCash = document.getElementById("tabCash");
+    const tabInKind = document.getElementById("tabInKind");
+    const cashTable = document.getElementById("cashTableContainer");
+    const inkindTable = document.getElementById("inkindTableContainer");
+
+    if (tab === 'cash') {
+        tabCash.className = "flex-1 py-3 px-6 text-sm font-bold rounded-lg border-b-2 border-indigo-600 text-indigo-600 flex items-center justify-center gap-2 transition-all";
+        tabInKind.className = "flex-1 py-3 px-6 text-sm font-bold rounded-lg border-b-2 border-transparent text-gray-500 hover:text-gray-700 flex items-center justify-center gap-2 transition-all";
+        cashTable.classList.remove("hidden");
+        inkindTable.classList.add("hidden");
+    } else {
+        tabInKind.className = "flex-1 py-3 px-6 text-sm font-bold rounded-lg border-b-2 border-indigo-600 text-indigo-600 flex items-center justify-center gap-2 transition-all";
+        tabCash.className = "flex-1 py-3 px-6 text-sm font-bold rounded-lg border-b-2 border-transparent text-gray-500 hover:text-gray-700 flex items-center justify-center gap-2 transition-all";
+        inkindTable.classList.remove("hidden");
+        cashTable.classList.add("hidden");
+    }
+    filterDonations();
+}
+
+/**
+ * Switches between the Cash and In-Kind configuration
+ * sections inside the settings modal.
+ */
+function switchModalConfigTab(type) {
+    const modalTabCash = document.getElementById("modalTabCash");
+    const modalTabInKind = document.getElementById("modalTabInKind");
+    const modalCashSection = document.getElementById("modalCashSection");
+    const modalInKindSection = document.getElementById("modalInKindSection");
+
+    if (type === 'cash') {
+        modalTabCash.className = "flex-1 py-2 text-xs font-bold rounded-lg text-indigo-600 bg-white shadow-sm transition-all";
+        modalTabInKind.className = "flex-1 py-2 text-xs font-bold rounded-lg text-gray-500 transition-all";
+        modalCashSection.classList.remove("hidden");
+        modalInKindSection.classList.add("hidden");
+    } else {
+        modalTabInKind.className = "flex-1 py-2 text-xs font-bold rounded-lg text-indigo-600 bg-white shadow-sm transition-all";
+        modalTabCash.className = "flex-1 py-2 text-xs font-bold rounded-lg text-gray-500 transition-all";
+        modalInKindSection.classList.remove("hidden");
+        modalCashSection.classList.add("hidden");
+    }
+}
+
+/**
+ * Retrieves the organization's payment information
+ * and in-kind drop-off details from the server[cite: 5].
+ */
+async function fetchPaymentDetails() {
     try {
         const res = await fetch("/org/payment-info");
         const result = await res.json();
@@ -84,18 +113,29 @@
         if (result.success && result.data) {
             const data = result.data;
             
-            // Cash Fields
+            // Payment Method Selector & GCash / Maya Fields
+            if (document.getElementById('inputPaymentMethod')) {
+                document.getElementById('inputPaymentMethod').value = data.payment_method || 'gcash';
+                togglePaymentMethodFields();
+            }
+
             document.getElementById('displayAccountName').textContent = data.gcash_name || data.organization_name || "N/A";
             document.getElementById('displayAccountNum').textContent = data.gcash_number ? `${data.gcash_number} (GCash)` : "No account set";
+            
             document.getElementById('inputAccountName').value = data.gcash_name || "";
             document.getElementById('inputAccountNum').value = data.gcash_number || "";
+            document.getElementById('inputMayaName').value = data.maya_name || "";
+            document.getElementById('inputMayaNum').value = data.maya_number || "";
             document.getElementById('inputPhone').value = data.contact_number || "";
 
             if (data.qr_code) {
                 document.getElementById('qrPreview').src = data.qr_code;
             }
+            if (data.maya_qr_code) {
+                document.getElementById('mayaQrPreview').src = data.maya_qr_code;
+            }
 
-            // In-Kind Location Fields (Nilagyan ng tamang field names mula sa DB)
+            // In-Kind Location Fields
             document.getElementById('inputLocationName').value = data.organization_name || "";
             document.getElementById('inputLocationAddress').value = data.dropoff_address || "";
             document.getElementById('inputOperatingHours').value = data.dropoff_hours || "";
@@ -109,110 +149,113 @@
         console.error("Error fetching payment/in-kind details:", error);
     }
 }
+
 /**
  * Retrieves all cash donations and displays
- * them in the donations table.
+ * them in the donations table[cite: 5].
  */
-    async function fetchDonations() {
-        try {
-            const res = await fetch("/org/donations");
-            const result = await res.json();
+async function fetchDonations() {
+    try {
+        const res = await fetch("/org/donations");
+        const result = await res.json();
 
-            if (result.success) {
-                allDonations = result.donations || [];
+        if (result.success) {
+            allDonations = result.donations || [];
 
-                const totalAmount = parseFloat(result.totalDonations || 0).toLocaleString('en-US', {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2
-                });
-                const totalDisplay = document.getElementById("displayTotalDonation");
-                if (totalDisplay) {
-                    totalDisplay.textContent = `₱${totalAmount}`;
-                }
-
-                renderDonationsTable(allDonations);
+            const totalAmount = parseFloat(result.totalDonations || 0).toLocaleString('en-US', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+            const totalDisplay = document.getElementById("displayTotalDonation");
+            if (totalDisplay) {
+                totalDisplay.textContent = `₱${totalAmount}`;
             }
-        } catch (error) {
-            console.error("Error fetching donations:", error);
-            const tbody = document.getElementById("donationsTableBody");
-            if (tbody) {
-                tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-rose-500">Failed to load cash donations.</td></tr>`;
-            }
+
+            renderDonationsTable(allDonations);
+        }
+    } catch (error) {
+        console.error("Error fetching donations:", error);
+        const tbody = document.getElementById("donationsTableBody");
+        if (tbody) {
+            tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-rose-500">Failed to load cash donations.</td></tr>`;
         }
     }
+}
+
 /**
  * Displays the cash donations in the table
- * with their corresponding details and status.
+ * with their corresponding details and status[cite: 5].
  */
-    function renderDonationsTable(donations) {
-        const tbody = document.getElementById("donationsTableBody");
-        if (!tbody) return;
+function renderDonationsTable(donations) {
+    const tbody = document.getElementById("donationsTableBody");
+    if (!tbody) return;
 
-        if (!donations || donations.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-gray-400">No cash donations recorded yet.</td></tr>`;
-            updatePaginationInfo(0);
-            return;
+    if (!donations || donations.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-gray-400">No cash donations recorded yet.</td></tr>`;
+        updatePaginationInfo(0);
+        return;
+    }
+
+    tbody.innerHTML = donations.map((d) => {
+        const dateObj = new Date(d.created_at);
+        const dateStr = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        const timeStr = dateObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+
+        let statusBadge = '';
+        const status = (d.status || 'Pending').toLowerCase();
+
+        if (status === 'approved' || status === 'verified') {
+            statusBadge = `<span class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-medium bg-emerald-100/70 text-emerald-600 rounded-full"><span class="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>Verified</span>`;
+        } else if (status === 'rejected') {
+            statusBadge = `<span class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-medium bg-rose-100/70 text-rose-600 rounded-full"><span class="w-1.5 h-1.5 bg-rose-500 rounded-full"></span>Rejected</span>`;
+        } else {
+            statusBadge = `<span class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-medium bg-amber-100/70 text-amber-600 rounded-full"><span class="w-1.5 h-1.5 bg-amber-500 rounded-full"></span>Pending</span>`;
         }
 
-        tbody.innerHTML = donations.map((d) => {
-            const dateObj = new Date(d.created_at);
-            const dateStr = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-            const timeStr = dateObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+        const formattedAmount = parseFloat(d.amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2 });
+        const donationId = d.cash_donation_id || d.id;
+        const methodLabel = (d.payment_method || 'GCASH').toUpperCase();
 
-            let statusBadge = '';
-            const status = (d.status || 'Pending').toLowerCase();
-
-            if (status === 'approved' || status === 'verified') {
-                statusBadge = `<span class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-medium bg-emerald-100/70 text-emerald-600 rounded-full"><span class="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>Verified</span>`;
-            } else if (status === 'rejected') {
-                statusBadge = `<span class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-medium bg-rose-100/70 text-rose-600 rounded-full"><span class="w-1.5 h-1.5 bg-rose-500 rounded-full"></span>Rejected</span>`;
-            } else {
-                statusBadge = `<span class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-medium bg-amber-100/70 text-amber-600 rounded-full"><span class="w-1.5 h-1.5 bg-amber-500 rounded-full"></span>Pending</span>`;
-            }
-
-            const formattedAmount = parseFloat(d.amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2 });
-            const donationId = d.cash_donation_id || d.id;
-
-            return `
-                <tr class="hover:bg-gray-50/30 transition-colors">
-                    <td class="py-4 px-6">
-                        <span class="font-semibold text-gray-900 block">${dateStr}</span>
-                        <span class="text-xs text-gray-400 block mt-0.5">${timeStr}</span>
-                    </td>
-                    <td class="py-4 px-6 font-medium text-gray-900">
-                        ${d.donor_name}
-                        <span class="text-xs text-gray-400 block">${d.donor_email || 'No Email Provided'}</span>
-                    </td>
-                    <td class="py-4 px-6 font-semibold text-gray-900">₱ ${formattedAmount}</td>
-                    <td class="py-4 px-6">
-                        <span class="font-semibold text-gray-900 block">GCASH</span>
-                        <span class="text-xs text-gray-400 block mt-0.5">ref no: ${d.reference_number || 'N/A'}</span>
-                    </td>
-                    <td class="py-4 px-6">${statusBadge}</td>
-                    <td class="py-4 px-6 text-center relative">
-                        <button onclick="toggleActionDropdown(event, ${donationId})" class="action-dropdown-btn text-gray-400 hover:text-gray-700 p-1.5 rounded-lg hover:bg-gray-100 transition">
-                            <i class="fa-solid fa-ellipsis-vertical text-lg"></i>
-                        </button>
-                        <div id="actionMenu-${donationId}" class="action-dropdown-menu hidden absolute right-6 top-12 z-50 w-40 bg-white border border-gray-100 rounded-xl shadow-lg py-1 text-left text-xs font-medium">
+        return `
+            <tr class="hover:bg-gray-50/30 transition-colors">
+                <td class="py-4 px-6">
+                    <span class="font-semibold text-gray-900 block">${dateStr}</span>
+                    <span class="text-xs text-gray-400 block mt-0.5">${timeStr}</span>
+                </td>
+                <td class="py-4 px-6 font-medium text-gray-900">
+                    ${d.donor_name}
+                    <span class="text-xs text-gray-400 block">${d.donor_email || 'No Email Provided'}</span>
+                </td>
+                <td class="py-4 px-6 font-semibold text-gray-900">₱ ${formattedAmount}</td>
+                <td class="py-4 px-6">
+                    <span class="font-semibold text-gray-900 block">${methodLabel}</span>
+                    <span class="text-xs text-gray-400 block mt-0.5">ref no: ${d.reference_number || 'N/A'}</span>
+                </td>
+                <td class="py-4 px-6">${statusBadge}</td>
+                <td class="py-4 px-6 text-center relative">
+                    <button onclick="toggleActionDropdown(event, ${donationId})" class="action-dropdown-btn text-gray-400 hover:text-gray-700 p-1.5 rounded-lg hover:bg-gray-100 transition">
+                        <i class="fa-solid fa-ellipsis-vertical text-lg"></i>
+                    </button>
+                    <div id="actionMenu-${donationId}" class="action-dropdown-menu hidden absolute right-6 top-12 z-50 w-40 bg-white border border-gray-100 rounded-xl shadow-lg py-1 text-left text-xs font-medium">
                         <button onclick="openReviewModal(${donationId})" class="w-full px-4 py-2 hover:bg-gray-50 text-gray-700 flex items-center gap-2">
                             <i class="fa-regular fa-eye text-indigo-600"></i> Review Details
                         </button>
                     </div>
-                    </td>
-                </tr>
-            `;
-        }).join("");
+                </td>
+            </tr>
+        `;
+    }).join("");
 
-        updatePaginationInfo(donations.length);
-    }
-    // ==========================
+    updatePaginationInfo(donations.length);
+}
+
+// ==========================
 // LOGOUT MODAL LOGIC
 // ==========================
 const logoutModal = document.getElementById("logoutModal");
 const cancelLogoutBtn = document.getElementById("cancelLogoutBtn");
 const confirmLogoutBtn = document.getElementById("confirmLogoutBtn");
 
-// Function para buksan ang logout modal (Maaari itong i-trigger mula sa sidebar logout button)
 function openLogoutModal() {
     if (logoutModal) {
         logoutModal.classList.remove("opacity-0", "pointer-events-none");
@@ -221,7 +264,6 @@ function openLogoutModal() {
     }
 }
 
-// Function para isara ang logout modal
 function closeLogoutModal() {
     if (logoutModal) {
         logoutModal.classList.add("opacity-0", "pointer-events-none");
@@ -230,12 +272,10 @@ function closeLogoutModal() {
     }
 }
 
-// Event listener para sa Cancel button
 if (cancelLogoutBtn) {
     cancelLogoutBtn.addEventListener("click", closeLogoutModal);
 }
 
-// Isara kapag pinindot ang background sa labas ng modal
 if (logoutModal) {
     logoutModal.addEventListener("click", (e) => {
         if (e.target === logoutModal) {
@@ -244,16 +284,15 @@ if (logoutModal) {
     });
 }
 
-// Event listener para sa pag-confirm ng logout (Redirect sa backend logout route)
 if (confirmLogoutBtn) {
     confirmLogoutBtn.addEventListener("click", () => {
-        // Ilagay dito ang tamang route para sa logout ng iyong backend
         window.location.href = "/logout"; 
     });
 }
+
 /**
  * Retrieves all in-kind donations from the server
- * and updates the donation summary.
+ * and updates the donation summary[cite: 5].
  */
 async function fetchInKindDonations() {
     try {
@@ -263,7 +302,6 @@ async function fetchInKindDonations() {
         if (result.success) {
             allInKindDonations = result.donations || [];
             
-            // Gamitin ang totalInKind galing sa backend response (Approved lamang)
             const displayTotal = document.getElementById("displayInKindTotal");
             if (displayTotal) {
                 displayTotal.textContent = result.totalInKind || 0; 
@@ -279,179 +317,187 @@ async function fetchInKindDonations() {
         }
     }
 }
+
 /**
  * Displays the list of in-kind donations
- * in the donations table.
+ * in the donations table[cite: 5].
  */
-    function renderInKindTable(donations) {
-        const tbody = document.getElementById("inkindTableBody");
-        if (!tbody) return;
+function renderInKindTable(donations) {
+    const tbody = document.getElementById("inkindTableBody");
+    if (!tbody) return;
 
-        if (!donations || donations.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-gray-400">No in-kind donations submitted yet.</td></tr>`;
-            document.getElementById("inkindPaginationInfo").textContent = "Showing 0 results";
-            return;
-        }
-
-        tbody.innerHTML = donations.map((d) => {
-            const dateObj = new Date(d.created_at || Date.now());
-            const dateStr = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-
-            let statusBadge = '';
-            const status = (d.status || 'Pending').toLowerCase();
-
-            if (status === 'approved' || status === 'verified') {
-                statusBadge = `<span class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-medium bg-emerald-100/70 text-emerald-600 rounded-full"><span class="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>Approved</span>`;
-            } else if (status === 'rejected') {
-                statusBadge = `<span class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-medium bg-rose-100/70 text-rose-600 rounded-full"><span class="w-1.5 h-1.5 bg-rose-500 rounded-full"></span>Rejected</span>`;
-            } else {
-                statusBadge = `<span class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-medium bg-amber-100/70 text-amber-600 rounded-full"><span class="w-1.5 h-1.5 bg-amber-500 rounded-full"></span>Pending</span>`;
-            }
-
-            const inkindId = d.inkind_donation_id || d.id;
-
-            return `
-                <tr class="hover:bg-gray-50/30 transition-colors">
-                    <td class="py-4 px-6 font-semibold text-gray-900">${dateStr}</td>
-                    <td class="py-4 px-6 font-medium text-gray-900">${d.donor_name || 'Anonymous'}</td>
-                    <td class="py-4 px-6 font-semibold text-gray-800">${d.item_name}</td>
-                    <td class="py-4 px-6 text-gray-600">${d.quantity}</td>
-                    <td class="py-4 px-6">${statusBadge}</td>
-                    <td class="py-4 px-6 text-center">
-                        <button onclick="openInKindModal(${inkindId})" class="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-semibold rounded-lg transition flex items-center gap-1.5 mx-auto">
-                            <i class="fa-regular fa-eye"></i> Review
-                        </button>
-                    </td>
-                </tr>
-            `;
-        }).join("");
-
-        document.getElementById("inkindPaginationInfo").textContent = `Showing 1 to ${donations.length} of ${donations.length} results`;
+    if (!donations || donations.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-gray-400">No in-kind donations submitted yet.</td></tr>`;
+        document.getElementById("inkindPaginationInfo").textContent = "Showing 0 results";
+        return;
     }
-/**
- * Opens the in-kind donation review modal
- * and displays the selected donation details.
- */
-    function openInKindModal(id) {
-        selectedInKindId = id;
-        const donation = allInKindDonations.find(item => (item.inkind_donation_id || item.id) == id);
-        if (!donation) return;
 
-        hideInKindRejectionFlow();
+    tbody.innerHTML = donations.map((d) => {
+        const dateObj = new Date(d.created_at || Date.now());
+        const dateStr = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 
-        document.getElementById("inkindDonorName").value = donation.donor_name || "N/A";
-        document.getElementById("inkindItemName").value = donation.item_name || "N/A";
-        document.getElementById("inkindQuantity").value = donation.quantity || "N/A";
-
-        const banner = document.getElementById("inkindStatusBanner");
-        const approveBtn = document.getElementById("inkindApproveBtn");
-        const rejectBtn = document.getElementById("inkindRejectBtn");
-        const status = (donation.status || 'Pending').toLowerCase();
+        let statusBadge = '';
+        const status = (d.status || 'Pending').toLowerCase();
 
         if (status === 'approved' || status === 'verified') {
-            banner.className = "mt-4 p-3 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-between text-emerald-800 text-xs font-semibold";
-            banner.innerHTML = `
-                <div class="flex items-center gap-2">
-                    <i class="fa-solid fa-circle-check text-emerald-600 text-base"></i>
-                    <span>This in-kind donation has been approved & received.</span>
-                </div>
-                <span class="px-2.5 py-0.5 bg-emerald-200/60 text-emerald-800 rounded-full text-[11px]">Approved</span>
-            `;
-            banner.classList.remove("hidden");
-            approveBtn.disabled = true;
-            approveBtn.className = "px-4 py-2 bg-gray-300 text-gray-500 text-xs font-semibold rounded-lg cursor-not-allowed";
-            rejectBtn.classList.add("hidden");
+            statusBadge = `<span class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-medium bg-emerald-100/70 text-emerald-600 rounded-full"><span class="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>Approved</span>`;
         } else if (status === 'rejected') {
-            banner.className = "mt-4 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold space-y-1";
-            banner.innerHTML = `
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-2">
-                        <i class="fa-solid fa-circle-xmark text-rose-600 text-base"></i>
-                        <span>This in-kind donation was rejected.</span>
-                    </div>
-                    <span class="px-2.5 py-0.5 bg-rose-200/60 text-rose-800 rounded-full text-[11px]">Rejected</span>
-                </div>
-                ${donation.rejection_reason ? `<p class="text-[11px] font-normal text-rose-700 pl-6">Reason: ${donation.rejection_reason}</p>` : ''}
-            `;
-            banner.classList.remove("hidden");
-            approveBtn.disabled = false;
-            approveBtn.className = "px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg transition";
-            approveBtn.textContent = "Re-approve & Receive";
-            rejectBtn.classList.add("hidden");
+            statusBadge = `<span class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-medium bg-rose-100/70 text-rose-600 rounded-full"><span class="w-1.5 h-1.5 bg-rose-500 rounded-full"></span>Rejected</span>`;
         } else {
-            banner.classList.add("hidden");
-            approveBtn.disabled = false;
-            approveBtn.className = "px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg transition";
-            approveBtn.textContent = "Approve / Received";
-            rejectBtn.classList.remove("hidden");
+            statusBadge = `<span class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-medium bg-amber-100/70 text-amber-600 rounded-full"><span class="w-1.5 h-1.5 bg-amber-500 rounded-full"></span>Pending</span>`;
         }
 
-        const modal = document.getElementById("reviewInKindModal");
-        modal.classList.remove("opacity-0", "pointer-events-none");
-        modal.querySelector("div").classList.remove("scale-95");
-    }
+        const inkindId = d.inkind_donation_id || d.id;
+
+        return `
+            <tr class="hover:bg-gray-50/30 transition-colors">
+                <td class="py-4 px-6 font-semibold text-gray-900">${dateStr}</td>
+                <td class="py-4 px-6 font-medium text-gray-900">${d.donor_name || 'Anonymous'}</td>
+                <td class="py-4 px-6 font-semibold text-gray-800">${d.item_name}</td>
+                <td class="py-4 px-6 text-gray-600">${d.quantity}</td>
+                <td class="py-4 px-6">${statusBadge}</td>
+                <td class="py-4 px-6 text-center">
+                    <button onclick="openInKindModal(${inkindId})" class="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-semibold rounded-lg transition flex items-center gap-1.5 mx-auto">
+                        <i class="fa-regular fa-eye"></i> Review
+                    </button>
+                </td>
+            </tr>
+        `;
+    }).join("");
+
+    document.getElementById("inkindPaginationInfo").textContent = `Showing 1 to ${donations.length} of ${donations.length} results`;
+}
+
 /**
- * Closes the in-kind donation review modal.
+ * Opens the in-kind donation review modal
+ * and displays the selected donation details[cite: 5].
  */
-    function closeInKindModal() {
-        const modal = document.getElementById("reviewInKindModal");
-        modal.classList.add("opacity-0", "pointer-events-none");
-        modal.querySelector("div").classList.add("scale-95");
-        selectedInKindId = null;
+function openInKindModal(id) {
+    selectedInKindId = id;
+    const donation = allInKindDonations.find(item => (item.inkind_donation_id || item.id) == id);
+    if (!donation) return;
+
+    hideInKindRejectionFlow();
+
+    document.getElementById("inkindDonorName").value = donation.donor_name || "N/A";
+    document.getElementById("inkindItemName").value = donation.item_name || "N/A";
+    document.getElementById("inkindQuantity").value = donation.quantity || "N/A";
+
+    const banner = document.getElementById("inkindStatusBanner");
+    const approveBtn = document.getElementById("inkindApproveBtn");
+    const rejectBtn = document.getElementById("inkindRejectBtn");
+    const status = (donation.status || 'Pending').toLowerCase();
+
+    if (status === 'approved' || status === 'verified') {
+        banner.className = "mt-4 p-3 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-between text-emerald-800 text-xs font-semibold";
+        banner.innerHTML = `
+            <div class="flex items-center gap-2">
+                <i class="fa-solid fa-circle-check text-emerald-600 text-base"></i>
+                <span>This in-kind donation has been approved & received.</span>
+            </div>
+            <span class="px-2.5 py-0.5 bg-emerald-200/60 text-emerald-800 rounded-full text-[11px]">Approved</span>
+        `;
+        banner.classList.remove("hidden");
+        approveBtn.disabled = true;
+        approveBtn.className = "px-4 py-2 bg-gray-300 text-gray-500 text-xs font-semibold rounded-lg cursor-not-allowed";
+        rejectBtn.classList.add("hidden");
+    } else if (status === 'rejected') {
+        banner.className = "mt-4 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold space-y-1";
+        banner.innerHTML = `
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-circle-xmark text-rose-600 text-base"></i>
+                    <span>This in-kind donation was rejected.</span>
+                </div>
+                <span class="px-2.5 py-0.5 bg-rose-200/60 text-rose-800 rounded-full text-[11px]">Rejected</span>
+            </div>
+            ${donation.rejection_reason ? `<p class="text-[11px] font-normal text-rose-700 pl-6">Reason: ${donation.rejection_reason}</p>` : ''}
+        `;
+        banner.classList.remove("hidden");
+        approveBtn.disabled = false;
+        approveBtn.className = "px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg transition";
+        approveBtn.textContent = "Re-approve & Receive";
+        rejectBtn.classList.add("hidden");
+    } else {
+        banner.classList.add("hidden");
+        approveBtn.disabled = false;
+        approveBtn.className = "px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg transition";
+        approveBtn.textContent = "Approve / Received";
+        rejectBtn.classList.remove("hidden");
     }
+
+    const modal = document.getElementById("reviewInKindModal");
+    modal.classList.remove("opacity-0", "pointer-events-none");
+    modal.querySelector("div").classList.remove("scale-95");
+}
+
+/**
+ * Closes the in-kind donation review modal[cite: 5].
+ */
+function closeInKindModal() {
+    const modal = document.getElementById("reviewInKindModal");
+    modal.classList.add("opacity-0", "pointer-events-none");
+    modal.querySelector("div").classList.add("scale-95");
+    selectedInKindId = null;
+}
+
 /**
  * Displays the rejection section
- * for an in-kind donation.
+ * for an in-kind donation[cite: 5].
  */
-    function showInKindRejectionFlow() {
-        document.getElementById("inkindRejectionSection").classList.remove("hidden");
-        document.getElementById("inkindInitialActionButtons").classList.add("hidden");
-        document.getElementById("inkindRejectionActionButtons").classList.remove("hidden");
-        updateInKindRejectionText();
-    }
-    /**
-     * Hides the in-kind rejection section
-     * and restores the default action buttons.
-     */
-    function hideInKindRejectionFlow() {
-        document.getElementById("inkindRejectionSection").classList.add("hidden");
-        document.getElementById("inkindInitialActionButtons").classList.remove("hidden");
-        document.getElementById("inkindRejectionActionButtons").classList.add("hidden");
-    }
-    /**
-     * Updates the rejection reason message
-     * based on the selected rejection option.
-     */
-    function updateInKindRejectionText() {
-        const selectedRadio = document.querySelector('input[name="inkindRejectReason"]:checked');
-        const reasonBox = document.getElementById("inkindRejectionReasonText");
-        
-        if (selectedRadio) {
-            const val = selectedRadio.value;
-            if (val === "Damaged or Unusable Condition") {
-                reasonBox.textContent = "Verification failed. The donated items are damaged or unusable upon physical inspection.";
-            } else if (val === "Inappropriate / Unaccepted Item Category") {
-                reasonBox.textContent = "Verification failed. The donated items fall under categories not currently accepted or needed by the shelter.";
-            } else if (val === "Item Not Received at Drop-off") {
-                reasonBox.textContent = "Verification failed. The items were not delivered or dropped off within the designated period.";
-            } else {
-                reasonBox.textContent = "Verification failed. This in-kind donation appears to be a duplicate entry.";
-            }
+function showInKindRejectionFlow() {
+    document.getElementById("inkindRejectionSection").classList.remove("hidden");
+    document.getElementById("inkindInitialActionButtons").classList.add("hidden");
+    document.getElementById("inkindRejectionActionButtons").classList.remove("hidden");
+    updateInKindRejectionText();
+}
+
+/**
+ * Hides the in-kind rejection section
+ * and restores the default action buttons[cite: 5].
+ */
+function hideInKindRejectionFlow() {
+    document.getElementById("inkindRejectionSection").classList.add("hidden");
+    document.getElementById("inkindInitialActionButtons").classList.remove("hidden");
+    document.getElementById("inkindRejectionActionButtons").classList.add("hidden");
+}
+
+/**
+ * Updates the rejection reason message
+ * based on the selected rejection option[cite: 5].
+ */
+function updateInKindRejectionText() {
+    const selectedRadio = document.querySelector('input[name="inkindRejectReason"]:checked');
+    const reasonBox = document.getElementById("inkindRejectionReasonText");
+    
+    if (selectedRadio) {
+        const val = selectedRadio.value;
+        if (val === "Damaged or Unusable Condition") {
+            reasonBox.textContent = "Verification failed. The donated items are damaged or unusable upon physical inspection.";
+        } else if (val === "Inappropriate / Unaccepted Item Category") {
+            reasonBox.textContent = "Verification failed. The donated items fall under categories not currently accepted or needed by the shelter.";
+        } else if (val === "Item Not Received at Drop-off") {
+            reasonBox.textContent = "Verification failed. The items were not delivered or dropped off within the designated period.";
+        } else {
+            reasonBox.textContent = "Verification failed. This in-kind donation appears to be a duplicate entry.";
         }
     }
+}
+
 /**
  * Submits the rejection reason
- * for an in-kind donation.
+ * for an in-kind donation[cite: 5].
  */
-    async function submitInKindRejection() {
-        const reasonText = document.getElementById("inkindRejectionReasonText").textContent;
-        await updateInKindStatus('Rejected', reasonText);
-    }
+async function submitInKindRejection() {
+    const reasonText = document.getElementById("inkindRejectionReasonText").textContent;
+    await updateInKindStatus('Rejected', reasonText);
+}
+
 /**
  * Updates the status of the selected
- * in-kind donation.
+ * in-kind donation[cite: 5].
  */
-    async function updateInKindStatus(newStatus, reason = null) {
+async function updateInKindStatus(newStatus, reason = null) {
     if (!selectedInKindId) return;
 
     try {
@@ -477,146 +523,146 @@ async function fetchInKindDonations() {
         showToast("An error occurred while updating status.", 'error'); 
     }
 }
+
 /**
  * Filters cash and in-kind donations
- * based on the search keyword and status.
+ * based on the search keyword and status[cite: 5].
  */
-    function filterDonations() {
-        const searchInput = document.getElementById("searchInput");
-        const statusSelect = document.getElementById("statusFilter");
+function filterDonations() {
+    const searchInput = document.getElementById("searchInput");
+    const statusSelect = document.getElementById("statusFilter");
 
-        const searchTerm = searchInput ? searchInput.value.toLowerCase() : "";
-        const statusFilter = statusSelect ? statusSelect.value : "ALL";
+    const searchTerm = searchInput ? searchInput.value.toLowerCase() : "";
+    const statusFilter = statusSelect ? statusSelect.value : "ALL";
 
-        if (activeTab === 'cash') {
-            const filtered = allDonations.filter(d => {
-                const matchesSearch = 
-                    (d.donor_name && d.donor_name.toLowerCase().includes(searchTerm)) ||
-                    (d.reference_number && d.reference_number.toLowerCase().includes(searchTerm)) ||
-                    (d.amount && d.amount.toString().includes(searchTerm));
+    if (activeTab === 'cash') {
+        const filtered = allDonations.filter(d => {
+            const matchesSearch = 
+                (d.donor_name && d.donor_name.toLowerCase().includes(searchTerm)) ||
+                (d.reference_number && d.reference_number.toLowerCase().includes(searchTerm)) ||
+                (d.amount && d.amount.toString().includes(searchTerm));
 
-                const matchesStatus = 
-                    statusFilter === 'ALL' || 
-                    (statusFilter === 'Approved' && (d.status === 'Approved' || d.status === 'Verified')) ||
-                    (d.status === statusFilter);
+            const matchesStatus = 
+                statusFilter === 'ALL' || 
+                (statusFilter === 'Approved' && (d.status === 'Approved' || d.status === 'Verified')) ||
+                (d.status === statusFilter);
 
-                return matchesSearch && matchesStatus;
-            });
-            renderDonationsTable(filtered);
-        } else {
-            const filtered = allInKindDonations.filter(d => {
-                const matchesSearch = 
-                    (d.donor_name && d.donor_name.toLowerCase().includes(searchTerm)) ||
-                    (d.item_name && d.item_name.toLowerCase().includes(searchTerm));
+            return matchesSearch && matchesStatus;
+        });
+        renderDonationsTable(filtered);
+    } else {
+        const filtered = allInKindDonations.filter(d => {
+            const matchesSearch = 
+                (d.donor_name && d.donor_name.toLowerCase().includes(searchTerm)) ||
+                (d.item_name && d.item_name.toLowerCase().includes(searchTerm));
 
-                const matchesStatus = 
-                    statusFilter === 'ALL' || 
-                    (statusFilter === 'Approved' && (d.status === 'Approved' || d.status === 'Verified')) ||
-                    (d.status === statusFilter);
+            const matchesStatus = 
+                statusFilter === 'ALL' || 
+                (statusFilter === 'Approved' && (d.status === 'Approved' || d.status === 'Verified')) ||
+                (d.status === statusFilter);
 
-                return matchesSearch && matchesStatus;
-            });
-            renderInKindTable(filtered);
-        }
+            return matchesSearch && matchesStatus;
+        });
+        renderInKindTable(filtered);
     }
+}
+
 /**
  * Shows or hides the action dropdown menu
- * for the selected cash donation.
+ * for the selected cash donation[cite: 5].
  */
-    function toggleActionDropdown(e, id) {
-        e.stopPropagation();
-        document.querySelectorAll('.action-dropdown-menu').forEach(menu => {
-            if (menu.id !== `actionMenu-${id}`) menu.classList.add('hidden');
-        });
-        const targetMenu = document.getElementById(`actionMenu-${id}`);
-        if (targetMenu) targetMenu.classList.toggle('hidden');
-    }
+function toggleActionDropdown(e, id) {
+    e.stopPropagation();
+    document.querySelectorAll('.action-dropdown-menu').forEach(menu => {
+        if (menu.id !== `actionMenu-${id}`) menu.classList.add('hidden');
+    });
+    const targetMenu = document.getElementById(`actionMenu-${id}`);
+    if (targetMenu) targetMenu.classList.toggle('hidden');
+}
+
 /**
  * Updates the pagination information
- * displayed below the donations table.
+ * displayed below the donations table[cite: 5].
  */
-    function updatePaginationInfo(count) {
-        const pagInfo = document.getElementById("paginationInfo");
-        if (pagInfo) {
-            pagInfo.textContent = `Showing 1 to ${count} of ${count} results`;
-        }
+function updatePaginationInfo(count) {
+    const pagInfo = document.getElementById("paginationInfo");
+    if (pagInfo) {
+        pagInfo.textContent = `Showing 1 to ${count} of ${count} results`;
     }
-    // Variable para sa kasalukuyang binubuksan na resibo
-    let currentReceiptPath = null;
+}
+
 /**
  * Opens the receipt image
- * in a lightbox modal.
+ * in a lightbox modal[cite: 5].
  */
-    function viewReceiptDirect(receiptPathRaw) {
-        let fullPath = "https://via.placeholder.com/400x600?text=No+Receipt+Uploaded";
-        
-        if (receiptPathRaw) {
-            // Siguraduhing maayos ang path (handling absolute vs relative paths)
-            fullPath = (receiptPathRaw.startsWith('/') || receiptPathRaw.startsWith('http')) 
-                ? receiptPathRaw 
-                : `/uploads/receipts/${receiptPathRaw}`;
-        }
-
-        const modalImg = document.getElementById("modalReceiptImg");
-        const downloadBtn = document.getElementById("downloadReceiptBtn");
-        const openBtn = document.getElementById("openReceiptExternal");
-
-        if (modalImg) {
-            modalImg.src = fullPath;
-
-            modalImg.classList.add("max-h-[85vh]", "w-auto", "object-contain", "mx-auto");
-        }
-
-        if (downloadBtn) downloadBtn.href = fullPath;
-        if (openBtn) openBtn.href = fullPath;
-
-        const modal = document.getElementById("receiptModal");
-        if (modal) {
-            modal.classList.remove("opacity-0", "pointer-events-none");
-            modal.querySelector("div")?.classList.remove("scale-95");
-        }
+function viewReceiptDirect(receiptPathRaw) {
+    let fullPath = "https://via.placeholder.com/400x600?text=No+Receipt+Uploaded";
+    
+    if (receiptPathRaw) {
+        fullPath = (receiptPathRaw.startsWith('/') || receiptPathRaw.startsWith('http')) 
+            ? receiptPathRaw 
+            : `/uploads/receipts/${receiptPathRaw}`;
     }
+
+    const modalImg = document.getElementById("modalReceiptImg");
+    const downloadBtn = document.getElementById("downloadReceiptBtn");
+    const openBtn = document.getElementById("openReceiptExternal");
+
+    if (modalImg) {
+        modalImg.src = fullPath;
+        modalImg.classList.add("max-h-[85vh]", "w-auto", "object-contain", "mx-auto");
+    }
+
+    if (downloadBtn) downloadBtn.href = fullPath;
+    if (openBtn) openBtn.href = fullPath;
+
+    const modal = document.getElementById("receiptModal");
+    if (modal) {
+        modal.classList.remove("opacity-0", "pointer-events-none");
+        modal.querySelector("div")?.classList.remove("scale-95");
+    }
+}
+
 /**
- * Closes the receipt preview modal.
+ * Closes the receipt preview modal[cite: 5].
  */
-
-    function closeReceiptModal() {
-        const modal = document.getElementById("receiptModal");
-        if (modal) {
-            modal.classList.add("opacity-0", "pointer-events-none");
-            modal.querySelector("div")?.classList.add("scale-95");
-        }
+function closeReceiptModal() {
+    const modal = document.getElementById("receiptModal");
+    if (modal) {
+        modal.classList.add("opacity-0", "pointer-events-none");
+        modal.querySelector("div")?.classList.add("scale-95");
     }
-    /**
-     * Opens the receipt lightbox
-     * from the review modal.
-     */
-    function triggerViewReceiptFromReview() {
-        const img = document.getElementById("reviewReceiptImg");
-        const rawPath = img?.getAttribute("data-raw-path") || currentReceiptPath || img?.src;
+}
 
-        if (rawPath) {
-            viewReceiptDirect(rawPath);
-        }
+/**
+ * Opens the receipt lightbox
+ * from the review modal[cite: 5].
+ */
+function triggerViewReceiptFromReview() {
+    const img = document.getElementById("reviewReceiptImg");
+    const rawPath = img?.getAttribute("data-raw-path") || currentReceiptPath || img?.src;
+
+    if (rawPath) {
+        viewReceiptDirect(rawPath);
     }
+}
+
 /**
  * Opens the cash donation review modal
- * and displays the selected donation details.
+ * and displays the selected donation details[cite: 5].
  */
-   function openReviewModal(id) {
+function openReviewModal(id) {
     selectedDonationId = id; 
     const donation = allDonations.find(item => (item.cash_donation_id || item.id) == id);
     if (!donation) return;
 
-    // Isara muna ang in-kind modal para walang patong
     closeInKindModal();
 
-    // Populate cash modal fields
     document.getElementById("reviewDonorName").value = donation.donor_name || "N/A";
     document.getElementById("reviewAmount").value = parseFloat(donation.amount || 0).toFixed(2);
     document.getElementById("reviewRefNo").value = donation.reference_number || donation.reference_no || "N/A";
+    document.getElementById("reviewMethod").value = (donation.payment_method || 'GCASH').toUpperCase();
     
-    // Handle Receipt Image Path
     let receiptPath = "";
     if (donation.receipt_path) {
         receiptPath = donation.receipt_path.startsWith('/') 
@@ -677,17 +723,17 @@ async function fetchInKindDonations() {
         rejectBtn.classList.remove("hidden");
     }
 
-    // Buksan ang Cash Modal gamit ang tamang ID sa HTML (`reviewDonationModal`)
     const modal = document.getElementById("reviewDonationModal");
     if (modal) {
         modal.classList.remove("opacity-0", "pointer-events-none");
         modal.querySelector("div").classList.remove("scale-95");
     }
 }
+
 /**
- * Closes the cash donation review modal.
+ * Closes the cash donation review modal[cite: 5].
  */
- function closeReviewModal() {
+function closeReviewModal() {
     const modal = document.getElementById("reviewDonationModal");
     if (modal) {
         modal.classList.add("opacity-0", "pointer-events-none");
@@ -696,205 +742,300 @@ async function fetchInKindDonations() {
     selectedDonationId = null;
     currentReceiptPath = null;
 }
+
 /**
  * Displays the rejection form
- * for a cash donation.
+ * for a cash donation[cite: 5].
  */
-    function showRejectionFlow() {
-        document.getElementById("rejectionSection").classList.remove("hidden");
-        document.getElementById("initialActionButtons").classList.add("hidden");
-        document.getElementById("rejectionActionButtons").classList.remove("hidden");
-        updateRejectionText();
-    }
+function showRejectionFlow() {
+    document.getElementById("rejectionSection").classList.remove("hidden");
+    document.getElementById("initialActionButtons").classList.add("hidden");
+    document.getElementById("rejectionActionButtons").classList.remove("hidden");
+    updateRejectionText();
+}
+
 /**
  * Hides the rejection form
- * and restores the default action buttons.
+ * and restores the default action buttons[cite: 5].
  */
-    function hideRejectionFlow() {
-        document.getElementById("rejectionSection").classList.add("hidden");
-        document.getElementById("initialActionButtons").classList.remove("hidden");
-        document.getElementById("rejectionActionButtons").classList.add("hidden");
-    }
+function hideRejectionFlow() {
+    document.getElementById("rejectionSection").classList.add("hidden");
+    document.getElementById("initialActionButtons").classList.remove("hidden");
+    document.getElementById("rejectionActionButtons").classList.add("hidden");
+}
+
 /**
  * Updates the rejection message
- * based on the selected reason.
+ * based on the selected reason[cite: 5].
  */
-    function updateRejectionText() {
-        const selectedRadio = document.querySelector('input[name="rejectReason"]:checked');
-        const reasonBox = document.getElementById("rejectionReasonText");
-        
-        if (selectedRadio) {
-            const val = selectedRadio.value;
-            if (val === "Amount Mismatch") {
-                reasonBox.textContent = "Verification failed. There is a mismatch in the reference numbers and a significant discrepancy in the total; the declared amount does not match the amount shown on the receipt.";
-            } else if (val === "Blurry/Unreadable Screenshot") {
-                reasonBox.textContent = "Verification failed. The uploaded proof of payment image is blurry or unreadable. Please upload a clear screenshot.";
-            } else if (val === "Transaction not found in GCash Records.") {
-                reasonBox.textContent = "Verification failed. No matching transaction was found in the official GCash account records for the provided reference number.";
-            } else {
-                reasonBox.textContent = "Verification failed. This transaction appears to be a duplicate submission.";
-            }
+function updateRejectionText() {
+    const selectedRadio = document.querySelector('input[name="rejectReason"]:checked');
+    const reasonBox = document.getElementById("rejectionReasonText");
+    
+    if (selectedRadio) {
+        const val = selectedRadio.value;
+        if (val === "Amount Mismatch") {
+            reasonBox.textContent = "Verification failed. There is a mismatch in the reference numbers and a significant discrepancy in the total; the declared amount does not match the amount shown on the receipt.";
+        } else if (val === "Blurry/Unreadable Screenshot") {
+            reasonBox.textContent = "Verification failed. The uploaded proof of payment image is blurry or unreadable. Please upload a clear screenshot.";
+        } else if (val === "Transaction not found in Records.") {
+            reasonBox.textContent = "Verification failed. No matching transaction was found in the official account records for the provided reference number.";
+        } else {
+            reasonBox.textContent = "Verification failed. This transaction appears to be a duplicate submission.";
         }
     }
+}
+
 /**
  * Approves and verifies
- * the selected cash donation.
+ * the selected cash donation[cite: 5].
  */
-    async function approveDonation() {
-        if (!selectedDonationId) return;
-        
-        try {
-            const res = await fetch(`/org/donations/${selectedDonationId}/status`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ status: "Approved" })
-            });
-            const result = await res.json();
+async function approveDonation() {
+    if (!selectedDonationId) return;
+    
+    try {
+        const res = await fetch(`/org/donations/${selectedDonationId}/status`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ status: "Approved" })
+        });
+        const result = await res.json();
 
-            if (result.success) {
-                showToast("Donation successfully verified and approved!", 'success'); 
-                closeReviewModal();
-                fetchDonations();
-            } else {
-                showToast("Failed: " + result.message, 'error'); 
-            }
-        } catch (err) {
-            showToast("An error occurred while approving the donation.", 'error');
+        if (result.success) {
+            showToast("Donation successfully verified and approved!", 'success'); 
+            closeReviewModal();
+            fetchDonations();
+        } else {
+            showToast("Failed: " + result.message, 'error'); 
         }
+    } catch (err) {
+        showToast("An error occurred while approving the donation.", 'error');
     }
-    /**
-     * Rejects the selected cash donation
-     * and records the rejection reason.
-     */
-    async function rejectDonation() {
-        if (!selectedDonationId) return;
-        const reasonText = document.getElementById("rejectionReasonText").textContent;
+}
 
-        try {
-            const res = await fetch(`/org/donations/${selectedDonationId}/status`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ status: "Rejected", reason: reasonText })
-            });
-            const result = await res.json();
+/**
+ * Rejects the selected cash donation
+ * and records the rejection reason[cite: 5].
+ */
+async function rejectDonation() {
+    if (!selectedDonationId) return;
+    const reasonText = document.getElementById("rejectionReasonText").textContent;
 
-            if (result.success) {
-                showToast("Donation rejected.", 'success'); 
-                closeReviewModal();
-                fetchDonations();
-            } else {
-                showToast("Failed: " + result.message, 'error');
-            }
-        } catch (err) {
-            showToast("An error occurred while rejecting the donation.", 'error'); 
+    try {
+        const res = await fetch(`/org/donations/${selectedDonationId}/status`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ status: "Rejected", reason: reasonText })
+        });
+        const result = await res.json();
+
+        if (result.success) {
+            showToast("Donation rejected.", 'success'); 
+            closeReviewModal();
+            fetchDonations();
+        } else {
+            showToast("Failed: " + result.message, 'error');
         }
+    } catch (err) {
+        showToast("An error occurred while rejecting the donation.", 'error'); 
     }
+}
+
 /**
  * Opens the donation settings
- * configuration modal.
+ * configuration modal[cite: 5].
  */
-    function openConfigModal() {
-        const modal = document.getElementById('paymentConfigModal');
-        if (modal) {
-            modal.classList.remove('opacity-0', 'pointer-events-none');
-            modal.querySelector('div').classList.remove('scale-95');
-        }
+function openConfigModal() {
+    const modal = document.getElementById('paymentConfigModal');
+    if (modal) {
+        modal.classList.remove('opacity-0', 'pointer-events-none');
+        modal.querySelector('div').classList.remove('scale-95');
     }
+}
+
 /**
  * Closes the donation settings
- * configuration modal.
+ * configuration modal[cite: 5].
  */
-    function closeConfigModal() {
-        const modal = document.getElementById('paymentConfigModal');
-        if (modal) {
-            modal.classList.add('opacity-0', 'pointer-events-none');
-            modal.querySelector('div').classList.add('scale-95');
-        }
+function closeConfigModal() {
+    const modal = document.getElementById('paymentConfigModal');
+    if (modal) {
+        modal.classList.add('opacity-0', 'pointer-events-none');
+        modal.querySelector('div').classList.add('scale-95');
     }
+}
+
 /**
  * Displays a preview of the selected
- * image before uploading.
+ * image before uploading[cite: 5].
  */
-    function previewImage(event, targetImgId) {
-        const file = event.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                document.getElementById(targetImgId).src = e.target.result;
-            };
-            reader.readAsDataURL(file);
-        }
+function previewImage(event, targetImgId) {
+    const file = event.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById(targetImgId).src = e.target.result;
+        };
+        reader.readAsDataURL(file);
     }
+}
+
 /**
  * Saves the organization's payment
- * information and in-kind drop-off settings.
+ * information and in-kind drop-off settings[cite: 5].
  */
-    async function savePaymentDetails(e) {
-        e.preventDefault();
+async function savePaymentDetails(e) {
+    e.preventDefault();
 
-        const saveBtn = document.getElementById("saveBtn");
-        const originalBtnText = saveBtn.innerHTML;
-        saveBtn.disabled = true;
-        saveBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i> Saving...`;
+    const saveBtn = document.getElementById("saveBtn");
+    const originalBtnText = saveBtn.innerHTML;
+    saveBtn.disabled = true;
+    saveBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i> Saving...`;
 
-        try {
-            const form = document.getElementById("paymentConfigForm");
-            const formData = new FormData(form);
+    try {
+        const form = document.getElementById("paymentConfigForm");
+        const formData = new FormData(form);
 
-            const response = await fetch("/org/payment-info", {
-                method: "POST",
-                body: formData
-            });
+        const response = await fetch("/org/payment-info", {
+            method: "POST",
+            body: formData
+        });
 
-            const result = await response.json();
+        const result = await response.json();
 
-            if (result.success) {
-                showToast("Donation settings and In-Kind drop-off details saved successfully!", 'success'); 
-                closeConfigModal();
-                await fetchPaymentDetails();
-            } else {
-                showToast("Error: " + result.message, 'error'); 
-            }
-        } catch (error) {
-            showToast("An unexpected error occurred while saving.", 'error'); 
-        } finally {
-            saveBtn.disabled = false;
-            saveBtn.innerHTML = originalBtnText;
+        if (result.success) {
+            showToast("Donation settings and In-Kind drop-off details saved successfully!", 'success'); 
+            closeConfigModal();
+            await fetchPaymentDetails();
+        } else {
+            showToast("Error: " + result.message, 'error'); 
+        }
+    } catch (error) {
+        showToast("An unexpected error occurred while saving.", 'error'); 
+    } finally {
+        saveBtn.disabled = false;
+        saveBtn.innerHTML = originalBtnText;
+    }
+}
+
+/**
+ * Displays a toast notification
+ * to inform the user of the result[cite: 5].
+ *
+ * @param {string} message - Notification message.
+ * @param {string} type - "success" or "error".
+ */
+function showToast(message, type = 'success') {
+    const container = document.getElementById('toastContainer');
+    if (!container) return;
+
+    const toast = document.createElement('div');
+    const isSuccess = type === 'success';
+
+    toast.className = `pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg border text-xs font-semibold transition-all duration-300 transform translate-y-5 opacity-0 ${
+        isSuccess 
+            ? 'bg-emerald-50 border-emerald-200 text-emerald-800' 
+            : 'bg-rose-50 border-rose-200 text-rose-800'
+    }`;
+
+    toast.innerHTML = `
+        <i class="fa-solid ${isSuccess ? 'fa-circle-check text-emerald-600' : 'fa-circle-xmark text-rose-600'} text-base"></i>
+        <span>${message}</span>
+    `;
+
+    container.appendChild(toast);
+
+    setTimeout(() => {
+        toast.classList.remove('translate-y-5', 'opacity-0');
+    }, 10);
+
+    setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-2');
+        setTimeout(() => toast.remove(), 300);
+    }, 3500);
+}
+
+function toggleExportMenu() {
+    document.getElementById("exportMenu").classList.toggle("hidden");
+}
+
+window.onclick = function(event) {
+    if (!event.target.matches('.dropdown-toggle') && !event.target.closest('.dropdown-toggle')) {
+        var exportMenu = document.getElementById("exportMenu");
+        if (exportMenu && !exportMenu.classList.contains('hidden')) {
+            exportMenu.classList.add('hidden');
         }
     }
-    /**
-     * Displays a toast notification
-     * to inform the user of the result.
-     *
-     * @param {string} message - Notification message.
-     * @param {string} type - "success" or "error".
-     */
-    function showToast(message, type = 'success') {
-        const container = document.getElementById('toastContainer');
-        if (!container) return;
+}
 
-        const toast = document.createElement('div');
-        const isSuccess = type === 'success';
+function toggleDateInput() {
+    const filterType = document.getElementById('filterType').value;
+    const datePicker = document.getElementById('datePicker');
 
-        toast.className = `pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg border text-xs font-semibold transition-all duration-300 transform translate-y-5 opacity-0 ${
-            isSuccess 
-                ? 'bg-emerald-50 border-emerald-200 text-emerald-800' 
-                : 'bg-rose-50 border-rose-200 text-rose-800'
-        }`;
-
-        toast.innerHTML = `
-            <i class="fa-solid ${isSuccess ? 'fa-circle-check text-emerald-600' : 'fa-circle-xmark text-rose-600'} text-base"></i>
-            <span>${message}</span>
-        `;
-
-        container.appendChild(toast);
-
-        setTimeout(() => {
-            toast.classList.remove('translate-y-5', 'opacity-0');
-        }, 10);
-
-        setTimeout(() => {
-            toast.classList.add('opacity-0', 'translate-y-2');
-            setTimeout(() => toast.remove(), 300);
-        }, 3500);
+    if (filterType === 'year') {
+        datePicker.type = "number";
+        datePicker.placeholder = "YYYY";
+        datePicker.value = new Date().getFullYear();
+        datePicker.min = "2000";
+        datePicker.max = "2100";
+    } else {
+        datePicker.type = "month";
+        datePicker.value = "2026-08";
     }
+}
+
+function refreshData() {
+    fetchPaymentDetails();
+    fetchDonations();
+    fetchInKindDonations();
+    showToast("Donation list refreshed!", "success");
+}
+
+async function exportFile(format) {
+    const filterType = document.getElementById('filterType').value;
+    const dateValue = document.getElementById('datePicker').value;
+    const url = `/org/donations/export?format=${format}&type=${filterType}&date=${dateValue}`;
+
+    try {
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'Authorization': 'Bearer ' + (localStorage.getItem('token') || '')
+            }
+        });
+
+        if (!response.ok) {
+            const contentType = response.headers.get("content-type");
+            let errorMessage = 'There was an issue downloading the file.';
+            
+            if (contentType && contentType.includes("application/json")) {
+                const errorData = await response.json();
+                errorMessage = errorData.message || errorMessage;
+            } else {
+                const errorText = await response.text();
+                console.error("Server Error HTML:", errorText);
+                errorMessage = `Server Error (${response.status}): Could not find export route or backend error encountered.`;
+            }
+            throw new Error(errorMessage);
+        }
+
+        const blob = await response.blob();
+        const downloadUrl = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = downloadUrl;
+        
+        const fileExtension = format === 'excel' ? 'xlsx' : 'pdf';
+        a.download = `donations_report_${dateValue}.${fileExtension}`;
+        
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(downloadUrl);
+        
+        showToast(`Report downloaded as ${format.toUpperCase()}!`, 'success');
+
+    } catch (error) {
+        console.error(error);
+        showToast("Failed to download file: " + error.message, 'error');
+    }
+}

@@ -8,21 +8,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <script src="../assets/js/orgSidebar.js"></script>
     <script src="../assets/js/orgTopbar.js"></script>
-    
-    <script src="/assets/js/orgProfile.js"></script> 
-    <script src="/assets/js/org-donation.js"></script>
-</head>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Organization Dashboard - Donations</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-    <script src="../assets/js/orgSidebar.js"></script>
-    <script src="../assets/js/orgTopbar.js"></script>
-    
     <script src="/assets/js/orgProfile.js"></script> 
     <script src="/assets/js/org-donation.js"></script>
 </head>
@@ -74,6 +59,45 @@
                 <button onclick="openConfigModal()" class="px-3.5 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-medium text-xs rounded-xl transition flex items-center gap-2">
                     <i class="fa-solid fa-pen-to-square"></i> Manage
                 </button>
+            </div>
+        </div>
+
+        <!-- TOOLBAR: FILTER & EXPORT -->
+        <div class="flex items-center gap-3 font-sans bg-white p-3 rounded-lg shadow-sm w-fit mb-6">
+            <!-- 1. Filter Type Dropdown (Month / Year) -->
+            <div class="flex items-center border border-gray-300 rounded-md px-3 py-1.5 bg-white gap-2">
+                <i class="fa-solid fa-filter text-gray-500 text-sm"></i>
+                <select id="filterType" onchange="toggleDateInput()" class="border-none outline-none bg-transparent text-sm text-gray-700 cursor-pointer">
+                    <option value="month">Month</option>
+                    <option value="year">Year</option>
+                </select>
+            </div>
+
+            <!-- 2. Dynamic Date Picker -->
+            <div class="flex items-center border border-gray-300 rounded-md px-3 py-1.5 bg-white gap-2">
+                <input type="month" id="datePicker" value="2026-08" class="border-none outline-none bg-transparent text-sm text-gray-700 cursor-pointer">
+            </div>
+
+            <!-- 3. Refresh Button -->
+            <button class="flex items-center gap-2 bg-white border border-gray-300 text-gray-700 px-3.5 py-2 rounded-md text-sm cursor-pointer hover:bg-gray-50 transition-colors" onclick="refreshData()">
+                <i class="fa-solid fa-rotate"></i> Refresh
+            </button>
+
+            <!-- 4. Export Dropdown Button -->
+            <div class="relative inline-block">
+                <button class="flex items-center gap-2 bg-blue-600 text-white border-none px-3.5 py-2 rounded-md text-sm cursor-pointer hover:bg-blue-700 transition-colors dropdown-toggle" onclick="toggleExportMenu()">
+                    <i class="fa-solid fa-file-export"></i> Export <i class="fa-solid fa-chevron-down text-[10px]"></i>
+                </button>
+                
+                <!-- Dropdown Content -->
+                <div id="exportMenu" class="hidden absolute right-0 mt-1 bg-white min-w-[160px] shadow-lg rounded-md z-10 border border-gray-200 overflow-hidden">
+                    <a href="#" onclick="exportFile('excel')" class="text-gray-700 px-3.5 py-2.5 text-xs flex items-center gap-2.5 hover:bg-gray-100 no-underline">
+                        <i class="fa-solid fa-file-excel text-green-700"></i> Export as Excel
+                    </a>
+                    <a href="#" onclick="exportFile('pdf')" class="text-gray-700 px-3.5 py-2.5 text-xs flex items-center gap-2.5 hover:bg-gray-100 no-underline">
+                        <i class="fa-solid fa-file-pdf text-red-600"></i> Export as PDF
+                    </a>
+                </div>
             </div>
         </div>
 
@@ -166,7 +190,7 @@
             </div>
         </div>
 
-        <!-- EXPANDED DONATION SETTINGS MODAL (CASH QR & IN-KIND DROP-OFF) -->
+        <!-- EXPANDED DONATION SETTINGS MODAL -->
         <div id="paymentConfigModal" class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/45 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-200">
             <div class="bg-white rounded-2xl max-w-2xl w-full mx-4 p-6 shadow-2xl scale-95 transition-transform duration-200 overflow-hidden max-h-[90vh] flex flex-col">
                 <div class="flex items-center justify-between pb-4 border-b border-gray-100">
@@ -195,41 +219,88 @@
                 </div>
 
                 <form id="paymentConfigForm" onsubmit="savePaymentDetails(event)" class="space-y-4 overflow-y-auto pr-1 flex-1">
-                    
                     <!-- FORM SECTION 1: CASH & QR SETTINGS -->
                     <div id="modalCashSection" class="space-y-4">
+                        <!-- Payment Method Selector -->
                         <div>
-                            <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">QR Code Image</label>
-                            <div class="flex items-center gap-4">
-                                <div class="w-28 h-28 border-2 border-dashed border-gray-200 rounded-xl flex flex-col items-center justify-center bg-gray-50 overflow-hidden relative group">
-                                    <img id="qrPreview" src="https://via.placeholder.com/150?text=No+QR" alt="QR Code Preview" class="w-full h-full object-cover" />
-                                    <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-medium cursor-pointer" onclick="document.getElementById('qrInput').click()">
-                                        Change
+                            <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">Active Payment Method</label>
+                            <select id="inputPaymentMethod" name="payment_method" class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium text-gray-800 focus:outline-none focus:bg-white focus:border-indigo-500 transition">
+                                <option value="gcash">GCash</option>
+                                <option value="maya">Maya</option>
+                            </select>
+                        </div>
+
+                        <!-- GCash Configuration Fields -->
+                        <div id="gcashFieldsGroup" class="space-y-4 border-t border-gray-100 pt-4">
+                            <h4 class="text-xs font-bold text-indigo-600 uppercase">GCash Details</h4>
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">GCash QR Code Image</label>
+                                <div class="flex items-center gap-4">
+                                    <div class="w-28 h-28 border-2 border-dashed border-gray-200 rounded-xl flex flex-col items-center justify-center bg-gray-50 overflow-hidden relative group">
+                                        <img id="qrPreview" src="https://via.placeholder.com/150?text=No+QR" alt="GCash QR Preview" class="w-full h-full object-cover" />
+                                        <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-medium cursor-pointer" onclick="document.getElementById('qrInput').click()">
+                                            Change
+                                        </div>
+                                    </div>
+                                    <div class="flex-1">
+                                        <input type="file" id="qrInput" name="qr_code" accept="image/*" class="hidden" onchange="previewImage(event, 'qrPreview')" />
+                                        <button type="button" onclick="document.getElementById('qrInput').click()" class="px-4 py-2 border border-gray-200 rounded-xl text-xs font-semibold text-gray-700 hover:bg-gray-50 transition shadow-sm">
+                                            <i class="fa-solid fa-upload mr-1.5 text-gray-400"></i> Upload GCash QR
+                                        </button>
+                                        <p class="text-[11px] text-gray-400 mt-2">Recommended: Square PNG/JPG (Max 2MB)</p>
                                     </div>
                                 </div>
-                                <div class="flex-1">
-                                    <input type="file" id="qrInput" name="qr_code" accept="image/*" class="hidden" onchange="previewImage(event, 'qrPreview')" />
-                                    <button type="button" onclick="document.getElementById('qrInput').click()" class="px-4 py-2 border border-gray-200 rounded-xl text-xs font-semibold text-gray-700 hover:bg-gray-50 transition shadow-sm">
-                                        <i class="fa-solid fa-upload mr-1.5 text-gray-400"></i> Upload New QR
-                                    </button>
-                                    <p class="text-[11px] text-gray-400 mt-2">Recommended: Square PNG/JPG (Max 2MB)</p>
-                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">GCash Account Name</label>
+                                <input type="text" id="inputAccountName" name="gcash_name" placeholder="e.g., Camarines Sur Polytechnic Colleges" 
+                                    class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium text-gray-800 focus:outline-none focus:bg-white focus:border-indigo-500 transition" />
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">GCash Number</label>
+                                <input type="text" id="inputAccountNum" name="gcash_number" placeholder="e.g., 09123456789" 
+                                    class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium text-gray-800 focus:outline-none focus:bg-white focus:border-indigo-500 transition" />
                             </div>
                         </div>
 
-                        <div>
-                            <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">Account Name</label>
-                            <input type="text" id="inputAccountName" name="gcash_name" placeholder="e.g., Camarines Sur Polytechnic Colleges" 
-                                class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium text-gray-800 focus:outline-none focus:bg-white focus:border-indigo-500 transition" />
+                        <!-- Maya Configuration Fields -->
+                        <div id="mayaFieldsGroup" class="space-y-4 border-t border-gray-100 pt-4">
+                            <h4 class="text-xs font-bold text-emerald-600 uppercase">Maya Details</h4>
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">Maya QR Code Image</label>
+                                <div class="flex items-center gap-4">
+                                    <div class="w-28 h-28 border-2 border-dashed border-gray-200 rounded-xl flex flex-col items-center justify-center bg-gray-50 overflow-hidden relative group">
+                                        <img id="mayaQrPreview" src="https://via.placeholder.com/150?text=No+Maya+QR" alt="Maya QR Preview" class="w-full h-full object-cover" />
+                                        <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-medium cursor-pointer" onclick="document.getElementById('mayaQrInput').click()">
+                                            Change
+                                        </div>
+                                    </div>
+                                    <div class="flex-1">
+                                        <input type="file" id="mayaQrInput" name="maya_qr_code" accept="image/*" class="hidden" onchange="previewImage(event, 'mayaQrPreview')" />
+                                        <button type="button" onclick="document.getElementById('mayaQrInput').click()" class="px-4 py-2 border border-gray-200 rounded-xl text-xs font-semibold text-gray-700 hover:bg-gray-50 transition shadow-sm">
+                                            <i class="fa-solid fa-upload mr-1.5 text-gray-400"></i> Upload Maya QR
+                                        </button>
+                                        <p class="text-[11px] text-gray-400 mt-2">Recommended: Square PNG/JPG (Max 2MB)</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">Maya Account Name</label>
+                                <input type="text" id="inputMayaName" name="maya_name" placeholder="e.g., John Doe" 
+                                    class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium text-gray-800 focus:outline-none focus:bg-white focus:border-indigo-500 transition" />
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">Maya Number</label>
+                                <input type="text" id="inputMayaNum" name="maya_number" placeholder="e.g., 09123456789" 
+                                    class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium text-gray-800 focus:outline-none focus:bg-white focus:border-indigo-500 transition" />
+                            </div>
                         </div>
 
-                        <div>
-                            <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">Account Number (GCash/Maya)</label>
-                            <input type="text" id="inputAccountNum" name="gcash_number" placeholder="e.g., 09123456789" 
-                                class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium text-gray-800 focus:outline-none focus:bg-white focus:border-indigo-500 transition" />
-                        </div>
-
-                        <div>
+                        <div class="border-t border-gray-100 pt-4">
                             <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">Contact Phone</label>
                             <input type="text" id="inputPhone" name="contact_number" placeholder="e.g., 09123456789" 
                                 class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium text-gray-800 focus:outline-none focus:bg-white focus:border-indigo-500 transition" />
@@ -347,7 +418,7 @@
                             </div>
                         </div>
                     </div>
-                </div> <!-- Dito naisara nang tama ang grid container -->
+                </div>
 
                 <div id="rejectionSection" class="hidden mt-6 pt-4 border-t border-gray-100 space-y-4">
                     <div>
@@ -358,8 +429,8 @@
                                 <span>Blurry/Unreadable Screenshot</span>
                             </label>
                             <label class="flex items-center gap-2 cursor-pointer">
-                                <input type="radio" name="rejectReason" value="Transaction not found in GCash Records." onchange="updateRejectionText()" class="text-blue-600 focus:ring-blue-500" />
-                                <span>Transaction not found in GCash Records.</span>
+                                <input type="radio" name="rejectReason" value="Transaction not found in Records." onchange="updateRejectionText()" class="text-blue-600 focus:ring-blue-500" />
+                                <span>Transaction not found in Records.</span>
                             </label>
                             <label class="flex items-center gap-2 cursor-pointer">
                                 <input type="radio" name="rejectReason" value="Amount Mismatch" checked onchange="updateRejectionText()" class="text-blue-600 focus:ring-blue-500" />
@@ -507,27 +578,29 @@
                 </div>
             </div>
         </div>
-        <!--Logout Modal-->
-<div id="logoutModal" class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/45 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-200">
-    <div class="bg-white rounded-2xl max-w-sm w-full mx-4 p-6 shadow-2xl scale-95 transition-transform duration-200">
-        <div class="text-center">
-            <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-50 mb-4">
-                <i class="fa-solid fa-right-from-bracket text-red-600 text-lg"></i>
+
+        <!-- LOGOUT MODAL -->
+        <div id="logoutModal" class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/45 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-200">
+            <div class="bg-white rounded-2xl max-w-sm w-full mx-4 p-6 shadow-2xl scale-95 transition-transform duration-200">
+                <div class="text-center">
+                    <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-50 mb-4">
+                        <i class="fa-solid fa-right-from-bracket text-red-600 text-lg"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-900">Logging Out?</h3>
+                    <p class="text-sm text-gray-500 mt-2">Are you sure you want to leave the Pawpon Org Portal?</p>
+                </div>
+                <div class="mt-6 flex gap-3">
+                    <button id="cancelLogoutBtn" class="flex-1 px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-xl transition text-sm">
+                        Cancel
+                    </button>
+                    <button id="confirmLogoutBtn" class="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white font-medium rounded-xl transition shadow-sm shadow-red-200 text-sm">
+                        Yes, Logout
+                    </button>
+                </div>
             </div>
-            <h3 class="text-lg font-bold text-gray-900">Logging Out?</h3>
-            <p class="text-sm text-gray-500 mt-2">Are you sure you want to leave the Pawpon Org Portal?</p>
         </div>
-        <div class="mt-6 flex gap-3">
-            <button id="cancelLogoutBtn" class="flex-1 px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-xl transition text-sm">
-                Cancel
-            </button>
-            <button id="confirmLogoutBtn" class="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white font-medium rounded-xl transition shadow-sm shadow-red-200 text-sm">
-                Yes, Logout
-            </button>
-        </div>
-    </div>
-</div>
-        <!-- UI Toast Notification Container -->
+
+        <!-- UI TOAST NOTIFICATION CONTAINER -->
         <div id="toastContainer" class="fixed bottom-5 right-5 z-[100000] flex flex-col gap-2 pointer-events-none"></div>
     </main>
 </body>
