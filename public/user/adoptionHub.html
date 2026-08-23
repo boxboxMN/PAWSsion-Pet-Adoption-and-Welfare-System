@@ -684,34 +684,6 @@ async function applyAddressCascade({ region, province, city, barangay } = {}) {
 }
 window.applyAddressCascade = applyAddressCascade;
 
-async function autofillAddressCascade(address) {
-    if (!address) return;
-
-    const parts = address.split(',').map(s => s.trim()).filter(Boolean);
-    if (parts.length < 5) {
-        console.warn("autofillAddressCascade: address string doesn't have enough parts to parse:", address);
-        return;
-    }
-
-    const zip = parts[parts.length - 1];
-    const regionName = parts[parts.length - 2];
-    const provinceName = parts[parts.length - 3];
-    const cityName = parts[parts.length - 4];
-
-    const streetParts = parts.slice(0, parts.length - 4);
-    let barangayName = '';
-    if (streetParts.length && /^Barangay\s+/i.test(streetParts[streetParts.length - 1])) {
-        barangayName = streetParts.pop().replace(/^Barangay\s+/i, '').trim();
-    }
-
-    if (streetInput) streetInput.value = streetParts.join(', ');
-    if (zipInput) zipInput.value = zip;
-
-    await applyAddressCascade({ region: regionName, province: provinceName, city: cityName, barangay: barangayName });
-
-    if (typeof buildFullAddress === 'function') buildFullAddress();
-}
-
 const params = new URLSearchParams(window.location.search);
 
             const urlPetId = params.get("petId");
@@ -860,16 +832,12 @@ const params = new URLSearchParams(window.location.search);
         }
         function autofillAdoptionForm(app) {
     if (!app) return;
-    const a = app.applicant || {};
     const e = app.emergency || {};
 
-    document.getElementById("app-fullname").value = a.fullName || "";
-    document.getElementById("app-phone").value = a.phone || "";
-    document.getElementById("app-email").value = a.email || "";
-    document.getElementById("app-address").value = a.address || "";
-    document.getElementById("app-civil").value = a.civilStatus || "";
-    document.getElementById("app-age").value = a.age || "";
-    document.getElementById("app-occupation").value = a.occupation || "";
+    // Name, phone, email, address, civil status, age, and occupation are
+    // already filled from the live profile by autoFillUserProfile() (called
+    // just before this). Only fill what the profile has no equivalent for:
+    // this is specific to the previous application itself.
     document.getElementById("app-intent").value = app.intent || "";
     document.getElementById("app-emergency-name").value = e.name || "";
     document.getElementById("app-emergency-phone").value = e.phone || "";
@@ -942,89 +910,6 @@ const params = new URLSearchParams(window.location.search);
             }
 
             // 6. Submit Application Event Handler
-            if (pendingReapplyApp) {
-                await autofillAddressCascade(pendingReapplyApp.applicant?.address);
-            }
-
-            // FIX (bug #2, main issue): autofillAddressCascade() was being called but was never
-            // defined anywhere in this file or in userAdoptionHub.js, so re-apply always threw
-            // "autofillAddressCascade is not defined" (silently masked before by the pendingReapplyApp
-            // shadowing bug, since this code was never actually reached). It now parses the saved
-            // "full_address" string (built by buildFullAddress() as:
-            // "Street, Barangay X, City, Province, Region, Zip") and walks the cascade in order -
-            // Region first, then (after its options load) Province, then City, then Barangay -
-            // instead of relying on the old select's disconnected change listeners.
-            async function autofillAddressCascade(address) {
-                if (!address) return;
-
-                const parts = address.split(',').map(s => s.trim()).filter(Boolean);
-                if (parts.length < 5) {
-                    console.warn("autofillAddressCascade: address string doesn't have enough parts to parse:", address);
-                    return;
-                }
-
-                const zip = parts[parts.length - 1];
-                const regionName = parts[parts.length - 2];
-                const provinceName = parts[parts.length - 3];
-                const cityName = parts[parts.length - 4];
-
-                const streetParts = parts.slice(0, parts.length - 4);
-                let barangayName = '';
-                if (streetParts.length && /^Barangay\s+/i.test(streetParts[streetParts.length - 1])) {
-                    barangayName = streetParts.pop().replace(/^Barangay\s+/i, '').trim();
-                }
-
-                if (streetInput) streetInput.value = streetParts.join(', ');
-                if (zipInput) zipInput.value = zip;
-
-                if (regionSelect.options.length <= 1) {
-                    await loadAppRegions();
-                }
-
-                const regionOption = [...regionSelect.options].find(o => o.value === regionName);
-                if (!regionOption) {
-                    console.warn("autofillAddressCascade: region not found in list:", regionName);
-                    return;
-                }
-                regionSelect.value = regionName;
-                await loadProvincesForRegion(regionOption.dataset.code, regionName);
-
-                const provinceOption = [...provinceSelect.options].find(o => o.value === provinceName);
-                if (!provinceOption) {
-                    console.warn("autofillAddressCascade: province not found in list:", provinceName);
-                    return;
-                }
-                provinceSelect.value = provinceName;
-                await loadCitiesForProvince(provinceOption.dataset.code, regionOption.dataset.code);
-
-                const cityOption = [...citySelect.options].find(o => o.value === cityName);
-                if (!cityOption) {
-                    console.warn("autofillAddressCascade: city not found in list:", cityName);
-                    return;
-                }
-                citySelect.value = cityName;
-                await loadBarangaysForCity(cityOption.dataset.code);
-
-                if (barangayName) {
-                    const barangayOption = [...barangaySelect.options].find(o => o.value === barangayName);
-                    if (barangayOption) {
-                        barangaySelect.value = barangayName;
-                    } else {
-                        console.warn("autofillAddressCascade: barangay not found in list:", barangayName);
-                    }
-                }
-
-                buildFullAddress();
-            }
-
-
-            await loadAppRegions();
-
-            if (pendingReapplyApp) {
-                await autofillAddressCascade(pendingReapplyApp.applicant?.address);
-            }
-
-            // Restrict Zip Code input to digits only, with live validation feedback
             zipInput.addEventListener('input', function () {
                 this.value = this.value.replace(/[^0-9]/g, '').slice(0, 4);
 
