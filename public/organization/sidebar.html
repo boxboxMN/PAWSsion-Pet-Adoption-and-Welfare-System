@@ -24,9 +24,9 @@
 <aside id="sidebar"
     data-collapsed="false"
     data-mobile-open="false"
-    class="fixed top-0 left-0 h-screen w-[280px] bg-white border-r border-gray-200 flex flex-col justify-between z-50 transition-all duration-200 ease-in-out data-[collapsed=true]:w-20 -translate-x-full data-[mobile-open=true]:translate-x-0 md:translate-x-0 shadow-sm">
+    class="fixed top-0 left-0 h-screen w-[280px] bg-white border-r border-gray-200 flex flex-col justify-between overflow-hidden z-50 transition-all duration-200 ease-in-out data-[collapsed=true]:w-20 -translate-x-full data-[mobile-open=true]:translate-x-0 md:translate-x-0 shadow-sm">
 
-    <div>
+    <div  class="flex-1 overflow-y-auto min-h-0">
 
         <!-- Logo & Collapse Button -->
         <div id="logoContainer" class="flex items-center justify-between px-5 pt-6">
@@ -121,7 +121,7 @@
     </div>
 
     <!-- Bottom Section -->
-    <div class="border-t border-gray-100 p-4 flex flex-col gap-1">
+    <div  class="border-t border-gray-100 p-4 flex flex-col gap-1 flex-shrink-0">
         <a href="/org/settings"
             class="nav-link flex items-center gap-4 h-11 px-3 rounded-xl text-gray-600 hover:bg-gray-50 transition font-medium group">
             <i class="fa-solid fa-gear w-5 text-center text-gray-400 group-hover:text-blue-900 transition-colors"></i>

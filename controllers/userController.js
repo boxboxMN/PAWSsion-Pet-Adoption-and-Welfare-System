@@ -317,8 +317,7 @@ exports.getAvailablePets = async (req, res) => {
         });
 
     }
-};
-exports.getOrganizations = async (req, res) => {
+};exports.getOrganizations = async (req, res) => {
     try {
         const [organizations] = await pool.query(`
             SELECT
@@ -332,6 +331,9 @@ exports.getOrganizations = async (req, res) => {
                 p.gcash_name,
                 p.gcash_number,
                 p.qr_code,
+                p.maya_name,
+                p.maya_number,
+                p.maya_qr_code,
                 d.dropoff_address,
                 d.dropoff_hours,
                 d.dropoff_notes,
@@ -351,11 +353,14 @@ exports.getOrganizations = async (req, res) => {
                 ? (org.qr_code.startsWith('/') ? org.qr_code : `/uploads/qr/${org.qr_code}`)
                 : '';
 
-            // --- PERPEKTONG FIX PARA SA DROPOFF IMAGE ---
+            // IDINAGDAG: Maya QR Code formatting katulad ng sa GCash
+            const mayaQrCode = (org.maya_qr_code && org.maya_qr_code.trim() !== '' && org.maya_qr_code !== '/uploads/qr/')
+                ? (org.maya_qr_code.startsWith('/') ? org.maya_qr_code : `/uploads/qr/${org.maya_qr_code}`)
+                : '';
+
             let dropoffImg = (org.dropoff_image && org.dropoff_image.trim() !== '') ? org.dropoff_image.trim() : '';
 
             if (dropoffImg && !dropoffImg.startsWith('/') && !dropoffImg.startsWith('http')) {
-                // Kung ang filename ay may pamagat na "qr-", ilagay sa /uploads/qr/ folder
                 if (dropoffImg.startsWith('qr-')) {
                     dropoffImg = `/uploads/qr/${dropoffImg}`;
                 } else {
@@ -367,6 +372,7 @@ exports.getOrganizations = async (req, res) => {
                 ...org,
                 profile_pic: profilePic,
                 qr_code: qrCode,
+                maya_qr_code: mayaQrCode, // Isinama na sa returned object
                 dropoff_image: dropoffImg
             };
         });
@@ -377,8 +383,6 @@ exports.getOrganizations = async (req, res) => {
         res.status(500).json({ success: false, message: "Failed to load organizations." });
     }
 };
-// ==========================================
-// DONATION SUBMISSIONS (USER SIDE)
 exports.submitCashDonation = async (req, res) => {
     const accountId = req.session?.accountId;
     if (!accountId) {
@@ -391,7 +395,8 @@ exports.submitCashDonation = async (req, res) => {
         donor_email,
         gcash_account_name,
         reference_number,
-        amount
+        amount,
+        payment_method // Sinasalo ang piniling payment method mula sa frontend (GCash o Maya)
     } = req.body;
 
     if (!organization_id || !donor_name || !donor_email || !reference_number || !amount) {
@@ -404,11 +409,11 @@ exports.submitCashDonation = async (req, res) => {
         return res.status(400).json({ success: false, error: "Donation amount must be greater than zero and cannot be negative." });
     }
 
-    // --- VALIDATION: Ensure valid reference number format (e.g., standard 13-digit alphanumeric GCash ref) ---
+    // --- VALIDATION: Ensure valid reference number format ---
     const cleanRefNum = reference_number.trim();
-    const gcashRefRegex = /^[a-zA-Z0-9]{10,15}$/; // Standard GCash reference numbers are alphanumeric lengths around 13
-    if (!gcashRefRegex.test(cleanRefNum)) {
-        return res.status(400).json({ success: false, error: "Please enter a valid GCash reference number (typically 10-15 alphanumeric characters)." });
+    const refRegex = /^[a-zA-Z0-9]{10,15}$/; // Standard reference numbers are alphanumeric lengths around 10-15
+    if (!refRegex.test(cleanRefNum)) {
+        return res.status(400).json({ success: false, error: "Please enter a valid reference number (typically 10-15 alphanumeric characters)." });
     }
 
     if (!req.file) {
@@ -423,20 +428,32 @@ exports.submitCashDonation = async (req, res) => {
         );
 
         if (existingRef.length > 0) {
-            return res.status(400).json({ success: false, error: "This GCash reference number has already been submitted." });
+            return res.status(400).json({ success: false, error: "This reference number has already been submitted." });
         }
 
-        // --- ADDED CONDITION: Check if GCash details exist for the org ---
+        // --- PAYMENT METHOD & DETAILS VALIDATION ---
         const [paymentRows] = await pool.query(
-            `SELECT gcash_number, gcash_name FROM organization_payment_details WHERE organization_id = ?`,
+            `SELECT gcash_number, gcash_name, maya_number, maya_name FROM organization_payment_details WHERE organization_id = ?`,
             [organization_id]
         );
 
-        if (!paymentRows.length || !paymentRows[0].gcash_number) {
-            return res.status(400).json({ 
-                success: false, 
-                error: "This organization has not provided GCash payment details yet. Cash donations are currently disabled for this organization." 
-            });
+        // Tukuyin kung GCash o Maya ang ginamit (default sa GCash kung walang pumasok)
+        const selectedMethod = payment_method ? payment_method.trim() : 'GCash';
+
+        if (selectedMethod.toLowerCase() === 'maya') {
+            if (!paymentRows.length || !paymentRows[0].maya_number) {
+                return res.status(400).json({ 
+                    success: false, 
+                    error: "This organization has not provided Maya payment details yet. Maya donations are currently disabled for this organization." 
+                });
+            }
+        } else {
+            if (!paymentRows.length || !paymentRows[0].gcash_number) {
+                return res.status(400).json({ 
+                    success: false, 
+                    error: "This organization has not provided GCash payment details yet. Cash donations are currently disabled for this organization." 
+                });
+            }
         }
 
         const receipt_path = `/uploads/receipts/${req.file.filename}`;
@@ -448,10 +465,11 @@ exports.submitCashDonation = async (req, res) => {
 
         const adopter_id = adopterRows.length > 0 ? adopterRows[0].adopter_id : null;
 
+        // --- INSERT SA DATABASE (Kasama ang payment_method kung mayroon ka ring kolum nito) ---
         const [result] = await pool.query(
             `INSERT INTO cash_donations 
-            (adopter_id, organization_id, donor_name, donor_email, gcash_account_name, reference_number, amount, receipt_path, status, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Pending', NOW())`,
+            (adopter_id, organization_id, donor_name, donor_email, gcash_account_name, reference_number, amount, receipt_path, payment_method, status, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pending', NOW())`,
             [
                 adopter_id,
                 organization_id,
@@ -460,7 +478,8 @@ exports.submitCashDonation = async (req, res) => {
                 gcash_account_name || donor_name,
                 cleanRefNum,
                 parsedAmount,
-                receipt_path
+                receipt_path,
+                selectedMethod
             ]
         );
 
@@ -475,6 +494,7 @@ exports.submitCashDonation = async (req, res) => {
         return res.status(500).json({ success: false, error: "Database error while processing donation: " + error.message });
     }
 };
+
 // ==========================================
 // GET USER DONATIONS & HISTORY
 // ==========================================
@@ -1027,7 +1047,7 @@ exports.getUserApplications = async (req, res) => {
         // =====================================================
         // 5. SEND RESPONSE
         // =====================================================
-        return res.status(200).json({ success: true, applications: applications });
+        return res.status(200).json({ success: true, applications: formattedApplications });
 
     } catch (error) {
         console.error("Error fetching user adoption applications:", error);
