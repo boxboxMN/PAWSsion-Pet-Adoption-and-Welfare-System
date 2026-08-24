@@ -334,6 +334,7 @@ exports.getAvailablePets = async (req, res) => {
                 p.maya_name,
                 p.maya_number,
                 p.maya_qr_code,
+                d.dropoff_location_name,
                 d.dropoff_address,
                 d.dropoff_hours,
                 d.dropoff_notes,

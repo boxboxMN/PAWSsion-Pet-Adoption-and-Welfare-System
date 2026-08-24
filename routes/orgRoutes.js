@@ -127,13 +127,27 @@ router.get("/pets/:id", getPetDetails);
 // Corrected donations route (serves GET /org/donations)
 router.get("/donations", getDonations);
 // 5. PAYMENT & QR ROUTES
-router.get("/payment-info", getPaymentInfo);
-router.post( "/payment-info", uploadQR.fields
-    ([
-        { name: "qr_code", maxCount: 1 },
-        { name: "maya_qr_code", maxCount: 1 },
-        { name: "location_image", maxCount: 1 }
-    ]), 
+router.get(
+    "/payment-info",
+    getPaymentInfo
+);
+
+router.post(
+    "/payment-info",
+    uploadQR.fields([
+        {
+            name: "qr_code",
+            maxCount: 1
+        },
+        {
+            name: "maya_qr_code",
+            maxCount: 1
+        },
+        {
+            name: "location_image",
+            maxCount: 1
+        }
+    ]),
     updatePaymentInfo
 );
 router.put("/donations/:id/status", updateDonationStatus);
@@ -141,70 +155,62 @@ router.put("/donations/:id/status", updateDonationStatus);
 router.get("/donations/in-kind", getInKindDonations);
 router.post("/donations/in-kind", uploadQR.single("proof"), addInKindDonation);
 router.put("/donations/in-kind/:id/status", updateInKindDonationStatus);
-router.get("/dropoff-info", getDropoffInfo);
+// POST: Save or Update Drop-off Details
 router.post("/dropoff-info", uploadDropoff.single("dropoff_image"), async (req, res) => {
-    try {
-        const accountId = req.session?.accountId;
-        if (!accountId) {
-            return res.status(401).json({ success: false, message: "Unauthorized" });
-        }
+  try {
+    const organizationId = req.session.accountId;
+    const { 
+      dropoff_location_name, 
+      dropoff_address, 
+      dropoff_hours, 
+      dropoff_notes 
+    } = req.body;
 
-        // Kunin ang organization_id ng naka-login
-        const [orgRows] = await pool.query(
-            `SELECT organization_id FROM organizations WHERE account_id = ?`,
-            [accountId]
-        );
+    const dropoff_image = req.file ? `/uploads/${req.file.filename}` : null;
 
-        if (!orgRows.length) {
-            return res.status(404).json({ success: false, message: "Organization not found" });
-        }
+    const query = `
+      INSERT INTO organization_dropoff_details 
+        (organization_id, dropoff_location_name, dropoff_address, dropoff_hours, dropoff_notes, dropoff_image)
+      VALUES (?, ?, ?, ?, ?, ?)
+      ON DUPLICATE KEY UPDATE
+        dropoff_location_name = VALUES(dropoff_location_name),
+        dropoff_address = VALUES(dropoff_address),
+        dropoff_hours = VALUES(dropoff_hours),
+        dropoff_notes = VALUES(dropoff_notes),
+        dropoff_image = COALESCE(VALUES(dropoff_image), dropoff_image),
+        updated_at = CURRENT_TIMESTAMP
+    `;
 
-        const orgId = orgRows[0].organization_id;
+    await db.execute(query, [
+      organizationId,
+      dropoff_location_name || null,
+      dropoff_address,
+      dropoff_hours || null,
+      dropoff_notes || null,
+      dropoff_image
+    ]);
 
-        // Kunin ang mga data galing sa form request
-        const { dropoff_location_name, dropoff_address, dropoff_hours, dropoff_notes } = req.body;
-        
-        // Kunin ang file path kung merong in-upload na image
-        const imagePath = req.file ? `/uploads/${req.file.filename}` : null;
+    res.json({ success: true, message: "Settings saved successfully!" });
+  } catch (error) {
+    console.error("Database save error:", error);
+    res.status(500).json({ success: false, error: "Failed to save settings." });
+  }
+});
 
-        // I-check kung may umiiral na nang record para sa organization na ito
-        const [existing] = await pool.query(
-            `SELECT dropoff_id, dropoff_image FROM dropoff_locations WHERE organization_id = ?`,
-            [orgId]
-        );
+// GET: Fetch Drop-off Details
+router.get("/dropoff-info", async (req, res) => {
+  try {
+    const organizationId = req.session.accountId;
+    const [rows] = await db.execute(
+      "SELECT * FROM organization_dropoff_details WHERE organization_id = ? LIMIT 1",
+      [organizationId]
+    );
 
-        if (existing.length > 0) {
-            // UPDATE kung meron na
-            let query = `
-                UPDATE dropoff_locations 
-                SET dropoff_location_name = ?, dropoff_address = ?, dropoff_hours = ?, dropoff_notes = ?
-            `;
-            let params = [dropoff_location_name, dropoff_address, dropoff_hours, dropoff_notes];
-
-            if (imagePath) {
-                query += `, dropoff_image = ?`;
-                params.push(imagePath);
-            }
-
-            query += ` WHERE organization_id = ?`;
-            params.push(orgId);
-
-            await pool.query(query, params);
-        } else {
-            // INSERT kung wala pa
-            const query = `
-                INSERT INTO dropoff_locations (organization_id, dropoff_location_name, dropoff_address, dropoff_hours, dropoff_notes, dropoff_image)
-                VALUES (?, ?, ?, ?, ?, ?)
-            `;
-            await pool.query(query, [orgId, dropoff_location_name, dropoff_address, dropoff_hours, dropoff_notes, imagePath]);
-        }
-
-        res.json({ success: true, message: "Drop-off settings saved successfully!" });
-
-    } catch (error) {
-        console.error("❌ Drop-off Save Error:", error);
-        res.status(500).json({ success: false, message: "Server error", details: error.message });
-    }
+    res.json({ success: true, data: rows[0] || null });
+  } catch (error) {
+    console.error("Database fetch error:", error);
+    res.status(500).json({ success: false, error: "Failed to fetch settings." });
+  }
 });
 // GET Single Application Details Endpoint (Protected by Organization)
 router.get('/applications/:id', async (req, res) => {

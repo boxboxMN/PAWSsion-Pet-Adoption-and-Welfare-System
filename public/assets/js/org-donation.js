@@ -342,87 +342,110 @@ async function fetchPaymentDetails() {
         }
 
         // =====================================================
-        // IN-KIND INFORMATION
-        // =====================================================
+// IN-KIND INFORMATION
+// =====================================================
 
-        const locationName =
-            document.getElementById(
-                "inputLocationName"
-            );
+const locationName =
+    document.getElementById(
+        "inputLocationName"
+    );
 
-        const locationAddress =
-            document.getElementById(
-                "inputLocationAddress"
-            );
+const locationAddress =
+    document.getElementById(
+        "inputLocationAddress"
+    );
 
-        const operatingHours =
-            document.getElementById(
-                "inputOperatingHours"
-            );
+const operatingHours =
+    document.getElementById(
+        "inputOperatingHours"
+    );
 
-        const importantNotes =
-            document.getElementById(
-                "inputImportantNotes"
-            );
+const importantNotes =
+    document.getElementById(
+        "inputImportantNotes"
+    );
 
-        if (locationName) {
-            locationName.value =
-                data.organization_name || "";
-        }
 
-        if (locationAddress) {
-            locationAddress.value =
-                data.dropoff_address || "";
-        }
+// =====================================================
+// LOCATION NAME
+// =====================================================
 
-        if (operatingHours) {
-            operatingHours.value =
-                data.dropoff_hours || "";
-        }
+if (locationName) {
 
-        if (importantNotes) {
-            importantNotes.value =
-                data.dropoff_notes || "";
-        }
+    locationName.value =
+        data.dropoff_location_name || "";
+}
 
-        // =====================================================
-        // SAVE INITIAL STATE
-        // =====================================================
-        // IMPORTANT:
-        // Used by savePaymentDetails() to determine which
-        // section was actually changed.
-        // =====================================================
 
-        initialPaymentFormState = {
+// =====================================================
+// ADDRESS
+// =====================================================
 
-            payment_method:
-                paymentMethod,
+if (locationAddress) {
 
-            gcash_name:
-                data.gcash_name || "",
+    locationAddress.value =
+        data.dropoff_address || "";
+}
 
-            gcash_number:
-                data.gcash_number || "",
 
-            maya_name:
-                data.maya_name || "",
+// =====================================================
+// HOURS
+// =====================================================
 
-            maya_number:
-                data.maya_number || "",
+if (operatingHours) {
 
-            contact_number:
-                data.contact_number || "",
+    operatingHours.value =
+        data.dropoff_hours || "";
+}
 
-            dropoff_address:
-                data.dropoff_address || "",
 
-            dropoff_hours:
-                data.dropoff_hours || "",
+// =====================================================
+// NOTES
+// =====================================================
 
-            dropoff_notes:
-                data.dropoff_notes || ""
-        };
+if (importantNotes) {
 
+    importantNotes.value =
+        data.dropoff_notes || "";
+}
+
+
+// =====================================================
+// INITIAL STATE
+// =====================================================
+
+initialPaymentFormState = {
+
+    payment_method:
+        paymentMethod,
+
+    gcash_name:
+        data.gcash_name || "",
+
+    gcash_number:
+        data.gcash_number || "",
+
+    maya_name:
+        data.maya_name || "",
+
+    maya_number:
+        data.maya_number || "",
+
+    contact_number:
+        data.contact_number || "",
+
+    dropoff_location_name:
+        data.dropoff_location_name || "",
+
+    dropoff_address:
+        data.dropoff_address || "",
+
+    dropoff_hours:
+        data.dropoff_hours || "",
+
+    dropoff_notes:
+        data.dropoff_notes || ""
+};
         // =====================================================
         // DEBUG
         // =====================================================
@@ -1190,27 +1213,37 @@ function closeConfigModal() {
  * Displays a preview of the selected
  * image before uploading[cite: 5].
  */
-function previewImage(event, targetImgId) {
-    const file = event.target.files[0];
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            document.getElementById(targetImgId).src = e.target.result;
-        };
-        reader.readAsDataURL(file);
-    }
+function previewImage(event, previewId) {
+  const file = event.target.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      document.getElementById(previewId).src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
 }
 
 /**
  * Saves the organization's payment
  * information and in-kind drop-off settings[cite: 5].
  */
+// =====================================================
+// SAVE PAYMENT + IN-KIND DONATION DETAILS
+// =====================================================
 
 async function savePaymentDetails(e) {
     e.preventDefault();
 
     const saveBtn =
         document.getElementById("saveBtn");
+
+    if (!saveBtn) {
+        console.error(
+            "Save button #saveBtn was not found."
+        );
+        return;
+    }
 
     const originalBtnText =
         saveBtn.innerHTML;
@@ -1222,13 +1255,27 @@ async function savePaymentDetails(e) {
 
     try {
 
-        const getValue = (id) =>
-            document.getElementById(id)
-                ?.value
-                ?.trim() || "";
+        // =====================================================
+        // HELPER
+        // =====================================================
+
+        const getValue = (id) => {
+            const element =
+                document.getElementById(id);
+
+            return element &&
+                element.value !== undefined
+                ? String(element.value).trim()
+                : "";
+        };
+
+        // =====================================================
+        // GET CURRENT FORM VALUES
+        // =====================================================
 
         const current = {
 
+            // PAYMENT
             payment_method:
                 getValue(
                     "inputPaymentMethod"
@@ -1259,6 +1306,15 @@ async function savePaymentDetails(e) {
                     "inputPhone"
                 ),
 
+            // =================================================
+            // IN-KIND
+            // =================================================
+
+            dropoff_location_name:
+                getValue(
+                    "inputLocationName"
+                ),
+
             dropoff_address:
                 getValue(
                     "inputLocationAddress"
@@ -1275,60 +1331,120 @@ async function savePaymentDetails(e) {
                 )
         };
 
+
         // =====================================================
-        // CHECK CHANGES
+        // PREVIOUS VALUES
         // =====================================================
 
         const previous =
             initialPaymentFormState || {};
 
+
+        // =====================================================
+        // CHECK PAYMENT CHANGES
+        // =====================================================
+
         const paymentChanged =
             current.payment_method !==
-                previous.payment_method ||
+                (previous.payment_method || "") ||
 
             current.gcash_name !==
-                previous.gcash_name ||
+                (previous.gcash_name || "") ||
 
             current.gcash_number !==
-                previous.gcash_number ||
+                (previous.gcash_number || "") ||
 
             current.maya_name !==
-                previous.maya_name ||
+                (previous.maya_name || "") ||
 
             current.maya_number !==
-                previous.maya_number;
+                (previous.maya_number || "");
+
+
+        // =====================================================
+        // CHECK IN-KIND CHANGES
+        // =====================================================
 
         const inkindChanged =
+            current.dropoff_location_name !==
+                (previous.dropoff_location_name || "") ||
+
             current.dropoff_address !==
-                previous.dropoff_address ||
+                (previous.dropoff_address || "") ||
 
             current.dropoff_hours !==
-                previous.dropoff_hours ||
+                (previous.dropoff_hours || "") ||
 
             current.dropoff_notes !==
-                previous.dropoff_notes;
+                (previous.dropoff_notes || "");
+
 
         // =====================================================
-        // CHECK QR FILES
+        // CHECK GCASH QR
         // =====================================================
 
-        const gcashQrChanged =
+        const gcashQrInput =
             document.getElementById(
                 "qrCodeInput"
-            )?.files?.length > 0;
+            );
 
-        const mayaQrChanged =
-            document.getElementById(
-                "mayaQrCodeInput"
-            )?.files?.length > 0;
+        const gcashQrChanged =
+            !!(
+                gcashQrInput &&
+                gcashQrInput.files &&
+                gcashQrInput.files.length > 0
+            );
 
-        const dropoffImageChanged =
-            document.getElementById(
-                "dropoffImageInput"
-            )?.files?.length > 0;
 
         // =====================================================
-        // FINAL SECTION DETECTION
+        // CHECK MAYA QR
+        // =====================================================
+
+        const mayaQrInput =
+            document.getElementById(
+                "mayaQrCodeInput"
+            );
+
+        const mayaQrChanged =
+            !!(
+                mayaQrInput &&
+                mayaQrInput.files &&
+                mayaQrInput.files.length > 0
+            );
+
+
+        // =====================================================
+        // CHECK LOCATION IMAGE
+        // =====================================================
+
+        /*
+         * IMPORTANT:
+         *
+         * HTML:
+         * name="location_image"
+         *
+         * Multer:
+         * location_image
+         *
+         * Database:
+         * dropoff_image
+         */
+
+        const locationImageInput =
+            document.getElementById(
+                "locationImgInput"
+            );
+
+        const dropoffImageChanged =
+            !!(
+                locationImageInput &&
+                locationImageInput.files &&
+                locationImageInput.files.length > 0
+            );
+
+
+        // =====================================================
+        // FINAL CHANGE DETECTION
         // =====================================================
 
         const actualPaymentChanged =
@@ -1340,8 +1456,9 @@ async function savePaymentDetails(e) {
             inkindChanged ||
             dropoffImageChanged;
 
+
         // =====================================================
-        // SUBMIT
+        // GET FORM
         // =====================================================
 
         const form =
@@ -1349,8 +1466,127 @@ async function savePaymentDetails(e) {
                 "paymentConfigForm"
             );
 
+        if (!form) {
+
+            showToast(
+                "Payment configuration form was not found.",
+                "error"
+            );
+
+            return;
+        }
+
+
+        // =====================================================
+        // CREATE FORMDATA
+        // =====================================================
+
         const formData =
             new FormData(form);
+
+
+        // =====================================================
+        // PAYMENT VALUES
+        // =====================================================
+
+        formData.set(
+            "payment_method",
+            current.payment_method
+        );
+
+        formData.set(
+            "gcash_name",
+            current.gcash_name
+        );
+
+        formData.set(
+            "gcash_number",
+            current.gcash_number
+        );
+
+        formData.set(
+            "maya_name",
+            current.maya_name
+        );
+
+        formData.set(
+            "maya_number",
+            current.maya_number
+        );
+
+        formData.set(
+            "contact_number",
+            current.contact_number
+        );
+
+
+        // =====================================================
+        // IN-KIND VALUES
+        // =====================================================
+
+        formData.set(
+            "dropoff_location_name",
+            current.dropoff_location_name
+        );
+
+        formData.set(
+            "dropoff_address",
+            current.dropoff_address
+        );
+
+        formData.set(
+            "dropoff_hours",
+            current.dropoff_hours
+        );
+
+        formData.set(
+            "dropoff_notes",
+            current.dropoff_notes
+        );
+
+
+        // =====================================================
+        // LOCATION IMAGE
+        // =====================================================
+
+        /*
+         * IMPORTANT:
+         *
+         * Do NOT send:
+         *
+         * dropoff_image
+         *
+         * to Multer.
+         *
+         * The uploaded file field is:
+         *
+         * location_image
+         */
+
+        formData.delete(
+            "dropoff_image"
+        );
+
+        formData.delete(
+            "location_image"
+        );
+
+        if (
+            locationImageInput &&
+            locationImageInput.files &&
+            locationImageInput.files.length > 0
+        ) {
+
+            formData.append(
+                "location_image",
+                locationImageInput.files[0]
+            );
+        }
+
+
+        // =====================================================
+        // SEND TO BACKEND
+        // =====================================================
 
         const response =
             await fetch(
@@ -1361,10 +1597,44 @@ async function savePaymentDetails(e) {
                 }
             );
 
-        const result =
-            await response.json();
 
-        if (!result.success) {
+        // =====================================================
+        // READ RESPONSE
+        // =====================================================
+
+        let result;
+
+        try {
+
+            result =
+                await response.json();
+
+        } catch (jsonError) {
+
+            console.error(
+                "Invalid server response:",
+                jsonError
+            );
+
+            const text =
+                await response.text();
+
+            console.error(
+                "Server response:",
+                text
+            );
+
+            throw new Error(
+                "Server returned an invalid response."
+            );
+        }
+
+
+        // =====================================================
+        // SERVER ERROR
+        // =====================================================
+
+        if (!response.ok || !result.success) {
 
             showToast(
                 result.message ||
@@ -1375,19 +1645,30 @@ async function savePaymentDetails(e) {
             return;
         }
 
+
         // =====================================================
-        // BUILD REAL CONFIRMATION
+        // BUILD CONFIRMATION MESSAGE
         // =====================================================
 
         const sections = [];
 
+
+        // =====================================================
+        // PAYMENT MESSAGE
+        // =====================================================
+
         if (actualPaymentChanged) {
 
             const method =
-                current.payment_method
-                    .toLowerCase();
+                String(
+                    current.payment_method || ""
+                )
+                    .toLowerCase()
+                    .trim();
 
-            if (method === "maya") {
+            if (
+                method === "maya"
+            ) {
 
                 sections.push(
                     "Maya payment information"
@@ -1401,6 +1682,11 @@ async function savePaymentDetails(e) {
             }
         }
 
+
+        // =====================================================
+        // IN-KIND MESSAGE
+        // =====================================================
+
         if (actualInKindChanged) {
 
             sections.push(
@@ -1408,8 +1694,9 @@ async function savePaymentDetails(e) {
             );
         }
 
+
         // =====================================================
-        // SHOW CONFIRMATION
+        // SHOW RESULT
         // =====================================================
 
         let message;
@@ -1417,7 +1704,7 @@ async function savePaymentDetails(e) {
         if (sections.length === 0) {
 
             message =
-                "No changes were detected.";
+                "Settings saved successfully!";
 
         } else if (
             sections.length === 1
@@ -1434,14 +1721,38 @@ async function savePaymentDetails(e) {
                 )} saved successfully!`;
         }
 
+
         showToast(
             message,
             "success"
         );
 
-        closeConfigModal();
 
-        await fetchPaymentDetails();
+        // =====================================================
+        // CLOSE MODAL
+        // =====================================================
+
+        if (
+            typeof closeConfigModal ===
+            "function"
+        ) {
+            closeConfigModal();
+        }
+
+
+        // =====================================================
+        // RELOAD DATA
+        // =====================================================
+
+        if (
+            typeof fetchPaymentDetails ===
+            "function"
+        ) {
+            await fetchPaymentDetails();
+        }
+
+        await loadInKindSettings();
+
 
     } catch (error) {
 
@@ -1451,6 +1762,7 @@ async function savePaymentDetails(e) {
         );
 
         showToast(
+            error.message ||
             "An unexpected error occurred while saving.",
             "error"
         );
@@ -1463,188 +1775,693 @@ async function savePaymentDetails(e) {
             originalBtnText;
     }
 }
-/**
- * Displays a toast notification
- * to inform the user of the result[cite: 5].
- *
- * @param {string} message - Notification message.
- * @param {string} type - "success" or "error".
- */
-function showToast(message, type = 'success') {
-    const container = document.getElementById('toastContainer');
-    if (!container) return;
 
-    const toast = document.createElement('div');
-    const isSuccess = type === 'success';
 
-    toast.className = `pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg border text-xs font-semibold transition-all duration-300 transform translate-y-5 opacity-0 ${
-        isSuccess 
-            ? 'bg-emerald-50 border-emerald-200 text-emerald-800' 
-            : 'bg-rose-50 border-rose-200 text-rose-800'
-    }`;
+// =====================================================
+// TOAST NOTIFICATION
+// =====================================================
+
+function showToast(
+    message,
+    type = "success"
+) {
+
+    const container =
+        document.getElementById(
+            "toastContainer"
+        );
+
+    if (!container) {
+        console.warn(
+            "Toast container not found."
+        );
+        return;
+    }
+
+
+    const toast =
+        document.createElement("div");
+
+
+    const isSuccess =
+        type === "success";
+
+
+    toast.className =
+        `pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg border text-xs font-semibold transition-all duration-300 transform translate-y-5 opacity-0 ${
+            isSuccess
+                ? "bg-emerald-50 border-emerald-200 text-emerald-800"
+                : "bg-rose-50 border-rose-200 text-rose-800"
+        }`;
+
 
     toast.innerHTML = `
-        <i class="fa-solid ${isSuccess ? 'fa-circle-check text-emerald-600' : 'fa-circle-xmark text-rose-600'} text-base"></i>
+        <i class="fa-solid ${
+            isSuccess
+                ? "fa-circle-check text-emerald-600"
+                : "fa-circle-xmark text-rose-600"
+        } text-base"></i>
+
         <span>${message}</span>
     `;
 
+
     container.appendChild(toast);
 
-    setTimeout(() => {
-        toast.classList.remove('translate-y-5', 'opacity-0');
-    }, 10);
 
     setTimeout(() => {
-        toast.classList.add('opacity-0', 'translate-y-2');
-        setTimeout(() => toast.remove(), 300);
+
+        toast.classList.remove(
+            "translate-y-5",
+            "opacity-0"
+        );
+
+    }, 10);
+
+
+    setTimeout(() => {
+
+        toast.classList.add(
+            "opacity-0",
+            "translate-y-2"
+        );
+
+        setTimeout(() => {
+
+            toast.remove();
+
+        }, 300);
+
     }, 3500);
 }
 
+
+// =====================================================
+// EXPORT MENU
+// =====================================================
+
 function toggleExportMenu() {
-    document.getElementById("exportMenu").classList.toggle("hidden");
+
+    const exportMenu =
+        document.getElementById(
+            "exportMenu"
+        );
+
+    if (!exportMenu) return;
+
+    exportMenu.classList.toggle(
+        "hidden"
+    );
 }
 
-window.onclick = function(event) {
-    if (!event.target.matches('.dropdown-toggle') && !event.target.closest('.dropdown-toggle')) {
-        var exportMenu = document.getElementById("exportMenu");
-        if (exportMenu && !exportMenu.classList.contains('hidden')) {
-            exportMenu.classList.add('hidden');
+
+// =====================================================
+// CLOSE EXPORT MENU WHEN CLICKING OUTSIDE
+// =====================================================
+
+window.addEventListener(
+    "click",
+    function(event) {
+
+        if (
+            !event.target.matches(
+                ".dropdown-toggle"
+            ) &&
+            !event.target.closest(
+                ".dropdown-toggle"
+            )
+        ) {
+
+            const exportMenu =
+                document.getElementById(
+                    "exportMenu"
+                );
+
+            if (
+                exportMenu &&
+                !exportMenu.classList.contains(
+                    "hidden"
+                )
+            ) {
+
+                exportMenu.classList.add(
+                    "hidden"
+                );
+            }
         }
     }
-}
+);
+
+
+// =====================================================
+// DATE FILTER
+// =====================================================
 
 function toggleDateInput() {
-    const filterType = document.getElementById('filterType').value;
-    const datePicker = document.getElementById('datePicker');
 
-    if (filterType === 'year') {
-        datePicker.type = "number";
-        datePicker.placeholder = "YYYY";
-        datePicker.value = new Date().getFullYear();
-        datePicker.min = "2000";
-        datePicker.max = "2100";
+    const filterType =
+        document.getElementById(
+            "filterType"
+        )?.value;
+
+    const datePicker =
+        document.getElementById(
+            "datePicker"
+        );
+
+    if (!datePicker) return;
+
+
+    if (
+        filterType === "year"
+    ) {
+
+        datePicker.type =
+            "number";
+
+        datePicker.placeholder =
+            "YYYY";
+
+        datePicker.value =
+            new Date().getFullYear();
+
+        datePicker.min =
+            "2000";
+
+        datePicker.max =
+            "2100";
+
     } else {
-        datePicker.type = "month";
-        datePicker.value = "2026-08";
+
+        datePicker.type =
+            "month";
+
+        datePicker.value =
+            "2026-08";
     }
 }
+
+
+// =====================================================
+// REFRESH DATA
+// =====================================================
 
 function refreshData() {
-    fetchPaymentDetails();
-    fetchDonations();
-    fetchInKindDonations();
-    showToast("Donation list refreshed!", "success");
+
+    if (
+        typeof fetchPaymentDetails ===
+        "function"
+    ) {
+        fetchPaymentDetails();
+    }
+
+
+    if (
+        typeof fetchDonations ===
+        "function"
+    ) {
+        fetchDonations();
+    }
+
+
+    if (
+        typeof fetchInKindDonations ===
+        "function"
+    ) {
+        fetchInKindDonations();
+    }
+
+
+    showToast(
+        "Donation list refreshed!",
+        "success"
+    );
 }
 
-async function exportFile(format) {
-    const filterType = document.getElementById('filterType').value;
-    const dateValue = document.getElementById('datePicker').value;
-    const url = `/org/donations/export?format=${format}&type=${filterType}&date=${dateValue}`;
+
+// =====================================================
+// EXPORT REPORT
+// =====================================================
+
+async function exportFile(
+    format
+) {
+
+    const filterType =
+        document.getElementById(
+            "filterType"
+        )?.value || "";
+
+    const dateValue =
+        document.getElementById(
+            "datePicker"
+        )?.value || "";
+
+
+    const url =
+        `/org/donations/export?format=${encodeURIComponent(
+            format
+        )}&type=${encodeURIComponent(
+            filterType
+        )}&date=${encodeURIComponent(
+            dateValue
+        )}`;
+
 
     try {
-        const response = await fetch(url, {
-            method: 'GET',
-            headers: {
-                'Authorization': 'Bearer ' + (localStorage.getItem('token') || '')
-            }
-        });
+
+        const response =
+            await fetch(
+                url,
+                {
+                    method: "GET",
+
+                    headers: {
+                        Authorization:
+                            "Bearer " +
+                            (
+                                localStorage.getItem(
+                                    "token"
+                                ) || ""
+                            )
+                    }
+                }
+            );
+
 
         if (!response.ok) {
-            const contentType = response.headers.get("content-type");
-            let errorMessage = 'There was an issue downloading the file.';
-            
-            if (contentType && contentType.includes("application/json")) {
-                const errorData = await response.json();
-                errorMessage = errorData.message || errorMessage;
+
+            const contentType =
+                response.headers.get(
+                    "content-type"
+                );
+
+
+            let errorMessage =
+                "There was an issue downloading the file.";
+
+
+            if (
+                contentType &&
+                contentType.includes(
+                    "application/json"
+                )
+            ) {
+
+                const errorData =
+                    await response.json();
+
+                errorMessage =
+                    errorData.message ||
+                    errorMessage;
+
             } else {
-                const errorText = await response.text();
-                console.error("Server Error HTML:", errorText);
-                errorMessage = `Server Error (${response.status}): Could not find export route or backend error encountered.`;
+
+                const errorText =
+                    await response.text();
+
+                console.error(
+                    "Server Error HTML:",
+                    errorText
+                );
+
+                errorMessage =
+                    `Server Error (${response.status}): Could not find export route or backend error encountered.`;
             }
-            throw new Error(errorMessage);
+
+
+            throw new Error(
+                errorMessage
+            );
         }
 
-        const blob = await response.blob();
-        const downloadUrl = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = downloadUrl;
-        
-        const fileExtension = format === 'excel' ? 'xlsx' : 'pdf';
-        a.download = `donations_report_${dateValue}.${fileExtension}`;
-        
+
+        const blob =
+            await response.blob();
+
+
+        const downloadUrl =
+            window.URL.createObjectURL(
+                blob
+            );
+
+
+        const a =
+            document.createElement("a");
+
+
+        a.href =
+            downloadUrl;
+
+
+        const fileExtension =
+            format === "excel"
+                ? "xlsx"
+                : "pdf";
+
+
+        a.download =
+            `donations_report_${dateValue}.${fileExtension}`;
+
+
         document.body.appendChild(a);
+
         a.click();
+
         a.remove();
-        window.URL.revokeObjectURL(downloadUrl);
-        
-        showToast(`Report downloaded as ${format.toUpperCase()}!`, 'success');
+
+
+        window.URL.revokeObjectURL(
+            downloadUrl
+        );
+
+
+        showToast(
+            `Report downloaded as ${String(
+                format
+            ).toUpperCase()}!`,
+            "success"
+        );
+
 
     } catch (error) {
-        console.error(error);
-        showToast("Failed to download file: " + error.message, 'error');
+
+        console.error(
+            "Export error:",
+            error
+        );
+
+
+        showToast(
+            "Failed to download file: " +
+            error.message,
+            "error"
+        );
     }
 }
-// Function kapag sine-save ang In-Kind Settings
-function saveInKindSettings(event) {
-    event.preventDefault(); // Iwasan ang default form submit
 
-    const formData = new FormData();
-    
-    // Kunin ang value ng location name mula sa input field
-    const locationName = document.getElementById('inKindLocationInput').value;
-    formData.append('location_name', locationName);
 
-    // Kunin ang file mula sa file input
-    const imageFile = document.getElementById('inKindImageInput').files[0];
-    if (imageFile) {
-        formData.append('donation_image', imageFile); // 'donation_image' ang pangalan na sasuhin ng multer sa backend
+// =====================================================
+// LOAD IN-KIND SETTINGS
+// =====================================================
+
+async function loadInKindSettings() {
+
+    try {
+
+        const response =
+            await fetch(
+                "/org/payment-info"
+            );
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                `Unable to load payment information (${response.status}).`
+            );
+        }
+
+
+        const result =
+            await response.json();
+
+
+        if (
+            !result.success ||
+            !result.data
+        ) {
+            return;
+        }
+
+
+        const data =
+            result.data;
+
+
+        // =================================================
+        // LOCATION NAME
+        // =================================================
+
+        const locationNameInput =
+            document.getElementById(
+                "inputLocationName"
+            );
+
+
+        // =================================================
+        // ADDRESS
+        // =================================================
+
+        const addressInput =
+            document.getElementById(
+                "inputLocationAddress"
+            );
+
+
+        // =================================================
+        // HOURS
+        // =================================================
+
+        const hoursInput =
+            document.getElementById(
+                "inputOperatingHours"
+            );
+
+
+        // =================================================
+        // NOTES
+        // =================================================
+
+        const notesInput =
+            document.getElementById(
+                "inputImportantNotes"
+            );
+
+
+        // =================================================
+        // IMAGE PREVIEW
+        // =================================================
+
+        const preview =
+            document.getElementById(
+                "locationPreview"
+            );
+
+
+        // =================================================
+        // SET LOCATION NAME
+        // =================================================
+
+        if (locationNameInput) {
+
+            locationNameInput.value =
+                data.dropoff_location_name ||
+                "";
+        }
+
+
+        // =================================================
+        // SET ADDRESS
+        // =================================================
+
+        if (addressInput) {
+
+            addressInput.value =
+                data.dropoff_address ||
+                "";
+        }
+
+
+        // =================================================
+        // SET HOURS
+        // =================================================
+
+        if (hoursInput) {
+
+            hoursInput.value =
+                data.dropoff_hours ||
+                "";
+        }
+
+
+        // =================================================
+        // SET NOTES
+        // =================================================
+
+        if (notesInput) {
+
+            notesInput.value =
+                data.dropoff_notes ||
+                "";
+        }
+
+
+        // =================================================
+        // SET IMAGE
+        // =================================================
+
+        if (
+            preview &&
+            data.dropoff_image
+        ) {
+
+            let imageUrl =
+                data.dropoff_image;
+
+
+            /*
+             * If backend returns only filename,
+             * build the upload URL.
+             *
+             * If backend already returns /uploads/...
+             * or http..., keep it unchanged.
+             */
+
+            if (
+                !imageUrl.startsWith("/") &&
+                !imageUrl.startsWith("http")
+            ) {
+
+                imageUrl =
+                    `/uploads/qr/${imageUrl}`;
+            }
+
+
+            preview.src =
+                imageUrl;
+        }
+
+
+        // =================================================
+        // UPDATE INITIAL STATE
+        // =================================================
+
+        if (
+            typeof initialPaymentFormState !==
+            "undefined"
+        ) {
+
+            initialPaymentFormState =
+                {
+                    ...initialPaymentFormState,
+
+                    dropoff_location_name:
+                        data.dropoff_location_name ||
+                        "",
+
+                    dropoff_address:
+                        data.dropoff_address ||
+                        "",
+
+                    dropoff_hours:
+                        data.dropoff_hours ||
+                        "",
+
+                    dropoff_notes:
+                        data.dropoff_notes ||
+                        ""
+                };
+        }
+
+
+    } catch (error) {
+
+        console.error(
+            "Error loading drop-off details:",
+            error
+        );
+    }
+}
+
+
+// =====================================================
+// IMAGE PREVIEW
+// =====================================================
+
+function previewImage(
+    event,
+    previewId
+) {
+
+    const input =
+        event.target;
+
+    const preview =
+        document.getElementById(
+            previewId
+        );
+
+
+    if (
+        !input ||
+        !input.files ||
+        !input.files.length ||
+        !preview
+    ) {
+        return;
     }
 
-    // Ipadala sa backend gamit ang fetch
-    fetch('/api/donation-settings/inkind', {
-        method: 'POST', // o PUT depende sa route mo
-        body: formData
-        // TANDAAN: Walang 'Headers' dito para sa Content-Type para hindi masira ang boundary ng FormData
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert('Settings saved successfully!');
-            loadInKindSettings(); // Tawagin para mag-update ang UI
-        } else {
-            alert('Failed to save settings: ' + data.message);
-        }
-    })
-    .catch(error => {
-        console.error('Error saving settings:', error);
-    });
-}
-// Function para i-load at i-display ang settings sa UI
-function loadInKindSettings() {
-    fetch('/api/donation-settings/inkind')
-    .then(response => response.json())
-    .then(data => {
-        if (data.success && data.settings) {
-            // 1. I-display ang location name sa input o text element
-            const locationInput = document.getElementById('inKindLocationInput');
-            if (locationInput) {
-                locationInput.value = data.settings.location_name || '';
-            }
 
-            // 2. I-display ang image sa UI (kung meron)
-            const imagePreview = document.getElementById('inKindImagePreview');
-            if (imagePreview && data.settings.image_path) {
-                imagePreview.src = data.settings.image_path; // Path na galing sa database
-                imagePreview.style.display = 'block';
-            }
-        }
-    })
-    .catch(error => {
-        console.error('Error loading settings:', error);
-    });
+    const file =
+        input.files[0];
+
+
+    if (
+        !file.type.startsWith(
+            "image/"
+        )
+    ) {
+
+        showToast(
+            "Please select a valid image file.",
+            "error"
+        );
+
+        input.value =
+            "";
+
+        return;
+    }
+
+
+    const reader =
+        new FileReader();
+
+
+    reader.onload =
+        function(e) {
+
+            preview.src =
+                e.target.result;
+        };
+
+
+    reader.onerror =
+        function() {
+
+            showToast(
+                "Unable to preview the image.",
+                "error"
+            );
+        };
+
+
+    reader.readAsDataURL(
+        file
+    );
 }
 
-// Tawagin ang function na ito kapag nag-load ang DOM
-document.addEventListener('DOMContentLoaded', () => {
-    loadInKindSettings();
-});
+
+// =====================================================
+// INITIAL LOAD
+// =====================================================
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function() {
+
+        loadInKindSettings();
+
+    }
+);
