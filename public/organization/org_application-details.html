@@ -11,6 +11,27 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <!-- jsPDF Library para sa Single Application PDF Export -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <style>
+        /* Pinagandang kulay at mas malaking sukat para sa View Calendar grid cells */
+        #calendarGrid button {
+            min-height: 52px !important;
+            font-size: 15px !important;
+            font-weight: 600;
+            border-radius: 12px;
+            transition: all 0.2s ease;
+        }
+        #calendarGrid button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+        /* Mas malaking indicator dots para mas madaling makita */
+        #calendarGrid .w-1\.5 {
+            width: 8px !important;
+            height: 8px !important;
+        }
+    </style>
+    
 </head>
 <body class="bg-slate-100 font-['Inter',_sans-serif] min-h-screen">
 
@@ -348,6 +369,22 @@
     </div>
     <script>
         let currentAppId = null;
+        let allApplications = [];
+
+        async function fetchAllOrgApplications() {
+            try {
+                const response = await fetch("/api/organization/applications", {
+                    method: "GET",
+                    headers: { "Content-Type": "application/json" },
+                    credentials: "include"
+                });
+                if (response.ok) {
+                    allApplications = await response.json();
+                }
+            } catch (err) {
+                console.error("Error fetching all applications:", err);
+            }
+        }
     
         document.addEventListener("DOMContentLoaded", async () => {
             if (typeof loadTopbar === "function") {
@@ -362,6 +399,9 @@
 
             // TAMA: Gamitin ang umiiral na global 'currentAppId' (huwag lagyan ng 'const' o 'let')
             currentAppId = sessionStorage.getItem("selectedApplicationId");
+
+            // IDAGDAG ITO PARA MA-LOAD ANG LAHAT NG SCHEDULES:
+            await fetchAllOrgApplications();
 
             if (currentAppId) {
                 await fetchApplicationDetail(currentAppId);
@@ -383,6 +423,34 @@
                     this.blur();
                 });
             }
+
+            const dateInput = document.getElementById("interviewDate");
+            if (dateInput) {
+                dateInput.addEventListener("change", function() {
+                    // Kapag nagbago ang petsa, i-generate ulit ang time options para ma-filter ang booked slots
+                    generateTimeOptions();
+                    
+                    // Linisin din ang nakaraang napiling oras sakaling sakupin nito ang booked slot
+                    document.getElementById("interviewTime").value = "";
+                    document.getElementById("interviewTimeDisplay").value = "";
+                });
+            }
+
+            // Harangin agad kapag pinili ang Sunday (getDay() === 0) sa date picker
+            document.getElementById("interviewDate")?.addEventListener("change", function() {
+                const selectedDate = new Date(this.value);
+                
+                // 0 = Sunday
+                if (selectedDate.getDay() === 0) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Closed on Sundays',
+                        text: 'The organization is closed on Sundays. Please choose another date (Monday to Saturday).',
+                        confirmButtonColor: '#2563EB'
+                    });
+                    this.value = ""; // Awtomatikong buburahin ang napiling petsa
+                }
+            });
         });
     
         async function fetchApplicationDetail(id) {
@@ -872,6 +940,9 @@
                 document.getElementById("interviewDate").value = "";
                 document.getElementById("interviewLocationLink").value = "";
             }
+
+            // IDAGDAG ITO PARA MA-GENERATE AT MA-FILTER AGAD ANG TIME SLOTS PAGBUKAS NG MODAL:
+            generateTimeOptions();
           
             const modal = document.getElementById("scheduleModal");
             if (modal) modal.classList.remove("hidden");
@@ -948,6 +1019,17 @@
                     icon: 'warning',
                     title: 'Incomplete Details',
                     text: 'Please select both Date and Time for the interview.',
+                    confirmButtonColor: '#2563EB'
+                });
+            }
+
+            // ================= SUNDAY VALIDATION =================
+            const selectedDateObj = new Date(dateVal);
+            if (selectedDateObj.getDay() === 0) {
+                return Swal.fire({
+                    icon: 'warning',
+                    title: 'Invalid Day',
+                    text: 'Interviews cannot be scheduled on Sundays. Please select a working day (Monday to Saturday).',
                     confirmButtonColor: '#2563EB'
                 });
             }
@@ -1553,7 +1635,30 @@
             const dropdown = document.getElementById("timeDropdownList");
             if (!dropdown) return;
 
+            // Kunin ang napiling petsa sa date picker
+            const selectedDateVal = document.getElementById("interviewDate")?.value;
+
+            // Kunin ang mga naka-schedule nang interviews para sa petsang ito mula sa global 'allApplications'
+            const bookedTimesForDate = new Set();
+            if (selectedDateVal && typeof allApplications !== 'undefined') {
+                allApplications.forEach(app => {
+                    // HUWAG ISAMA ang kasalukuyang application na nire-reschedule para hindi ma-block ang sarili nitong oras
+                    if (String(app.id) === String(currentAppId)) return;
+
+                    // Suriin kung ang application ay may interview date at time, at kung pareho ng petsa
+                    if (app.interview_date && app.interview_time) {
+                        const appDateStr = String(app.interview_date).split("T")[0];
+                        if (appDateStr === selectedDateVal) {
+                            // Kunin ang oras sa HH:MM format (e.g., "08:00")
+                            bookedTimesForDate.add(String(app.interview_time).substring(0, 5));
+                        }
+                    }
+                });
+            }
+
             let html = "";
+            let availableCount = 0;
+
             for (let hour = 8; hour <= 17; hour++) {
                 for (let minute = 0; minute < 60; minute += 30) {
                     // Skip 5:30 PM if 5:00 PM is the max limit, optional
@@ -1568,9 +1673,26 @@
                     const ampm = hour >= 12 ? 'PM' : 'AM';
                     const timeLabel = `${displayHour}:${displayMinute} ${ampm}`;
 
-                    html += `<div class="p-3 text-sm font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-600 cursor-pointer transition" onclick="selectTime('${h24}', '${timeLabel}')">${timeLabel}</div>`;
+                    // Tignan kung ang oras na ito ay nakabook na
+                    const isBooked = bookedTimesForDate.has(h24);
+
+                    if (isBooked) {
+                        // Kung naka-book na, maaari nating i-display na may markang naka-schedule o huwag na itong isali
+                        html += `<div class="p-3 text-sm font-medium text-gray-300 bg-gray-50 cursor-not-allowed flex items-center justify-between">
+                            <span>${timeLabel}</span>
+                            <span class="text-[10px] font-bold uppercase bg-gray-200 text-gray-500 px-2 py-0.5 rounded">Already Scheduled</span>
+                        </div>`;
+                    } else {
+                        availableCount++;
+                        html += `<div class="p-3 text-sm font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-600 cursor-pointer transition" onclick="selectTime('${h24}', '${timeLabel}')">${timeLabel}</div>`;
+                    }
                 }
             }
+
+            if (availableCount === 0) {
+                html = `<div class="p-3 text-sm text-gray-400 italic text-center">Fully booked na ang araw na ito.</div>`;
+            }
+
             dropdown.innerHTML = html;
         }
 
