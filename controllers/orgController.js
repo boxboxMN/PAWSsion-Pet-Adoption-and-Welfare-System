@@ -1380,7 +1380,7 @@ exports.getDonations = async (req, res) => {
 
         const organization_id = org[0].organization_id;
 
-        // 2. Fetch all cash donations for this organization
+        // 2. Fetch all cash donations for this organization (Idinagdag ang payment_method)
         const [donations] = await pool.query(
             `
             SELECT 
@@ -1391,6 +1391,7 @@ exports.getDonations = async (req, res) => {
                 reference_number,
                 amount,
                 receipt_path,
+                payment_method,
                 status,
                 created_at
             FROM cash_donations

@@ -63,83 +63,39 @@ function togglePaymentMethodFields() {
 /**
  * Switches between the Cash Donations and In-Kind Donations tabs.
  */
-function switchModalConfigTab(tab) {
+/**
+ * Switches between the Cash Donations and In-Kind Donations main tables.
+ */
+function switchDonationTab(tab) {
+    activeTab = tab;
+    
+    const cashTab = document.getElementById("tabCash");
+    const inkindTab = document.getElementById("tabInKind");
+    const cashContainer = document.getElementById("cashTableContainer");
+    const inkindContainer = document.getElementById("inkindTableContainer");
 
-    const cashSection =
-        document.getElementById("modalCashSection");
-
-    const inkindSection =
-        document.getElementById("modalInKindSection");
-
-    const cashTab =
-        document.getElementById("modalTabCash");
-
-    const inkindTab =
-        document.getElementById("modalTabInKind");
-
-    const sectionInput =
-        document.getElementById("settingsSection");
-
-
-    if (tab === "cash") {
-
-        cashSection.classList.remove("hidden");
-        inkindSection.classList.add("hidden");
-
-        cashTab.classList.add(
-            "text-indigo-600",
-            "bg-white",
-            "shadow-sm"
-        );
-
-        cashTab.classList.remove(
-            "text-gray-500"
-        );
-
-        inkindTab.classList.remove(
-            "text-indigo-600",
-            "bg-white",
-            "shadow-sm"
-        );
-
-        inkindTab.classList.add(
-            "text-gray-500"
-        );
-
-        sectionInput.value = "cash";
-
+    if (tab === 'cash') {
+        cashTab.className = "flex-1 py-3 px-6 text-sm font-bold rounded-lg border-b-2 border-indigo-600 text-indigo-600 flex items-center justify-center gap-2 transition-all";
+        inkindTab.className = "flex-1 py-3 px-6 text-sm font-bold rounded-lg border-b-2 border-transparent text-gray-500 hover:text-gray-700 flex items-center justify-center gap-2 transition-all";
+        
+        cashContainer.classList.remove("hidden");
+        inkindContainer.classList.add("hidden");
+    } else {
+        inkindTab.className = "flex-1 py-3 px-6 text-sm font-bold rounded-lg border-b-2 border-indigo-600 text-indigo-600 flex items-center justify-center gap-2 transition-all";
+        cashTab.className = "flex-1 py-3 px-6 text-sm font-bold rounded-lg border-b-2 border-transparent text-gray-500 hover:text-gray-700 flex items-center justify-center gap-2 transition-all";
+        
+        inkindContainer.classList.remove("hidden");
+        cashContainer.classList.add("hidden");
     }
 
-
-    if (tab === "inkind") {
-
-        cashSection.classList.add("hidden");
-        inkindSection.classList.remove("hidden");
-
-        inkindTab.classList.add(
-            "text-indigo-600",
-            "bg-white",
-            "shadow-sm"
-        );
-
-        inkindTab.classList.remove(
-            "text-gray-500"
-        );
-
-        cashTab.classList.remove(
-            "text-indigo-600",
-            "bg-white",
-            "shadow-sm"
-        );
-
-        cashTab.classList.add(
-            "text-gray-500"
-        );
-
-        sectionInput.value = "inkind";
-    }
+    // Optional: i-clear o i-retrigger ang filter para sumakto sa napiling tab
+    filterDonations();
 }
 
+/**
+ * Switches between the Cash and In-Kind configuration
+ * sections inside the settings modal.
+ */
 /**
  * Switches between the Cash and In-Kind configuration
  * sections inside the settings modal.
@@ -149,17 +105,20 @@ function switchModalConfigTab(type) {
     const modalTabInKind = document.getElementById("modalTabInKind");
     const modalCashSection = document.getElementById("modalCashSection");
     const modalInKindSection = document.getElementById("modalInKindSection");
+    const sectionInput = document.getElementById("settingsSection");
 
     if (type === 'cash') {
         modalTabCash.className = "flex-1 py-2 text-xs font-bold rounded-lg text-indigo-600 bg-white shadow-sm transition-all";
         modalTabInKind.className = "flex-1 py-2 text-xs font-bold rounded-lg text-gray-500 transition-all";
         modalCashSection.classList.remove("hidden");
         modalInKindSection.classList.add("hidden");
+        if (sectionInput) sectionInput.value = "cash";
     } else {
         modalTabInKind.className = "flex-1 py-2 text-xs font-bold rounded-lg text-indigo-600 bg-white shadow-sm transition-all";
         modalTabCash.className = "flex-1 py-2 text-xs font-bold rounded-lg text-gray-500 transition-all";
         modalInKindSection.classList.remove("hidden");
         modalCashSection.classList.add("hidden");
+        if (sectionInput) sectionInput.value = "inkind";
     }
 }
 
@@ -566,7 +525,17 @@ function renderDonationsTable(donations) {
 
         const formattedAmount = parseFloat(d.amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2 });
         const donationId = d.cash_donation_id || d.id;
-        const methodLabel = (d.payment_method || 'GCASH').toUpperCase();
+        
+        // Dynamic detection para sa Maya at GCash
+        const rawMethod = (d.payment_method || d.gateway || d.type || 'gcash').toLowerCase();
+        let methodLabel = 'GCASH';
+        if (rawMethod.includes('maya') || rawMethod.includes('paymaya')) {
+            methodLabel = 'MAYA';
+        } else if (rawMethod.includes('gcash')) {
+            methodLabel = 'GCASH';
+        } else {
+            methodLabel = rawMethod.toUpperCase();
+        }
 
         return `
             <tr class="hover:bg-gray-50/30 transition-colors">
@@ -1615,3 +1584,67 @@ async function exportFile(format) {
         showToast("Failed to download file: " + error.message, 'error');
     }
 }
+// Function kapag sine-save ang In-Kind Settings
+function saveInKindSettings(event) {
+    event.preventDefault(); // Iwasan ang default form submit
+
+    const formData = new FormData();
+    
+    // Kunin ang value ng location name mula sa input field
+    const locationName = document.getElementById('inKindLocationInput').value;
+    formData.append('location_name', locationName);
+
+    // Kunin ang file mula sa file input
+    const imageFile = document.getElementById('inKindImageInput').files[0];
+    if (imageFile) {
+        formData.append('donation_image', imageFile); // 'donation_image' ang pangalan na sasuhin ng multer sa backend
+    }
+
+    // Ipadala sa backend gamit ang fetch
+    fetch('/api/donation-settings/inkind', {
+        method: 'POST', // o PUT depende sa route mo
+        body: formData
+        // TANDAAN: Walang 'Headers' dito para sa Content-Type para hindi masira ang boundary ng FormData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Settings saved successfully!');
+            loadInKindSettings(); // Tawagin para mag-update ang UI
+        } else {
+            alert('Failed to save settings: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error saving settings:', error);
+    });
+}
+// Function para i-load at i-display ang settings sa UI
+function loadInKindSettings() {
+    fetch('/api/donation-settings/inkind')
+    .then(response => response.json())
+    .then(data => {
+        if (data.success && data.settings) {
+            // 1. I-display ang location name sa input o text element
+            const locationInput = document.getElementById('inKindLocationInput');
+            if (locationInput) {
+                locationInput.value = data.settings.location_name || '';
+            }
+
+            // 2. I-display ang image sa UI (kung meron)
+            const imagePreview = document.getElementById('inKindImagePreview');
+            if (imagePreview && data.settings.image_path) {
+                imagePreview.src = data.settings.image_path; // Path na galing sa database
+                imagePreview.style.display = 'block';
+            }
+        }
+    })
+    .catch(error => {
+        console.error('Error loading settings:', error);
+    });
+}
+
+// Tawagin ang function na ito kapag nag-load ang DOM
+document.addEventListener('DOMContentLoaded', () => {
+    loadInKindSettings();
+});
