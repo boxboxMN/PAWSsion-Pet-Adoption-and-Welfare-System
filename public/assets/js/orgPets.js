@@ -47,11 +47,11 @@ document.addEventListener("DOMContentLoaded", async () => {
                 statusFilter.classList.add("hidden");
                 addPetBtn.classList.add("hidden");
 
-                adoptedBtn.className = "bg-slate-700 hover:bg-slate-800 text-white px-4 py-2.5 rounded-xl flex items-center gap-2 font-medium transition cursor-pointer";
-                adoptedBtn.innerHTML = `<i class="fa-solid fa-arrow-left"></i> Active Pets`;
+                adoptedBtn.className = "bg-slate-700 hover:bg-slate-800 text-white w-11 h-11 rounded-xl flex items-center justify-center font-medium transition cursor-pointer shadow-sm";
+                adoptedBtn.innerHTML = `<i class="fa-solid fa-arrow-left"></i>`;
 
                 archivedBtn.className = "bg-slate-600 hover:bg-slate-700 text-white px-4 py-2.5 rounded-xl flex items-center gap-2 font-medium transition cursor-pointer";
-                archivedBtn.innerHTML = `<i class="fa-solid fa-box-archive"></i> Archived Pets`;
+                archivedBtn.innerHTML = `<i class="fa-solid fa-box-archive"></i>`;
             } else {
                 resetToActiveView();
             }
@@ -67,11 +67,11 @@ document.addEventListener("DOMContentLoaded", async () => {
                 statusFilter.classList.add("hidden");
                 addPetBtn.classList.add("hidden");
 
-                archivedBtn.className = "bg-slate-700 hover:bg-slate-800 text-white px-4 py-2.5 rounded-xl flex items-center gap-2 font-medium transition cursor-pointer";
-                archivedBtn.innerHTML = `<i class="fa-solid fa-arrow-left"></i> Active Pets`;
+                archivedBtn.className = "bg-slate-700 hover:bg-slate-800 text-white w-11 h-11 rounded-xl flex items-center justify-center font-medium transition cursor-pointer shadow-sm";
+                archivedBtn.innerHTML = `<i class="fa-solid fa-arrow-left"></i>`;
 
-                adoptedBtn.className = "bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl flex items-center gap-2 font-medium transition cursor-pointer";
-                adoptedBtn.innerHTML = `<i class="fa-solid fa-heart"></i> Adopted Pets`;
+                adoptedBtn.className = "bg-emerald-600 hover:bg-emerald-700 text-white w-11 h-11 rounded-xl flex items-center justify-center font-medium transition cursor-pointer shadow-sm";
+                adoptedBtn.innerHTML = `<i class="fa-solid fa-heart text-base"></i>`;
             } else {
                 resetToActiveView();
             }
@@ -101,11 +101,11 @@ function resetToActiveView() {
         statusFilter.classList.remove("hidden");
         addPetBtn.classList.remove("hidden");
 
-        adoptedBtn.className = "bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl flex items-center gap-2 font-medium transition cursor-pointer";
-        adoptedBtn.innerHTML = `<i class="fa-solid fa-heart"></i> Adopted Pets`;
+        adoptedBtn.className = "bg-emerald-600 hover:bg-emerald-700 text-white w-11 h-11 rounded-xl flex items-center justify-center font-medium transition cursor-pointer shadow-sm";
+        adoptedBtn.innerHTML = `<i class="fa-solid fa-heart text-base"></i>`;
 
-        archivedBtn.className = "bg-slate-600 hover:bg-slate-700 text-white px-4 py-2.5 rounded-xl flex items-center gap-2 font-medium transition cursor-pointer";
-        archivedBtn.innerHTML = `<i class="fa-solid fa-box-archive"></i> Archived Pets`;
+        archivedBtn.className = "bg-slate-600 hover:bg-slate-700 text-white w-11 h-11 rounded-xl flex items-center justify-center font-medium transition cursor-pointer shadow-sm";
+        archivedBtn.innerHTML = `<i class="fa-solid fa-box-archive text-base"></i>`;
         statusFilter.value = "";
     }
 
