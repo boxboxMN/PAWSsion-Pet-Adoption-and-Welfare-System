@@ -814,8 +814,12 @@ const params = new URLSearchParams(window.location.search);
 
                 document.getElementById("selectedPetId").value = pet.animal_id;
 
-                document.getElementById("selectedPetImage").src =
-                    `/uploads/pets/${pet.image_path}`;
+                // document.getElementById("selectedPetImage").src =
+                //     `/uploads/pets/${pet.image_path}`;
+
+                document.getElementById("selectedPetImage").src = pet.image_path
+                    ? `/uploads/pets/${pet.image_path}`
+                    : "/assets/images/no-image.png";
 
                 document.getElementById("selectedPetName").textContent =
                     pet.name;

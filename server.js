@@ -434,9 +434,14 @@ app.get('/api/organization/applications', async (req, res) => {
                 p.image_path AS pet_image,
                 app.status,
                 DATE_FORMAT(app.created_at, '%b %d, %Y') AS applied_date,
-                DATE_FORMAT(app.created_at, '%h:%i %p') AS applied_time
+                DATE_FORMAT(app.created_at, '%h:%i %p') AS applied_time,
+                CASE WHEN app.status = 'Under Review' THEN NULL ELSE DATE_FORMAT(i.interview_date, '%Y-%m-%d') END AS interview_date,
+                CASE WHEN app.status = 'Under Review' THEN NULL ELSE i.interview_time END AS interview_time,
+                CASE WHEN app.status = 'Under Review' THEN NULL ELSE i.interview_method END AS interview_method,
+                CASE WHEN app.status = 'Under Review' THEN NULL ELSE i.interview_location_link END AS interview_location_link
             FROM user_adoption_applications app
             INNER JOIN animals p ON app.animal_id = p.animal_id
+            LEFT JOIN application_interviews i ON app.application_id = i.application_id
             WHERE p.organization_id = ?
             ORDER BY app.created_at DESC;
         `;
@@ -467,7 +472,11 @@ app.get('/api/organization/applications', async (req, res) => {
                 pet_image: app.pet_image,
                 status: app.status,
                 applied_date: app.applied_date,
-                applied_time: app.applied_time
+                applied_time: app.applied_time,
+                interview_date: app.interview_date,
+                interview_time: app.interview_time,
+                interview_method: app.interview_method,
+                interview_location_link: app.interview_location_link
             };
         });
 
