@@ -1,7 +1,3 @@
-/**
- * Loads an HTML component (sidebar or header)
- * into the specified container element.
- */
 async function loadComponent(id, file) {
     try {
         const response = await fetch(file);
@@ -19,7 +15,6 @@ Promise.all([
     loadComponent("header", "/user/userHeader.html")
 ])
 .then(() => {
-    // Show components
     const sidebar = document.getElementById("sidebar");
     const header = document.getElementById("header");
     if (sidebar) sidebar.style.visibility = "visible";
@@ -28,7 +23,6 @@ Promise.all([
     const currentPath = window.location.pathname;
     const pageTitle = document.getElementById("pageTitle");
 
-    // Pages na wala sa sidebar
     const customTitles = {
         "/profile": "Profile",
         "/cash-donation": "Donation",
@@ -57,15 +51,10 @@ Promise.all([
 })
 .catch(error => console.error("Component loading error:", error));
 
-/**
- * Executes after the HTML document is fully loaded.
- * Initializes page components, events, and donation data.
- */
 document.addEventListener("DOMContentLoaded", async function () {
     let organizations = [];
     let selectedOrganization = null;
     
-    // Modal elements
     const modal = document.getElementById("orgModal");
     const closeBtn = document.getElementById("modalClose");
     const closeBtn2 = document.getElementById("modalCloseBtn");
@@ -76,24 +65,24 @@ document.addEventListener("DOMContentLoaded", async function () {
     const orgEmail = document.getElementById("modalOrgEmail");
     const orgMission = document.getElementById("modalOrgMission");
 
-    // Form fields
     const donorNameInput = document.querySelector('input[placeholder="Name"]');
     const donorEmailInput = document.querySelector('input[placeholder="Email Address"]');
-    const gcashNameInput = document.querySelector('input[placeholder="GCASH account name"]');
-    const refNumInput = document.querySelector('input[placeholder="Reference Number"]');
     
-    // Updated amountInput selector with customAmount fallback para maiwasan ang negative values
-    const amountInput = document.getElementById("customAmount") || document.querySelector('input[placeholder="Enter custom amount"]');
+    const paymentMethodSelect = document.getElementById("paymentMethod");
+    const accountNameLabel = document.getElementById("accountNameLabel");
+    const accountNumberLabel = document.getElementById("accountNumberLabel");
     
-    // Event listener para harangin ang negative numbers habang nagta-type
+    const gcashNameInput = document.getElementById("gcashNameInput");
+    const refNumInput = document.getElementById("refNumInput");
+    const amountInput = document.getElementById("customAmount");
+    
     if (amountInput) {
         amountInput.addEventListener("input", function() {
             if (this.value < 0) {
-                this.value = Math.abs(this.value); // Ginagawang positive kung sakaling may maglagay ng negative
+                this.value = Math.abs(this.value);
             }
         });
         amountInput.addEventListener("keydown", function(e) {
-            // Hinaharang ang pagpindot ng minus (-) sign sa keyboard
             if (e.key === "-" || e.key === "Subtract") {
                 e.preventDefault();
             }
@@ -102,28 +91,24 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     const privacyCheckbox = document.querySelector('input[type="checkbox"]');
     const receiptFileInput = document.querySelector('input[type="file"]');
-    const submitBtn = document.getElementById("submitDonationBtn") || document.querySelector('button[type="submit"]') || document.querySelector('main button:last-of-type');
+    const submitBtn = document.getElementById("submitDonationBtn");
 
-    /**
-     * Retrieves the logged-in user's profile information,
-     * fills in the donation form, and locks the inputs (readonly).
-     */
     async function fetchUserProfile() {
         try {
-            const res = await fetch("/api/user/profile"); // Gamit ang iyong existing userProfile route
+            const res = await fetch("/api/user/profile");
             if (res.ok) {
                 const user = await res.json();
                 
                 if (donorNameInput && (user.first_name || user.last_name)) {
                     donorNameInput.value = `${user.first_name || ''} ${user.last_name || ''}`.trim();
-                    donorNameInput.readOnly = true; // Lock field para hindi mabago
-                    donorNameInput.classList.add("bg-gray-100", "cursor-not-allowed"); // Dagdag visual cue
+                    donorNameInput.readOnly = true;
+                    donorNameInput.classList.add("bg-gray-100", "cursor-not-allowed");
                 }
                 
                 if (donorEmailInput && user.email) {
                     donorEmailInput.value = user.email;
-                    donorEmailInput.readOnly = true; // Lock field para hindi mabago
-                    donorEmailInput.classList.add("bg-gray-100", "cursor-not-allowed"); // Dagdag visual cue
+                    donorEmailInput.readOnly = true;
+                    donorEmailInput.classList.add("bg-gray-100", "cursor-not-allowed");
                 }
             }
         } catch (e) {
@@ -131,10 +116,6 @@ document.addEventListener("DOMContentLoaded", async function () {
         }
     }
 
-    /**
-     * Retrieves all verified organizations from the server
-     * and displays them as selectable donation cards.
-     */
     async function loadOrganizations() {
         try {
             const response = await fetch("/api/organizations");
@@ -179,10 +160,6 @@ document.addEventListener("DOMContentLoaded", async function () {
         }
     }
 
-    /**
-     * Adds click events to each organization card.
-     * Allows users to select an organization or view its profile.
-     */
     function initializeCards() {
         document.querySelectorAll(".org-card").forEach(card => {
             card.addEventListener("click", function (e) {
@@ -204,45 +181,79 @@ document.addEventListener("DOMContentLoaded", async function () {
             }
         });
     }
+   // Helper para suriin kung valid ang QR Code image path
+function isValidQrPath(path) {
+    if (!path || typeof path !== "string") return false;
+    const trimmed = path.trim();
+    return (
+        trimmed !== "" && 
+        trimmed !== "/uploads/qr" && 
+        !trimmed.endsWith("/uploads/") &&
+        !trimmed.endsWith("/null") &&
+        !trimmed.endsWith("/undefined")
+    );
+}function updateDonationInfo(id) {
+    const org = organizations.find(o => String(o.organization_id) === String(id));
 
-    /**
-     * Updates the selected organization's
-     * GCash account information and QR code.
-     */
-    function updateDonationInfo(id) {
-        const org = organizations.find(o => o.organization_id == id);
-        if (!org) return;
+    const nameEl = document.getElementById("gcashName"); // Label/Display ng Account Name
+    const numEl = document.getElementById("gcashNumber");   // Label/Display ng Account Number
+    const qrEl = document.getElementById("qrImage");
 
-        // Target Elements
-        const nameEl = document.getElementById("gcashName");
-        const numEl = document.getElementById("gcashNumber");
-        const qrEl = document.getElementById("qrImage");
+    if (!org) {
+        if (nameEl) nameEl.textContent = "Select an organization";
+        if (numEl) numEl.textContent = "Select an organization";
+        if (qrEl) qrEl.classList.add("hidden");
+        return;
+    }
 
-        // Update GCash Name & Number
-        if (nameEl) nameEl.textContent = org.gcash_name || "N/A";
-        if (numEl) numEl.textContent = org.gcash_number || "N/A";
+    // Kunin ang kasalukuyang piniling payment method mula sa dropdown (GCash o Maya)
+    const method = paymentMethodSelect ? paymentMethodSelect.value : "GCash";
 
-        // Update QR Code Image with Validation
+    if (method === "Maya") {
+        if (accountNameLabel) accountNameLabel.textContent = "Maya Account Name:";
+        if (accountNumberLabel) accountNumberLabel.textContent = "Maya Number:";
+        
+        // Babasahin mula sa database columns: maya_name at maya_number
+        if (nameEl) nameEl.textContent = org.maya_name ? org.maya_name : "N/A";
+        if (numEl) numEl.textContent = org.maya_number ? org.maya_number : "N/A";
+
         if (qrEl) {
-            const isValidQr = org.qr_code && 
-                              org.qr_code.trim() !== "" && 
-                              org.qr_code !== "/uploads/qr" && 
-                              !org.qr_code.endsWith("/uploads/");
+            if (org.maya_qr_code && org.maya_qr_code.trim() !== "") {
+                qrEl.src = org.maya_qr_code;
+                qrEl.classList.remove("hidden");
+            } else {
+                qrEl.src = "https://via.placeholder.com/200x200?text=No+Maya+QR";
+                qrEl.classList.remove("hidden");
+            }
+        }
+    } else {
+        if (accountNameLabel) accountNameLabel.textContent = "GCASH Account Name:";
+        if (accountNumberLabel) accountNumberLabel.textContent = "GCASH Number:";
+        
+        // Babasahin mula sa database columns: gcash_name at gcash_number
+        if (nameEl) nameEl.textContent = org.gcash_name ? org.gcash_name : "N/A";
+        if (numEl) numEl.textContent = org.gcash_number ? org.gcash_number : "N/A";
 
-            if (isValidQr) {
+        if (qrEl) {
+            if (org.qr_code && org.qr_code.trim() !== "") {
                 qrEl.src = org.qr_code;
                 qrEl.classList.remove("hidden");
             } else {
-                qrEl.src = "https://via.placeholder.com/200x200?text=No+QR+Available";
+                qrEl.src = "https://via.placeholder.com/200x200?text=No+GCash+QR";
                 qrEl.classList.remove("hidden");
             }
         }
     }
+}
 
-    /**
-     * Opens the organization profile modal
-     * and fetches its complete details and logo dynamically.
-     */
+// Magdagdag ng event listener para mag-update kapag pinalitan ang Payment Method dropdown
+if (paymentMethodSelect) {
+    paymentMethodSelect.addEventListener("change", function() {
+        if (selectedOrganization) {
+            updateDonationInfo(selectedOrganization);
+        }
+    });
+}
     async function openModal(id) {
         const org = organizations.find(o => o.organization_id == id);
         if (!org || !modal) return;
@@ -306,9 +317,6 @@ document.addEventListener("DOMContentLoaded", async function () {
         if (e.key === "Escape") closeModal();
     });
 
-    // ==========================================
-    // SUBMIT CASH DONATION HANDLER
-    // ==========================================
     if (submitBtn) {
         submitBtn.addEventListener("click", async function (e) {
             e.preventDefault();
@@ -319,10 +327,20 @@ document.addEventListener("DOMContentLoaded", async function () {
             }
             
             const org = organizations.find(o => o.organization_id == selectedOrganization);
-            if (!org || !org.gcash_number || org.gcash_number.trim() === "") {
-                showToast("This organization hasn't provided GCash details yet. Donation is temporarily unavailable.", "error");
-                return;
+            const method = paymentMethodSelect ? paymentMethodSelect.value : "GCash";
+
+            if (method === "Maya") {
+                if (!org || !org.maya_number || org.maya_number.trim() === "") {
+                    showToast("This organization hasn't provided Maya details yet.", "error");
+                    return;
+                }
+            } else {
+                if (!org || !org.gcash_number || org.gcash_number.trim() === "") {
+                    showToast("This organization hasn't provided GCash details yet.", "error");
+                    return;
+                }
             }
+
             if (!donorNameInput || !donorNameInput.value.trim()) {
                 showToast("Please enter your full name.", "error");
                 return;
@@ -332,7 +350,7 @@ document.addEventListener("DOMContentLoaded", async function () {
                 return;
             }
             if (!refNumInput || !refNumInput.value.trim()) {
-                showToast("Please enter the GCash Reference Number.", "error");
+                showToast("Please enter the Reference Number.", "error");
                 return;
             }
             if (!amountInput || !amountInput.value.trim() || parseFloat(amountInput.value) <= 0) {
@@ -340,7 +358,7 @@ document.addEventListener("DOMContentLoaded", async function () {
                 return;
             }
             if (!receiptFileInput || !receiptFileInput.files.length) {
-                showToast("Please upload your GCash payment receipt.", "error");
+                showToast("Please upload your payment receipt.", "error");
                 return;
             }
             if (privacyCheckbox && !privacyCheckbox.checked) {
@@ -352,6 +370,7 @@ document.addEventListener("DOMContentLoaded", async function () {
             formData.append("organization_id", selectedOrganization);
             formData.append("donor_name", donorNameInput.value.trim());
             formData.append("donor_email", donorEmailInput.value.trim());
+            formData.append("payment_method", method);
             formData.append("gcash_account_name", gcashNameInput ? gcashNameInput.value.trim() : "");
             formData.append("reference_number", refNumInput.value.trim());
             formData.append("amount", amountInput.value.trim());
@@ -386,23 +405,18 @@ document.addEventListener("DOMContentLoaded", async function () {
         });
     }
 
-    /**
-     * Updates the selected receipt file name
-     * after the user uploads a payment receipt.
-     */
     if (receiptFileInput) {
         receiptFileInput.addEventListener("change", function() {
             if (this.files.length > 0) {
                 const fileNameSpan = document.getElementById("receiptFileName");
                 if (fileNameSpan) {
                     fileNameSpan.textContent = `Selected: ${this.files[0].name}`;
-                    fileNameSpan.classList.add("text-blue-600", "font-medium"); // Binibigyang diin na naka-select na
+                    fileNameSpan.classList.add("text-blue-600", "font-medium");
                 }
             }
         });
     }
 
-    // Initialize page data after loading.
     await fetchUserProfile();
     await loadOrganizations();
 
@@ -419,9 +433,6 @@ document.addEventListener("DOMContentLoaded", async function () {
     }
 });
 
-/**
- * Displays a toast notification message.
- */
 function showToast(message, type = "error") {
     const container = document.getElementById("toastContainer");
     if (!container) return;
@@ -453,9 +464,6 @@ function showToast(message, type = "error") {
     }, 4000);
 }
 
-/**
- * Returns a valid image URL.
- */
 function getValidImageUrl(imagePath, fallbackUrl) {
     if (!imagePath || imagePath.trim() === "" || imagePath === "null" || imagePath === "undefined") {
         return fallbackUrl;

@@ -142,8 +142,70 @@ router.get("/donations/in-kind", getInKindDonations);
 router.post("/donations/in-kind", uploadQR.single("proof"), addInKindDonation);
 router.put("/donations/in-kind/:id/status", updateInKindDonationStatus);
 router.get("/dropoff-info", getDropoffInfo);
-router.post("/dropoff-info", uploadDropoff.single("dropoff_image"), updateDropoffInfo);
+router.post("/dropoff-info", uploadDropoff.single("dropoff_image"), async (req, res) => {
+    try {
+        const accountId = req.session?.accountId;
+        if (!accountId) {
+            return res.status(401).json({ success: false, message: "Unauthorized" });
+        }
 
+        // Kunin ang organization_id ng naka-login
+        const [orgRows] = await pool.query(
+            `SELECT organization_id FROM organizations WHERE account_id = ?`,
+            [accountId]
+        );
+
+        if (!orgRows.length) {
+            return res.status(404).json({ success: false, message: "Organization not found" });
+        }
+
+        const orgId = orgRows[0].organization_id;
+
+        // Kunin ang mga data galing sa form request
+        const { dropoff_location_name, dropoff_address, dropoff_hours, dropoff_notes } = req.body;
+        
+        // Kunin ang file path kung merong in-upload na image
+        const imagePath = req.file ? `/uploads/${req.file.filename}` : null;
+
+        // I-check kung may umiiral na nang record para sa organization na ito
+        const [existing] = await pool.query(
+            `SELECT dropoff_id, dropoff_image FROM dropoff_locations WHERE organization_id = ?`,
+            [orgId]
+        );
+
+        if (existing.length > 0) {
+            // UPDATE kung meron na
+            let query = `
+                UPDATE dropoff_locations 
+                SET dropoff_location_name = ?, dropoff_address = ?, dropoff_hours = ?, dropoff_notes = ?
+            `;
+            let params = [dropoff_location_name, dropoff_address, dropoff_hours, dropoff_notes];
+
+            if (imagePath) {
+                query += `, dropoff_image = ?`;
+                params.push(imagePath);
+            }
+
+            query += ` WHERE organization_id = ?`;
+            params.push(orgId);
+
+            await pool.query(query, params);
+        } else {
+            // INSERT kung wala pa
+            const query = `
+                INSERT INTO dropoff_locations (organization_id, dropoff_location_name, dropoff_address, dropoff_hours, dropoff_notes, dropoff_image)
+                VALUES (?, ?, ?, ?, ?, ?)
+            `;
+            await pool.query(query, [orgId, dropoff_location_name, dropoff_address, dropoff_hours, dropoff_notes, imagePath]);
+        }
+
+        res.json({ success: true, message: "Drop-off settings saved successfully!" });
+
+    } catch (error) {
+        console.error("❌ Drop-off Save Error:", error);
+        res.status(500).json({ success: false, message: "Server error", details: error.message });
+    }
+});
 // GET Single Application Details Endpoint (Protected by Organization)
 router.get('/applications/:id', async (req, res) => {
     try {
@@ -1066,6 +1128,39 @@ router.get('/donations/export', async (req, res) => {
                 "Failed to export donations.",
             details: error.message
         });
+    }
+});
+
+// Palitan ang 'upload.single' ng 'uploadDropoff.single' 
+// Siguraduhin na ang string na ipapasa ('donation_image') ay tugma sa pangalan ng input field sa FormData sa frontend.
+router.post('/donation-settings/inkind', uploadDropoff.single('donation_image'), async (req, res) => {
+    try {
+        const locationName = req.body.location_name;
+        // Kunin ang file path kung merong in-upload na bagong image
+        const imagePath = req.file ? `/uploads/${req.file.filename}` : null;
+
+        let query = "UPDATE inkind_settings SET location_name = ?";
+        let params = [locationName];
+
+        if (imagePath) {
+            query += ", image_path = ?";
+            params.push(imagePath);
+        }
+        
+        query += " WHERE id = 1"; // o kung anomang identifier ng settings niyo
+
+        // Ginamit na natin ang 'pool' na promise-based sa halip na 'db' na gumagamit ng callback
+        const [result] = await pool.query(query, params);
+
+        if (result.affectedRows === 0) {
+           return res.status(404).json({ success: false, message: 'Settings record not found' });
+        }
+
+        res.json({ success: true, message: 'Saved successfully!' });
+
+    } catch (error) { 
+        console.error(error);
+        res.status(500).json({ success: false, message: 'Server error' });
     }
 });
 module.exports = router;
