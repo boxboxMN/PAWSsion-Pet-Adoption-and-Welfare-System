@@ -2696,3 +2696,40 @@ exports.submitCashDonation = async (req, res) => {
     }
 };
 
+exports.submitKamustahanUpdate = async (req, res) => {
+    try {
+        const { update_id, update_text } = req.body;
+        
+        // 1. Fetch the schedule details of the record
+        const [updateRecord] = await pool.query(
+            `SELECT scheduled_date, status FROM kamustahan_updates WHERE update_id = ?`,
+            [update_id]
+        );
+
+        if (!updateRecord.length) {
+            return res.status(404).json({ success: false, message: "Update record not found." });
+        }
+
+        const scheduledDate = new Date(updateRecord[0].scheduled_date);
+        const currentDate = new Date();
+
+        // 2. Set the day limit (Example: 7 days limit from the scheduled date to submit an update)
+        const dayLimit = 7; 
+        const diffTime = currentDate - scheduledDate;
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+        if (diffDays > dayLimit) {
+            return res.status(400).json({ 
+                success: false, 
+                message: `The ${dayLimit}-day limit to submit this update has already passed.` 
+            });
+        }
+
+        // 3. Proceed to save if within the allowed limit
+        // ... Your database update query here ...
+
+        res.json({ success: true, message: "Update successfully submitted!" });
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+};
