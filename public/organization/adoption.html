@@ -603,7 +603,14 @@
     }
 
     function getScheduledInterviews() {
-        return allApplications.filter(app => app.interview_date && app.interview_time);
+        // Only count applications that are STILL actively "Interview Scheduled" right now.
+        // If the org changes status to Under Review, Declined, Cancelled, or Approved,
+        // that slot should stop being treated as booked on the calendar.
+        return allApplications.filter(app => {
+            if (!app.interview_date || !app.interview_time) return false;
+            const cleanStatus = (app.status || '').toLowerCase().replace('_', ' ').trim();
+            return cleanStatus.includes('interview') || cleanStatus.includes('scheduled');
+        });
     }
 
     function getInterviewsByDate() {
@@ -735,7 +742,20 @@
 
         const allSlots = getSlotsForDate(dateStr);
         const bookedTimes = new Set(dayInterviews.map(app => String(app.interview_time).slice(0, 5)));
-        const openSlots = allSlots.filter(slot => !bookedTimes.has(slot));
+        // If viewing today, also exclude times that have already passed —
+        // an unbooked 9:00 AM slot shouldn't read as "available" at 2:00 PM.
+        const now = new Date();
+        const todayStr = formatDateStr(now.getFullYear(), now.getMonth(), now.getDate());
+        const nowMinutes = now.getHours() * 60 + now.getMinutes();
+
+        const openSlots = allSlots.filter(slot => {
+            if (bookedTimes.has(slot)) return false;
+            if (dateStr === todayStr) {
+                const [h, m] = slot.split(':').map(Number);
+                if (h * 60 + m <= nowMinutes) return false;
+            }
+            return true;
+        });
 
         const detailEl = document.getElementById("calendarDayDetail");
 

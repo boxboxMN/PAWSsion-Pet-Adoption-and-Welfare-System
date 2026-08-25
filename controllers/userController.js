@@ -1008,6 +1008,7 @@ exports.getUserApplications = async (req, res) => {
                 animal.gender AS gender,
                 animal.age AS pet_age,
                 animal.image_path AS image_path,
+                animal.adoption_status AS pet_adoption_status,
                 -- ORGANIZATION INFORMATION
                 org.organization_id,
                 org.organization_name,
@@ -1041,6 +1042,7 @@ exports.getUserApplications = async (req, res) => {
                 full_address: parsedSnapshot.full_address || 'N/A',
                 civil_status: parsedSnapshot.civil_status || 'N/A',
                 age: parsedSnapshot.age || 'N/A',
+                petAdoptionStatus: app.pet_adoption_status || "Available",
                 occupation: parsedSnapshot.occupation || 'N/A'
             };
         });

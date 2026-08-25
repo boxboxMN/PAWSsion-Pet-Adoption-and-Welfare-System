@@ -432,6 +432,7 @@ async function loadApplications() {
             species: app.species || "N/A",
             gender: app.gender || "N/A",
             petAge: app.pet_age || "N/A",
+            petAdoptionStatus: app.pet_adoption_status || "Available",
             image: app.image_path ? `/uploads/pets/${app.image_path}` : "/assets/images/no-image.png",
             organization: app.organization_name || "Unknown Organization",
             organizationId: app.organization_id || app.org_id || null, 
@@ -684,11 +685,28 @@ function showDetails(app) {
                 </button>
             `;
         } else if (app.status === "Declined") {
-            detailsActions.innerHTML = `
-                <button onclick="handleReapply(${app.petId})" class="px-4 py-2 text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition inline-flex items-center gap-1.5 shadow-sm cursor-pointer">
-                    <i class="fas fa-rotate-right"></i> Re-apply for Adoption
-                </button>
-            `;
+            // Suriin kung ang dahilan ay dahil na-adopt na ng iba ang pet
+            const reasonLower = (app.decline_reason || "").toLowerCase();
+            const isPetAdopted = (app.petAdoptionStatus || "").toLowerCase() === "adopted";
+            const isReasonAdopted = reasonLower.includes("already been adopted") || 
+                                     reasonLower.includes("adopted") || 
+                                     reasonLower.includes("another applicant");
+
+            if (isPetAdopted || isReasonAdopted) {
+                // DISABLED BUTTON KAPAG NA-ADOPT NA NG IBA ANG PET
+                detailsActions.innerHTML = `
+                    <button disabled class="px-4 py-2 text-xs font-semibold bg-gray-300 text-gray-500 rounded-lg cursor-not-allowed inline-flex items-center gap-1.5 shadow-none" title="This pet has already been adopted by another applicant">
+                        <i class="fas fa-ban"></i> Pet Already Adopted (Cannot Re-apply)
+                    </button>
+                `;
+            } else {
+                // NORMAL RE-APPLY BUTTON KUNG IBANG DAHILAN ANG PAGKADECLINED (Hal. hindi angkop ang tirahan)
+                detailsActions.innerHTML = `
+                    <button onclick="handleReapply(${app.petId})" class="px-4 py-2 text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition inline-flex items-center gap-1.5 shadow-sm cursor-pointer">
+                        <i class="fas fa-rotate-right"></i> Re-apply for Adoption
+                    </button>
+                `;
+            }
         } else {
             detailsActions.innerHTML = "";
         }

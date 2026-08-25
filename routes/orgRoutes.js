@@ -385,6 +385,23 @@ router.patch('/applications/:id/status', async (req, res) => {
                 WHERE app.application_id = ?
                 ON DUPLICATE KEY UPDATE status = 'For Update'
             `, [id]);
+
+            // =========================================================================
+            // BAGONG DAGDAG: Automatic na i-decline ang ibang aplikante para sa parehong pet
+            // =========================================================================
+            const [declineResult] = await connection.query(`
+                UPDATE user_adoption_applications app
+                JOIN animals a ON app.animal_id = a.animal_id
+                SET 
+                    app.status = 'Declined', 
+                    app.decline_reason = 'The pet has already been adopted by another applicant.', 
+                    app.updated_at = NOW() 
+                WHERE a.name = (SELECT name FROM animals WHERE animal_id = ?)
+                  AND app.application_id != ? 
+                  AND app.status IN ('Under Review', 'Interview Scheduled')
+            `, [animalId, id]);
+
+            console.log(`💡 Automatic Decline Executed: ${declineResult.affectedRows} other application(s) for the same pet name were declined.`);
         }
 
         // save the changes in the db
