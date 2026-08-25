@@ -592,8 +592,7 @@ exports.deletePet = async (req, res) => {
             message: err.message
         });
     }
-};
-exports.getPaymentInfo = async (req, res) => {
+};exports.getPaymentInfo = async (req, res) => {
     try {
 
         // =====================================================
@@ -636,6 +635,7 @@ exports.getPaymentInfo = async (req, res) => {
                 p.payment_method,
 
                 /* In-Kind */
+                d.dropoff_location_name,
                 d.dropoff_address,
                 d.dropoff_hours,
                 d.dropoff_notes,
@@ -767,6 +767,8 @@ exports.getPaymentInfo = async (req, res) => {
         });
     }
 };
+
+
 exports.updatePaymentInfo = async (req, res) => {
     try {
 
@@ -799,10 +801,14 @@ exports.updatePaymentInfo = async (req, res) => {
 
             payment_method,
 
+            // =================================================
             // IN-KIND
+            // =================================================
+            dropoff_location_name,
             dropoff_address,
             dropoff_hours,
             dropoff_notes
+
         } = req.body;
 
         // =====================================================
@@ -910,6 +916,7 @@ exports.updatePaymentInfo = async (req, res) => {
             await pool.query(
                 `
                 SELECT
+                    dropoff_location_name,
                     dropoff_address,
                     dropoff_hours,
                     dropoff_notes,
@@ -939,9 +946,9 @@ exports.updatePaymentInfo = async (req, res) => {
         let mayaQrFile = null;
         let dropoffImageFile = null;
 
-        // -----------------------------------------------------
+        // =====================================================
         // GCASH QR
-        // -----------------------------------------------------
+        // =====================================================
 
         if (
             req.files &&
@@ -952,9 +959,9 @@ exports.updatePaymentInfo = async (req, res) => {
                 req.files["qr_code"][0].filename;
         }
 
-        // -----------------------------------------------------
+        // =====================================================
         // MAYA QR
-        // -----------------------------------------------------
+        // =====================================================
 
         if (
             req.files &&
@@ -965,17 +972,17 @@ exports.updatePaymentInfo = async (req, res) => {
                 req.files["maya_qr_code"][0].filename;
         }
 
-        // -----------------------------------------------------
-        // IN-KIND IMAGE
-        // -----------------------------------------------------
+        // =====================================================
+        // IN-KIND / LOCATION IMAGE
+        // =====================================================
 
         if (
             req.files &&
-            req.files["dropoff_image"] &&
-            req.files["dropoff_image"].length
+            req.files["location_image"] &&
+            req.files["location_image"].length
         ) {
             dropoffImageFile =
-                req.files["dropoff_image"][0].filename;
+                req.files["location_image"][0].filename;
         }
 
         // =====================================================
@@ -1009,6 +1016,12 @@ exports.updatePaymentInfo = async (req, res) => {
         // =====================================================
         // NORMALIZE IN-KIND VALUES
         // =====================================================
+
+        const submittedDropoffLocationName =
+            dropoff_location_name &&
+            String(dropoff_location_name).trim()
+                ? String(dropoff_location_name).trim()
+                : null;
 
         const submittedDropoffAddress =
             dropoff_address &&
@@ -1193,6 +1206,11 @@ exports.updatePaymentInfo = async (req, res) => {
         // PREPARE IN-KIND VALUES
         // =====================================================
 
+        let finalDropoffLocationName =
+            existingDropoff
+                ? existingDropoff.dropoff_location_name
+                : null;
+
         let finalDropoffAddress =
             existingDropoff
                 ? existingDropoff.dropoff_address
@@ -1216,6 +1234,13 @@ exports.updatePaymentInfo = async (req, res) => {
         // =====================================================
         // UPDATE ONLY WHAT WAS SUBMITTED
         // =====================================================
+
+        if (
+            submittedDropoffLocationName !== null
+        ) {
+            finalDropoffLocationName =
+                submittedDropoffLocationName;
+        }
 
         if (
             submittedDropoffAddress !== null
@@ -1247,51 +1272,60 @@ exports.updatePaymentInfo = async (req, res) => {
         // SAVE IN-KIND / DROP-OFF DETAILS
         // =====================================================
 
-       await pool.query(
-    `
-    INSERT INTO organization_dropoff_details
-    (
-        organization_id,
-        dropoff_address,
-        dropoff_hours,
-        dropoff_notes,
-        dropoff_image
-    )
+        await pool.query(
+            `
+            INSERT INTO organization_dropoff_details
+            (
+                organization_id,
+                dropoff_location_name,
+                dropoff_address,
+                dropoff_hours,
+                dropoff_notes,
+                dropoff_image
+            )
 
-    VALUES
-    (
-        ?,
-        ?,
-        ?,
-        ?,
-        ?
-    )
+            VALUES
+            (
+                ?,
+                ?,
+                ?,
+                ?,
+                ?,
+                ?
+            )
 
-    ON DUPLICATE KEY UPDATE
+            ON DUPLICATE KEY UPDATE
 
-        dropoff_address =
-            VALUES(dropoff_address),
+                dropoff_location_name =
+                    VALUES(dropoff_location_name),
 
-        dropoff_hours =
-            VALUES(dropoff_hours),
+                dropoff_address =
+                    VALUES(dropoff_address),
 
-        dropoff_notes =
-            VALUES(dropoff_notes),
+                dropoff_hours =
+                    VALUES(dropoff_hours),
 
-        dropoff_image =
-            VALUES(dropoff_image),
+                dropoff_notes =
+                    VALUES(dropoff_notes),
 
-        updated_at =
-            CURRENT_TIMESTAMP
-    `,
-    [
-        organization_id,
-        finalDropoffAddress,
-        finalDropoffHours,
-        finalDropoffNotes,
-        finalDropoffImage
-    ]
-);
+                dropoff_image =
+                    COALESCE(
+                        VALUES(dropoff_image),
+                        dropoff_image
+                    ),
+
+                updated_at =
+                    CURRENT_TIMESTAMP
+            `,
+            [
+                organization_id,
+                finalDropoffLocationName,
+                finalDropoffAddress,
+                finalDropoffHours,
+                finalDropoffNotes,
+                finalDropoffImage
+            ]
+        );
 
         // =====================================================
         // SUCCESS
@@ -1321,6 +1355,9 @@ exports.updatePaymentInfo = async (req, res) => {
 
                 payment_method:
                     selectedPaymentMethod,
+
+                dropoff_location_name:
+                    finalDropoffLocationName,
 
                 dropoff_address:
                     finalDropoffAddress,
@@ -2658,3 +2695,4 @@ exports.submitCashDonation = async (req, res) => {
         res.status(500).json({ success: false, message: "Failed to submit donation." });
     }
 };
+

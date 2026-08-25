@@ -116,50 +116,140 @@ document.addEventListener("DOMContentLoaded", async function () {
         }
     }
 
-    async function loadOrganizations() {
-        try {
-            const response = await fetch("/api/organizations");
-            organizations = await response.json();
+   async function loadOrganizations() {
 
-            const container = document.getElementById("orgContainer");
-            if (!container) return;
-            
-            container.innerHTML = "";
+    try {
 
-            if (!organizations || organizations.length === 0) {
-                container.innerHTML = `<p class="text-gray-500 text-center col-span-3">No verified organizations available at the moment.</p>`;
-                return;
-            }
+        const response =
+            await fetch(
+                "/api/organizations"
+            );
 
-            organizations.forEach(org => {
-                container.innerHTML += `
-                    <div class="org-card border rounded-xl p-4 relative cursor-pointer" data-id="${org.organization_id}">
-                        <div class="checkmark absolute top-0 right-0 bg-blue-600 text-white text-xs px-2 py-1 rounded-bl-lg">
-                            ✓
-                        </div>
-                        <div class="flex justify-center mb-4">
-                            <img src="${org.profile_pic}" class="w-16 h-16 rounded-full object-cover" alt="${org.organization_name}">
-                        </div>
-                        <h3 class="font-bold text-center text-sm">
-                            ${org.organization_name}
-                        </h3>
-                        <p class="text-gray-500 text-xs text-center mt-2">
-                            ${org.city || ''}, ${org.province || ''}
-                        </p>
-                        <p class="view-profile-btn text-blue-600 text-xs text-center mt-4 cursor-pointer hover:underline">
-                            View Organization Profile →
-                        </p>
-                    </div>
-                `;
-            });
+        if (!response.ok) {
 
-            initializeCards();
-
-        } catch (err) {
-            console.error("Error loading organizations:", err);
+            throw new Error(
+                `Failed to load organizations (${response.status})`
+            );
         }
-    }
 
+        const data =
+            await response.json();
+
+        console.log(
+            "USER ORGANIZATIONS:",
+            data
+        );
+
+
+        organizations =
+            Array.isArray(data)
+                ? data
+                : (
+                    data.organizations ||
+                    data.data ||
+                    []
+                );
+
+
+        console.log(
+            "USER ORGANIZATION DROP-OFF DATA:",
+            organizations.map(org => ({
+                organization_id:
+                    org.organization_id,
+
+                organization_name:
+                    org.organization_name,
+
+                dropoff_location_name:
+                    org.dropoff_location_name,
+
+                dropoff_address:
+                    org.dropoff_address,
+
+                dropoff_hours:
+                    org.dropoff_hours,
+
+                dropoff_notes:
+                    org.dropoff_notes,
+
+                dropoff_image:
+                    org.dropoff_image
+            }))
+        );
+
+
+        const container =
+            document.getElementById(
+                "orgContainer"
+            );
+
+        if (!container) return;
+
+
+        container.innerHTML = "";
+
+
+        if (
+            !organizations ||
+            organizations.length === 0
+        ) {
+
+            container.innerHTML = `
+                <p class="text-gray-500 text-center col-span-3">
+                    No verified organizations available at the moment.
+                </p>
+            `;
+
+            return;
+        }
+
+
+        organizations.forEach(org => {
+
+            const profileImg =
+                getValidImageUrl(
+                    org.profile_pic,
+                    "https://via.placeholder.com/64"
+                );
+
+
+            container.innerHTML += `
+                <div
+                    class="org-card border rounded-xl p-4 relative cursor-pointer"
+                    data-id="${org.organization_id}"
+                >
+
+                    <div
+                        class="checkmark absolute top-0 right-0 bg-blue-600 text-white text-xs px-2 py-1 rounded-bl-lg"
+                    >
+                        ✓
+                    </div>
+
+                    <img
+                        src="${profileImg}"
+                        class="w-16 h-16 rounded-full object-cover mb-3"
+                    >
+
+                    <h3 class="font-semibold">
+                        ${org.organization_name || "Organization"}
+                    </h3>
+
+                </div>
+            `;
+        });
+
+
+        initializeCards();
+
+
+    } catch (error) {
+
+        console.error(
+            "Error loading organizations:",
+            error
+        );
+    }
+}
     function initializeCards() {
         document.querySelectorAll(".org-card").forEach(card => {
             card.addEventListener("click", function (e) {
