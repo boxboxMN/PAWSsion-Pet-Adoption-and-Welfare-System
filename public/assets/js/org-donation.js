@@ -219,18 +219,6 @@ async function fetchPaymentDetails() {
         }
 
         // =====================================================
-        // CONTACT NUMBER
-        // =====================================================
-
-        const phoneInput =
-            document.getElementById("inputPhone");
-
-        if (phoneInput) {
-            phoneInput.value =
-                data.contact_number || "";
-        }
-
-        // =====================================================
         // DISPLAY ACTIVE PAYMENT ACCOUNT
         // =====================================================
 
@@ -430,9 +418,6 @@ initialPaymentFormState = {
 
     maya_number:
         data.maya_number || "",
-
-    contact_number:
-        data.contact_number || "",
 
     dropoff_location_name:
         data.dropoff_location_name || "",
@@ -1299,11 +1284,6 @@ async function savePaymentDetails(e) {
             maya_number:
                 getValue(
                     "inputMayaNum"
-                ),
-
-            contact_number:
-                getValue(
-                    "inputPhone"
                 ),
 
             // =================================================
