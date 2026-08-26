@@ -997,6 +997,7 @@ exports.getUserApplications = async (req, res) => {
                 i.interview_time,
                 i.interview_method,
                 i.interview_location_link,
+                i.meetup_location,
                 -- RESCHEDULE INTERVIEW
                 i.requested_interview_date,
                 i.requested_interview_time,

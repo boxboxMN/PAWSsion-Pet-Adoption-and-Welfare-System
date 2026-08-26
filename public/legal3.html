@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Us | Pawpon</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+            background: #ffffff;
+            color: #111111;
+            overflow-x: hidden;
+        }
+
+
+        .bg-decorations {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .bg-decorations::before {
+            content: "";
+            position: absolute;
+            width: 360px;
+            height: 360px;
+            border-radius: 50%;
+            background: rgba(1, 81, 255, 0.035);
+            top: 180px;
+            left: -190px;
+        }
+
+        .bg-decorations::after {
+            content: "";
+            position: absolute;
+            width: 430px;
+            height: 430px;
+            border-radius: 50%;
+            background: rgba(1, 49, 153, 0.035);
+            bottom: -210px;
+            right: -170px;
+        }
+
+
+        .navbar-section {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(8px);
+            padding: 20px 40px;
+            z-index: 999;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+        }
+
+        .navbar-inner {
+            max-width: 1220px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .clearfix::after {
+            content: "";
+            display: table;
+            clear: both;
+        }
+
+        .brand-logo {
+            float: left;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            height: 45px;
+            text-decoration: none;
+            color: inherit;
+            border: none;
+            outline: none;
+        }
+
+        .brand-logo:hover,
+        .brand-logo:focus,
+        .brand-logo:active {
+            text-decoration: none;
+            border: none;
+            outline: none;
+        }
+
+        .brand-logo img {
+            height: 45px;
+            width: auto;
+            display: block;
+        }
+
+        .logo-text {
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+            font-weight: 800;
+            font-size: 32px;
+            line-height: 39px;
+            background: linear-gradient(90deg, #013199 4.45%, #0151FF 56.67%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .account-control {
+            float: right;
+            display: flex;
+            align-items: center;
+            height: 45px;
+        }
+
+        .btn-account {
+            display: inline-flex;
+            align-items: center;
+            background-color: #ffffff;
+            border: 1px solid #cbd5e0;
+            padding: 8px 20px;
+            border-radius: 25px;
+            color: #1a202c;
+            font-weight: 600;
+            text-decoration: none;
+            font-size: 17px;
+            line-height: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            transition: all 0.2s ease;
+        }
+
+        .btn-account img {
+            margin-left: 8px;
+            height: 30px;
+            width: 30px;
+        }
+
+        .btn-account:hover {
+            background-color: #f7fafc;
+            border-color: #a0aec0;
+            transform: translateY(-1px);
+        }
+
+        .page-container {
+            width: 100%;
+            max-width: 1080px;
+            margin: 0 auto;
+            padding: 145px 45px 70px;
+        }
+
+        .policy-nav {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 42px;
+        }
+
+        .policy-nav a {
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 600;
+            color: white;
+            background: #06427f;
+            padding: 10px 30px;
+            min-width: 120px;
+            text-align: center;
+            clip-path: polygon(8% 0, 100% 0, 92% 100%, 0 100%);
+            transition: 0.2s ease;
+        }
+
+        .policy-nav a:hover {
+            background: #0151FF;
+        }
+
+        .policy-nav a.active {
+            color: #06427f;
+            background: white;
+            border: 1px solid #06427f;
+        }
+
+        /* =========================
+           HEADER
+        ========================= */
+
+        .page-header {
+            text-align: center;
+            margin-bottom: 42px;
+        }
+
+        .page-header h1 {
+            font-size: 40px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .page-header h1 span {
+            color: #06427f;
+        }
+
+        .page-header p {
+            max-width: 650px;
+            margin: 0 auto;
+            font-size: 12px;
+            line-height: 1.5;
+            color: #333333;
+        }
+
+
+
+        .contact-wrapper {
+            display: grid;
+            grid-template-columns: 38% 62%;
+            gap: 35px;
+            align-items: stretch;
+        }
+
+        .contact-info {
+            background: linear-gradient(145deg, #013199, #0151FF);
+            border-radius: 20px;
+            padding: 34px 30px;
+            color: #ffffff;
+            min-height: 410px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 12px 30px rgba(1, 49, 153, 0.12);
+        }
+
+        .contact-info::after {
+            content: "🐾";
+            position: absolute;
+            right: -18px;
+            bottom: -35px;
+            font-size: 145px;
+            opacity: 0.08;
+            transform: rotate(-15deg);
+        }
+
+        .contact-info h2 {
+            font-size: 24px;
+            margin-bottom: 12px;
+            
+        }
+
+        .contact-info > p {
+            font-size: 11px;
+            line-height: 1.6;
+            opacity: 0.92;
+            margin-bottom: 30px;
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 13px;
+            margin-bottom: 22px;
+        }
+
+        .contact-icon {
+            width: 35px;
+            height: 35px;
+            flex-shrink: 0;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.16);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+        }
+
+        .contact-item h3 {
+            font-size: 11px;
+            margin-bottom: 4px;
+        }
+
+        .contact-item p {
+            font-size: 10px;
+            line-height: 1.45;
+            opacity: 0.88;
+        }
+
+        .contact-form {
+            background: #ffffff;
+            border: 1px solid #e3e8ef;
+            border-radius: 20px;
+            padding: 34px 35px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.04);
+        }
+
+        .contact-form h2 {
+            font-size: 22px;
+            margin-bottom: 6px;
+        }
+
+        .contact-form .form-subtitle {
+            font-size: 10px;
+            color: #666666;
+            margin-bottom: 25px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .form-group {
+            margin-bottom: 17px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 10px;
+            font-weight: 700;
+            margin-bottom: 7px;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            border: 1px solid #d5dce5;
+            border-radius: 9px;
+            padding: 11px 13px;
+            font-family: inherit;
+            font-size: 11px;
+            outline: none;
+            transition: 0.2s ease;
+            background: #ffffff;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            border-color: #0151FF;
+            box-shadow: 0 0 0 3px rgba(1,81,255,0.08);
+        }
+
+        .form-group textarea {
+            height: 105px;
+            resize: vertical;
+        }
+
+        .submit-btn {
+            width: 100%;
+            border: none;
+            border-radius: 10px;
+            padding: 12px 20px;
+            background: linear-gradient(90deg, #013199, #0151FF);
+            color: #ffffff;
+            font-family: inherit;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.2s ease;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 7px 18px rgba(1,81,255,0.18);
+        }
+
+        .bottom-note {
+            text-align: center;
+            margin-top: 35px;
+            font-size: 10px;
+            color: #666666;
+        }
+
+        /* =========================
+           RESPONSIVE
+        ========================= */
+
+        @media (max-width: 760px) {
+
+            .navbar-section {
+                padding: 15px 20px;
+            }
+
+            .brand-logo img {
+                height: 38px;
+            }
+
+            .logo-text {
+                font-size: 25px;
+                line-height: 32px;
+            }
+
+            .btn-account {
+                padding: 6px 12px;
+                font-size: 14px;
+            }
+
+            .btn-account img {
+                height: 24px;
+                width: 24px;
+                margin-left: 5px;
+            }
+
+            .page-container {
+                padding: 120px 25px 50px;
+            }
+
+            .policy-nav {
+                flex-wrap: wrap;
+                gap: 6px;
+            }
+
+            .policy-nav a {
+                font-size: 11px;
+                padding: 8px 18px;
+                min-width: 100px;
+            }
+
+            .page-header h1 {
+                font-size: 32px;
+            }
+
+            .contact-wrapper {
+                grid-template-columns: 1fr;
+            }
+
+            .contact-info {
+                min-height: auto;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+                gap: 0;
+            }
+        }
+
+        
+      
+/* FOOTER */
+.footer {
+    margin-top: 120px;
+    padding: 70px 80px 30px;
+    background: #fff;
+}
+
+.footer-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+}
+
+.footer-left {
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+}
+
+.social-icons {
+    display: flex;
+    gap: 18px;
+}
+
+.social-icons a {
+    width: 44px;
+    height: 44px;
+    background: #2d57e5;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+}
+
+.social-icons img {
+    width: 20px;
+    height: 20px;
+}
+
+.support-title {
+    font-size: 16px;
+    margin-bottom: 14px;
+}
+
+.contact-icon {
+    width: 22px;
+    height: 22px;
+    object-fit: contain;
+}
+
+.conta-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+    color: #2d3748;
+}
+
+.footer-right h4 {
+    margin-bottom: 25px;
+    font-size: 28px;
+}
+
+.footer-links {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 28px 70px;
+}
+
+.footer-links a {
+    color: #222;
+    text-decoration: none;
+}
+
+.footer-bottom {
+    text-align: center;
+    margin-top: 60px;
+    line-height: 1.8;
+    font-size: 18px;
+}
+
+
+    </style>
+</head>
+
+<body>
+
+    <div class="bg-decorations"></div>
+
+    
+     <div class="navbar-section clearfix">
+    <div class="navbar-inner clearfix">
+
+        <a href="index.html" class="brand-logo">
+            <img src="assets/images/Pawpon.png" alt="Pawpon Logo">
+            <span class="logo-text">Pawpon</span>
+        </a>
+
+        <div class="account-control">
+            <a href="auth/login.html" class="btn-account">
+                Account
+                <img src="assets/images/account.png" alt="User Icon">
+            </a>
+        </div>
+
+    </div>
+</div>
+
+    </div>
+
+
+    <main class="page-container">
+
+        <!-- Legal Navigation -->
+
+        <nav class="policy-nav">
+
+            <a href="legal1.html">
+                Privacy Policy
+            </a>
+
+            <a href="legal2.html">
+                Terms &amp; Use
+            </a>
+
+            <a href="legal3.html" class="active">
+                Contact Us
+            </a>
+
+            <a href="legal4.html">
+                FAQS
+            </a>
+
+        </nav>
+
+
+        <!-- Header -->
+
+        <header class="page-header">
+
+            <h1>
+                CONTACT <span>US</span>
+            </h1>
+
+            <p>
+                Have a question, concern, or need assistance with the Pawpon platform?
+                We're here to help. Send us a message and our team will get back to you.
+            </p>
+
+        </header>
+
+
+        <!-- Contact Content -->
+
+        <div class="contact-wrapper">
+
+            <!-- Contact Information -->
+
+            <section class="contact-info">
+
+                <h2>Let's Connect!</h2>
+
+                <p>
+                    Whether you need help with an adoption application, donation,
+                    account concern, or have feedback about the platform, feel free
+                    to reach out to us.
+                </p>
+
+
+                <div class="contact-item">
+
+                    <div class="contact-icon">
+                        ✉
+                    </div>
+
+                    <div>
+                        <h3>Email Support</h3>
+                        <p>
+                            Send us your questions and concerns through the contact form.
+                        </p>
+                    </div>
+
+                </div>
+
+
+                <div class="contact-item">
+
+                    <div class="contact-icon">
+                        🐾
+                    </div>
+
+                    <div>
+                        <h3>Adoption Assistance</h3>
+                        <p>
+                            Need help with your adoption application or matchmaking results?
+                            Our team can assist you.
+                        </p>
+                    </div>
+
+                </div>
+
+
+                <div class="contact-item">
+
+                    <div class="contact-icon">
+                        💬
+                    </div>
+
+                    <div>
+                        <h3>General Inquiries</h3>
+                        <p>
+                            For suggestions, technical concerns, and other questions
+                            regarding Pawpon.
+                        </p>
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- Contact Form -->
+
+            <section class="contact-form">
+
+                <h2>Send Us a Message</h2>
+
+                <p class="form-subtitle">
+                    Fill out the form below and provide as much detail as possible.
+                </p>
+
+
+                <form action="#" method="post">
+
+                    <div class="form-row">
+
+                        <div class="form-group">
+
+                            <label for="name">
+                                Full Name
+                            </label>
+
+                            <input
+                                type="text"
+                                id="name"
+                                name="name"
+                                placeholder="Enter your full name"
+                                required
+                            >
+
+                        </div>
+
+
+                        <div class="form-group">
+
+                            <label for="email">
+                                Email Address
+                            </label>
+
+                            <input
+                                type="email"
+                                id="email"
+                                name="email"
+                                placeholder="Enter your email"
+                                required
+                            >
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label for="subject">
+                            Subject
+                        </label>
+
+                        <select id="subject" name="subject">
+
+                            <option value="">
+                                Select a concern
+                            </option>
+
+                            <option value="adoption">
+                                Adoption Inquiry
+                            </option>
+
+                            <option value="donation">
+                                Donation Inquiry
+                            </option>
+
+                            <option value="account">
+                                Account Concern
+                            </option>
+
+                            <option value="technical">
+                                Technical Concern
+                            </option>
+
+                            <option value="feedback">
+                                Feedback / Suggestion
+                            </option>
+
+                            <option value="other">
+                                Other
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label for="message">
+                            Message
+                        </label>
+
+                        <textarea
+                            id="message"
+                            name="message"
+                            placeholder="Write your message here..."
+                            required
+                        ></textarea>
+
+                    </div>
+
+
+                    <button
+                        type="submit"
+                        class="submit-btn"
+                    >
+                        SEND MESSAGE
+                    </button>
+
+                </form>
+
+            </section>
+
+        </div>
+
+
+        <p class="bottom-note">
+            We appreciate your interest in Pawpon and your support for responsible pet adoption.
+        </p>
+
+    </main>
+
+<footer class="footer">
+
+    <div class="footer-top">
+
+        <div class="footer-left">
+
+            <div class="social-icons">
+                <a href="#"><img src="assets/images/twitter.png"></a>
+                <a href="#"><img src="assets/images/tiktok.png"></a>
+                <a href="#"><img src="assets/images/instagram.png"></a>
+                <a href="#"><img src="assets/images/messenger.png"></a>
+            </div>
+
+            <div>
+                <p class="support-title">
+                    For Customer Support and General Concerns:
+                </p>
+
+                <div class="contact-item">
+                    <img src="assets/images/email.png" class="contact-icon">
+                    <span>pawpon@gmail.com</span>
+                </div>
+
+                <div class="contact-item">
+                    <img src="assets/images/call.png" class="contact-icon">
+                    <span>(+63) 992 487 4712</span>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="footer-right">
+
+            <h4>Legal</h4>
+
+            <div class="footer-links">
+                <a href="legal2.html">Terms & Use</a>
+                <a href="legal3.html">Contact Us</a>
+
+                <a href="legal1.html">Privacy Policy</a>
+                <a href="legal4.html">FAQS</a>
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="footer-bottom">
+        Pawpon @2026<br>
+        All Right Reserved.
+    </div>
+
+</footer>
+
+</body>
+</html>

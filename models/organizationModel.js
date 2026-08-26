@@ -11,8 +11,11 @@ const Organization = {
                 contact_number, 
                 organization_type, 
                 address, 
-                city, 
+                region,
                 province,
+                city, 
+                barangay,
+                zip_code,
                 description,
                 contact_person,
                 profile_pic 
@@ -41,8 +44,8 @@ const Organization = {
 
     // Bagong function para mag-update ng profile details at profile pic
     updateProfile: async (accountId, profileData) => {
-        const { organization_name, contact_number, contact_person, address, city, province, description, profile_pic } = profileData;
-        
+        const { organization_name, contact_number, contact_person, address, region, province, city, barangay, zip_code, description, profile_pic } = profileData;
+    
         // Dynamic query: I-update lang ang profile_pic kung may bagong file na in-upload
         let query = `
             UPDATE organizations 
@@ -51,12 +54,15 @@ const Organization = {
                 contact_number = ?, 
                 contact_person = ?, 
                 address = ?, 
-                city = ?, 
+                region = ?,
                 province = ?, 
+                city = ?, 
+                barangay = ?,
+                zip_code = ?,
                 description = ?
         `;
         
-        const params = [organization_name, contact_number, contact_person, address, city, province, description];
+        const params = [organization_name, contact_number, contact_person, address, region, province, city, barangay, zip_code, description];
 
         if (profile_pic) {
             query += `, profile_pic = ? `;

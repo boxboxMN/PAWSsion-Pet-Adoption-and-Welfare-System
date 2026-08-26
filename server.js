@@ -334,18 +334,20 @@ app.put("/api/organization/update-profile", uploadOrgPic.single('profile_pic'), 
 
   try {
       // Kunin ang text fields na pinadala ng FormData mula sa frontend
-      const { organization_name, contact_number, contact_person, address, city, province, description } = req.body;
+      const { organization_name, contact_number, contact_person, address, region, province, city, barangay, zip_code, description } = req.body;
 
-      // Ihanda ang object na ipapasa sa ating Model
       const profileData = {
-          organization_name,
-          contact_number,
-          contact_person,
-          address,
-          city,
-          province,
-          description,
-          profile_pic: null // Naka-null muna by default
+        organization_name,
+        contact_number,
+        contact_person,
+        address,
+        region,
+        province,
+        city,
+        barangay,
+        zip_code,
+        description,
+        profile_pic: null // Naka-null muna by default
       };
 
       // 2. Kung may piniling bagong larawan ang user at sinalo ito ng Multer
