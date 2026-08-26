@@ -467,3 +467,5 @@ pag enable na ang decline, ideclined ang adoption then try to re-apply and check
 is match with the address in the user profile ✓
 
 Tignan if yung view profile organization will appear in under review, approved, declined or cancelled  ✓
+
+# gawin ang nasa org profile tom (Aug 26, 2026)
