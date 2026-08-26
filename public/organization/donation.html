@@ -9,6 +9,8 @@
     <script src="../assets/js/orgSidebar.js"></script>
     <script src="../assets/js/orgTopbar.js"></script>
     <script src="/assets/js/orgProfile.js"></script> 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
     <script src="/assets/js/org-donation.js"></script>
 </head>
 <body class="bg-slate-100 font-['Inter',_sans-serif] min-h-screen">
@@ -62,45 +64,6 @@
             </div>
         </div>
 
-        <!-- TOOLBAR: FILTER & EXPORT -->
-        <div class="flex items-center gap-3 font-sans bg-white p-3 rounded-lg shadow-sm w-fit mb-6">
-            <!-- 1. Filter Type Dropdown (Month / Year) -->
-            <div class="flex items-center border border-gray-300 rounded-md px-3 py-1.5 bg-white gap-2">
-                <i class="fa-solid fa-filter text-gray-500 text-sm"></i>
-                <select id="filterType" onchange="toggleDateInput()" class="border-none outline-none bg-transparent text-sm text-gray-700 cursor-pointer">
-                    <option value="month">Month</option>
-                    <option value="year">Year</option>
-                </select>
-            </div>
-
-            <!-- 2. Dynamic Date Picker -->
-            <div class="flex items-center border border-gray-300 rounded-md px-3 py-1.5 bg-white gap-2">
-                <input type="month" id="datePicker" value="2026-08" class="border-none outline-none bg-transparent text-sm text-gray-700 cursor-pointer">
-            </div>
-
-            <!-- 3. Refresh Button -->
-            <button class="flex items-center gap-2 bg-white border border-gray-300 text-gray-700 px-3.5 py-2 rounded-md text-sm cursor-pointer hover:bg-gray-50 transition-colors" onclick="refreshData()">
-                <i class="fa-solid fa-rotate"></i> Refresh
-            </button>
-
-            <!-- 4. Export Dropdown Button -->
-            <div class="relative inline-block">
-                <button class="flex items-center gap-2 bg-blue-600 text-white border-none px-3.5 py-2 rounded-md text-sm cursor-pointer hover:bg-blue-700 transition-colors dropdown-toggle" onclick="toggleExportMenu()">
-                    <i class="fa-solid fa-file-export"></i> Export <i class="fa-solid fa-chevron-down text-[10px]"></i>
-                </button>
-                
-                <!-- Dropdown Content -->
-                <div id="exportMenu" class="hidden absolute right-0 mt-1 bg-white min-w-[160px] shadow-lg rounded-md z-10 border border-gray-200 overflow-hidden">
-                    <a href="#" onclick="exportFile('excel')" class="text-gray-700 px-3.5 py-2.5 text-xs flex items-center gap-2.5 hover:bg-gray-100 no-underline">
-                        <i class="fa-solid fa-file-excel text-green-700"></i> Export as Excel
-                    </a>
-                    <a href="#" onclick="exportFile('pdf')" class="text-gray-700 px-3.5 py-2.5 text-xs flex items-center gap-2.5 hover:bg-gray-100 no-underline">
-                        <i class="fa-solid fa-file-pdf text-red-600"></i> Export as PDF
-                    </a>
-                </div>
-            </div>
-        </div>
-
         <!-- DONATION TYPE TABS -->
         <div class="flex border-b border-gray-200 mb-6 bg-white rounded-xl p-1 shadow-sm">
             <button id="tabCash" onclick="switchDonationTab('cash')" 
@@ -113,25 +76,60 @@
             </button>
         </div>
 
-        <!-- SEARCH AND FILTER BAR -->
-        <div class="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
-            <div class="relative w-full sm:max-w-xl">
+        <!-- SEARCH, STATUS FILTER, DATE FILTER, & EXPORT TOOLBAR -->
+        <div class="flex flex-col lg:flex-row items-center justify-between gap-4 mb-6">
+            <!-- Search Input -->
+            <div class="relative w-full lg:max-w-md">
                 <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
                 <input type="text" id="searchInput" onkeyup="filterDonations()" placeholder="Search donor, reference no, item name, etc." 
                     class="w-full pl-11 pr-4 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:border-indigo-500 shadow-sm" />
             </div>
             
-            <div class="flex items-center gap-3 w-full sm:w-auto">
-                <button onclick="openConfigModal()" class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium inline-flex items-center justify-center gap-2 transition shadow-sm">
-                    <i class="fa-solid fa-gear"></i> Donation Settings
-                </button>
-
-                <select id="statusFilter" onchange="filterDonations()" class="w-full sm:w-auto bg-white border border-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium shadow-sm focus:outline-none focus:border-indigo-500">
+            <!-- Filters & Export Toolbar Group (Katabi ng Status Filter) -->
+            <div class="flex flex-wrap items-center gap-2 w-full lg:w-auto justify-end">
+                <!-- Status Filter -->
+                <select id="statusFilter" onchange="filterDonations()" class="bg-white border border-gray-200 text-gray-700 px-3.5 py-2 rounded-lg text-sm font-medium shadow-sm focus:outline-none focus:border-indigo-500">
                     <option value="ALL">All Status</option>
                     <option value="Approved">Verified / Approved</option>
                     <option value="Pending">Pending</option>
                     <option value="Rejected">Rejected</option>
                 </select>
+
+                <!-- Filter Type Dropdown (Month / Year) -->
+                <div class="flex items-center border border-gray-200 rounded-lg px-3 py-2 bg-white gap-2 shadow-sm">
+                    <i class="fa-solid fa-filter text-gray-400 text-xs"></i>
+                    <select id="filterType" onchange="toggleDateInput()" class="border-none outline-none bg-transparent text-sm text-gray-700 cursor-pointer">
+                        <option value="month">Month</option>
+                        <option value="year">Year</option>
+                    </select>
+                </div>
+
+                <!-- Dynamic Date Picker -->
+                <div class="flex items-center border border-gray-200 rounded-lg px-3 py-2 bg-white gap-2 shadow-sm">
+                    <input type="month" id="datePicker" value="2026-08" class="border-none outline-none bg-transparent text-sm text-gray-700 cursor-pointer">
+                </div>
+
+                <!-- Refresh Button -->
+                <button class="flex items-center gap-2 bg-white border border-gray-200 text-gray-700 px-3 py-2 rounded-lg text-sm cursor-pointer hover:bg-gray-50 transition-colors shadow-sm" onclick="refreshData()">
+                    <i class="fa-solid fa-rotate text-xs"></i> Refresh
+                </button>
+
+                <!-- Export Dropdown Button -->
+                <div class="relative inline-block">
+                    <button class="flex items-center gap-2 bg-blue-600 text-white border-none px-3.5 py-2 rounded-lg text-sm cursor-pointer hover:bg-blue-700 transition-colors shadow-sm dropdown-toggle" onclick="toggleExportMenu()">
+                        <i class="fa-solid fa-file-export"></i> Export <i class="fa-solid fa-chevron-down text-[10px]"></i>
+                    </button>
+                    
+                    <!-- Dropdown Content -->
+                    <div id="exportMenu" class="hidden absolute right-0 mt-1 bg-white min-w-[160px] shadow-lg rounded-md z-10 border border-gray-200 overflow-hidden">
+                        <a href="#" onclick="exportFile('excel')" class="text-gray-700 px-3.5 py-2.5 text-xs flex items-center gap-2.5 hover:bg-gray-100 no-underline">
+                            <i class="fa-solid fa-file-excel text-green-700"></i> Export as Excel
+                        </a>
+                        <a href="#" onclick="exportFile('pdf')" class="text-gray-700 px-3.5 py-2.5 text-xs flex items-center gap-2.5 hover:bg-gray-100 no-underline">
+                            <i class="fa-solid fa-file-pdf text-red-600"></i> Export as PDF
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -220,7 +218,6 @@
 
                 <form id="paymentConfigForm" onsubmit="savePaymentDetails(event)" class="space-y-4 overflow-y-auto pr-1 flex-1">
                    
-                   
                     <!-- FORM SECTION 1: CASH & QR SETTINGS -->
                     <div id="modalCashSection" class="space-y-4">
                         <!-- Payment Method Selector -->
@@ -301,8 +298,6 @@
                                     class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium text-gray-800 focus:outline-none focus:bg-white focus:border-indigo-500 transition" />
                             </div>
                         </div>
-
-                        
                     </div>
 
                     <!-- FORM SECTION 2: IN-KIND DROP-OFF INFO -->
