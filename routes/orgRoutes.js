@@ -251,16 +251,23 @@ router.get('/applications/:id', async (req, res) => {
             CASE WHEN app.status = 'Under Review' THEN NULL ELSE i.interview_time END AS interview_time,
             CASE WHEN app.status = 'Under Review' THEN NULL ELSE i.interview_method END AS interview_method,
             CASE WHEN app.status = 'Under Review' THEN NULL ELSE i.interview_location_link END AS interview_location_link,
+            CASE WHEN app.status = 'Under Review' THEN NULL ELSE i.meetup_location END AS meetup_location,
             CASE WHEN app.status = 'Under Review' THEN NULL ELSE i.requested_interview_date END AS requested_interview_date,
             CASE WHEN app.status = 'Under Review' THEN NULL ELSE i.requested_interview_time END AS requested_interview_time,
             CASE WHEN app.status = 'Under Review' THEN NULL ELSE i.reschedule_reason END AS reschedule_reason,
             CASE WHEN app.status = 'Under Review' THEN NULL ELSE i.resched_status END AS resched_status,
             DATE_FORMAT(app.created_at, '%b %d, %Y • %h:%i %p') AS applied_date,
             p.name AS pet_name
-        FROM user_adoption_applications app
-        INNER JOIN animals p ON app.animal_id = p.animal_id
-        LEFT JOIN application_interviews i ON app.application_id = i.application_id
-        WHERE app.application_id = ? AND p.organization_id = ?
+            FROM user_adoption_applications app
+            INNER JOIN animals p ON app.animal_id = p.animal_id
+            LEFT JOIN application_interviews i 
+                ON i.application_id = app.application_id
+                AND i.interview_id = (
+                    SELECT MAX(i2.interview_id) 
+                    FROM application_interviews i2 
+                    WHERE i2.application_id = app.application_id
+                )
+            WHERE app.application_id = ? AND p.organization_id = ?
     `;
     
     const [rows] = await pool.query(query, [id, orgId]);
@@ -308,7 +315,7 @@ router.patch('/applications/:id/status', async (req, res) => {
 
     try {
         const { id } = req.params;
-        const { status, decline_reason } = req.body;
+        const { status, decline_reason, meetup_location } = req.body;
 
         const validStatuses = ['Under Review', 'Interview Scheduled', 'Approved', 'Declined'];
 
@@ -326,6 +333,15 @@ router.patch('/applications/:id/status', async (req, res) => {
             return res.status(400).json({
                 success: false,
                 message: "A decline reason is required when declining an application."
+            });
+        }
+
+        // VALIDATION: Siguraduhing may laman ang meet-up location kapag 'Approved'
+        if (status === 'Approved' && (!meetup_location || meetup_location.trim() === '')) {
+            connection.release();
+            return res.status(400).json({
+                success: false,
+                message: "A meet-up location is required when approving an application."
             });
         }
 
@@ -372,6 +388,17 @@ router.patch('/applications/:id/status', async (req, res) => {
 
         // If approved, change the status of the pet from "animals" table, and matanggal sa Adoption Hub
         if (status === 'Approved') {
+            // I-save ang meet-up location sa application_interviews (may existing row na dapat
+            // dahil kinakailangan munang mag-interview bago maka-approve)
+            await connection.query(
+                `UPDATE application_interviews 
+                 SET meetup_location = ? 
+                 WHERE application_id = ? 
+                 ORDER BY application_id DESC 
+                 LIMIT 1`,
+                [meetup_location.trim(), id]
+            );
+
             await connection.query(
                 `UPDATE animals SET adoption_status = 'Adopted' WHERE animal_id = ?`,
                 [animalId]

@@ -10,7 +10,6 @@ print("Model loaded successfully!")
 
 # Test sentence
 text = "Friendly playful sweet dog"
-
 # Generate embedding
 embedding = model.encode(text)
 

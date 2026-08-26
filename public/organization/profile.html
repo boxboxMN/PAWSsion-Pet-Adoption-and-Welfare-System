@@ -77,7 +77,11 @@
                                 <p id="infoType" class="text-sm font-semibold text-gray-800 mt-1"></p>
                             </div>
                             <div class="rounded-2xl border bg-slate-50 p-4">
-                                <p class="text-[11px] uppercase font-bold tracking-wider text-blue-700">Address</p>
+                                <p class="text-[11px] uppercase font-bold tracking-wider text-blue-700">Region</p>
+                                <p id="infoRegion" class="text-sm font-semibold text-gray-800 mt-1"></p>
+                            </div>
+                            <div class="rounded-2xl border bg-slate-50 p-4 md:col-span-2">
+                                <p class="text-[11px] uppercase font-bold tracking-wider text-blue-700">Full Address</p>
                                 <p id="infoFullAddress" class="text-sm font-semibold text-gray-800 mt-1 leading-6"></p>
                             </div>
                         </div>
@@ -239,13 +243,38 @@
                 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                            <label class="text-xs font-bold text-blue-600 block uppercase tracking-wider mb-1">City / Municipality</label>
-                            <input type="text" id="editCity" required class="w-full text-sm font-semibold text-gray-700 px-3 py-2 rounded-xl border border-gray-200 focus:outline-none focus:border-blue-900 transition bg-slate-50/50">
+                            <label class="text-xs font-bold text-blue-600 block uppercase tracking-wider mb-1">Region</label>
+                            <select id="editRegion" required class="w-full text-sm font-semibold text-gray-700 px-3 py-2 rounded-xl border border-gray-200 focus:outline-none focus:border-blue-900 transition bg-slate-50/50">
+                                <option value="">Select Region</option>
+                            </select>
                         </div>
                         <div>
                             <label class="text-xs font-bold text-blue-600 block uppercase tracking-wider mb-1">Province</label>
-                            <input type="text" id="editProvince" required class="w-full text-sm font-semibold text-gray-700 px-3 py-2 rounded-xl border border-gray-200 focus:outline-none focus:border-blue-900 transition bg-slate-50/50">
+                            <select id="editProvince" required disabled class="w-full text-sm font-semibold text-gray-700 px-3 py-2 rounded-xl border border-gray-200 focus:outline-none focus:border-blue-900 transition bg-slate-50/50">
+                                <option value="">Select Province</option>
+                            </select>
                         </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="text-xs font-bold text-blue-600 block uppercase tracking-wider mb-1">City / Municipality</label>
+                            <select id="editCity" required disabled class="w-full text-sm font-semibold text-gray-700 px-3 py-2 rounded-xl border border-gray-200 focus:outline-none focus:border-blue-900 transition bg-slate-50/50">
+                                <option value="">Select City / Municipality</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-blue-600 block uppercase tracking-wider mb-1">Barangay</label>
+                            <select id="editBarangay" required disabled class="w-full text-sm font-semibold text-gray-700 px-3 py-2 rounded-xl border border-gray-200 focus:outline-none focus:border-blue-900 transition bg-slate-50/50">
+                                <option value="">Select Barangay</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="text-xs font-bold text-blue-600 block uppercase tracking-wider mb-1">Zip Code</label>
+                        <input type="text" id="editZip" maxlength="4" placeholder="e.g. 4434" required class="w-full text-sm font-semibold text-gray-700 px-3 py-2 rounded-xl border border-gray-200 focus:outline-none focus:border-blue-900 transition bg-slate-50/50">
+                        <p id="editZipHelper" class="text-[11px] mt-1 text-red-500"></p>
                     </div>
                 
                     <div>
@@ -293,6 +322,12 @@
 <script>
     //hide the org profile data
     let currentOrgData = null;
+
+    // Cascading address dropdown data caches
+    let regionsData = [];
+    let provincesData = [];
+    let citiesData = [];
+    let barangaysData = [];
 
     document.addEventListener("DOMContentLoaded", async () => {
 
@@ -347,19 +382,20 @@
                 }
 
                 // ----------------------------------------------------
-                // ADDRESS
+                // ADDRESS (Region, Province, City, Barangay, Zip)
                 // ----------------------------------------------------
-                const addressParts = [];
-                if (data.address) addressParts.push(data.address);
-                if (data.city) addressParts.push(data.city);
-                if (data.province) addressParts.push(data.province);
+                const addressParts = [
+                    data.address,
+                    data.barangay ? `Brgy. ${data.barangay}` : "",
+                    data.city,
+                    data.province,
+                    data.zip_code
+                ].filter(part => part && String(part).trim() !== "");
 
-                if (addressParts.length > 0) {
-                    // Magiging format: "San Miguel, Nabua, Camarines Sur"
-                    document.getElementById("infoFullAddress").textContent = addressParts.join(", ");
-                } else {
-                    document.getElementById("infoFullAddress").textContent = "No address specified";
-                }
+                document.getElementById("infoFullAddress").textContent =
+                    addressParts.length > 0 ? addressParts.join(", ") : "No address specified";
+
+                document.getElementById("infoRegion").textContent = data.region || "Not Specified";
 
                 // ----------------------------------------------------
                 // SHORT DESCRIPTON
@@ -595,11 +631,19 @@
         const editModalPreview = document.getElementById("editModalPreview");
         const editModalIcon = document.getElementById("editModalIcon");
 
+        // Cascading address dropdowns
+        const editRegionInput = document.getElementById("editRegion");
+        const editProvinceInput = document.getElementById("editProvince");
+        const editCityInput = document.getElementById("editCity");
+        const editBarangayInput = document.getElementById("editBarangay");
+        const editZipInput = document.getElementById("editZip");
+        const editZipHelper = document.getElementById("editZipHelper");
+
         // Global variable para hawakan ang napiling file blob kung mayroon man
         let selectedImageFile = null;
 
         // Pagbukas at Pag-fill ng Data sa mga Inputs
-        openEditModalBtn.addEventListener("click", () => {
+        openEditModalBtn.addEventListener("click", async () => {
             if (!currentOrgData) return;
 
             // I-pre-fill ang text fields
@@ -607,9 +651,10 @@
             document.getElementById("editContact").value = currentOrgData.contact_number || "";
             document.getElementById("editContactPerson").value = currentOrgData.contact_person || "";
             document.getElementById("editAddress").value = currentOrgData.address || "";
-            document.getElementById("editCity").value = currentOrgData.city || "";
-            document.getElementById("editProvince").value = currentOrgData.province || "";
+            document.getElementById("editZip").value = currentOrgData.zip_code || "";
             document.getElementById("editDescription").value = currentOrgData.description || "";
+
+            await setEditAddressValues();
 
             // I-pre-fill ang Image base kung may lumang profile pic
             if (currentOrgData.profile_pic) {
@@ -678,6 +723,26 @@
                 editContactInput.focus();
                 return;
             }
+
+            // 3. VALIDATION NG ADDRESS DROPDOWNS + ZIP
+            const regionValue = editRegionInput.value.trim();
+            const provinceValue = editProvinceInput.value.trim();
+            const cityValue = editCityInput.value.trim();
+            const barangayValue = editBarangayInput.value.trim();
+            const zipValue = editZipInput.value.trim();
+
+            if (!regionValue || !provinceValue || !cityValue || !barangayValue) {
+                editModalMessage.textContent = "Please complete all address dropdowns (Region, Province, City, Barangay).";
+                editModalMessage.className = "text-xs font-semibold text-red-500 mt-2 block";
+                return;
+            }
+
+            if (!/^\d{4}$/.test(zipValue)) {
+                editModalMessage.textContent = "Please enter a valid 4-digit ZIP code.";
+                editModalMessage.className = "text-xs font-semibold text-red-500 mt-2 block";
+                editZipInput.focus();
+                return;
+            }
             
             editModalMessage.classList.add("hidden");
 
@@ -691,8 +756,11 @@
             formData.append("contact_number", document.getElementById("editContact").value.trim());
             formData.append("contact_person", document.getElementById("editContactPerson").value.trim());
             formData.append("address", document.getElementById("editAddress").value.trim());
-            formData.append("city", document.getElementById("editCity").value.trim());
-            formData.append("province", document.getElementById("editProvince").value.trim());
+            formData.append("region", regionValue);
+            formData.append("province", provinceValue);
+            formData.append("city", cityValue);
+            formData.append("barangay", barangayValue);
+            formData.append("zip_code", zipValue);
             formData.append("description", document.getElementById("editDescription").value.trim());
             
             // Isama ang image file kung may piniling bago si user
@@ -746,6 +814,156 @@
             imgTag.src = savedPic;
             imgTag.classList.remove('hidden'); // Ipakita ang larawan
             iconTag.classList.add('hidden');    // Itago ang default icon
+        }
+
+        // ----------------------------------------------------
+        // ADDRESS: REGION / PROVINCE / CITY / BARANGAY CASCADING DROPDOWNS
+        // ----------------------------------------------------
+        async function loadRegions() {
+            try {
+                if (regionsData.length === 0) {
+                    const res = await fetch('/data/regions.json');
+                    regionsData = await res.json();
+                }
+                editRegionInput.innerHTML = '<option value="">Select Region</option>';
+                regionsData.forEach(reg => {
+                    const opt = document.createElement('option');
+                    opt.value = reg.region_name;
+                    opt.textContent = reg.region_name;
+                    opt.dataset.code = reg.region_code;
+                    editRegionInput.appendChild(opt);
+                });
+            } catch (err) {
+                console.error("Error loading regions:", err);
+            }
+        }
+
+        async function populateProvinces(regionName, selectedProvince = null) {
+            const selectedOption = Array.from(editRegionInput.options).find(opt => opt.value === regionName);
+            const regCode = selectedOption ? selectedOption.dataset.code : null;
+
+            editProvinceInput.innerHTML = '<option value="">Select Province</option>';
+            editProvinceInput.disabled = true;
+            editCityInput.innerHTML = '<option value="">Select City / Municipality</option>';
+            editCityInput.disabled = true;
+            editBarangayInput.innerHTML = '<option value="">Select Barangay</option>';
+            editBarangayInput.disabled = true;
+
+            if (!regCode) return;
+
+            if (provincesData.length === 0) {
+                const res = await fetch('/data/provinces.json');
+                provincesData = await res.json();
+            }
+
+            let filtered = provincesData.filter(p => p.region_code === regCode);
+            filtered.sort((a, b) => a.province_name.localeCompare(b.province_name));
+
+            if (filtered.length === 0) {
+                filtered = [{ province_code: regCode, province_name: regionName }];
+            }
+
+            filtered.forEach(p => {
+                const opt = document.createElement('option');
+                opt.value = p.province_name;
+                opt.textContent = p.province_name;
+                opt.dataset.code = p.province_code;
+                editProvinceInput.appendChild(opt);
+            });
+
+            editProvinceInput.disabled = false;
+            if (selectedProvince) editProvinceInput.value = selectedProvince;
+        }
+
+        async function populateCities(provinceName, selectedCity = null) {
+            const selectedOption = Array.from(editProvinceInput.options).find(opt => opt.value === provinceName);
+            const provCode = selectedOption ? selectedOption.dataset.code : null;
+            const regCode = editRegionInput.options[editRegionInput.selectedIndex]?.dataset.code;
+
+            editCityInput.innerHTML = '<option value="">Select City / Municipality</option>';
+            editCityInput.disabled = true;
+            editBarangayInput.innerHTML = '<option value="">Select Barangay</option>';
+            editBarangayInput.disabled = true;
+
+            if (!provCode) return;
+
+            if (citiesData.length === 0) {
+                const res = await fetch('/data/cities.json');
+                citiesData = await res.json();
+            }
+
+            const filtered = citiesData.filter(c => c.province_code === provCode || c.region_desc === regCode);
+            filtered.sort((a, b) => a.city_name.localeCompare(b.city_name));
+
+            filtered.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c.city_name;
+                opt.textContent = c.city_name;
+                opt.dataset.code = c.city_code;
+                editCityInput.appendChild(opt);
+            });
+
+            editCityInput.disabled = false;
+            if (selectedCity) editCityInput.value = selectedCity;
+        }
+
+        async function populateBarangays(cityName, selectedBarangay = null) {
+            const selectedOption = Array.from(editCityInput.options).find(opt => opt.value === cityName);
+            const cityCode = selectedOption ? selectedOption.dataset.code : null;
+
+            editBarangayInput.innerHTML = '<option value="">Select Barangay</option>';
+            editBarangayInput.disabled = true;
+
+            if (!cityCode) return;
+
+            if (barangaysData.length === 0) {
+                const res = await fetch('/data/barangays.json');
+                barangaysData = await res.json();
+            }
+
+            const filtered = barangaysData.filter(b => b.city_code === cityCode);
+            filtered.sort((a, b) => a.brgy_name.localeCompare(b.brgy_name));
+
+            filtered.forEach(b => {
+                const opt = document.createElement('option');
+                opt.value = b.brgy_name;
+                opt.textContent = b.brgy_name;
+                editBarangayInput.appendChild(opt);
+            });
+
+            editBarangayInput.disabled = false;
+            if (selectedBarangay) editBarangayInput.value = selectedBarangay;
+        }
+
+        editRegionInput.addEventListener('change', () => populateProvinces(editRegionInput.value));
+        editProvinceInput.addEventListener('change', () => populateCities(editProvinceInput.value));
+        editCityInput.addEventListener('change', () => populateBarangays(editCityInput.value));
+
+        // ZIP Code live validation mask (Numbers only & exact 4 digits)
+        editZipInput.addEventListener('input', function() {
+            this.value = this.value.replace(/\D/g, '');
+            if (this.value.length === 4) {
+                editZipHelper.textContent = '';
+            } else if (this.value.length > 0) {
+                editZipHelper.textContent = 'ZIP code must be 4 digits.';
+            } else {
+                editZipHelper.textContent = '';
+            }
+        });
+
+        // Pre-fill ng Region/Province/City/Barangay dropdowns gamit ang kasalukuyang address ng org
+        async function setEditAddressValues() {
+            await loadRegions();
+            if (currentOrgData && currentOrgData.region) {
+                editRegionInput.value = currentOrgData.region;
+                await populateProvinces(currentOrgData.region, currentOrgData.province);
+            }
+            if (currentOrgData && currentOrgData.province) {
+                await populateCities(currentOrgData.province, currentOrgData.city);
+            }
+            if (currentOrgData && currentOrgData.city) {
+                await populateBarangays(currentOrgData.city, currentOrgData.barangay);
+            }
         }
         
         });

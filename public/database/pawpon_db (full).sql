@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Aug 19, 2026 at 05:02 PM
+-- Generation Time: Aug 25, 2026 at 08:26 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.0.30
 
@@ -21,7 +21,7 @@ SET time_zone = "+00:00";
 -- Database: `pawpon_db`
 --
 
-----------------------------------------------------------
+-- --------------------------------------------------------
 
 --
 -- Table structure for table `accounts`
@@ -46,12 +46,12 @@ CREATE TABLE `accounts` (
 
 INSERT INTO `accounts` (`account_id`, `email`, `password_hash`, `role`, `status`, `email_verified`, `profile_pic`, `created_at`, `updated_at`, `last_login`) VALUES
 (1, 'admin@pawpon.com', '$2b$10$l16R.DYg693wgKJJ20QQYucqrCl8.Zop120.UkdYO7g0TKXTc6vr6', 'admin', 'active', 1, NULL, '2026-07-06 14:27:26', '2026-07-24 16:08:56', '2026-07-25 00:08:56'),
-(2, 'pawssion@gmail.com', '$2b$10$2hXt/yS9bNVHA2d31JWDHuzjfOcyEz5Px8RY3DN3MxhDFApxxCTMe', 'organization', 'active', 1, NULL, '2026-07-13 12:51:22', '2026-08-19 09:57:15', '2026-08-19 17:57:15'),
-(3, 'shin@gmail.com', '$2b$10$tuu0.7L9PiYpbXeUNdRmw.rerKPVXwUhOuCzh/mgR1LduNDDVL5.q', 'adopter', 'active', 1, NULL, '2026-07-13 12:55:42', '2026-08-19 10:11:13', '2026-08-19 18:11:13'),
+(2, 'pawssion@gmail.com', '$2b$10$2hXt/yS9bNVHA2d31JWDHuzjfOcyEz5Px8RY3DN3MxhDFApxxCTMe', 'organization', 'active', 1, NULL, '2026-07-13 12:51:22', '2026-08-25 05:28:33', '2026-08-25 13:28:33'),
+(3, 'shin@gmail.com', '$2b$10$tuu0.7L9PiYpbXeUNdRmw.rerKPVXwUhOuCzh/mgR1LduNDDVL5.q', 'adopter', 'active', 1, NULL, '2026-07-13 12:55:42', '2026-08-25 05:28:47', '2026-08-25 13:28:47'),
 (4, 'jhyzzeeldianela8@gmail.com', '$2b$10$0GjjNk1KhUV8c9sZMehVlOcChT1tMtsjsJDGT.QdUGxWB5.m/vU6.', 'adopter', 'active', 1, NULL, '2026-07-24 16:05:49', '2026-07-24 16:21:20', '2026-07-25 00:21:20'),
 (5, 'jhyzzeeldianela@gmail.com', '$2b$10$JVHLxLNP8jFjCy3C8lpla.4P9s/tdhcMMnUq699.aOKat47N2uFCe', 'organization', 'active', 1, NULL, '2026-07-24 16:07:44', '2026-08-06 13:52:25', '2026-08-06 21:52:25'),
 (6, 'eneriatelepse@gmail.com', '$2b$10$CqRZqEY5tGsQpW1Z.Dequ.CizCVVCjsLj6ulBpg0A37TDEF5npogK', 'adopter', 'active', 1, NULL, '2026-08-09 15:02:03', '2026-08-17 11:34:11', '2026-08-17 19:34:11'),
-(7, 'irespeleta@my.cspc.edu.ph', '$2b$10$hFdkc2foUWjwAaejb4kte.PpZ9tcNIyjzMxjbjZQCqHnFEODZCNhC', 'adopter', 'active', 1, NULL, '2026-08-19 09:55:24', '2026-08-19 09:55:32', '2026-08-19 17:55:32');
+(7, 'irespeleta@my.cspc.edu.ph', '$2b$10$hFdkc2foUWjwAaejb4kte.PpZ9tcNIyjzMxjbjZQCqHnFEODZCNhC', 'adopter', 'active', 1, NULL, '2026-08-19 09:55:24', '2026-08-25 04:06:20', '2026-08-25 12:06:20');
 
 -- --------------------------------------------------------
 
@@ -82,10 +82,10 @@ CREATE TABLE `adopters` (
 --
 
 INSERT INTO `adopters` (`adopter_id`, `account_id`, `first_name`, `last_name`, `birthday`, `civil_status`, `occupation`, `region`, `street_address`, `barangay`, `city`, `province`, `zip_code`, `phone_number`, `profile_picture`) VALUES
-(1, 3, 'Shinrei', 'Nouzen', '2000-01-01', NULL, NULL, 'Region V (Bicol Region)', '', '', '', '', '', '09876543211', '/uploads/avatars/avatar-3-1786284038336.jpg'),
+(1, 3, 'Shinrei', 'Nouzen', '1999-12-23', 'Single', 'Programmer', 'Region VI (Western Visayas)', 'hgnhghtghf', 'Mamhut Norte', 'Balasan', 'Antique', '3444', '09876543211', '/uploads/avatars/avatar-3-1786284038336.jpg'),
 (2, 4, 'Jhyzzeel', 'Dianela', '2000-01-01', NULL, NULL, 'Region V (Bicol Region)', '', '', '', '', '', '09815439724', NULL),
 (3, 6, 'Irene', 'Espeleta', '2000-01-01', NULL, NULL, 'Region V (Bicol Region)', '', '', '', '', '', '09786676767', NULL),
-(4, 7, 'Irene', 'Espeleta', '2005-08-19', NULL, NULL, 'Region V (Bicol Region)', 'hyytgg', 'San Ramon', 'Bula', 'Albay', '1212', '09555555555', NULL);
+(4, 7, 'Irene', 'Espeleta', '2005-07-30', 'Single', NULL, 'Region V (Bicol Region)', 'hyytgg', 'Mainit', 'Bato', 'Camarines Sur', '1212', '09444444447', '/uploads/avatars/avatar-7-1787246507967.png');
 
 -- --------------------------------------------------------
 
@@ -100,28 +100,26 @@ CREATE TABLE `animals` (
   `species` enum('Dog','Cat') NOT NULL,
   `gender` enum('Male','Female') NOT NULL,
   `age` enum('Puppy/Kitten (0-1 yr old)','Adolescence (2-3 yrs old)','Adult (4-7 yrs old)','Senior (8-10 yrs old)') NOT NULL,
-  `color` varchar(100) DEFAULT NULL,
   `pet_description` text DEFAULT NULL,
   `health_status` enum('Healthy','Sick','Under Treatment','Recovered') NOT NULL DEFAULT 'Healthy',
   `vaccination_status` enum('Vaccinated','Not Vaccinated','Unknown') DEFAULT 'Unknown',
   `adoption_status` enum('Available','Pending','Adopted','Archived') DEFAULT 'Available',
   `image_path` varchar(255) DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `personality_tags` varchar(255) DEFAULT NULL
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `animals`
 --
 
-INSERT INTO `animals` (`animal_id`, `organization_id`, `name`, `species`, `gender`, `age`, `color`, `pet_description`, `health_status`, `vaccination_status`, `adoption_status`, `image_path`, `created_at`, `personality_tags`) VALUES
-(10, 1, 'NOUGAT', 'Dog', 'Female', 'Adolescence (2-3 yrs old)', 'WHITE', 'This sweet animal is looking for a forever home. They have been socialized with humans and are ready to be part of a loving family. Great with kids and always eager to greet you at the door', 'Healthy', 'Vaccinated', 'Available', '1784476469890-470542.PNG', '2026-07-14 16:27:42', 'Kind,Cool,Friendly,Cute'),
-(12, 1, 'SADBOI', 'Dog', 'Male', 'Adolescence (2-3 yrs old)', 'black and white', 'Calm and friendly, allows human interaction and petting. Kinds always\r\n', 'Healthy', 'Vaccinated', 'Available', '1784476346068-454492.PNG', '2026-07-16 11:32:48', 'kind,cute,friendly,Calm'),
-(13, 1, 'ADOBO ', 'Dog', 'Female', 'Adult (4-7 yrs old)', 'brown and white on extremities & end of tail', 'Very friendly, active, allows human interaction and petting.\r\n', 'Healthy', 'Vaccinated', 'Adopted', '1784812642399-55744.png', '2026-07-16 11:56:33', 'Friendly,Kind,Kyut,Chubby'),
-(14, 1, 'Luca', 'Cat', 'Female', 'Adult (4-7 yrs old)', 'blue', 'a cat who loves playing outside and plays with other cat', 'Healthy', 'Vaccinated', 'Available', '1784800557935-647386.png', '2026-07-23 09:55:57', 'kind,big,friendly'),
-(15, 1, 'TATA', 'Dog', 'Female', 'Adult (4-7 yrs old)', 'fsddfs', 'Loves food', 'Healthy', 'Vaccinated', 'Adopted', '1784812611011-994578.png', '2026-07-23 13:16:51', 'Kind,Cute,Friendly,Playful'),
-(21, 1, 'sample add pet', 'Dog', 'Male', 'Adolescence (2-3 yrs old)', 'grfgrdgr', NULL, 'Sick', 'Unknown', 'Pending', NULL, '2026-08-14 07:40:37', NULL),
-(26, 1, 'sample add pet', 'Dog', 'Male', 'Adolescence (2-3 yrs old)', NULL, NULL, 'Healthy', 'Vaccinated', 'Adopted', NULL, '2026-08-14 08:00:21', NULL);
+INSERT INTO `animals` (`animal_id`, `organization_id`, `name`, `species`, `gender`, `age`, `pet_description`, `health_status`, `vaccination_status`, `adoption_status`, `image_path`, `created_at`) VALUES
+(10, 1, 'NOUGAT', 'Dog', 'Female', 'Adolescence (2-3 yrs old)', 'This sweet animal is looking for a forever home. They have been socialized with humans and are ready to be part of a loving family. Great with kids and always eager to greet you at the door', 'Healthy', 'Vaccinated', 'Available', '1784476469890-470542.PNG', '2026-07-14 16:27:42'),
+(12, 1, 'SADBOI', 'Dog', 'Male', 'Adolescence (2-3 yrs old)', 'Calm and friendly, allows human interaction and petting. Kinds always\r\n', 'Healthy', 'Vaccinated', 'Available', '1784476346068-454492.PNG', '2026-07-16 11:32:48'),
+(13, 1, 'ADOBO ', 'Dog', 'Female', 'Adult (4-7 yrs old)', 'Very friendly, active, allows human interaction and petting.\r\n', 'Healthy', 'Vaccinated', 'Available', '1784812642399-55744.png', '2026-07-16 11:56:33'),
+(14, 1, 'Luca', 'Cat', 'Female', 'Adult (4-7 yrs old)', 'a cat who loves playing outside and plays with other cat', 'Healthy', 'Vaccinated', 'Available', '1784800557935-647386.png', '2026-07-23 09:55:57'),
+(15, 1, 'TATA', 'Dog', 'Female', 'Adult (4-7 yrs old)', 'Loves food', 'Healthy', 'Vaccinated', 'Adopted', '1784812611011-994578.png', '2026-07-23 13:16:51'),
+(21, 1, 'sample add pet', 'Dog', 'Male', 'Adolescence (2-3 yrs old)', NULL, 'Sick', 'Unknown', 'Pending', NULL, '2026-08-14 07:40:37'),
+(26, 1, 'sample add pet', 'Dog', 'Male', 'Adolescence (2-3 yrs old)', NULL, 'Healthy', 'Vaccinated', 'Adopted', NULL, '2026-08-14 08:00:21');
 
 -- --------------------------------------------------------
 
@@ -205,8 +203,9 @@ CREATE TABLE `application_interviews` (
 --
 
 INSERT INTO `application_interviews` (`interview_id`, `application_id`, `interview_date`, `interview_time`, `interview_method`, `interview_location_link`, `requested_interview_date`, `requested_interview_time`, `reschedule_reason`, `resched_status`, `created_at`, `updated_at`) VALUES
-(1, 16, '2026-08-13', '01:06:00', 'virtual', 'https://meet.google.com/pqp-demo-meet', NULL, NULL, NULL, 'Approved', '2026-08-08 16:25:15', '2026-08-08 17:06:43'),
-(14, 20, '2026-08-17', '19:50:00', 'virtual', 'https://meet.google.com/pqp-demo-meet', '2026-08-13', '00:03:00', 'jujkukj', 'Approved', '2026-08-10 03:02:59', '2026-08-17 11:46:20');
+(38, 29, '2026-08-25', '08:00:00', 'virtual', 'https://meet.google.com/pqp-demo-meet', NULL, NULL, NULL, 'Approved', '2026-08-24 10:24:05', '2026-08-24 10:24:05'),
+(44, 28, '2026-08-25', '11:30:00', 'virtual', 'https://meet.google.com/pqp-demo-meet', NULL, NULL, NULL, 'Approved', '2026-08-25 03:14:34', '2026-08-25 03:14:34'),
+(45, 31, '2026-08-25', '12:00:00', 'virtual', 'https://meet.google.com/pqp-demo-meet', NULL, NULL, NULL, 'Approved', '2026-08-25 03:36:19', '2026-08-25 03:36:19');
 
 -- --------------------------------------------------------
 
@@ -220,6 +219,7 @@ CREATE TABLE `cash_donations` (
   `organization_id` int(11) NOT NULL,
   `donor_name` varchar(255) NOT NULL,
   `donor_email` varchar(255) NOT NULL,
+  `payment_method` enum('gcash','maya') NOT NULL DEFAULT 'gcash',
   `gcash_account_name` varchar(255) DEFAULT NULL,
   `reference_number` varchar(100) NOT NULL,
   `amount` decimal(10,2) NOT NULL,
@@ -233,9 +233,19 @@ CREATE TABLE `cash_donations` (
 -- Dumping data for table `cash_donations`
 --
 
-INSERT INTO `cash_donations` (`cash_donation_id`, `adopter_id`, `organization_id`, `donor_name`, `donor_email`, `gcash_account_name`, `reference_number`, `amount`, `receipt_path`, `status`, `rejection_reason`, `created_at`) VALUES
-(10, 2, 2, 'Jhyzzeel Dianela', 'jhyzzeeldianela8@gmail.com', 'Jhyzzeel Dianela', 'kjhgcfxdrctg67890', 600.00, '/uploads/receipts/receipt-4-1784909495104.png', 'Pending', NULL, '2026-07-24 16:11:35'),
-(11, 2, 2, 'Jhyzzeel Dianela', 'jhyzzeeldianela8@gmail.com', 'Jhyzzeel Dianela', 'ihugyftdr567890', 700.00, '/uploads/receipts/receipt-4-1784909533509.jpg', 'Approved', NULL, '2026-07-24 16:12:13');
+INSERT INTO `cash_donations` (`cash_donation_id`, `adopter_id`, `organization_id`, `donor_name`, `donor_email`, `payment_method`, `gcash_account_name`, `reference_number`, `amount`, `receipt_path`, `status`, `rejection_reason`, `created_at`) VALUES
+(10, 2, 2, 'Jhyzzeel Dianela', 'jhyzzeeldianela8@gmail.com', 'gcash', 'Jhyzzeel Dianela', 'kjhgcfxdrctg67890', 600.00, '/uploads/receipts/receipt-4-1784909495104.png', 'Pending', NULL, '2026-07-24 08:11:35'),
+(11, 2, 2, 'Jhyzzeel Dianela', 'jhyzzeeldianela8@gmail.com', 'gcash', 'Jhyzzeel Dianela', 'ihugyftdr567890', 700.00, '/uploads/receipts/receipt-4-1784909533509.jpg', 'Approved', NULL, '2026-07-24 08:12:13'),
+(12, 2, 2, 'Jhyzzeel Dianela', 'jhyzzeeldianela8@gmail.com', 'gcash', 'kjhghjkm', 'ghjkkjhygtr567890-0987654567890-0987', 90.00, '/uploads/receipts/receipt-4-1787322350071.jpg', 'Pending', NULL, '2026-08-21 14:25:50'),
+(13, 2, 2, 'Jhyzzeel Dianela', 'jhyzzeeldianela8@gmail.com', 'gcash', 'kjhgcfcrtyui', 'mknjhrd4567y8u9i0', 5678909.00, '/uploads/receipts/receipt-4-1787323677500.png', 'Approved', NULL, '2026-08-21 14:47:57'),
+(14, 2, 2, 'Jhyzzeel Dianela', 'jhyzzeeldianela8@gmail.com', 'gcash', 'jhyzzeel Dianela', 'jbhgc6t7y89i0', 36.00, '/uploads/receipts/receipt-4-1787325307468.jpg', 'Approved', NULL, '2026-08-21 15:15:07'),
+(15, 2, 2, 'Jhyzzeel Dianela', 'jhyzzeeldianela8@gmail.com', 'gcash', 'zjanjdq', '234829484658202', 60.00, '/uploads/receipts/receipt-4-1787496107668.jpg', 'Pending', NULL, '2026-08-23 14:41:47'),
+(16, 2, 2, 'Jhyzzeel Dianela', 'jhyzzeeldianela8@gmail.com', 'gcash', 'ghjkm', '12345678904892', 58.00, '/uploads/receipts/receipt-4-1787496357859.jpg', 'Pending', NULL, '2026-08-23 14:45:57'),
+(17, 2, 2, 'Jhyzzeel Dianela', 'jhyzzeeldianela8@gmail.com', 'gcash', 'Jhyzzeel Dianela', '1234567890865', 130.00, '/uploads/receipts/receipt-4-1787497972376.jpg', 'Pending', NULL, '2026-08-23 15:12:52'),
+(18, 2, 2, 'Jhyzzeel Dianela', 'jhyzzeeldianela8@gmail.com', 'maya', 'Jhyzzeel Barte', '1235678987654', 54.00, '/uploads/receipts/receipt-4-1787498576770.jpg', 'Approved', NULL, '2026-08-23 15:22:56'),
+(19, 2, 2, 'Jhyzzeel Dianela', 'jhyzzeeldianela8@gmail.com', 'maya', 'Jhyzzeel Dianela', '12345678909865', 40.00, '/uploads/receipts/receipt-4-1787568467623.jpg', 'Pending', NULL, '2026-08-24 10:47:47'),
+(20, 2, 2, 'Jhyzzeel Dianela', 'jhyzzeeldianela8@gmail.com', 'maya', 'Jhyzzeel Dianela', '1234567384950', 50.00, '/uploads/receipts/receipt-4-1787569848067.jpg', 'Pending', NULL, '2026-08-24 11:10:48'),
+(21, 2, 2, 'Jhyzzeel Dianela', 'jhyzzeeldianela8@gmail.com', 'maya', 'John Kirby Perez', '2345677654321', 127.00, '/uploads/receipts/receipt-4-1787570549535.jpg', 'Approved', NULL, '2026-08-24 11:22:29');
 
 -- --------------------------------------------------------
 
@@ -263,8 +273,8 @@ CREATE TABLE `inkind_donations` (
 --
 
 INSERT INTO `inkind_donations` (`inkind_donation_id`, `adopter_id`, `organization_id`, `donor_name`, `donor_email`, `item_name`, `quantity`, `unit`, `location_image_path`, `status`, `rejection_reason`, `created_at`) VALUES
-(7, 2, 2, 'Jhyzzeel Dianela', 'jhyzzeeldianela8@gmail.com', 'busal', 6, 'pcs', NULL, 'Pending', NULL, '2026-07-24 16:11:50'),
-(8, 2, 2, 'Jhyzzeel Dianela', 'jhyzzeeldianela8@gmail.com', 'busal', 6, 'pcs', NULL, 'Approved', NULL, '2026-07-24 16:12:30');
+(7, 2, 2, 'Jhyzzeel Dianela', 'jhyzzeeldianela8@gmail.com', 'busal', 6, 'pcs', NULL, 'Pending', NULL, '2026-07-24 08:11:50'),
+(8, 2, 2, 'Jhyzzeel Dianela', 'jhyzzeeldianela8@gmail.com', 'busal', 6, 'pcs', NULL, 'Approved', NULL, '2026-07-24 08:12:30');
 
 -- --------------------------------------------------------
 
@@ -291,10 +301,12 @@ CREATE TABLE `kamustahan_updates` (
 --
 
 INSERT INTO `kamustahan_updates` (`update_id`, `animal_id`, `adopter_id`, `organization_id`, `update_date`, `update_text`, `photos`, `is_archived`, `status`, `scheduled_date`, `created_at`) VALUES
-(22, 13, 2, 1, '2026-08-15', 'srgtrhytjuyiujyrthergee', '/uploads/kamustahan/kamustahan-1786801656558.png', 1, 'Archived', '2026-08-15', '2026-08-15 13:47:36'),
-(23, 15, 2, 1, '2026-08-15', 'qdwfert', '/uploads/kamustahan/kamustahan-1786778047208.png', 1, 'Archived', '2026-08-15', '2026-08-15 07:14:07'),
-(25, 10, 1, 1, '0000-00-00', '', '', 0, 'For Update', NULL, '2026-08-15 14:40:53'),
-(26, 13, 1, 1, '0000-00-00', '', '', 0, 'For Update', NULL, '2026-08-18 05:12:41');
+(27, 15, 1, 1, '0000-00-00', '', '', 0, 'For Update', NULL, '2026-08-25 03:29:28'),
+(28, 26, 4, 1, '0000-00-00', '', '', 0, 'For Update', NULL, '2026-08-25 04:05:43'),
+(29, 26, 4, 1, '0000-00-00', '', '', 0, 'For Update', NULL, '2026-08-25 04:40:27'),
+(30, 26, 4, 1, '0000-00-00', '', '', 0, 'For Update', NULL, '2026-08-25 04:53:02'),
+(31, 26, 4, 1, '0000-00-00', '', '', 0, 'For Update', NULL, '2026-08-25 05:00:58'),
+(32, 26, 4, 1, '0000-00-00', '', '', 0, 'For Update', NULL, '2026-08-25 05:35:41');
 
 -- --------------------------------------------------------
 
@@ -375,6 +387,7 @@ INSERT INTO `organization_documents` (`document_id`, `organization_id`, `documen
 CREATE TABLE `organization_dropoff_details` (
   `dropoff_id` int(11) NOT NULL,
   `organization_id` int(11) NOT NULL,
+  `dropoff_location_name` varchar(255) DEFAULT NULL,
   `dropoff_address` text DEFAULT NULL,
   `dropoff_hours` varchar(255) DEFAULT NULL,
   `dropoff_notes` text DEFAULT NULL,
@@ -387,8 +400,8 @@ CREATE TABLE `organization_dropoff_details` (
 -- Dumping data for table `organization_dropoff_details`
 --
 
-INSERT INTO `organization_dropoff_details` (`dropoff_id`, `organization_id`, `dropoff_address`, `dropoff_hours`, `dropoff_notes`, `dropoff_image`, `created_at`, `updated_at`) VALUES
-(11, 2, 'San Miguel, Nabua, Camarines Sur 4434 Philippines', 'Tuesday - Sunday 8:00 AM - 6:00 PM', 'dqwevdfdq', 'qr-5-1784909409554-195232240.png', '2026-07-24 16:09:53', '2026-07-24 16:10:09');
+INSERT INTO `organization_dropoff_details` (`dropoff_id`, `organization_id`, `dropoff_location_name`, `dropoff_address`, `dropoff_hours`, `dropoff_notes`, `dropoff_image`, `created_at`, `updated_at`) VALUES
+(57, 2, 'PUP Sintang', 'Pili Camarines sur', 'Tuesday - Sunday 8:00 AM - 6:00 PM', 'knjbhvgcfrtf6g7h8j9okpl', 'qr-5-1787597664232-574312247.png', '2026-08-24 18:06:02', '2026-08-24 19:09:39');
 
 -- --------------------------------------------------------
 
@@ -403,15 +416,19 @@ CREATE TABLE `organization_payment_details` (
   `gcash_number` varchar(20) DEFAULT NULL,
   `qr_code` varchar(255) DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `maya_name` varchar(150) DEFAULT NULL,
+  `maya_number` varchar(20) DEFAULT NULL,
+  `maya_qr_code` varchar(255) DEFAULT NULL,
+  `payment_method` varchar(20) NOT NULL DEFAULT 'gcash'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `organization_payment_details`
 --
 
-INSERT INTO `organization_payment_details` (`payment_id`, `organization_id`, `gcash_name`, `gcash_number`, `qr_code`, `created_at`, `updated_at`) VALUES
-(12, 2, 'Pup Sintang', '09815439724', 'qr-5-1784909409551-756378607.png', '2026-07-24 16:09:53', '2026-07-24 16:10:09');
+INSERT INTO `organization_payment_details` (`payment_id`, `organization_id`, `gcash_name`, `gcash_number`, `qr_code`, `created_at`, `updated_at`, `maya_name`, `maya_number`, `maya_qr_code`, `payment_method`) VALUES
+(80, 2, 'Jhyzzeel Dianela', '09815439729', 'qr-5-1787567384853-170908830.jpg', '2026-08-24 10:29:44', '2026-08-24 19:09:39', 'John D', '09815439728', 'qr-5-1787567421309-858190497.png', 'maya');
 
 -- --------------------------------------------------------
 
@@ -447,13 +464,7 @@ CREATE TABLE `user_adoption_applications` (
   `organization_id` int(11) DEFAULT NULL,
   `animal_id` int(11) NOT NULL,
   `adopter_id` int(11) DEFAULT NULL,
-  `full_name` varchar(150) NOT NULL,
-  `contact_number` varchar(15) NOT NULL,
-  `email` varchar(100) NOT NULL,
-  `full_address` text NOT NULL,
-  `civil_status` varchar(20) NOT NULL,
-  `age` int(11) NOT NULL,
-  `occupation` varchar(100) NOT NULL,
+  `applicant_snapshot` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`applicant_snapshot`)),
   `adoption_intent` text NOT NULL,
   `emergency_name` varchar(150) NOT NULL,
   `emergency_phone` varchar(15) NOT NULL,
@@ -469,14 +480,11 @@ CREATE TABLE `user_adoption_applications` (
 -- Dumping data for table `user_adoption_applications`
 --
 
-INSERT INTO `user_adoption_applications` (`application_id`, `organization_id`, `animal_id`, `adopter_id`, `full_name`, `contact_number`, `email`, `full_address`, `civil_status`, `age`, `occupation`, `adoption_intent`, `emergency_name`, `emergency_phone`, `emergency_relation`, `document_path`, `status`, `decline_reason`, `created_at`, `updated_at`) VALUES
-(1, 1, 15, 1, 'Irene Espeleta', '09331231232', 'irespeleta@my.cspc.edu.ph', 'sfdsfffffffffffffffffffffffffffffffffffffffff', 'Single', 45, 'dfgdfgdfgdfg', 'gfrgrfgrfgf', 'Irene Espeleta', '09676565666', 'fddgvdgdg', 'doc-3-1785174605742.png', 'Approved', NULL, '2026-07-27 17:50:05', '2026-08-06 05:49:55'),
-(5, 1, 14, 1, 'Irene Espeleta', '09322334542', 'eneriatelepse@gmail.com', 'dfdgsdgfgrfghdf', 'Single', 22, 'fffd', 'gfgdfgf', 'Irene Espeleta', '09676756756', 'fxdgdfgf', 'doc-3-1786880027306.png', 'Under Review', NULL, '2026-08-07 07:41:01', '2026-08-16 11:33:47'),
-(10, 1, 10, 1, 'Irene Espeleta', '09322334542', 'eneriatelepse@gmail.com', 'tgfsertf', 'Single', 22, 'ffdghfdh', 'fhfdhgfdh', 'Irene Espeleta', '09676756756', 'bngbngbnfg', 'doc-3-1786880172980.jpg', 'Cancelled', NULL, '2026-08-07 09:04:29', '2026-08-16 11:36:24'),
-(16, 1, 13, 1, 'retr', '09322334542', 'mayiee@gmail.com', '76uyuy', 'Single', 21, 'hjyh', 'fgrfghfd', 'fgfhfdgh', '09676756756', 'fgfhf', 'doc-3-1786110528274.jpg', 'Approved', NULL, '2026-08-07 13:48:48', '2026-08-18 05:12:41'),
-(20, 1, 14, 3, 'Irene Espeleta', '09331231232', 'irespeleta@my.cspc.edu.ph', 'sfdsfffffffffffffffffffffffffffffffffffffffff', 'Single', 22, 'bdffvfdv', 'fvgrfgvrfrsgrg', 'Irene Espeleta', '09676565666', 'rgrfgrfg', 'doc-6-1786325535420.png', 'Interview Scheduled', NULL, '2026-08-10 01:32:15', '2026-08-17 11:46:20'),
-(25, 1, 26, NULL, 'Irene Espeleta', '09777777777', 'irespeleta@my.cspc.edu.ph', 'hthtrh', 'Married', 33, 'mhgmh', '', 'hjghjghj', '09778777777', 'dfgfxgf', '', 'Approved', NULL, '2026-08-14 08:00:21', '2026-08-14 08:00:21'),
-(26, 1, 12, 1, 'Irene Espeleta', '09322334542', 'eneriatelepse@gmail.com', 'gtrdtrdt', 'Single', 21, 'fhbfh', 'fgfxgfdgdf', 'Irene Espeleta', '09676756756', 'fbhfbhf', 'doc-3-1786949817264.JPG', 'Under Review', NULL, '2026-08-17 06:56:57', '2026-08-17 06:56:57');
+INSERT INTO `user_adoption_applications` (`application_id`, `organization_id`, `animal_id`, `adopter_id`, `applicant_snapshot`, `adoption_intent`, `emergency_name`, `emergency_phone`, `emergency_relation`, `document_path`, `status`, `decline_reason`, `created_at`, `updated_at`) VALUES
+(28, 1, 26, 1, '{\"full_name\":\"Shinrei Nouzen\",\"contact_number\":\"09876543211\",\"email\":\"shin@gmail.com\",\"full_address\":\"hgnhghtghf, Barangay Mamhut Norte, Balasan, Antique, Region VI (Western Visayas), 3444\",\"civil_status\":\"Single\",\"age\":26,\"occupation\":\"Programmer\",\"submitted_at\":\"2026-08-25T02:56:38.639Z\"}', 'fgrfgf', 'Irene Espeleta', '09676756756', 'ssdfs', 'doc-3-1787626598604.png', 'Declined', 'The pet has already been adopted by another applicant.', '2026-08-25 02:56:38', '2026-08-25 05:35:41'),
+(29, 1, 15, 1, '{\"full_name\":\"Shinrei Nouzen\",\"contact_number\":\"09876543211\",\"email\":\"shin@gmail.com\",\"full_address\":\"hgnhghtghf, Barangay Mamhut Norte, Balasan, Antique, Region VI (Western Visayas), 3444\",\"civil_status\":\"Single\",\"age\":26,\"occupation\":\"Programmer\",\"submitted_at\":\"2026-08-24T10:23:14.231Z\"}', 'ccbcb', 'Irene Espeleta', '09676756756', 'ddcdgd', 'doc-3-1787566994210.png', 'Approved', NULL, '2026-08-24 10:23:14', '2026-08-25 03:29:28'),
+(31, 1, 26, 4, '{\"full_name\":\"Irene Espeleta\",\"contact_number\":\"09444444447\",\"email\":\"irespeleta@my.cspc.edu.ph\",\"full_address\":\"hyytgg, Barangay Mainit, Bato, Camarines Sur, Region V (Bicol Region), 1212\",\"civil_status\":\"Single\",\"age\":21,\"occupation\":\"fghthth\",\"submitted_at\":\"2026-08-25T03:35:19.591Z\"}', 'fhfhfh fgfgdfg', 'Irene Espeleta', '09676565666', 'hthth', 'doc-7-1787628919573.JPG', 'Approved', NULL, '2026-08-25 03:35:19', '2026-08-25 05:35:41'),
+(32, 1, 14, 1, '{\"full_name\":\"Shinrei Nouzen\",\"contact_number\":\"09876543211\",\"email\":\"shin@gmail.com\",\"full_address\":\"hgnhghtghf, Barangay Mamhut Norte, Balasan, Antique, Region VI (Western Visayas), 3444\",\"civil_status\":\"Single\",\"age\":26,\"occupation\":\"Programmer\",\"submitted_at\":\"2026-08-25T06:01:16.819Z\"}', 'gfgd', 'Irene Espeleta', '09676756756', 'rfgrgr', 'doc-3-1787637676806.png', 'Under Review', NULL, '2026-08-25 06:01:16', '2026-08-25 06:01:16');
 
 --
 -- Indexes for dumped tables
@@ -573,14 +581,15 @@ ALTER TABLE `organization_documents`
 --
 ALTER TABLE `organization_dropoff_details`
   ADD PRIMARY KEY (`dropoff_id`),
-  ADD UNIQUE KEY `unique_org_dropoff` (`organization_id`);
+  ADD UNIQUE KEY `unique_org_dropoff` (`organization_id`),
+  ADD UNIQUE KEY `unique_organization_dropoff` (`organization_id`);
 
 --
 -- Indexes for table `organization_payment_details`
 --
 ALTER TABLE `organization_payment_details`
   ADD PRIMARY KEY (`payment_id`),
-  ADD UNIQUE KEY `unique_org_payment` (`organization_id`);
+  ADD UNIQUE KEY `unique_organization_payment` (`organization_id`);
 
 --
 -- Indexes for table `password_reset_tokens`
@@ -631,13 +640,13 @@ ALTER TABLE `animal_medical_history`
 -- AUTO_INCREMENT for table `application_interviews`
 --
 ALTER TABLE `application_interviews`
-  MODIFY `interview_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+  MODIFY `interview_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=47;
 
 --
 -- AUTO_INCREMENT for table `cash_donations`
 --
 ALTER TABLE `cash_donations`
-  MODIFY `cash_donation_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `cash_donation_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
 
 --
 -- AUTO_INCREMENT for table `inkind_donations`
@@ -649,7 +658,7 @@ ALTER TABLE `inkind_donations`
 -- AUTO_INCREMENT for table `kamustahan_updates`
 --
 ALTER TABLE `kamustahan_updates`
-  MODIFY `update_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
+  MODIFY `update_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=33;
 
 --
 -- AUTO_INCREMENT for table `matchmaking_requests`
@@ -673,13 +682,13 @@ ALTER TABLE `organization_documents`
 -- AUTO_INCREMENT for table `organization_dropoff_details`
 --
 ALTER TABLE `organization_dropoff_details`
-  MODIFY `dropoff_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `dropoff_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=62;
 
 --
 -- AUTO_INCREMENT for table `organization_payment_details`
 --
 ALTER TABLE `organization_payment_details`
-  MODIFY `payment_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+  MODIFY `payment_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=90;
 
 --
 -- AUTO_INCREMENT for table `password_reset_tokens`
@@ -691,7 +700,7 @@ ALTER TABLE `password_reset_tokens`
 -- AUTO_INCREMENT for table `user_adoption_applications`
 --
 ALTER TABLE `user_adoption_applications`
-  MODIFY `application_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
+  MODIFY `application_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=33;
 
 --
 -- Constraints for dumped tables

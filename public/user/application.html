@@ -152,6 +152,12 @@
                         <div class="p-4 bg-red-50/60 border border-red-200 rounded-xl text-sm text-red-800" id="detail-decline-content"></div>
                     </div>
 
+                    <!-- Meet-up Location Card (Lalabas lang kapag Approved) -->
+                    <div id="detail-meetup-card" class="card hidden">
+                        <h2 class="section-title"><i class="fas fa-map-marker-alt text-emerald-600"></i> Meet-up Location</h2>
+                        <div class="p-4 bg-emerald-50/60 border border-emerald-200 rounded-xl text-sm text-emerald-900" id="detail-meetup-content"></div>
+                    </div>
+
                     <!-- Requirement -->
                     <div class="card">
                         <h2 class="section-title"><i class="fas fa-upload"></i> Uploaded Requirement</h2>
@@ -459,6 +465,7 @@ async function loadApplications() {
             },
             documentPath: app.document_path,
             declineReason: app.decline_reason,
+            meetupLocation: app.meetup_location,
             interview: {
                 date: app.interview_date,
                 time: app.interview_time,
@@ -845,6 +852,22 @@ function showDetails(app) {
     } else {
         declineCard.classList.add("hidden");
     }
+
+    // 6b. MEET-UP LOCATION CARD (Gaya ng ibang Card, lalabas lang kapag Approved)
+    const meetupCard = document.getElementById("detail-meetup-card");
+    const meetupContent = document.getElementById("detail-meetup-content");
+    if (app.status === "Approved") {
+        meetupCard.classList.remove("hidden");
+
+        meetupContent.innerHTML = `
+            <p class="font-semibold leading-relaxed break-words whitespace-pre-line">
+                <i class="fas fa-location-dot mr-1.5"></i>${app.meetupLocation ? app.meetupLocation : 'No meet-up location was specified by the organization. Please contact them directly.'}
+            </p>
+        `;
+    } else {
+        meetupCard.classList.add("hidden");
+    }
+
 
     // 7. UPLOADED DOCUMENT (Ipakita ang totoong PDF/Image link na in-upload)
     const docContainer = document.querySelector('#details-view .border-dashed');
