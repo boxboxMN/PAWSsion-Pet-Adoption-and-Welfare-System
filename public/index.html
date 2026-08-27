@@ -1,1024 +1,166 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<<<<<<< HEAD
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-      <link rel="icon" type="image/png" href="../assets/images/Pawpon_logo.png">
-    <title>PAWPON</title>
 
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
 
-=======
+    <!-- Font Awesome -->
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
     <link rel="icon" type="image/png" href="../assets/images/Pawpon_logo.png">
+
     <title>PAWPON</title>
 
->>>>>>> 3d370794acea79a3cde828c90c5362b72583d430
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
         html {
             scroll-behavior: smooth;
         }
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #ffffff;
-            color: #111827;
-            overflow-x: hidden;
-        }
-
-        /* =========================
-           NAVBAR
-        ========================= */
-
-        .navbar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            background: rgba(255, 255, 255, 0.94);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            z-index: 999;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.04);
-        }
-
-        .navbar-inner {
-            max-width: 1220px;
-            margin: auto;
-            padding: 18px 30px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .brand {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            text-decoration: none;
-        }
-
-        .brand img {
-            width: 44px;
-            height: 44px;
-            object-fit: contain;
-        }
-
-        .brand-name {
-            font-size: 31px;
-            font-weight: 800;
-            background: linear-gradient(90deg, #013199, #0151ff);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .nav-links {
-            display: flex;
-            align-items: center;
-            gap: 35px;
-        }
-
-        .nav-links a {
-            text-decoration: none;
-            color: #374151;
-            font-size: 15px;
-            font-weight: 600;
-            transition: 0.2s;
-        }
-
-        .nav-links a:hover {
-            color: #0151ff;
-        }
-
-        .account-btn {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 17px;
-            border: 1px solid #d8dee9;
-            border-radius: 30px;
-            text-decoration: none;
-            color: #111827;
-            font-weight: 600;
-            transition: 0.2s;
-        }
-
-        .account-btn img {
-            width: 29px;
-            height: 29px;
-        }
-
-        .account-btn:hover {
-            background: #f4f7ff;
-            border-color: #b9c7ed;
-        }
-
-
-        /* =========================
-           HERO
-        ========================= */
-
-        .hero {
-            min-height: 720px;
-            max-width: 1220px;
-            margin: auto;
-            padding: 150px 30px 80px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 50px;
-        }
-
-        .hero-content {
-            width: 52%;
-        }
-
-        .hero-label {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 15px;
-            background: #f0f4ff;
-            color: #0151ff;
-            border-radius: 30px;
-            font-size: 14px;
-            font-weight: 700;
-            margin-bottom: 22px;
-        }
-
-        .hero h1 {
-            font-size: clamp(48px, 5vw, 70px);
-            line-height: 1.08;
+        .hero-title {
             letter-spacing: -2px;
-            color: #0b0b0b;
-            margin-bottom: 25px;
         }
-
-        .hero h1 span {
-            color: #0151ff;
-        }
-
-        .hero p {
-            max-width: 550px;
-            color: #596579;
-            font-size: 18px;
-            line-height: 1.7;
-            margin-bottom: 35px;
-        }
-
-        .hero-buttons {
-            display: flex;
-            gap: 14px;
-            align-items: center;
-        }
-
-        .primary-btn {
-            background: #ffa500;
-            color: white;
-            text-decoration: none;
-            padding: 14px 28px;
-            border-radius: 30px;
-            font-weight: 700;
-            box-shadow: 0 8px 22px rgba(255, 165, 0, 0.25);
-            transition: 0.25s;
-        }
-
-        .primary-btn:hover {
-            background: #e89500;
-            transform: translateY(-3px);
-        }
-
-        .secondary-btn {
-            color: #0151ff;
-            text-decoration: none;
-            padding: 13px 25px;
-            border: 1px solid #cdd8f5;
-            border-radius: 30px;
-            font-weight: 700;
-            transition: 0.25s;
-        }
-
-        .secondary-btn:hover {
-            background: #f3f6ff;
-        }
-
-        .hero-image {
-            width: 48%;
-            display: flex;
-            justify-content: center;
-            position: relative;
-        }
-
-        .hero-image::before {
-            content: "";
-            position: absolute;
-            width: 420px;
-            height: 420px;
-            background: #eef3ff;
-            border-radius: 50%;
-            z-index: -1;
-        }
-
-        .hero-image img {
-            width: 100%;
-            max-width: 510px;
-            object-fit: contain;
-        }
-
-
-        /* =========================
-           STATEMENT
-        ========================= */
-
-        .statement-section {
-            background: #f5f7ff;
-            padding: 95px 30px;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .statement-section::before {
-            content: "🐾";
-            position: absolute;
-            font-size: 150px;
-            opacity: 0.035;
-            left: 5%;
-            top: 20px;
-            transform: rotate(-20deg);
-        }
-
-        .statement-section::after {
-            content: "🐾";
-            position: absolute;
-            font-size: 120px;
-            opacity: 0.035;
-            right: 6%;
-            bottom: 10px;
-            transform: rotate(20deg);
-        }
-
-        .statement-section h2 {
-            max-width: 800px;
-            margin: auto;
-            font-size: 42px;
-            line-height: 1.2;
-            color: #111827;
-            margin-bottom: 20px;
-        }
-
-        .statement-section h2 span {
-            color: #0151ff;
-        }
-
-        .statement-section p {
-            max-width: 650px;
-            margin: auto;
-            color: #657084;
-            font-size: 17px;
-            line-height: 1.7;
-        }
-
-
-        /* =========================
-           BELIEFS
-        ========================= */
-
-        .beliefs-section {
-            max-width: 1220px;
-            margin: auto;
-            padding: 110px 30px;
-        }
-
-        .section-heading {
-            text-align: center;
-            margin-bottom: 55px;
-        }
-
-        .section-heading h2 {
-            font-size: 40px;
-            margin-bottom: 12px;
-        }
-
-        .section-heading p {
-            color: #697386;
-            font-size: 16px;
-        }
-
-        .belief-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 25px;
-        }
-
-        .belief-card {
-            padding: 38px 30px;
-            border: 1px solid #e8ebf2;
-            border-radius: 20px;
-            background: white;
-            text-align: center;
-            transition: 0.25s;
-        }
-
-        .belief-card:hover {
-            transform: translateY(-7px);
-            box-shadow: 0 15px 35px rgba(30, 64, 175, 0.08);
-        }
-
-        .belief-icon {
-            width: 65px;
-            height: 65px;
-            margin: 0 auto 22px;
-            border-radius: 18px;
-            background: #f0f4ff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 30px;
-        }
-
-        .belief-card h3 {
-            font-size: 20px;
-            margin-bottom: 12px;
-        }
-
-        .belief-card p {
-            color: #687386;
-            line-height: 1.6;
-            font-size: 15px;
-        }
-
-
-        /* =========================
-           OUR STORY
-        ========================= */
-
-        .story-section {
-            background: #f8f9fc;
-            padding: 110px 30px;
-        }
-
-        .story-container {
-            max-width: 1150px;
-            margin: auto;
-            display: flex;
-            align-items: center;
-            gap: 80px;
-        }
-
-        .story-image {
-            width: 50%;
-        }
-
-        .story-image img {
-            width: 100%;
-            max-width: 500px;
-            display: block;
-            border-radius: 25px;
-        }
-
-        .story-content {
-            width: 50%;
-        }
-
-        .small-label {
-            color: #0151ff;
-            font-weight: 800;
-            font-size: 14px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 13px;
-        }
-
-        .story-content h2 {
-            font-size: 42px;
-            line-height: 1.2;
-            margin-bottom: 22px;
-        }
-
-        .story-content p {
-            color: #606c7e;
-            font-size: 17px;
-            line-height: 1.8;
-            margin-bottom: 20px;
-        }
-
-        .story-badge {
-            display: inline-block;
-            background: white;
-            padding: 12px 18px;
-            border-radius: 30px;
-            font-size: 14px;
-            font-weight: 700;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.05);
-        }
-
-
-        /* =========================
-           QUOTE
-        ========================= */
-
-        .quote-section {
-            background: #013199;
-            padding: 100px 30px;
-            text-align: center;
-            color: white;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .quote-section::before {
-            content: "“";
-            position: absolute;
-            font-size: 280px;
-            opacity: 0.08;
-            left: 8%;
-            top: -70px;
-            font-family: Georgia, serif;
-        }
-
-        .quote-section blockquote {
-            max-width: 850px;
-            margin: auto;
-            font-size: 35px;
-            font-weight: 700;
-            line-height: 1.4;
-            position: relative;
-        }
-
-        .quote-section span {
-            display: block;
-            margin-top: 25px;
-            font-size: 15px;
-            opacity: 0.7;
-        }
-
-
-        /* =========================
-           MORE THAN ADOPTION
-        ========================= */
-
-        .actions-section {
-            max-width: 1220px;
-            margin: auto;
-            padding: 110px 30px;
-        }
-
-        .actions-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 25px;
-        }
-
-        .action-card {
-            padding: 35px;
-            border-radius: 20px;
-            background: #ffffff;
-            border: 1px solid #e7ebf2;
-        }
-
-        .action-number {
-            color: #0151ff;
-            font-size: 14px;
-            font-weight: 800;
-            margin-bottom: 20px;
-        }
-
-        .action-card h3 {
-            font-size: 23px;
-            margin-bottom: 12px;
-        }
-
-        .action-card p {
-            color: #667085;
-            line-height: 1.7;
-            font-size: 15px;
-        }
-
-
-        /* =========================
-           PAW FRIENDS GALLERY
-        ========================= */
-
-        .gallery-section {
-            padding: 100px 30px;
-            background: #f8f9fc;
-        }
-
-        .gallery-container {
-            max-width: 1150px;
-            margin: auto;
-        }
-
-        .gallery {
-            display: grid;
-            grid-template-columns: 1.4fr 0.8fr 0.8fr;
-            grid-template-rows: 220px 220px;
-            gap: 15px;
-        }
-
-        .gallery-item {
-            position: relative;
-            overflow: hidden;
-            border-radius: 18px;
-        }
-
-        .gallery-item:first-child {
-            grid-row: span 2;
-        }
-
-        .gallery-item img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transition: transform 0.4s;
-        }
-
-        .gallery-item:hover img {
-            transform: scale(1.05);
-        }
-
-        .gallery-caption {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            padding: 20px;
-            color: white;
-            font-weight: 700;
-            background: linear-gradient(transparent, rgba(0,0,0,0.7));
-        }
-
-
-        /* =========================
-           CTA
-        ========================= */
-
-        .cta-section {
-            padding: 100px 30px;
-            text-align: center;
-        }
-
-        .cta-box {
-            max-width: 1000px;
-            margin: auto;
-            background: linear-gradient(135deg, #013199, #0151ff);
-            padding: 75px 40px;
-            border-radius: 30px;
-            color: white;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .cta-box::after {
-            content: "🐾";
-            position: absolute;
-            font-size: 180px;
-            right: -20px;
-            bottom: -70px;
-            opacity: 0.08;
-        }
-
-        .cta-box h2 {
-            font-size: 42px;
-            margin-bottom: 15px;
-        }
-
-        .cta-box p {
-            max-width: 600px;
-            margin: 0 auto 30px;
-            line-height: 1.7;
-            opacity: 0.85;
-        }
-
-        .cta-btn {
-            display: inline-block;
-            background: #ffa500;
-            color: white;
-            text-decoration: none;
-            padding: 14px 30px;
-            border-radius: 30px;
-            font-weight: 700;
-        }
-
-
-        /* =========================
-           ARTICLES
-        ========================= */
-
-        .articles-section {
-            max-width: 1220px;
-            margin: auto;
-            padding: 100px 30px 110px;
-        }
-
-        .article-feature {
-            display: grid;
-            grid-template-columns: 1.2fr 1fr;
-            gap: 45px;
-            align-items: center;
-            margin-bottom: 50px;
-        }
-
-        .feature-image {
-            width: 100%;
-            height: 350px;
-            object-fit: cover;
-            border-radius: 20px;
-        }
-
-        .article-category {
-            color: #0151ff;
-            font-size: 13px;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 12px;
-        }
-
-        .article-feature h3 {
-            font-size: 30px;
-            line-height: 1.3;
-            margin-bottom: 15px;
-        }
-
-        .article-feature p {
-            color: #667085;
-            line-height: 1.7;
-            margin-bottom: 20px;
-        }
-
-        .read-link {
-            color: #0151ff;
-            text-decoration: none;
-            font-weight: 700;
-        }
-
-        .article-cards {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 25px;
-        }
-
-        .article-card {
-            border: 1px solid #e8ebf1;
-            border-radius: 18px;
-            overflow: hidden;
-            text-decoration: none;
-            color: inherit;
-            transition: 0.25s;
-        }
-
-        .article-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 30px rgba(0,0,0,0.06);
-        }
-
-        .article-card img {
-            width: 100%;
-            height: 190px;
-            object-fit: cover;
-        }
-
-        .article-card-content {
-            padding: 22px;
-        }
-
-        .article-card h4 {
-            font-size: 18px;
-            line-height: 1.4;
-            margin-bottom: 10px;
-        }
-
-        .article-card p {
-            font-size: 14px;
-            color: #6b7280;
-            line-height: 1.6;
-        }
-
-
-        /* =========================
-           FOOTER
-        ========================= */
-
-        .footer {
-            background: #f8f9fc;
-            padding: 70px 30px 30px;
-            border-top: 1px solid #edf0f5;
-        }
-
-        .footer-container {
-            max-width: 1150px;
-            margin: auto;
-        }
-
-        .footer-top {
-            display: flex;
-            justify-content: space-between;
-            gap: 50px;
-        }
-
-        .footer-brand {
-            max-width: 400px;
-        }
-
-        .footer-brand .brand {
-            margin-bottom: 18px;
-        }
-
-        .footer-brand p {
-            color: #697386;
-            line-height: 1.7;
-            font-size: 14px;
-        }
-
-        .social-icons {
-            display: flex;
-            gap: 12px;
-            margin-top: 22px;
-        }
-
-        .social-icons a {
-            width: 40px;
-            height: 40px;
-            background: #2d57e5;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .social-icons img {
-            width: 19px;
-            height: 19px;
-        }
-
-        .footer-column h4 {
-            font-size: 18px;
-            margin-bottom: 20px;
-        }
-
-        .footer-links {
-            display: flex;
-            flex-direction: column;
-            gap: 13px;
-        }
-
-        .footer-links a {
-            color: #596579;
-            text-decoration: none;
-            font-size: 14px;
-        }
-
-        .footer-links a:hover {
-            color: #0151ff;
-        }
-
-        .contact-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 12px;
-            color: #596579;
-            font-size: 14px;
-        }
-
-        .contact-icon {
-            width: 20px;
-            height: 20px;
-            object-fit: contain;
-        }
-
-        .footer-bottom {
-            border-top: 1px solid #e4e7ec;
-            margin-top: 50px;
-            padding-top: 25px;
-            text-align: center;
-            color: #7b8494;
-            font-size: 13px;
-            line-height: 1.8;
-        }
-
-
-        /* =========================
-           RESPONSIVE
-        ========================= */
-
-        @media (max-width: 900px) {
-
-            .nav-links {
-                display: none;
-            }
-
-            .hero {
-                flex-direction: column;
-                text-align: center;
-                padding-top: 130px;
-            }
-
-            .hero-content,
-            .hero-image {
-                width: 100%;
-            }
-
-            .hero p {
-                margin-left: auto;
-                margin-right: auto;
-            }
-
-            .hero-buttons {
-                justify-content: center;
-            }
-
-            .belief-grid,
-            .actions-grid,
-            .article-cards {
-                grid-template-columns: 1fr;
-            }
-
-            .story-container {
-                flex-direction: column;
-            }
-
-            .story-image,
-            .story-content {
-                width: 100%;
-            }
-
-            .story-content {
-                text-align: center;
-            }
-
-            .article-feature {
-                grid-template-columns: 1fr;
-            }
-
-            .gallery {
-                grid-template-columns: 1fr 1fr;
-                grid-template-rows: 220px 220px 220px;
-            }
-
-            .gallery-item:first-child {
-                grid-row: span 2;
-            }
-
-            .footer-top {
-                flex-direction: column;
-            }
-        }
-
-        @media (max-width: 600px) {
-
-            .navbar-inner {
-                padding: 15px 20px;
-            }
-
-            .brand-name {
-                font-size: 26px;
-            }
-
-            .brand img {
-                width: 38px;
-                height: 38px;
-            }
-
-            .account-btn {
-                padding: 6px 11px;
-                font-size: 13px;
-            }
-
-            .account-btn img {
-                width: 25px;
-                height: 25px;
-            }
-
-            .hero h1 {
-                font-size: 45px;
-            }
-
-            .hero-buttons {
-                flex-direction: column;
-            }
-
-            .primary-btn,
-            .secondary-btn {
-                width: 100%;
-                max-width: 240px;
-            }
-
-            .statement-section h2,
-            .story-content h2,
-            .cta-box h2 {
-                font-size: 32px;
-            }
-
-            .quote-section blockquote {
-                font-size: 25px;
-            }
-
-            .gallery {
-                display: flex;
-                flex-direction: column;
-            }
-
-            .gallery-item {
-                height: 250px;
-            }
-        }
-
-        .belief-icon {
-    width: 65px;
-    height: 65px;
-    margin: 0 auto 22px;
-    border-radius: 18px;
-    background: #f0f4ff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.belief-icon i {
-    font-size: 28px;
-    color: rgb(23, 76, 191);
-}
     </style>
 </head>
 
-<body>
+<body class="bg-white text-gray-900 overflow-x-hidden">
 
     <!-- =========================
          NAVBAR
     ========================== -->
+    <header
+        class="fixed top-0 left-0 w-full bg-white/95 backdrop-blur-xl z-[999] border-b border-black/[0.04]">
 
-    <header class="navbar">
-        <div class="navbar-inner">
+        <div
+            class="max-w-[1220px] mx-auto px-[30px] py-[18px] flex items-center justify-between">
 
-            <a href="index.html" class="brand">
-                <img src="assets/images/Pawpon.png" alt="Pawpon Logo">
-                <span class="brand-name">Pawpon</span>
+            <!-- BRAND -->
+            <a href="index.html" class="flex items-center gap-2.5 no-underline">
+                <img
+                    src="assets/images/Pawpon.png"
+                    alt="Pawpon Logo"
+                    class="w-11 h-11 object-contain">
+
+                <span
+                    class="text-[31px] font-extrabold bg-gradient-to-r from-[#013199] to-[#0151ff] bg-clip-text text-transparent">
+                    Pawpon
+                </span>
             </a>
 
-            <nav class="nav-links">
-                <a href="#home">Home</a>
-                <a href="#about">About Us</a>
-                <a href="#beliefs">Our Values</a>
-                <a href="#articles">Resources</a>
+            <!-- NAV LINKS -->
+            <nav class="hidden min-[901px]:flex items-center gap-[35px]">
+                <a
+                    href="#home"
+                    class="no-underline text-[#374151] text-[15px] font-semibold transition-colors duration-200 hover:text-[#0151ff]">
+                    Home
+                </a>
+
+                <a
+                    href="#about"
+                    class="no-underline text-[#374151] text-[15px] font-semibold transition-colors duration-200 hover:text-[#0151ff]">
+                    About Us
+                </a>
+
+                <a
+                    href="#beliefs"
+                    class="no-underline text-[#374151] text-[15px] font-semibold transition-colors duration-200 hover:text-[#0151ff]">
+                    Our Values
+                </a>
+
+                <a
+                    href="#articles"
+                    class="no-underline text-[#374151] text-[15px] font-semibold transition-colors duration-200 hover:text-[#0151ff]">
+                    Resources
+                </a>
             </nav>
 
-            <a href="auth/login.html" class="account-btn">
+            <!-- ACCOUNT -->
+            <a
+                href="auth/login.html"
+                class="flex items-center gap-2 px-[17px] py-2 border border-[#d8dee9] rounded-full no-underline text-[#111827] font-semibold transition-all duration-200 hover:bg-[#f4f7ff] hover:border-[#b9c7ed] max-[600px]:px-[11px] max-[600px]:py-1.5 max-[600px]:text-[13px]">
+
                 Account
-                <img src="assets/images/account.png" alt="Account">
+
+                <img
+                    src="assets/images/account.png"
+                    alt="Account"
+                    class="w-[29px] h-[29px] max-[600px]:w-[25px] max-[600px]:h-[25px]">
             </a>
 
         </div>
     </header>
 
 
-    <!-- =========================
-         HERO
-    ========================== -->
-
     <main id="home">
 
-        <section class="hero">
+        <!-- =========================
+             HERO
+        ========================== -->
+        <section
+            class="min-h-[720px] max-w-[1220px] mx-auto px-[30px] pt-[150px] pb-20 flex items-center justify-between gap-[50px] max-[900px]:flex-col max-[900px]:text-center max-[900px]:pt-[130px]">
 
-            <div class="hero-content">
+            <!-- HERO CONTENT -->
+            <div class="w-[52%] max-[900px]:w-full">
 
-                <div class="hero-label">
-                     Giving Paws a Second Chance
+                <div
+                    class="inline-flex items-center gap-2 px-[15px] py-2 bg-[#f0f4ff] text-[#0151ff] rounded-full text-sm font-bold mb-[22px]">
+                    Giving Paws a Second Chance
                 </div>
 
-                <h1>
+                <h1
+                    class="hero-title text-[clamp(48px,5vw,70px)] leading-[1.08] text-[#0b0b0b] mb-[25px] max-[600px]:text-[45px]">
+
                     Find Your
-                    <span>Perfect Companion.</span>
+                    <span class="text-[#0151ff]">
+                        Perfect Companion.
+                    </span>
+
                 </h1>
 
-                <p>
+                <p
+                    class="max-w-[550px] text-[#596579] text-lg leading-[1.7] mb-[35px] max-[900px]:mx-auto">
+
                     Pawpon connects compassionate hearts with rescued animals,
                     helping pets find loving families and the forever homes they deserve.
+
                 </p>
 
-                <div class="hero-buttons">
-                    <a href="auth/login.html" class="primary-btn">
-                         Find a Pet
+                <div
+                    class="flex items-center gap-[14px] max-[900px]:justify-center max-[600px]:flex-col">
+
+                    <a
+                        href="auth/login.html"
+                        class="bg-[#ffa500] text-white no-underline px-7 py-3.5 rounded-full font-bold shadow-[0_8px_22px_rgba(255,165,0,0.25)] transition-all duration-200 hover:bg-[#e89500] hover:-translate-y-[3px] max-[600px]:w-full max-[600px]:max-w-[240px]">
+                        Find a Pet
                     </a>
 
-                    <a href="#about" class="secondary-btn">
+                    <a
+                        href="#about"
+                        class="text-[#0151ff] no-underline px-[25px] py-[13px] border border-[#cdd8f5] rounded-full font-bold transition-colors duration-200 hover:bg-[#f3f6ff] max-[600px]:w-full max-[600px]:max-w-[240px]">
                         Learn More
                     </a>
+
                 </div>
 
             </div>
 
-            <div class="hero-image">
-                <img src="assets/images/adobo_landingpage.png"
-                     alt="Featured Rescue Dog">
+
+            <!-- HERO IMAGE -->
+            <div
+                class="w-[48%] flex justify-center relative max-[900px]:w-full">
+
+                <div
+                    class="absolute w-[420px] h-[420px] bg-[#eef3ff] rounded-full -z-10">
+                </div>
+
+                <img
+                    src="assets/images/adobo_landingpage.png"
+                    alt="Featured Rescue Dog"
+                    class="w-full max-w-[510px] object-contain">
             </div>
 
         </section>
@@ -1027,18 +169,36 @@
         <!-- =========================
              STATEMENT
         ========================== -->
+        <section
+            class="bg-[#f5f7ff] py-[95px] px-[30px] text-center relative overflow-hidden">
 
-        <section class="statement-section">
+            <div
+                class="absolute text-[150px] opacity-[0.035] left-[5%] top-5 -rotate-[20deg]">
+                🐾
+            </div>
 
-            <h2>
+            <div
+                class="absolute text-[120px] opacity-[0.035] right-[6%] bottom-2.5 rotate-[20deg]">
+                🐾
+            </div>
+
+            <h2
+                class="max-w-[800px] mx-auto text-[42px] leading-[1.2] text-[#111827] mb-5 max-[600px]:text-[32px]">
+
                 Every Paw Deserves a
-                <span>Second Chance.</span>
+                <span class="text-[#0151ff]">
+                    Second Chance.
+                </span>
+
             </h2>
 
-            <p>
+            <p
+                class="max-w-[650px] mx-auto text-[#657084] text-[17px] leading-[1.7]">
+
                 Behind every rescued animal is a story waiting for a better ending.
                 Pawpon believes that every pet deserves compassion, care, and a place
                 they can finally call home.
+
             </p>
 
         </section>
@@ -1047,56 +207,107 @@
         <!-- =========================
              WHAT WE BELIEVE IN
         ========================== -->
+        <section
+            id="beliefs"
+            class="max-w-[1220px] mx-auto px-[30px] py-[110px]">
 
-        <section class="beliefs-section" id="beliefs">
+            <div class="text-center mb-[55px]">
 
-            <div class="section-heading">
-                <h2>What We Believe In</h2>
-                <p>Our mission starts with compassion.</p>
+                <h2
+                    class="text-[40px] font-bold mb-3 max-[600px]:text-[32px]">
+                    What We Believe In
+                </h2>
+
+                <p class="text-[#697386] text-base">
+                    Our mission starts with compassion.
+                </p>
+
             </div>
 
-            <div class="belief-grid">
 
-    <div class="belief-card">
-        <div class="belief-icon">
-            <i class="fa-solid fa-house"></i>
-        </div>
+            <div
+                class="grid grid-cols-3 gap-[25px] max-[900px]:grid-cols-1">
 
-        <h3>Forever Homes</h3>
+                <!-- CARD 1 -->
+                <div
+                    class="p-[38px_30px] border border-[#e8ebf2] rounded-[20px] bg-white text-center transition-all duration-200 hover:-translate-y-[7px] hover:shadow-[0_15px_35px_rgba(30,64,175,0.08)]">
 
-        <p>
-            Every rescued animal deserves a safe,
-            loving, and responsible forever home.
-        </p>
-    </div>
+                    <div
+                        class="w-[65px] h-[65px] mx-auto mb-[22px] rounded-[18px] bg-[#f0f4ff] flex items-center justify-center">
 
-    <div class="belief-card">
-        <div class="belief-icon">
-            <i class="fa-solid fa-heart"></i>
-        </div>
+                        <i
+                            class="fa-solid fa-house text-[28px] text-[rgb(23,76,191)]">
+                        </i>
 
-        <h3>Compassion</h3>
+                    </div>
 
-        <p>
-            We believe every animal deserves kindness,
-            care, respect, and a second chance.
-        </p>
-    </div>
+                    <h3
+                        class="text-xl font-bold mb-3">
+                        Forever Homes
+                    </h3>
 
-    <div class="belief-card">
-        <div class="belief-icon">
-            <i class="fa-solid fa-paw"></i>
-        </div>
+                    <p
+                        class="text-[#687386] leading-[1.6] text-[15px]">
+                        Every rescued animal deserves a safe,
+                        loving, and responsible forever home.
+                    </p>
 
-        <h3>Responsible Adoption</h3>
+                </div>
 
-        <p>
-            Adoption is a commitment. We encourage
-            thoughtful decisions for both pets and families.
-        </p>
-    </div>
 
-</div>
+                <!-- CARD 2 -->
+                <div
+                    class="p-[38px_30px] border border-[#e8ebf2] rounded-[20px] bg-white text-center transition-all duration-200 hover:-translate-y-[7px] hover:shadow-[0_15px_35px_rgba(30,64,175,0.08)]">
+
+                    <div
+                        class="w-[65px] h-[65px] mx-auto mb-[22px] rounded-[18px] bg-[#f0f4ff] flex items-center justify-center">
+
+                        <i
+                            class="fa-solid fa-heart text-[28px] text-[rgb(23,76,191)]">
+                        </i>
+
+                    </div>
+
+                    <h3
+                        class="text-xl font-bold mb-3">
+                        Compassion
+                    </h3>
+
+                    <p
+                        class="text-[#687386] leading-[1.6] text-[15px]">
+                        We believe every animal deserves kindness,
+                        care, respect, and a second chance.
+                    </p>
+
+                </div>
+
+
+                <!-- CARD 3 -->
+                <div
+                    class="p-[38px_30px] border border-[#e8ebf2] rounded-[20px] bg-white text-center transition-all duration-200 hover:-translate-y-[7px] hover:shadow-[0_15px_35px_rgba(30,64,175,0.08)]">
+
+                    <div
+                        class="w-[65px] h-[65px] mx-auto mb-[22px] rounded-[18px] bg-[#f0f4ff] flex items-center justify-center">
+
+                        <i
+                            class="fa-solid fa-paw text-[28px] text-[rgb(23,76,191)]">
+                        </i>
+
+                    </div>
+
+                    <h3
+                        class="text-xl font-bold mb-3">
+                        Responsible Adoption
+                    </h3>
+
+                    <p
+                        class="text-[#687386] leading-[1.6] text-[15px]">
+                        Adoption is a commitment. We encourage
+                        thoughtful decisions for both pets and families.
+                    </p>
+
+                </div>
+
             </div>
 
         </section>
@@ -1105,40 +316,62 @@
         <!-- =========================
              OUR STORY
         ========================== -->
+        <section
+            id="about"
+            class="bg-[#f8f9fc] py-[110px] px-[30px]">
 
-        <section class="story-section" id="about">
+            <div
+                class="max-w-[1150px] mx-auto flex items-center gap-20 max-[900px]:flex-col">
 
-            <div class="story-container">
+                <div
+                    class="w-1/2 max-[900px]:w-full">
 
-                <div class="story-image">
-                    <img src="assets/images/about us.png"
-                         alt="Human and dog">
+                    <img
+                        src="assets/images/about us.png"
+                        alt="Human and dog"
+                        class="w-full max-w-[500px] block rounded-[25px] max-[900px]:mx-auto">
+
                 </div>
 
-                <div class="story-content">
 
-                    <div class="small-label">
+                <div
+                    class="w-1/2 max-[900px]:w-full max-[900px]:text-center">
+
+                    <div
+                        class="text-[#0151ff] font-extrabold text-sm uppercase tracking-widest mb-[13px]">
                         About Pawpon
                     </div>
 
-                    <h2>
+                    <h2
+                        class="text-[42px] leading-[1.2] font-bold mb-[22px] max-[600px]:text-[32px]">
+
                         Connecting Hearts,
                         One Paw at a Time.
+
                     </h2>
 
-                    <p>
+                    <p
+                        class="text-[#606c7e] text-[17px] leading-[1.8] mb-5">
+
                         Pawpon is an all-in-one web platform dedicated to transforming
                         animal welfare through technology and empathy.
+
                     </p>
 
-                    <p>
+                    <p
+                        class="text-[#606c7e] text-[17px] leading-[1.8] mb-5">
+
                         We aim to make pet adoption easier, encourage responsible
                         pet ownership, and create a meaningful connection between
                         rescued animals and people who are ready to give them a loving home.
+
                     </p>
 
-                    <div class="story-badge">
-                         Built with love for every paw.
+                    <div
+                        class="inline-block bg-white px-[18px] py-3 rounded-full text-sm font-bold shadow-[0_5px_20px_rgba(0,0,0,0.05)]">
+
+                        Built with love for every paw.
+
                     </div>
 
                 </div>
@@ -1151,121 +384,238 @@
         <!-- =========================
              QUOTE
         ========================== -->
+        <section
+            class="bg-[#013199] py-[100px] px-[30px] text-center text-white relative overflow-hidden">
 
-        <section class="quote-section">
+            <div
+                class="absolute text-[280px] opacity-[0.08] left-[8%] -top-[70px] font-serif">
+                “
+            </div>
 
-            <blockquote>
+            <blockquote
+                class="max-w-[850px] mx-auto text-[35px] font-bold leading-[1.4] relative max-[600px]:text-[25px]">
+
                 “A small act of kindness can change the entire world
                 for one animal.”
+
             </blockquote>
 
-            <span>— Pawpon</span>
+            <span
+                class="block mt-[25px] text-[15px] opacity-70">
+                — Pawpon
+            </span>
 
         </section>
 
 
         <!-- =========================
-     PAWPON SYSTEM FEATURES
-========================== -->
-<section class="actions-section" id="features">
-    <div class="section-heading">
-        <h2>How Pawpon Helps</h2>
-        <p>
-            A complete platform designed to make pet adoption,
-            matching, support, and post-adoption care easier.
-        </p>
-    </div>
-
-    <div class="actions-grid">
-
-        <div class="action-card">
-            <div class="action-number">01 — ADOPTION</div>
-            <h3>Digital Adoption</h3>
-            <p>
-                Submit adoption applications online and provide
-                important information about your lifestyle, home,
-                and readiness to become a responsible pet owner.
-            </p>
-        </div>
-
-        <div class="action-card">
-            <div class="action-number">02 — MATCHMAKING</div>
-            <h3>Find the Right Match</h3>
-            <p>
-                Pawpon helps connect adopters with suitable pets
-                based on their preferences, lifestyle, and the
-                characteristics of available animals.
-            </p>
-        </div>
-
-        <div class="action-card">
-            <div class="action-number">03 — PET PROFILES</div>
-            <h3>Know Their Story</h3>
-            <p>
-                Explore organized pet profiles containing important
-                information such as breed, age, size, behavior,
-                health details, and adoption status.
-            </p>
-        </div>
-
-        <div class="action-card">
-            <div class="action-number">04 — DONATION</div>
-            <h3>Support Their Needs</h3>
-            <p>
-                Support rescued animals through convenient
-                QR-based donations that can help provide food,
-                shelter, medical care, and other essential needs.
-            </p>
-        </div>
-
-        <div class="action-card">
-            <div class="action-number">05 — KAMUSTAHAN</div>
-            <h3>Stay Connected</h3>
-            <p>
-                Post-adoption monitoring allows Pawpon to check
-                on adopted pets and encourage responsible ownership
-                even after they have found their new home.
-            </p>
-        </div>
-
-        <div class="action-card">
-            <div class="action-number">06 — ANALYTICS</div>
-            <h3>Track the Impact</h3>
-            <p>
-                Descriptive analytics and reports help monitor
-                adoptions, donations, pet records, and other
-                important activities within the system.
-            </p>
-        </div>
-
-    </div>
-</section>
-
-
-        <!-- =========================
-             PAW FRIENDS GALLERY
+             PAWPON SYSTEM FEATURES
         ========================== -->
+        <section
+            id="features"
+            class="max-w-[1220px] mx-auto px-[30px] py-[110px]">
 
-        
+            <div class="text-center mb-[55px]">
+
+                <h2
+                    class="text-[40px] font-bold mb-3 max-[600px]:text-[32px]">
+                    How Pawpon Helps
+                </h2>
+
+                <p
+                    class="text-[#697386] text-base max-w-[700px] mx-auto">
+                    A complete platform designed to make pet adoption,
+                    matching, support, and post-adoption care easier.
+                </p>
+
+            </div>
+
+
+            <div
+                class="grid grid-cols-3 gap-[25px] max-[900px]:grid-cols-1">
+
+                <!-- 01 -->
+                <div
+                    class="p-[35px] rounded-[20px] bg-white border border-[#e7ebf2]">
+
+                    <div
+                        class="text-[#0151ff] text-sm font-extrabold mb-5">
+                        01 — ADOPTION
+                    </div>
+
+                    <h3
+                        class="text-[23px] font-bold mb-3">
+                        Digital Adoption
+                    </h3>
+
+                    <p
+                        class="text-[#667085] leading-[1.7] text-[15px]">
+                        Submit adoption applications online and provide
+                        important information about your lifestyle, home,
+                        and readiness to become a responsible pet owner.
+                    </p>
+
+                </div>
+
+
+                <!-- 02 -->
+                <div
+                    class="p-[35px] rounded-[20px] bg-white border border-[#e7ebf2]">
+
+                    <div
+                        class="text-[#0151ff] text-sm font-extrabold mb-5">
+                        02 — MATCHMAKING
+                    </div>
+
+                    <h3
+                        class="text-[23px] font-bold mb-3">
+                        Find the Right Match
+                    </h3>
+
+                    <p
+                        class="text-[#667085] leading-[1.7] text-[15px]">
+                        Pawpon helps connect adopters with suitable pets
+                        based on their preferences, lifestyle, and the
+                        characteristics of available animals.
+                    </p>
+
+                </div>
+
+
+                <!-- 03 -->
+                <div
+                    class="p-[35px] rounded-[20px] bg-white border border-[#e7ebf2]">
+
+                    <div
+                        class="text-[#0151ff] text-sm font-extrabold mb-5">
+                        03 — PET PROFILES
+                    </div>
+
+                    <h3
+                        class="text-[23px] font-bold mb-3">
+                        Know Their Story
+                    </h3>
+
+                    <p
+                        class="text-[#667085] leading-[1.7] text-[15px]">
+                        Explore organized pet profiles containing important
+                        information such as breed, age, size, behavior,
+                        health details, and adoption status.
+                    </p>
+
+                </div>
+
+
+                <!-- 04 -->
+                <div
+                    class="p-[35px] rounded-[20px] bg-white border border-[#e7ebf2]">
+
+                    <div
+                        class="text-[#0151ff] text-sm font-extrabold mb-5">
+                        04 — DONATION
+                    </div>
+
+                    <h3
+                        class="text-[23px] font-bold mb-3">
+                        Support Their Needs
+                    </h3>
+
+                    <p
+                        class="text-[#667085] leading-[1.7] text-[15px]">
+                        Support rescued animals through convenient
+                        QR-based donations that can help provide food,
+                        shelter, medical care, and other essential needs.
+                    </p>
+
+                </div>
+
+
+                <!-- 05 -->
+                <div
+                    class="p-[35px] rounded-[20px] bg-white border border-[#e7ebf2]">
+
+                    <div
+                        class="text-[#0151ff] text-sm font-extrabold mb-5">
+                        05 — KAMUSTAHAN
+                    </div>
+
+                    <h3
+                        class="text-[23px] font-bold mb-3">
+                        Stay Connected
+                    </h3>
+
+                    <p
+                        class="text-[#667085] leading-[1.7] text-[15px]">
+                        Post-adoption monitoring allows Pawpon to check
+                        on adopted pets and encourage responsible ownership
+                        even after they have found their new home.
+                    </p>
+
+                </div>
+
+
+                <!-- 06 -->
+                <div
+                    class="p-[35px] rounded-[20px] bg-white border border-[#e7ebf2]">
+
+                    <div
+                        class="text-[#0151ff] text-sm font-extrabold mb-5">
+                        06 — ANALYTICS
+                    </div>
+
+                    <h3
+                        class="text-[23px] font-bold mb-3">
+                        Track the Impact
+                    </h3>
+
+                    <p
+                        class="text-[#667085] leading-[1.7] text-[15px]">
+                        Descriptive analytics and reports help monitor
+                        adoptions, donations, pet records, and other
+                        important activities within the system.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </section>
+
 
         <!-- =========================
              CTA
         ========================== -->
+        <section
+            class="py-[100px] px-[30px] text-center">
 
-        <section class="cta-section">
+            <div
+                class="max-w-[1000px] mx-auto bg-gradient-to-br from-[#013199] to-[#0151ff] py-[75px] px-10 rounded-[30px] text-white relative overflow-hidden">
 
-            <div class="cta-box">
+                <div
+                    class="absolute text-[180px] right-[-20px] bottom-[-70px] opacity-[0.08]">
+                    🐾
+                </div>
 
-                <h2>A Second Chance Starts Here.</h2>
+                <h2
+                    class="text-[42px] font-bold mb-[15px] relative max-[600px]:text-[32px]">
+                    A Second Chance Starts Here.
+                </h2>
 
-                <p>
+                <p
+                    class="max-w-[600px] mx-auto mb-[30px] leading-[1.7] opacity-85 relative">
+
                     Whether you choose to adopt, support, or simply spread awareness,
                     every action brings us one step closer to a world where every pet
                     has a loving home.
+
                 </p>
 
-                <a href="auth/login.html" class="cta-btn">
+                <a
+                    href="auth/login.html"
+                    class="inline-block bg-[#ffa500] text-white no-underline px-[30px] py-3.5 rounded-full font-bold relative hover:bg-[#e89500] transition-colors duration-200">
+
                     Explore Pawpon
+
                 </a>
 
             </div>
@@ -1276,44 +626,65 @@
         <!-- =========================
              ARTICLES
         ========================== -->
+        <section
+            id="articles"
+            class="max-w-[1220px] mx-auto px-[30px] pt-[100px] pb-[110px]">
 
-        <section class="articles-section" id="articles">
+            <div class="text-center mb-[55px]">
 
-            <div class="section-heading">
-                <h2>Pet Care & Resources</h2>
-                <p>
+                <h2
+                    class="text-[40px] font-bold mb-3 max-[600px]:text-[32px]">
+                    Pet Care & Resources
+                </h2>
+
+                <p class="text-[#697386] text-base">
                     Helpful reads for becoming a better pet parent.
                 </p>
+
             </div>
 
 
-            <div class="article-feature">
+            <!-- FEATURED ARTICLE -->
+            <div
+                class="grid grid-cols-[1.2fr_1fr] gap-[45px] items-center mb-[50px] max-[900px]:grid-cols-1">
 
-                <img src="assets/images/article.jpg"
-                     class="feature-image"
-                     alt="Dog feature">
+                <img
+                    src="assets/images/article.jpg"
+                    class="w-full h-[350px] object-cover rounded-[20px]"
+                    alt="Dog feature">
 
                 <div>
 
-                    <div class="article-category">
+                    <div
+                        class="text-[#0151ff] text-[13px] font-extrabold uppercase tracking-widest mb-3">
                         Featured Article
                     </div>
 
-                    <h3>
+                    <h3
+                        class="text-[30px] leading-[1.3] font-bold mb-[15px]">
+
                         Essential Pet Parent Tips:
                         A Guide for First-Time Dog Owners
+
                     </h3>
 
-                    <p>
+                    <p
+                        class="text-[#667085] leading-[1.7] mb-5">
+
                         Discover essential tips for first-time dog owners,
                         from feeding schedules and training basics to grooming
                         and everyday pet care.
+
                     </p>
 
-                    <a href="https://wagnbush.com/blog/essential-pet-parent-tips-first-time-dog-owner-guide"
-                       class="read-link"
-                       target="_blank">
+                    <a
+                        href="https://wagnbush.com/blog/essential-pet-parent-tips-first-time-dog-owner-guide"
+                        class="text-[#0151ff] no-underline font-bold"
+                        target="_blank"
+                        rel="noopener noreferrer">
+
                         Read Article →
+
                     </a>
 
                 </div>
@@ -1321,26 +692,36 @@
             </div>
 
 
-            <div class="article-cards">
+            <!-- ARTICLE CARDS -->
+            <div
+                class="grid grid-cols-3 gap-[25px] max-[900px]:grid-cols-1">
 
-                <a href="https://paleopet.ph/blogs/pet-care-guide/preparing-your-pets-bowl-with-the-diet-nature-intended"
-                   class="article-card"
-                   target="_blank">
+                <!-- ARTICLE 1 -->
+                <a
+                    href="https://paleopet.ph/blogs/pet-care-guide/preparing-your-pets-bowl-with-the-diet-nature-intended"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="border border-[#e8ebf1] rounded-[18px] overflow-hidden no-underline text-inherit transition-all duration-200 hover:-translate-y-[5px] hover:shadow-[0_15px_30px_rgba(0,0,0,0.06)]">
 
-                    <img src="assets/images/preparing.webp"
-                         alt="Pet food">
+                    <img
+                        src="assets/images/preparing.webp"
+                        alt="Pet food"
+                        class="w-full h-[190px] object-cover">
 
-                    <div class="article-card-content">
+                    <div class="p-[22px]">
 
-                        <div class="article-category">
+                        <div
+                            class="text-[#0151ff] text-[13px] font-extrabold uppercase tracking-widest mb-3">
                             Nutrition
                         </div>
 
-                        <h4>
+                        <h4
+                            class="text-lg leading-[1.4] font-bold mb-2.5">
                             Preparing Your Pet's Bowl
                         </h4>
 
-                        <p>
+                        <p
+                            class="text-sm text-[#6b7280] leading-[1.6]">
                             Learn more about meeting your pet's nutritional needs.
                         </p>
 
@@ -1349,24 +730,32 @@
                 </a>
 
 
-                <a href="https://faithvetclinic.com/top-pet-care-tips-for-a-happy-and-healthy-companion/"
-                   class="article-card"
-                   target="_blank">
+                <!-- ARTICLE 2 -->
+                <a
+                    href="https://faithvetclinic.com/top-pet-care-tips-for-a-happy-and-healthy-companion/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="border border-[#e8ebf1] rounded-[18px] overflow-hidden no-underline text-inherit transition-all duration-200 hover:-translate-y-[5px] hover:shadow-[0_15px_30px_rgba(0,0,0,0.06)]">
 
-                    <img src="assets/images/top.png"
-                         alt="Pet health">
+                    <img
+                        src="assets/images/top.png"
+                        alt="Pet health"
+                        class="w-full h-[190px] object-cover">
 
-                    <div class="article-card-content">
+                    <div class="p-[22px]">
 
-                        <div class="article-category">
+                        <div
+                            class="text-[#0151ff] text-[13px] font-extrabold uppercase tracking-widest mb-3">
                             Pet Health
                         </div>
 
-                        <h4>
+                        <h4
+                            class="text-lg leading-[1.4] font-bold mb-2.5">
                             Top Pet Care Tips
                         </h4>
 
-                        <p>
+                        <p
+                            class="text-sm text-[#6b7280] leading-[1.6]">
                             Simple ways to keep your furry companion happy and healthy.
                         </p>
 
@@ -1375,24 +764,32 @@
                 </a>
 
 
-                <a href="https://www.preventivevet.com/dogs/7-things-you-can-do-to-help-your-dog-live-longer"
-                   class="article-card"
-                   target="_blank">
+                <!-- ARTICLE 3 -->
+                <a
+                    href="https://www.preventivevet.com/dogs/7-things-you-can-do-to-help-your-dog-live-longer"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="border border-[#e8ebf1] rounded-[18px] overflow-hidden no-underline text-inherit transition-all duration-200 hover:-translate-y-[5px] hover:shadow-[0_15px_30px_rgba(0,0,0,0.06)]">
 
-                    <img src="assets/images/7.webp"
-                         alt="Aging dog">
+                    <img
+                        src="assets/images/7.webp"
+                        alt="Aging dog"
+                        class="w-full h-[190px] object-cover">
 
-                    <div class="article-card-content">
+                    <div class="p-[22px]">
 
-                        <div class="article-category">
+                        <div
+                            class="text-[#0151ff] text-[13px] font-extrabold uppercase tracking-widest mb-3">
                             Dog Care
                         </div>
 
-                        <h4>
+                        <h4
+                            class="text-lg leading-[1.4] font-bold mb-2.5">
                             7 Things You Can Do to Help Your Dog Live Longer
                         </h4>
 
-                        <p>
+                        <p
+                            class="text-sm text-[#6b7280] leading-[1.6]">
                             Learn simple ways to support your dog's long-term health.
                         </p>
 
@@ -1410,47 +807,87 @@
     <!-- =========================
          FOOTER
     ========================== -->
+    <footer
+        class="bg-[#f8f9fc] pt-[70px] px-[30px] pb-[30px] border-t border-[#edf0f5]">
 
-    <footer class="footer">
+        <div class="max-w-[1150px] mx-auto">
 
-        <div class="footer-container">
+            <div
+                class="flex justify-between gap-[50px] max-[900px]:flex-col">
 
-            <div class="footer-top">
+                <!-- FOOTER BRAND -->
+                <div class="max-w-[400px]">
 
-                <div class="footer-brand">
+                    <a
+                        href="index.html"
+                        class="flex items-center gap-2.5 no-underline mb-[18px]">
 
-                    <a href="index.html" class="brand">
+                        <img
+                            src="assets/images/Pawpon.png"
+                            alt="Pawpon Logo"
+                            class="w-11 h-11 object-contain">
 
-                        <img src="assets/images/Pawpon.png"
-                             alt="Pawpon Logo">
-
-                        <span class="brand-name">
+                        <span
+                            class="text-[31px] font-extrabold bg-gradient-to-r from-[#013199] to-[#0151ff] bg-clip-text text-transparent">
                             Pawpon
                         </span>
 
                     </a>
 
-                    <p>
+                    <p
+                        class="text-[#697386] leading-[1.7] text-sm">
+
                         Connecting compassionate hearts with rescued animals
                         and helping every paw find the loving home it deserves.
+
                     </p>
 
-                    <div class="social-icons">
 
-                        <a href="#">
-                            <img src="assets/images/twitter.png" alt="Twitter">
+                    <!-- SOCIAL ICONS -->
+                    <div class="flex gap-3 mt-[22px]">
+
+                        <a
+                            href="#"
+                            class="w-10 h-10 bg-[#2d57e5] rounded-full flex items-center justify-center">
+
+                            <img
+                                src="assets/images/twitter.png"
+                                alt="Twitter"
+                                class="w-[19px] h-[19px]">
+
                         </a>
 
-                        <a href="#">
-                            <img src="assets/images/tiktok.png" alt="TikTok">
+                        <a
+                            href="#"
+                            class="w-10 h-10 bg-[#2d57e5] rounded-full flex items-center justify-center">
+
+                            <img
+                                src="assets/images/tiktok.png"
+                                alt="TikTok"
+                                class="w-[19px] h-[19px]">
+
                         </a>
 
-                        <a href="#">
-                            <img src="assets/images/instagram.png" alt="Instagram">
+                        <a
+                            href="#"
+                            class="w-10 h-10 bg-[#2d57e5] rounded-full flex items-center justify-center">
+
+                            <img
+                                src="assets/images/instagram.png"
+                                alt="Instagram"
+                                class="w-[19px] h-[19px]">
+
                         </a>
 
-                        <a href="#">
-                            <img src="assets/images/messenger.png" alt="Messenger">
+                        <a
+                            href="#"
+                            class="w-10 h-10 bg-[#2d57e5] rounded-full flex items-center justify-center">
+
+                            <img
+                                src="assets/images/messenger.png"
+                                alt="Messenger"
+                                class="w-[19px] h-[19px]">
+
                         </a>
 
                     </div>
@@ -1458,29 +895,61 @@
                 </div>
 
 
-                <div class="footer-column">
+                <!-- POLICIES -->
+                <div>
 
-                    <h4>Policies</h4>
+                    <h4
+                        class="text-lg font-bold mb-5">
+                        Policies
+                    </h4>
 
-                    <div class="footer-links">
-                        <a href="legal2.html">Terms & Use</a>
-                        <a href="legal1.html">Privacy Policy</a>
-                        <a href="legal4.html">FAQs</a>
-                        <a href="legal3.html">Contact Us</a>
+                    <div class="flex flex-col gap-[13px]">
+
+                        <a
+                            href="legal2.html"
+                            class="text-[#596579] no-underline text-sm hover:text-[#0151ff]">
+                            Terms & Use
+                        </a>
+
+                        <a
+                            href="legal1.html"
+                            class="text-[#596579] no-underline text-sm hover:text-[#0151ff]">
+                            Privacy Policy
+                        </a>
+
+                        <a
+                            href="legal4.html"
+                            class="text-[#596579] no-underline text-sm hover:text-[#0151ff]">
+                            FAQs
+                        </a>
+
+                        <a
+                            href="legal3.html"
+                            class="text-[#596579] no-underline text-sm hover:text-[#0151ff]">
+                            Contact Us
+                        </a>
+
                     </div>
 
                 </div>
 
 
-                <div class="footer-column">
+                <!-- CONTACT -->
+                <div>
 
-                    <h4>Contact</h4>
+                    <h4
+                        class="text-lg font-bold mb-5">
+                        Contact
+                    </h4>
 
-                    <div class="contact-item">
 
-                        <img src="assets/images/email.png"
-                             class="contact-icon"
-                             alt="Email">
+                    <div
+                        class="flex items-center gap-2.5 mb-3 text-[#596579] text-sm">
+
+                        <img
+                            src="assets/images/email.png"
+                            class="w-5 h-5 object-contain"
+                            alt="Email">
 
                         <span>
                             pawpon@gmail.com
@@ -1488,11 +957,14 @@
 
                     </div>
 
-                    <div class="contact-item">
 
-                        <img src="assets/images/call.png"
-                             class="contact-icon"
-                             alt="Phone">
+                    <div
+                        class="flex items-center gap-2.5 mb-3 text-[#596579] text-sm">
+
+                        <img
+                            src="assets/images/call.png"
+                            class="w-5 h-5 object-contain"
+                            alt="Phone">
 
                         <span>
                             (+63) 992 487 4712
@@ -1505,9 +977,12 @@
             </div>
 
 
-            <div class="footer-bottom">
+            <!-- FOOTER BOTTOM -->
+            <div
+                class="border-t border-[#e4e7ec] mt-[50px] pt-[25px] text-center text-[#7b8494] text-[13px] leading-[1.8]">
 
-                Pawpon © 2026<br>
+                Pawpon © 2026
+                <br>
                 All Rights Reserved.
 
             </div>
@@ -1517,4 +992,5 @@
     </footer>
 
 </body>
+
 </html>
