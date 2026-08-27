@@ -27,29 +27,6 @@ ALTER TABLE accounts
 MODIFY COLUMN status ENUM('pending', 'active', 'disabled', 'suspended', 'banned', 'rejected') DEFAULT 'active';
 8. Import nyo na lang yung bagong database, may nabago doon
 9. kapag may bagong page sa org na need iclick yung logout, iadd na lang to sa dulo ng html bago mag </body> tag:
-
-<!--Logout Modal-->
-        <div id="logoutModal" class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/45 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-200">
-            <div class="bg-white rounded-2xl max-w-sm w-full mx-4 p-6 shadow-2xl scale-95 transition-transform duration-200">
-                <div class="text-center">
-                    <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-50 mb-4">
-                        <i class="fa-solid fa-right-from-bracket text-red-600 text-lg"></i>
-                    </div>
-                    <h3 class="text-lg font-bold text-gray-900">Logging Out?</h3>
-                    <p class="text-sm text-gray-500 mt-2">Are you sure you want to leave the Pawpon Org Portal?</p>
-                </div>
-                <div class="mt-6 flex gap-3">
-                    <button id="cancelLogoutBtn" class="flex-1 px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-xl transition text-sm">
-                        Cancel
-                    </button>
-                    <button id="confirmLogoutBtn" class="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white font-medium rounded-xl transition shadow-sm shadow-red-200 text-sm">
-                        Yes, Logout
-                    </button>
-                </div>
-            </div>
-        </div>
-
-
 # **9. TO DO (07.19.26)**
 ## **LOGIN**
 ✓ forgot password
@@ -105,9 +82,7 @@ MODIFY COLUMN status ENUM('pending', 'active', 'disabled', 'suspended', 'banned'
 
 ---
 # 10. TARGET DEPLOYMENT??
-
-> *pa add kung ano pa gagawin dito*
-bry naniya
+ *pa add kung ano pa gagawin dito*
 
 # 11.
 paimport na lang ng user_adoption_applications table sa db nyo
@@ -285,7 +260,6 @@ MODIFY COLUMN status VARCHAR(50) NOT NULL DEFAULT 'Under Review';
 
 # install this in project folder
 npm install nodemailer
-
 # Aug 08, 2026
 Import nyo na lang yung user adoption applicationsn table may additional columns don
 
@@ -467,3 +441,5 @@ pag enable na ang decline, ideclined ang adoption then try to re-apply and check
 is match with the address in the user profile ✓
 
 Tignan if yung view profile organization will appear in under review, approved, declined or cancelled  ✓
+
+# gawin ang nasa org profile tom (Aug 26, 2026)

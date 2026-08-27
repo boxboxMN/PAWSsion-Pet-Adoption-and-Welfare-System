@@ -1,4 +1,217 @@
+// ==========================================================
+// MATCH RESULTS
+// ==========================================================
 
+// Original results returned by the AI
+let allMatchResults = [];
+
+// Currently displayed results after filters
+let filteredMatchResults = [];
+// ==========================================================
+// FILTER HELPER FUNCTIONS
+// ==========================================================
+
+function normalizeFilterText(value) {
+    return String(value ?? "")
+        .trim()
+        .toLowerCase()
+        .replace(/\s+/g, " ");
+}
+
+
+// ==========================================================
+// GET PET DATA
+// ==========================================================
+
+function getPetData(match) {
+    return match?.pet || match || {};
+}
+
+
+// ==========================================================
+// GET PET NAME
+// ==========================================================
+
+function getMatchPetName(match) {
+    const pet = getPetData(match);
+
+    return normalizeFilterText(
+        match?.name ||
+        match?.pet_name ||
+        pet?.name ||
+        pet?.pet_name ||
+        ""
+    );
+}
+
+
+// ==========================================================
+// GET ORGANIZATION
+// ==========================================================
+
+function getMatchOrganization(match) {
+    const pet = getPetData(match);
+
+    return normalizeFilterText(
+        match?.organization_name ||
+        match?.organization ||
+        match?.org_name ||
+        pet?.organization_name ||
+        pet?.organization ||
+        pet?.org_name ||
+        ""
+    );
+}
+
+
+// ==========================================================
+// GET SPECIES
+// ==========================================================
+
+function getMatchSpecies(match) {
+    const pet = getPetData(match);
+
+    return normalizeFilterText(
+        match?.species ||
+        match?.pet_species ||
+        pet?.species ||
+        pet?.pet_species ||
+        ""
+    );
+}
+
+
+// ==========================================================
+// GET GENDER
+// ==========================================================
+
+function getMatchGender(match) {
+    const pet = getPetData(match);
+
+    return normalizeFilterText(
+        match?.gender ||
+        match?.sex ||
+        match?.pet_gender ||
+        match?.pet_sex ||
+        pet?.gender ||
+        pet?.sex ||
+        pet?.pet_gender ||
+        pet?.pet_sex ||
+        ""
+    );
+}
+
+
+// ==========================================================
+// GET AGE
+// ==========================================================
+
+function getMatchAge(match) {
+    const pet = getPetData(match);
+
+    return normalizeFilterText(
+        match?.age ||
+        match?.age_category ||
+        match?.age_group ||
+        pet?.age ||
+        pet?.age_category ||
+        pet?.age_group ||
+        ""
+    );
+}
+
+
+// ==========================================================
+// NORMALIZE AGE CATEGORY
+// ==========================================================
+
+function normalizeAgeCategory(ageValue) {
+
+    const age = normalizeFilterText(ageValue);
+
+    if (!age) {
+        return "";
+    }
+
+    if (
+        age.includes("puppy") ||
+        age.includes("kitten") ||
+        age.includes("0-1") ||
+        age.includes("0 - 1") ||
+        age.includes("0–1")
+    ) {
+        return "puppy/kitten";
+    }
+
+    if (
+        age.includes("adolescence") ||
+        age.includes("adolescent") ||
+        age.includes("2-3") ||
+        age.includes("2 - 3") ||
+        age.includes("2–3")
+    ) {
+        return "adolescence";
+    }
+
+    if (
+        age.includes("adult") ||
+        age.includes("4-7") ||
+        age.includes("4 - 7") ||
+        age.includes("4–7")
+    ) {
+        return "adult";
+    }
+
+    if (
+        age.includes("senior") ||
+        age.includes("8-10") ||
+        age.includes("8 - 10") ||
+        age.includes("8–10")
+    ) {
+        return "senior";
+    }
+
+    return age;
+}
+
+
+// ==========================================================
+// GET MATCH SCORE
+// ==========================================================
+
+function getMatchScore(match) {
+
+    return (
+        match?.score ??
+        match?.match_score ??
+        match?.similarity_score ??
+        match?.final_score ??
+        match?.compatibility_score ??
+        0
+    );
+}
+
+// ==========================================================
+// GET MATCH SCORE AS PERCENTAGE
+// ==========================================================
+
+function getMatchScorePercent(match) {
+
+    let score = Number(getMatchScore(match));
+
+    if (!Number.isFinite(score)) {
+        return 0;
+    }
+
+    // Handles 0.91 → 91
+    if (score >= 0 && score <= 1) {
+        score *= 100;
+    }
+
+    return score;
+}
+
+// start
         async function loadComponent(id, file) {
         try {
             const response = await fetch(file);
@@ -91,28 +304,18 @@
             showScreen(preferenceScreen);
         }
         
+// ==========================================================
+// UPDATE MATCHING PROGRESS
+// ==========================================================
+
 function updateMatchingProgress(percent, message) {
+    const progressBar = document.getElementById("matchingProgressBar");
+    const progressText = document.getElementById("matchingProgressText");
+    const loadingMessage = document.getElementById("matchingLoadingMessage");
 
-    const progressBar =
-        document.getElementById("matchingProgressBar");
-
-    const progressText =
-        document.getElementById("matchingProgressText");
-
-    const progressPercent =
-        document.getElementById("matchingProgressPercent");
-
-    if (progressBar) {
-        progressBar.style.width = `${percent}%`;
-    }
-
-    if (progressText) {
-        progressText.textContent = message;
-    }
-
-    if (progressPercent) {
-        progressPercent.textContent = `${percent}%`;
-    }
+    if (progressBar) progressBar.style.width = `${percent}%`;
+    if (progressText) progressText.textContent = `${percent}%`;
+    if (loadingMessage && message) loadingMessage.textContent = message;
 }
 // =========================
 // MATCH PETS
@@ -133,10 +336,10 @@ async function showCompatibilityScreen() {
     // VALIDATION
     // ==============================
     if (
-        type === "Select Type" ||
-        sex === "Select Sex" ||
-        age === "Select Age" ||
-        behavior === ""
+        !type ||
+        !sex ||
+        !age ||
+        !behavior
     ) {
         message.classList.remove("hidden");
         return;
@@ -294,168 +497,492 @@ document
 function showIntroScreen() {
     showScreen(introScreen);
 }
+// ==========================================================
+// RENDER MATCH RESULTS
+// ==========================================================
+
 let matchedPets = [];
 
 function renderMatches(matches) {
-    matchedPets = matches;
-    const container = document.querySelector("#compatibilityScreen .grid");
+    allMatchResults = Array.isArray(matches) ? matches : [];
+    filteredMatchResults = [...allMatchResults];
+    matchedPets = [...allMatchResults];
+
+    populateOrganizationFilter(allMatchResults);
+    renderPetCards(allMatchResults);
+    updateMatchResultCount(allMatchResults.length);
+}
+// ==========================================================
+// RENDER PET CARDS
+// ==========================================================
+
+function renderPetCards(matches) {
+    const container = document.getElementById("matchResultsContainer");
+
+    if (!container) {
+        console.error("matchResultsContainer was not found.");
+        return;
+    }
+
     container.innerHTML = "";
 
-    if (!matches.length) {
-        container.innerHTML = `
-            <div class="col-span-full bg-gradient-to-b from-white to-slate-50 rounded-3xl shadow-xs border border-slate-200/80 p-12 text-center">
-                <div class="w-20 h-20 bg-rose-50 border border-rose-100 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-2xs">
-                    <i class="fa-solid fa-heart-crack text-4xl text-rose-500"></i>
-                </div>
-                <h2 class="text-2xl font-black text-slate-800 tracking-tight">
-                    No Compatible Pets Found
-                </h2>
-                <p class="text-slate-500 text-sm mt-2 max-w-md mx-auto leading-relaxed">
-                    We couldn't find pets matching your current criteria. Try broadening your behavior description or updating your preference filters.
-                </p>
-            </div>
-        `;
+    if (!Array.isArray(matches) || matches.length === 0) {
+        renderNoMatchesMessage();
         return;
     }
 
     matches.forEach((pet, index) => {
-        // Dynamic Badge Styling based on score thresholds
+        const score = getMatchScorePercent(pet);
+
         let badgeStyle = "from-amber-500 to-orange-600 text-white";
-        if (pet.score >= 90) badgeStyle = "from-emerald-500 to-teal-600 text-white";
-        else if (pet.score >= 75) badgeStyle = "from-blue-600 to-indigo-600 text-white";
-        else if (pet.score >= 60) badgeStyle = "from-yellow-500 to-amber-600 text-white";
+        if (score >= 90) badgeStyle = "from-emerald-500 to-teal-600 text-white";
+        else if (score >= 75) badgeStyle = "from-blue-600 to-indigo-600 text-white";
+        else if (score >= 60) badgeStyle = "from-yellow-500 to-amber-600 text-white";
 
         container.innerHTML += `
         <div class="group bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1.5 border border-slate-200/80 flex flex-col justify-between mx-auto w-full max-w-[420px]">
-
-            <!-- IMAGE SECTION WITH OVERLAYS -->
+            <!-- IMAGE SECTION -->
             <div class="relative overflow-hidden bg-slate-100">
-                <img src="/uploads/pets/${pet.image_path}" class="w-full h-60 object-cover transition-transform duration-500 group-hover:scale-105" alt="${pet.name}">
-                
-                <!-- Ambient Bottom Gradient Overlay -->
+                <img src="/uploads/pets/${pet.image_path || ''}" class="w-full h-60 object-cover transition-transform duration-500 group-hover:scale-105" alt="${pet.name || 'Pet'}">
                 <div class="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-transparent opacity-80"></div>
-
-                <!-- Rank Badge -->
+                
+                <!-- Rank -->
                 <div class="absolute top-3 left-3 bg-white/95 backdrop-blur-md border border-white/50 rounded-xl px-3 py-1 shadow-md text-slate-900 font-extrabold text-xs flex items-center gap-1">
                     <i class="fa-solid fa-crown text-amber-500 text-[11px]"></i>
                     <span>RANK ${index + 1}</span>
                 </div>
 
-                <!-- Match Score Badge -->
+                <!-- Score -->
                 <div class="absolute top-3 right-3 bg-gradient-to-r ${badgeStyle} rounded-xl px-3 py-1 shadow-md text-xs font-bold flex items-center gap-1">
                     <i class="fa-solid fa-sparkles text-xs"></i>
-                    <span>${pet.score}% Match</span>
+                    <span>${score.toFixed(0)}% Match</span>
                 </div>
 
-                <!-- Overlay Quick Name/Breed Banner -->
+                <!-- Pet Name -->
                 <div class="absolute bottom-3 left-4 right-4">
                     <div class="inline-flex items-center px-3.5 py-1.5 rounded-xl bg-white/80 backdrop-blur-md border border-white/60 shadow-md shadow-slate-900/10">
-                        <h2 class="text-xl font-extrabold text-slate-900 tracking-tight">
-                            ${pet.name}
-                        </h2>
+                        <h2 class="text-xl font-extrabold text-slate-900 tracking-tight">${pet.name || "Unnamed Pet"}</h2>
                     </div>
                 </div>
             </div>
 
             <!-- CARD BODY -->
             <div class="p-5 flex flex-col flex-1 justify-between gap-4">
-
-                <!-- Meta Details Badges -->
+                <!-- META DETAILS -->
                 <div class="flex items-center gap-2 overflow-x-auto whitespace-nowrap no-scrollbar">
                     <span class="inline-flex shrink-0 items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 text-xs font-semibold border border-slate-200/60">
-                        <i class="fa-solid fa-dna text-slate-400 text-[10px]"></i> ${pet.species}
+                        <i class="fa-solid fa-dna text-slate-400 text-[10px]"></i> ${pet.species || "Unknown"}
                     </span>
                     <span class="inline-flex shrink-0 items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 text-xs font-semibold border border-slate-200/60">
-                        <i class="fa-solid fa-venus-mars text-slate-400 text-[10px]"></i> ${pet.gender}
+                        <i class="fa-solid fa-venus-mars text-slate-400 text-[10px]"></i> ${pet.gender || pet.sex || "Unknown"}
                     </span>
                     <span class="inline-flex shrink-0 items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 text-xs font-semibold border border-slate-200/60">
-                        <i class="fa-regular fa-calendar-days text-slate-400 text-[10px]"></i> ${pet.age}
+                        <i class="fa-regular fa-calendar-days text-slate-400 text-[10px]"></i> ${pet.age || "Unknown"}
                     </span>
                 </div>
 
-               <!-- Organization Box -->
+                <!-- ORGANIZATION -->
                 <div class="rounded-2xl bg-slate-50 border border-slate-200/70 p-3.5 flex-1">
                     <p class="text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-2">
-                        <i class="fa-solid fa-building text-slate-400 text-[10px]"></i>
-                        Organization
+                        <i class="fa-solid fa-building text-slate-400 text-[10px]"></i> Organization
                     </p>
-
-                    <p class="text-sm font-semibold text-slate-800 break-words">
-                        ${pet.organization_name}
-                    </p>
+                    <p class="text-sm font-semibold text-slate-800 break-words">${pet.organization_name || "Unknown Organization"}</p>
                 </div>
 
-               <!-- Match Score -->
+                <!-- MATCH SCORE -->
                 <div class="space-y-2">
                     <div class="flex justify-between items-center text-xs">
                         <span class="text-slate-500 font-semibold flex items-center gap-1.5">
-                            <i class="fa-solid fa-medal text-blue-600 text-xs"></i>
-                            Match Score
+                            <i class="fa-solid fa-medal text-blue-600 text-xs"></i> Match Score
                         </span>
-
-                        <span class="font-extrabold text-blue-700">
-                            ${pet.score}%
-                        </span>
+                        <span class="font-extrabold text-blue-700">${score.toFixed(0)}%</span>
                     </div>
 
-                    <!-- Segmented Progress -->
+                    <!-- SCORE BAR -->
                     <div class="w-full h-2 rounded-full overflow-hidden bg-slate-100 border border-slate-200/60 flex">
-
-                        <!-- Behavior (70%) -->
-                        <div
-                            class="bg-blue-700 h-full transition-all duration-500"
-                            style="width:${pet.behaviorContribution}%"
-                            title="Behavior: ${pet.behaviorContribution.toFixed(2)}%">
-                        </div>
-
-                        <!-- Age (20%) -->
-                        <div
-                            class="bg-blue-500 h-full transition-all duration-500"
-                            style="width:${pet.ageContribution}%"
-                            title="Age: ${pet.ageContribution.toFixed(2)}%">
-                        </div>
-
-                        <!-- Sex (10%) -->
-                        <div
-                            class="bg-blue-300 h-full transition-all duration-500"
-                            style="width:${pet.sexContribution}%"
-                            title="Sex: ${pet.sexContribution.toFixed(2)}%">
-                        </div>
-
+                        <div class="bg-blue-700 h-full transition-all duration-500" style="width:${Number(pet.behaviorContribution) || 0}%" title="Behavior"></div>
+                        <div class="bg-blue-500 h-full transition-all duration-500" style="width:${Number(pet.ageContribution) || 0}%" title="Age"></div>
+                        <div class="bg-blue-300 h-full transition-all duration-500" style="width:${Number(pet.sexContribution) || 0}%" title="Sex"></div>
                     </div>
 
-                    <!-- Legend -->
+                    <!-- LEGEND -->
                     <div class="flex items-center gap-4 text-[10px] text-slate-500 font-medium">
-                        <span class="flex items-center gap-1">
-                            <span class="w-2.5 h-2.5 rounded-full bg-blue-700"></span>
-                            Behavior
-                        </span>
-
-                        <span class="flex items-center gap-1">
-                            <span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
-                            Age
-                        </span>
-
-                        <span class="flex items-center gap-1">
-                            <span class="w-2.5 h-2.5 rounded-full bg-blue-300"></span>
-                            Sex
-                        </span>
+                        <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-blue-700"></span> Behavior</span>
+                        <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span> Age</span>
+                        <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-blue-300"></span> Sex</span>
                     </div>
                 </div>
 
-                <!-- CTA View Profile Button -->
-                <button
-                    class="view-profile-btn w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 transition-all duration-200 text-white py-3 rounded-xl font-bold text-xs shadow-md shadow-indigo-100 hover:shadow-indigo-200 active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer"
-                    data-id="${pet.animal_id}">
+                <!-- VIEW PROFILE -->
+                <button type="button" class="view-profile-btn w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 transition-all duration-200 text-white py-3 rounded-xl font-bold text-xs shadow-md shadow-indigo-100 hover:shadow-indigo-200 active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer" data-id="${pet.animal_id}">
                     <i class="fa-regular fa-eye text-sm"></i>
                     <span>View Full Profile</span>
                 </button>
-
             </div>
-        </div>
-        `;
+        </div>`;
     });
 }
+// ==========================================================
+// NO MATCHES MESSAGE
+// ==========================================================
+
+function renderNoMatchesMessage() {
+    const container = document.getElementById("matchResultsContainer");
+    if (!container) return;
+
+    container.innerHTML = `
+        <div class="col-span-full bg-gradient-to-b from-white to-slate-50 rounded-3xl shadow-xs border border-slate-200/80 p-12 text-center">
+            <div class="w-20 h-20 bg-rose-50 border border-rose-100 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-2xs">
+                <i class="fa-solid fa-heart-crack text-4xl text-rose-500"></i>
+            </div>
+            <h2 class="text-2xl font-black text-slate-800 tracking-tight">No Compatible Pets Found</h2>
+            <p class="text-slate-500 text-sm mt-2 max-w-md mx-auto leading-relaxed">
+                No pets match your current filters. Try changing or clearing your filters.
+            </p>
+        </div>`;
+}
+
+// ==========================================================
+// UPDATE RESULT COUNT
+// ==========================================================
+
+function updateMatchResultCount(count) {
+    const resultCount = document.getElementById("matchResultCount");
+    if (resultCount) {
+        resultCount.textContent = count;
+    }
+}
+// ==========================================================
+// POPULATE ORGANIZATION FILTER
+// ==========================================================
+
+function populateOrganizationFilter(matches) {
+    const select = document.getElementById("matchOrganizationFilter");
+    if (!select) return;
+
+    select.innerHTML = '<option value="">All Organizations</option>';
+
+    const organizations = [
+        ...new Set(matches.map(match => getMatchOrganization(match)).filter(Boolean))
+    ].sort();
+
+    organizations.forEach(organization => {
+        const option = document.createElement("option");
+        option.value = organization;
+        option.textContent = organization.replace(/\b\w/g, char => char.toUpperCase());
+        select.appendChild(option);
+    });
+}
+// ==========================================================
+// APPLY MATCH FILTERS
+// ==========================================================
+
+function applyMatchFilters() {
+
+    // ======================================================
+    // GET FILTER VALUES
+    // ======================================================
+
+    const searchValue =
+        normalizeFilterText(
+            document.getElementById("matchSearch")?.value
+        );
+
+    const speciesValue =
+        normalizeFilterText(
+            document.getElementById("matchSpeciesFilter")?.value
+        );
+
+    const genderValue =
+        normalizeFilterText(
+            document.getElementById("matchGenderFilter")?.value
+        );
+
+    const ageValue =
+        normalizeFilterText(
+            document.getElementById("matchAgeFilter")?.value
+        );
+
+    const organizationValue =
+        normalizeFilterText(
+            document.getElementById("matchOrganizationFilter")?.value
+        );
+
+    const scoreFilter =
+        Number(
+            document.getElementById("matchScoreFilter")?.value
+        ) || 0;
+
+
+    // ======================================================
+    // FILTER ORIGINAL RESULTS
+    // ======================================================
+
+    filteredMatchResults =
+        allMatchResults.filter(match => {
+
+            // ----------------------------------------------
+            // PET DATA
+            // ----------------------------------------------
+
+            const pet =
+                getPetData(match);
+
+
+            // ----------------------------------------------
+            // NAME
+            // ----------------------------------------------
+
+            const petName =
+                getMatchPetName(match);
+
+
+            // ----------------------------------------------
+            // ORGANIZATION
+            // ----------------------------------------------
+
+            const organization =
+                getMatchOrganization(match);
+
+
+            // ----------------------------------------------
+            // SPECIES
+            // ----------------------------------------------
+
+            const species =
+                getMatchSpecies(match);
+
+
+            // ----------------------------------------------
+            // GENDER
+            // ----------------------------------------------
+
+            const gender =
+                getMatchGender(match);
+
+
+            // ----------------------------------------------
+            // AGE
+            // ----------------------------------------------
+
+            const age =
+                getMatchAge(match);
+
+            const normalizedAge =
+                normalizeAgeCategory(age);
+
+
+            // ----------------------------------------------
+            // SCORE
+            // ----------------------------------------------
+
+            const score =
+                getMatchScorePercent(match);
+
+
+            // =================================================
+            // SEARCH
+            // =================================================
+
+            const matchesSearch =
+                !searchValue ||
+                petName.includes(searchValue) ||
+                organization.includes(searchValue);
+
+
+            // =================================================
+            // SPECIES
+            // =================================================
+
+            const matchesSpecies =
+                !speciesValue ||
+                species === speciesValue;
+
+
+            // =================================================
+            // GENDER
+            // =================================================
+
+            const matchesGender =
+                !genderValue ||
+                gender === genderValue;
+
+
+            // =================================================
+            // AGE
+            // =================================================
+
+            const matchesAge =
+                !ageValue ||
+                normalizedAge === ageValue;
+
+
+            // =================================================
+            // ORGANIZATION
+            // =================================================
+
+            const matchesOrganization =
+                !organizationValue ||
+                organization === organizationValue;
+
+
+            // =================================================
+            // SCORE
+            // =================================================
+
+            const matchesScore =
+                score >= scoreFilter;
+
+
+            // =================================================
+            // FINAL RESULT
+            // =================================================
+
+            return (
+                matchesSearch &&
+                matchesSpecies &&
+                matchesGender &&
+                matchesAge &&
+                matchesOrganization &&
+                matchesScore
+            );
+
+        });
+
+
+    // ======================================================
+    // KEEP VIEW PROFILE DATA SYNCHRONIZED
+    // ======================================================
+
+    matchedPets =
+        [...filteredMatchResults];
+
+
+    // ======================================================
+    // RENDER FILTERED RESULTS
+    // ======================================================
+
+    renderPetCards(filteredMatchResults);
+
+
+    // ======================================================
+    // UPDATE COUNT
+    // ======================================================
+
+    updateMatchResultCount(
+        filteredMatchResults.length
+    );
+}
+// ==========================================================
+// FILTER EVENT LISTENERS
+// ==========================================================
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    const search =
+        document.getElementById("matchSearch");
+
+    const species =
+        document.getElementById("matchSpeciesFilter");
+
+    const gender =
+        document.getElementById("matchGenderFilter");
+
+    const age =
+        document.getElementById("matchAgeFilter");
+
+    const organization =
+        document.getElementById("matchOrganizationFilter");
+
+    const score =
+        document.getElementById("matchScoreFilter");
+
+    const clear =
+        document.getElementById("clearMatchFilters");
+
+
+    // ======================================================
+    // SEARCH
+    // ======================================================
+
+    if (search) {
+
+        search.addEventListener(
+            "input",
+            applyMatchFilters
+        );
+
+    }
+
+
+    // ======================================================
+    // DROPDOWN FILTERS
+    // ======================================================
+
+    [
+        species,
+        gender,
+        age,
+        organization,
+        score
+
+    ].forEach(filter => {
+
+        if (filter) {
+
+            filter.addEventListener(
+                "change",
+                applyMatchFilters
+            );
+
+        }
+
+    });
+
+
+    // ======================================================
+    // CLEAR FILTERS
+    // ======================================================
+
+    if (clear) {
+
+        clear.addEventListener(
+            "click",
+            () => {
+
+                if (search) {
+                    search.value = "";
+                }
+
+                if (species) {
+                    species.value = "";
+                }
+
+                if (gender) {
+                    gender.value = "";
+                }
+
+                if (age) {
+                    age.value = "";
+                }
+
+                if (organization) {
+                    organization.value = "";
+                }
+
+                if (score) {
+                    score.value = "";
+                }
+
+                // Reapply with everything cleared
+                applyMatchFilters();
+
+            }
+        );
+
+    }
+
+});
 // =========================
 // VIEW PET PROFILE BUTTON
 // =========================
@@ -732,47 +1259,3 @@ function closeMatchPetModal() {
     document.getElementById("viewPetModal").classList.add("hidden");
     document.getElementById("viewPetModal").classList.remove("flex");
 }
-
-// REMARKS
-const healthTag = document.getElementById("modalHealth").parentElement;
-
-switch (pet.health_status) {
-    case "Healthy":
-        healthTag.className =
-            "flex items-center gap-2 px-4 py-2 rounded-full bg-green-50 border border-green-200 text-green-700 text-sm font-medium";
-        break;
-
-    case "Recovered":
-        healthTag.className =
-            "flex items-center gap-2 px-4 py-2 rounded-full bg-lime-50 border border-lime-200 text-lime-700 text-sm font-medium";
-        break;
-
-    case "Under Treatment":
-        healthTag.className =
-            "flex items-center gap-2 px-4 py-2 rounded-full bg-amber-50 border border-amber-200 text-amber-700 text-sm font-medium";
-        break;
-
-    case "Sick":
-        healthTag.className =
-            "flex items-center gap-2 px-4 py-2 rounded-full bg-red-50 border border-red-200 text-red-700 text-sm font-medium";
-        break;
-}
-const vaccineTag = document.getElementById("modalVaccination").parentElement;
-
-switch (pet.vaccination_status) {
-    case "Vaccinated":
-        vaccineTag.className =
-            "flex items-center gap-2 px-4 py-2 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-sm font-medium";
-        break;
-
-    case "Not Vaccinated":
-        vaccineTag.className =
-            "flex items-center gap-2 px-4 py-2 rounded-full bg-orange-50 border border-orange-200 text-orange-700 text-sm font-medium";
-        break;
-
-    case "Unknown":
-        vaccineTag.className =
-            "flex items-center gap-2 px-4 py-2 rounded-full bg-slate-100 border border-slate-200 text-slate-700 text-sm font-medium";
-        break;
-}
-

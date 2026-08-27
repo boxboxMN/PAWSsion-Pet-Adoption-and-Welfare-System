@@ -251,16 +251,23 @@ router.get('/applications/:id', async (req, res) => {
             CASE WHEN app.status = 'Under Review' THEN NULL ELSE i.interview_time END AS interview_time,
             CASE WHEN app.status = 'Under Review' THEN NULL ELSE i.interview_method END AS interview_method,
             CASE WHEN app.status = 'Under Review' THEN NULL ELSE i.interview_location_link END AS interview_location_link,
+            CASE WHEN app.status = 'Under Review' THEN NULL ELSE i.meetup_location END AS meetup_location,
             CASE WHEN app.status = 'Under Review' THEN NULL ELSE i.requested_interview_date END AS requested_interview_date,
             CASE WHEN app.status = 'Under Review' THEN NULL ELSE i.requested_interview_time END AS requested_interview_time,
             CASE WHEN app.status = 'Under Review' THEN NULL ELSE i.reschedule_reason END AS reschedule_reason,
             CASE WHEN app.status = 'Under Review' THEN NULL ELSE i.resched_status END AS resched_status,
             DATE_FORMAT(app.created_at, '%b %d, %Y • %h:%i %p') AS applied_date,
             p.name AS pet_name
-        FROM user_adoption_applications app
-        INNER JOIN animals p ON app.animal_id = p.animal_id
-        LEFT JOIN application_interviews i ON app.application_id = i.application_id
-        WHERE app.application_id = ? AND p.organization_id = ?
+            FROM user_adoption_applications app
+            INNER JOIN animals p ON app.animal_id = p.animal_id
+            LEFT JOIN application_interviews i 
+                ON i.application_id = app.application_id
+                AND i.interview_id = (
+                    SELECT MAX(i2.interview_id) 
+                    FROM application_interviews i2 
+                    WHERE i2.application_id = app.application_id
+                )
+            WHERE app.application_id = ? AND p.organization_id = ?
     `;
     
     const [rows] = await pool.query(query, [id, orgId]);
@@ -308,7 +315,7 @@ router.patch('/applications/:id/status', async (req, res) => {
 
     try {
         const { id } = req.params;
-        const { status, decline_reason } = req.body;
+        const { status, decline_reason, meetup_location } = req.body;
 
         const validStatuses = ['Under Review', 'Interview Scheduled', 'Approved', 'Declined'];
 
@@ -326,6 +333,15 @@ router.patch('/applications/:id/status', async (req, res) => {
             return res.status(400).json({
                 success: false,
                 message: "A decline reason is required when declining an application."
+            });
+        }
+
+        // VALIDATION: Siguraduhing may laman ang meet-up location kapag 'Approved'
+        if (status === 'Approved' && (!meetup_location || meetup_location.trim() === '')) {
+            connection.release();
+            return res.status(400).json({
+                success: false,
+                message: "A meet-up location is required when approving an application."
             });
         }
 
@@ -372,6 +388,17 @@ router.patch('/applications/:id/status', async (req, res) => {
 
         // If approved, change the status of the pet from "animals" table, and matanggal sa Adoption Hub
         if (status === 'Approved') {
+            // I-save ang meet-up location sa application_interviews (may existing row na dapat
+            // dahil kinakailangan munang mag-interview bago maka-approve)
+            await connection.query(
+                `UPDATE application_interviews 
+                 SET meetup_location = ? 
+                 WHERE application_id = ? 
+                 ORDER BY application_id DESC 
+                 LIMIT 1`,
+                [meetup_location.trim(), id]
+            );
+
             await connection.query(
                 `UPDATE animals SET adoption_status = 'Adopted' WHERE animal_id = ?`,
                 [animalId]
@@ -637,17 +664,12 @@ router.get("/applications/export/summary", async (req, res) => {
 router.patch("/pets/archive/:id", archivePet);
 
 router.get("/pets/:animalId/application", getApplicationByAnimalId);
-// ============================================
-// DONATIONS EXPORT
-// VERIFIED / APPROVED DONATIONS ONLY
-// EXCEL + PDF
-// ============================================
-
 router.get('/donations/export', async (req, res) => {
     try {
         const format = req.query.format; // excel or pdf
         const type = req.query.type;     // month or year
         const date = req.query.date;     // 2026-08 or 2026
+        const tab = req.query.tab || 'cash'; // 'cash' o 'inkind'
 
         // --------------------------------------------
         // CHECK LOGIN
@@ -662,7 +684,7 @@ router.get('/donations/export', async (req, res) => {
         }
 
         // --------------------------------------------
-        // GET ORGANIZATION ID
+        // GET ORGANIZATION INFO
         // --------------------------------------------
         const [orgRows] = await pool.query(
             `
@@ -681,476 +703,247 @@ router.get('/donations/export', async (req, res) => {
         }
 
         const organizationId = orgRows[0].organization_id;
+        const organizationName = "PAWSSION Organization";
 
         // --------------------------------------------
-        // BUILD QUERY
-        // ONLY APPROVED / VERIFIED DONATIONS
-        // ONLY CURRENT ORGANIZATION
+        // BUILD QUERY DYNAMICALLY BASED ON TAB
         // --------------------------------------------
-
-        let query = `
-            SELECT
-                cash_donation_id AS donation_id,
-                donor_name,
-                amount AS details,
-                'Cash' AS donation_type,
-                status,
-                created_at
-            FROM cash_donations
-            WHERE organization_id = ?
-              AND status = 'Approved'
-        `;
-
+        let query = "";
         const queryParams = [organizationId];
 
-        // --------------------------------------------
-        // CASH DATE FILTER
-        // --------------------------------------------
-
-        if (type === 'month') {
-            query += `
-                AND DATE_FORMAT(created_at, '%Y-%m') = ?
-            `;
-
-            queryParams.push(date);
-
-        } else if (type === 'year') {
-            query += `
-                AND YEAR(created_at) = ?
-            `;
-
-            queryParams.push(date);
-        }
-
-        // --------------------------------------------
-        // IN-KIND DONATIONS
-        // --------------------------------------------
-
-        query += `
-            UNION ALL
-
-            SELECT
-                inkind_donation_id AS donation_id,
-                donor_name,
-                CONCAT(
+        if (tab === 'inkind') {
+            query = `
+                SELECT
+                    inkind_donation_id AS donation_id,
+                    donor_name,
                     item_name,
-                    ' (Qty: ',
                     quantity,
-                    ' ',
                     unit,
-                    ')'
-                ) AS details,
-                'In-Kind' AS donation_type,
-                status,
-                created_at
-            FROM inkind_donations
-            WHERE organization_id = ?
-              AND status = 'Approved'
-        `;
-
-        queryParams.push(organizationId);
-
-        // --------------------------------------------
-        // IN-KIND DATE FILTER
-        // --------------------------------------------
-
-        if (type === 'month') {
-            query += `
-                AND DATE_FORMAT(created_at, '%Y-%m') = ?
+                    'In-Kind' AS donation_type,
+                    status,
+                    created_at
+                FROM inkind_donations
+                WHERE organization_id = ?
+                  AND status = 'Approved'
             `;
-
-            queryParams.push(date);
-
-        } else if (type === 'year') {
-            query += `
-                AND YEAR(created_at) = ?
+        } else {
+            query = `
+                SELECT
+                    cash_donation_id AS donation_id,
+                    donor_name,
+                    amount,
+                    'Cash' AS donation_type,
+                    status,
+                    created_at
+                FROM cash_donations
+                WHERE organization_id = ?
+                  AND status = 'Approved'
             `;
-
-            queryParams.push(date);
         }
 
         // --------------------------------------------
-        // SORT
+        // DATE FILTER
         // --------------------------------------------
+        if (type === 'month' && date) {
+            query += ` AND DATE_FORMAT(created_at, '%Y-%m') = ? `;
+            queryParams.push(date);
+        } else if (type === 'year' && date) {
+            query += ` AND YEAR(created_at) = ? `;
+            queryParams.push(date);
+        }
 
-        query += `
-            ORDER BY created_at DESC
-        `;
-
-        console.log("=================================");
-        console.log("DONATION EXPORT");
-        console.log("Organization:", organizationId);
-        console.log("Format:", format);
-        console.log("Type:", type);
-        console.log("Date:", date);
-        console.log("Query Params:", queryParams);
-        console.log("=================================");
+        query += ` ORDER BY created_at DESC `;
 
         // --------------------------------------------
         // GET DATA
         // --------------------------------------------
-
-        const [rows] = await pool.query(
-            query,
-            queryParams
-        );
-
-        // --------------------------------------------
-        // NO VERIFIED RECORDS
-        // --------------------------------------------
+        const [rows] = await pool.query(query, queryParams);
 
         if (!rows.length) {
             return res.status(404).json({
                 success: false,
-                message:
-                    "No verified/approved donations found for the selected date."
+                message: `No verified/approved ${tab} donations found for the selected period.`
             });
         }
 
         // ============================================
-        // EXCEL / CSV EXPORT
+        // EXCEL / CSV EXPORT (Professional Structured)
         // ============================================
-
         if (format === 'excel') {
+            let csv = "";
+            
+            csv += `"${organizationName} - Verified ${tab === 'inkind' ? 'In-Kind' : 'Cash'} Donations Report"\n`;
+            csv += `"Period: ${date || 'All-Time'} | Generated: ${new Date().toLocaleDateString()}"\n\n`;
 
-            let csv =
-                "Donation ID,Donor Name,Type,Details / Amount,Status,Date\n";
+            if (tab === 'inkind') {
+                csv += "Donation ID,Donor Name,Item Name,Quantity,Unit,Type,Status,Date\n";
+            } else {
+                csv += "Donation ID,Donor Name,Amount (PHP),Type,Status,Date\n";
+            }
 
             const escapeCSV = (value) => {
-                return `"${String(value ?? '')
-                    .replace(/"/g, '""')}"`;
+                return `"${String(value ?? '').replace(/"/g, '""')}"`;
             };
 
             rows.forEach(row => {
-
-                csv += [
-                    escapeCSV(row.donation_id),
-                    escapeCSV(row.donor_name),
-                    escapeCSV(row.donation_type),
-                    escapeCSV(row.details),
-                    escapeCSV(row.status),
-                    escapeCSV(row.created_at)
-                ].join(',') + '\n';
-
+                const formattedDate = row.created_at ? new Date(row.created_at).toISOString().split('T')[0] : '';
+                if (tab === 'inkind') {
+                    csv += [
+                        escapeCSV(row.donation_id),
+                        escapeCSV(row.donor_name),
+                        escapeCSV(row.item_name),
+                        escapeCSV(row.quantity),
+                        escapeCSV(row.unit),
+                        escapeCSV(row.donation_type),
+                        escapeCSV(row.status),
+                        escapeCSV(formattedDate)
+                    ].join(',') + '\n';
+                } else {
+                    csv += [
+                        escapeCSV(row.donation_id),
+                        escapeCSV(row.donor_name),
+                        escapeCSV(Number(row.amount || 0).toFixed(2)),
+                        escapeCSV(row.donation_type),
+                        escapeCSV(row.status),
+                        escapeCSV(formattedDate)
+                    ].join(',') + '\n';
+                }
             });
 
-            res.setHeader(
-                "Content-Type",
-                "text/csv; charset=utf-8"
-            );
-
-            res.setHeader(
-                "Content-Disposition",
-                `attachment; filename="Verified_Donations_${date || 'All'}.csv"`
-            );
-
-            return res.status(200).send(
-                "\uFEFF" + csv
-            );
+            res.setHeader("Content-Type", "text/csv; charset=utf-8");
+            res.setHeader("Content-Disposition", `attachment; filename="${tab}_donations_report_${date || 'all'}.csv"`);
+            return res.status(200).send("\uFEFF" + csv);
         }
 
         // ============================================
-        // PDF EXPORT
+        // PDF EXPORT (Professional Layout with PDFKit)
         // ============================================
-
         if (format === 'pdf') {
-
             let PDFDocument;
 
             try {
                 PDFDocument = require('pdfkit');
             } catch (pdfError) {
-
-                console.error(
-                    "PDFKit is not installed:",
-                    pdfError
-                );
-
                 return res.status(500).json({
                     success: false,
-                    message:
-                        "PDF export is not configured. Run: npm install pdfkit"
+                    message: "PDF export package missing. Run: npm install pdfkit"
                 });
             }
 
-            const doc = new PDFDocument({
-                margin: 40,
-                size: 'A4'
-            });
+            const doc = new PDFDocument({ margin: 36, size: 'A4' });
+            const filename = `${tab}_donations_report_${date || 'all'}.pdf`;
 
-            const filename =
-                `Verified_Donations_${date || 'All'}.pdf`;
-
-            res.setHeader(
-                "Content-Type",
-                "application/pdf"
-            );
-
-            res.setHeader(
-                "Content-Disposition",
-                `attachment; filename="${filename}"`
-            );
-
+            res.setHeader("Content-Type", "application/pdf");
+            res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
             doc.pipe(res);
 
-            // ----------------------------------------
-            // PDF HEADER
-            // ----------------------------------------
-
-            doc
-                .fontSize(20)
-                .font('Helvetica-Bold')
-                .text(
-                    'PAWPON',
-                    {
-                        align: 'center'
-                    }
-                );
-
-            doc
-                .moveDown(0.3)
-                .fontSize(14)
-                .font('Helvetica-Bold')
-                .text(
-                    'Verified Donations Report',
-                    {
-                        align: 'center'
-                    }
-                );
-
-            doc
-                .moveDown(0.3)
-                .fontSize(9)
-                .font('Helvetica')
-                .text(
-                    `Period: ${date || 'All Dates'}`,
-                    {
-                        align: 'center'
-                    }
-                );
-
-            doc
-                .moveDown(0.2)
-                .fontSize(9)
-                .text(
-                    'Status: Approved / Verified Only',
-                    {
-                        align: 'center'
-                    }
-                );
-
+            // --- PROFESSIONAL PDF HEADER ---
+            doc.fontSize(16).font('Helvetica-Bold').fillColor('#1E293B').text(organizationName, { align: 'center' });
+            doc.moveDown(0.2);
+            doc.fontSize(12).font('Helvetica-Bold').fillColor('#475569').text(`Verified ${tab === 'inkind' ? 'In-Kind' : 'Cash'} Donations Summary Report`, { align: 'center' });
+            doc.moveDown(0.2);
+            doc.fontSize(9).font('Helvetica').fillColor('#64748B').text(`Period: ${date || 'All-Time'}  |  Status: Approved  |  Generated on: ${new Date().toLocaleDateString()}`, { align: 'center' });
             doc.moveDown(1);
 
-            // ----------------------------------------
-            // TABLE HEADER
-            // ----------------------------------------
+            // Divider Line
+            doc.strokeColor('#CBD5E1').lineWidth(1).moveTo(36, doc.y).lineTo(559, doc.y).stroke();
+            doc.moveDown(1);
 
+            // --- TABLE CONFIGURATION ---
             let y = doc.y;
+            const drawTableHeaders = () => {
+                doc.fillColor('#0F172A').font('Helvetica-Bold').fontSize(8);
+                if (tab === 'inkind') {
+                    doc.text('ID', 36, y, { width: 30 });
+                    doc.text('Donor Name', 70, y, { width: 110 });
+                    doc.text('Item Name', 185, y, { width: 110 });
+                    doc.text('Qty / Unit', 300, y, { width: 70 });
+                    doc.text('Type', 375, y, { width: 55 });
+                    doc.text('Status', 435, y, { width: 55 });
+                    doc.text('Date', 495, y, { width: 64 });
+                } else {
+                    doc.text('ID', 36, y, { width: 35 });
+                    doc.text('Donor Name', 85, y, { width: 140 });
+                    doc.text('Amount (PHP)', 240, y, { width: 90 });
+                    doc.text('Type', 345, y, { width: 60 });
+                    doc.text('Status', 420, y, { width: 65 });
+                    doc.text('Date', 495, y, { width: 64 });
+                }
+                
+                doc.strokeColor('#94A3B8').lineWidth(0.8).moveTo(36, y + 12).lineTo(559, y + 12).stroke();
+                y += 18;
+            };
 
-            doc.font('Helvetica-Bold')
-                .fontSize(8);
+            drawTableHeaders();
 
-            doc.text('ID', 40, y, {
-                width: 40
-            });
+            // --- TABLE ROWS ---
+            doc.font('Helvetica').fontSize(8).fillColor('#334155');
+            let totalAmountOrItems = 0;
 
-            doc.text('Donor Name', 80, y, {
-                width: 120
-            });
-
-            doc.text('Type', 200, y, {
-                width: 70
-            });
-
-            doc.text('Details / Amount', 270, y, {
-                width: 130
-            });
-
-            doc.text('Status', 400, y, {
-                width: 70
-            });
-
-            doc.text('Date', 470, y, {
-                width: 85
-            });
-
-            doc.moveTo(40, y + 15)
-                .lineTo(555, y + 15)
-                .stroke();
-
-            y += 22;
-
-            // ----------------------------------------
-            // TABLE ROWS
-            // ----------------------------------------
-
-            doc.font('Helvetica')
-                .fontSize(7);
-
-            rows.forEach(row => {
-
-                // New page if needed
-                if (y > 750) {
-
+            rows.forEach((row) => {
+                if (y > 740) {
                     doc.addPage();
-
-                    y = 50;
-
-                    doc.font('Helvetica-Bold')
-                        .fontSize(8);
-
-                    doc.text('ID', 40, y, {
-                        width: 40
-                    });
-
-                    doc.text('Donor Name', 80, y, {
-                        width: 120
-                    });
-
-                    doc.text('Type', 200, y, {
-                        width: 70
-                    });
-
-                    doc.text('Details / Amount', 270, y, {
-                        width: 130
-                    });
-
-                    doc.text('Status', 400, y, {
-                        width: 70
-                    });
-
-                    doc.text('Date', 470, y, {
-                        width: 85
-                    });
-
-                    doc.moveTo(40, y + 15)
-                        .lineTo(555, y + 15)
-                        .stroke();
-
-                    y += 22;
-
-                    doc.font('Helvetica')
-                        .fontSize(7);
+                    y = 40;
+                    drawTableHeaders();
+                    doc.font('Helvetica').fontSize(8).fillColor('#334155');
                 }
 
-                const donationId =
-                    String(row.donation_id ?? '');
+                const donationId = String(row.donation_id ?? '');
+                const donorName = String(row.donor_name ?? 'Anonymous');
+                const donationType = String(row.donation_type ?? '');
+                const status = String(row.status ?? '');
+                const createdAt = row.created_at ? new Date(row.created_at).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }) : '';
 
-                const donorName =
-                    String(row.donor_name ?? 'Anonymous');
+                if (tab === 'inkind') {
+                    const itemName = String(row.item_name ?? '');
+                    const qtyUnit = `${row.quantity ?? 0} ${row.unit ?? ''}`;
 
-                const donationType =
-                    String(row.donation_type ?? '');
+                    doc.text(donationId, 36, y, { width: 30 });
+                    doc.text(donorName, 70, y, { width: 110, lineBreak: false });
+                    doc.text(itemName, 185, y, { width: 110, lineBreak: false });
+                    doc.text(qtyUnit, 300, y, { width: 70 });
+                    doc.text(donationType, 375, y, { width: 55 });
+                    doc.text(status, 435, y, { width: 55 });
+                    doc.text(createdAt, 495, y, { width: 64 });
+                } else {
+                    const amountVal = Number(row.amount || 0);
+                    totalAmountOrItems += amountVal;
+                    const formattedAmount = `PHP ${amountVal.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
 
-                const details =
-                    String(row.details ?? '');
+                    doc.text(donationId, 36, y, { width: 35 });
+                    doc.text(donorName, 85, y, { width: 140, lineBreak: false });
+                    doc.text(formattedAmount, 240, y, { width: 90 });
+                    doc.text(donationType, 345, y, { width: 60 });
+                    doc.text(status, 420, y, { width: 65 });
+                    doc.text(createdAt, 495, y, { width: 64 });
+                }
 
-                const status =
-                    String(row.status ?? '');
-
-                const createdAt =
-                    row.created_at
-                        ? new Date(row.created_at)
-                            .toLocaleDateString('en-US')
-                        : '';
-
-                doc.text(
-                    donationId,
-                    40,
-                    y,
-                    {
-                        width: 40
-                    }
-                );
-
-                doc.text(
-                    donorName,
-                    80,
-                    y,
-                    {
-                        width: 120
-                    }
-                );
-
-                doc.text(
-                    donationType,
-                    200,
-                    y,
-                    {
-                        width: 70
-                    }
-                );
-
-                doc.text(
-                    details,
-                    270,
-                    y,
-                    {
-                        width: 130
-                    }
-                );
-
-                doc.text(
-                    status,
-                    400,
-                    y,
-                    {
-                        width: 70
-                    }
-                );
-
-                doc.text(
-                    createdAt,
-                    470,
-                    y,
-                    {
-                        width: 85
-                    }
-                );
-
-                y += 30;
+                y += 20;
             });
 
-            // ----------------------------------------
-            // FOOTER
-            // ----------------------------------------
+            // --- FOOTER / SUMMARY SECTION ---
+            doc.moveDown(1);
+            if (y > 720) { doc.addPage(); y = 50; }
+            
+            doc.strokeColor('#CBD5E1').lineWidth(1).moveTo(36, y).lineTo(559, y).stroke();
+            y += 10;
 
-            doc.fontSize(8)
-                .font('Helvetica')
-                .text(
-                    `Total Verified Donations: ${rows.length}`,
-                    40,
-                    y + 10
-                );
+            doc.font('Helvetica-Bold').fontSize(9).fillColor('#0F172A');
+            doc.text(`Total Records: ${rows.length}`, 36, y);
+
+            if (tab === 'cash') {
+                doc.text(`Total Cash Accumulated: PHP ${totalAmountOrItems.toLocaleString('en-US', { minimumFractionDigits: 2 })}`, 300, y, { align: 'right', width: 259 });
+            }
 
             doc.end();
-
             return;
         }
 
-        // --------------------------------------------
-        // INVALID FORMAT
-        // --------------------------------------------
-
-        return res.status(400).json({
-            success: false,
-            message:
-                "Invalid export format. Use 'excel' or 'pdf'."
-        });
+        return res.status(400).json({ success: false, message: "Invalid export format selected." });
 
     } catch (error) {
-
-        console.error(
-            "❌ Donation Export Error:",
-            error
-        );
-
-        return res.status(500).json({
-            success: false,
-            message:
-                "Failed to export donations.",
-            details: error.message
-        });
+        console.error("❌ Professional Donation Export Error:", error);
+        return res.status(500).json({ success: false, message: "Failed to generate professional export.", details: error.message });
     }
 });
 
