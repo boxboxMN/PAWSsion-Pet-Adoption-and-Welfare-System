@@ -1979,168 +1979,48 @@ function refreshData() {
 }
 
 
-// =====================================================
-// EXPORT REPORT
-// =====================================================
+async function exportFile(format) {
+    const filterType = document.getElementById("filterType")?.value || "";
+    const dateValue = document.getElementById("datePicker")?.value || "";
 
-async function exportFile(
-    format
-) {
+    // Paki-siguro na ang activeTab ay may value na 'cash' o 'inkind'
+    const currentTab = typeof activeTab !== 'undefined' ? activeTab : 'cash';
 
-    const filterType =
-        document.getElementById(
-            "filterType"
-        )?.value || "";
-
-    const dateValue =
-        document.getElementById(
-            "datePicker"
-        )?.value || "";
-
-
-    const url =
-        `/org/donations/export?format=${encodeURIComponent(
-            format
-        )}&type=${encodeURIComponent(
-            filterType
-        )}&date=${encodeURIComponent(
-            dateValue
-        )}`;
-
+    // I-pasa ang 'tab' parameter sa backend URL
+    const url = `/org/donations/export?format=${encodeURIComponent(format)}&tab=${encodeURIComponent(currentTab)}&type=${encodeURIComponent(filterType)}&date=${encodeURIComponent(dateValue)}`;
 
     try {
-
-        const response =
-            await fetch(
-                url,
-                {
-                    method: "GET",
-
-                    headers: {
-                        Authorization:
-                            "Bearer " +
-                            (
-                                localStorage.getItem(
-                                    "token"
-                                ) || ""
-                            )
-                    }
-                }
-            );
-
+        const response = await fetch(url, {
+            method: "GET",
+            headers: {
+                Authorization: "Bearer " + (localStorage.getItem("token") || "")
+            }
+        });
 
         if (!response.ok) {
-
-            const contentType =
-                response.headers.get(
-                    "content-type"
-                );
-
-
-            let errorMessage =
-                "There was an issue downloading the file.";
-
-
-            if (
-                contentType &&
-                contentType.includes(
-                    "application/json"
-                )
-            ) {
-
-                const errorData =
-                    await response.json();
-
-                errorMessage =
-                    errorData.message ||
-                    errorMessage;
-
-            } else {
-
-                const errorText =
-                    await response.text();
-
-                console.error(
-                    "Server Error HTML:",
-                    errorText
-                );
-
-                errorMessage =
-                    `Server Error (${response.status}): Could not find export route or backend error encountered.`;
-            }
-
-
-            throw new Error(
-                errorMessage
-            );
+            throw new Error("May problema sa pag-download ng file mula sa server.");
         }
 
+        const blob = await response.blob();
+        const downloadUrl = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = downloadUrl;
 
-        const blob =
-            await response.blob();
-
-
-        const downloadUrl =
-            window.URL.createObjectURL(
-                blob
-            );
-
-
-        const a =
-            document.createElement("a");
-
-
-        a.href =
-            downloadUrl;
-
-
-        const fileExtension =
-            format === "excel"
-                ? "xlsx"
-                : "pdf";
-
-
-        a.download =
-            `donations_report_${dateValue}.${fileExtension}`;
-
+        const fileExtension = format === "excel" ? "xlsx" : "pdf";
+        a.download = `${currentTab}_donations_report_${dateValue || 'all'}.${fileExtension}`;
 
         document.body.appendChild(a);
-
         a.click();
-
         a.remove();
+        window.URL.revokeObjectURL(downloadUrl);
 
-
-        window.URL.revokeObjectURL(
-            downloadUrl
-        );
-
-
-        showToast(
-            `Report downloaded as ${String(
-                format
-            ).toUpperCase()}!`,
-            "success"
-        );
-
+        showToast(`${currentTab.toUpperCase()} report successfully downloaded!`, "success");
 
     } catch (error) {
-
-        console.error(
-            "Export error:",
-            error
-        );
-
-
-        showToast(
-            "Failed to download file: " +
-            error.message,
-            "error"
-        );
+        console.error("Export error:", error);
+        showToast("Failed to download file: " + error.message, "error");
     }
 }
-
-
 // =====================================================
 // LOAD IN-KIND SETTINGS
 // =====================================================
