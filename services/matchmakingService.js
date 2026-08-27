@@ -97,7 +97,7 @@ async function matchPets(preferences) {
         console.log("====================================");
         console.log("Pet:", pet.name);
         console.log("Raw Cosine Similarity:", similarity.toFixed(4));
-        console.log("Similarity", (behaviorSimilarity * 100).toFixed(2) + "%");
+        console.log("Behavior Similarity BEFORE Boost:", (behaviorSimilarity * 100).toFixed(2) + "%");
 
         // -----------------------------------
         // Smooth Boost
@@ -108,7 +108,7 @@ async function matchPets(preferences) {
             behaviorSimilarity += (1 - behaviorSimilarity) * 0.20;
         }
 
-        console.log("Behavior :", (behaviorSimilarity * 100).toFixed(2) + "%");
+        console.log("Behavior Similarity AFTER Boost :", (behaviorSimilarity * 100).toFixed(2) + "%");
 
         // =========================================
         // SEX & AGE SCORES
