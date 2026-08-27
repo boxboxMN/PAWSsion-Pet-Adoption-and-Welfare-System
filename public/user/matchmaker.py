@@ -1,1 +1,1 @@
-dddd
+print ("idk bro")
