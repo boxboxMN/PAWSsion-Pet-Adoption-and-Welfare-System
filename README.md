@@ -98,23 +98,6 @@ ADD COLUMN interview_time VARCHAR(50) NULL,
 ADD COLUMN interview_method ENUM('onsite', 'virtual') DEFAULT 'virtual',
 ADD COLUMN interview_location_link TEXT NULL;
 
-
-HOW TO RUN WITH WORKING MATCHMAKING FEATURE
-- import new db (7.23)
-- create .venv first inside flask-api
-    *terminal: cd flask-api then python -m venv .venv
-             : .venv\Scripts\activate
-             :.venv\Scripts\Activate.ps1
-- install requrements
-    *terminal: pip install -r requirements.txt
-             : pip install -r requirements.txt
-             : python -m pip install flask sentence-transformers torch scikit-learn python-dotenv
-             : python download_model.py
-- run Flask API
-    *terminal: python app.py (keep this running on venv)
-- run Node.js
-    *terminal: node server.js (this should be in new terminal)
-
 # August 4, 2026
 
 # Paimport na lang ng user_adoption_applications sa db nyo may nabago lang doon
@@ -443,3 +426,18 @@ is match with the address in the user profile ✓
 Tignan if yung view profile organization will appear in under review, approved, declined or cancelled  ✓
 
 # gawin ang nasa org profile tom (Aug 26, 2026)
+
+HOW TO RUN WITH WORKING MATCHMAKING FEATURE
+- import new db (7.23)
+- create .venv first inside flask-api
+    *terminal: cd flask-api then python -m venv .venv
+             : .venv\Scripts\activate
+             :.venv\Scripts\Activate.ps1
+- install requrements
+    *terminal: pip install -r requirements.txt
+             : pip install -r requirements.txt
+             : python -m pip install flask sentence-transformers torch scikit-learn python-dotenv
+- run Flask API
+    *terminal: python app.py (keep this running on venv)
+- run Node.js
+    *terminal: node server.js (this should be in new terminal)
