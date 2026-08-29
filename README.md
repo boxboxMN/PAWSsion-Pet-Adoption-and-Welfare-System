@@ -17,6 +17,7 @@ npx tailwindcss init
 2. npx tailwindcss -i ./public/assets/css/input.css -o ./public/assets/css/tailwind.css --watch
 3. npm install multer for uploading files
 4. working admin side email: admin@pawpon.com || password: admin@pawpon.com || org and user accounts: use email for password
+password for pup org: PupSintang_08@
 5. add sessions for each user (not yet started)
 6. Pa add nalang sa database nito 
 ALTER TABLE accounts
@@ -441,3 +442,20 @@ HOW TO RUN WITH WORKING MATCHMAKING FEATURE
     *terminal: python app.py (keep this running on venv)
 - run Node.js
     *terminal: node server.js (this should be in new terminal)
+
+# mga need pa ayusin
+- Feedback & notification (user, org, & admin side)
+- Org Profile: 
+    ✓ sanitation & validation of contact number
+    ✓ May problem pa sa pagkuha ng profile sa mismong dashboard hindi nareread ng maayos if ibang org
+
+- Pets (org):
+    ✓ sa contact number nasa loob na sila ng snapshot baka hindi mo nabago
+
+# RUN THIS IN THE DB, MAKE SURE TO IMPORT THE application_interview TABLE IN THE DB BEFORE DOING THIS (AUG 29, 2026):
+
+ALTER TABLE user_adoption_applications
+    MODIFY COLUMN document_path VARCHAR(255) NULL;
+
+ALTER TABLE user_adoption_applications
+    MODIFY COLUMN adoption_intent TEXT NULL;

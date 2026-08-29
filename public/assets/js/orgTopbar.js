@@ -23,6 +23,9 @@ async function loadTopbar({ title = "", subtitle = "" }) {
 
     console.log("Subtitle after setting:", subtitleEl.textContent);
 
+    // IDAGDAG ITO: Tawagin ang function para i-sync ang profile pic mula sa server session
+    await updateTopbarProfilePic();
+    
     initializeTopbar();
 }
 
@@ -74,5 +77,29 @@ function initializeTopbar() {
                 notifPopup.setAttribute("data-open", "false");
             }, 300);
         });
+    }
+}
+
+async function updateTopbarProfilePic() {
+    const imgTag = document.getElementById('headerProfilePic');
+    const iconTag = document.getElementById('headerProfileIcon');
+
+    if (!imgTag || !iconTag) return;
+
+    try {
+        const response = await fetch("/api/organization/profile");
+        if (response.ok) {
+            const data = await response.json();
+            if (data && data.profile_pic) {
+                imgTag.src = data.profile_pic;
+                imgTag.classList.remove('hidden'); // Ipakita ang larawan
+                iconTag.classList.add('hidden');    // Itago ang default icon
+            } else {
+                imgTag.classList.add('hidden');
+                iconTag.classList.remove('hidden'); // Ipakita ang default icon kung walang photo
+            }
+        }
+    } catch (err) {
+        console.error("Error loading topbar profile picture:", err);
     }
 }
