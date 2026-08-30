@@ -78,12 +78,20 @@
                 <!-- ===== LIST VIEW ===== -->
                 <div id="list-view">
                     <!-- SEARCH & FILTER -->
-                    <div class="bg-white rounded-2xl shadow-sm p-3 mb-6 -mt-4 flex flex-col md:flex-row gap-4">
-                        <input type="text" id="search-input" placeholder="Search pet name or breed..." class="flex-1 border border-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-400" />
-                        <select id="type-filter" class="border border-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-400">
+                    <div class="bg-white rounded-2xl shadow-sm p-3 mb-6 -mt-4 flex flex-wrap gap-4">
+                        <input type="text" id="search-input" placeholder="Search pet name or breed..." class="flex-1 min-w-[200px] border border-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-400" />
+                        <select id="type-filter" class="w-full sm:w-32 border border-gray-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-400">
                             <option value="All">All Types</option>
                             <option value="Dog">Dog</option>
                             <option value="Cat">Cat</option>
+                        </select>
+                        <select id="org-filter" class="w-full sm:w-44 border border-gray-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-400 truncate">
+                            <option value="All">All Organizations</option>
+                        </select>
+                        <select id="sort-filter" class="w-full sm:w-32 border border-gray-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-400">
+                            <option value="none">Sort By</option>
+                            <option value="name-asc">Name (A to Z)</option>
+                            <option value="name-desc">Name (Z to A)</option>
                         </select>
                     </div>
 
