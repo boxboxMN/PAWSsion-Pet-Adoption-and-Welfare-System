@@ -88,6 +88,49 @@ document.addEventListener("DOMContentLoaded", async function () {
             }
         });
     }
+            // Kunin ang mga elements para sa QR Modal
+        const qrModal = document.getElementById("qrModal");
+        const qrModalClose = document.getElementById("qrModalClose");
+        const qrModalCloseBtn = document.getElementById("qrModalCloseBtn");
+        const viewQrBtn = document.getElementById("viewQrBtn");
+        const modalQrImage = document.getElementById("modalQrImage");
+        const qrModalAccountName = document.getElementById("qrModalAccountName");
+        const qrModalAccountNumber = document.getElementById("qrModalAccountNumber");
+
+        // Function para buksan ang QR modal
+        if (viewQrBtn) {
+            viewQrBtn.addEventListener("click", function () {
+                const mainQrImage = document.getElementById("qrImage");
+                const gcashNameDisplay = document.getElementById("gcashName");
+                const gcashNumberDisplay = document.getElementById("gcashNumber");
+
+                if (mainQrImage && mainQrImage.src) {
+                    modalQrImage.src = mainQrImage.src;
+                    qrModalAccountName.textContent = gcashNameDisplay ? gcashNameDisplay.textContent : "";
+                    qrModalAccountNumber.textContent = gcashNumberDisplay ? gcashNumberDisplay.textContent : "";
+                    
+                    qrModal.classList.add("active");
+                    document.body.style.overflow = "hidden";
+                }
+            });
+        }
+
+        // Functions para isara ang QR modal
+        function closeQrModal() {
+            if (qrModal) {
+                qrModal.classList.remove("active");
+                document.body.style.overflow = "";
+            }
+        }
+
+        if (qrModalClose) qrModalClose.addEventListener("click", closeQrModal);
+        if (qrModalCloseBtn) qrModalCloseBtn.addEventListener("click", closeQrModal);
+
+        if (qrModal) {
+            qrModal.addEventListener("click", function (e) {
+                if (e.target === qrModal) closeQrModal();
+            });
+}
 
     const privacyCheckbox = document.querySelector('input[type="checkbox"]');
     const receiptFileInput = document.querySelector('input[type="file"]');
