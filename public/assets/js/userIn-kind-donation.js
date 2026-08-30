@@ -113,19 +113,20 @@ document.addEventListener('DOMContentLoaded', async function() {
                 const profileImg = getValidImageUrl(org.profile_pic, "https://via.placeholder.com/64");
 
                 container.innerHTML += `
-                    <div class="org-card border rounded-xl p-4 relative cursor-pointer" data-id="${org.organization_id}">
+                    <div class="org-card border rounded-xl p-4 relative cursor-pointer flex flex-col items-center text-center justify-between bg-white" data-id="${org.organization_id}">
                         <div class="checkmark absolute top-0 right-0 bg-blue-600 text-white text-xs px-2 py-1 rounded-bl-lg">✓</div>
-                        <div class="flex justify-center mb-4">
+                        <div class="w-full flex flex-col items-center pt-2">
                             <img src="${profileImg}" 
                                  onerror="this.onerror=null; this.src='https://via.placeholder.com/64';" 
-                                 class="w-16 h-16 rounded-full object-cover border" 
+                                 class="w-16 h-16 rounded-full object-cover mb-3" 
                                  alt="${org.organization_name}">
+                            <h3 class="font-semibold text-gray-800 mb-2">${org.organization_name}</h3>
                         </div>
-                        <h3 class="font-bold text-center text-sm">${org.organization_name}</h3>
-                        <p class="text-gray-500 text-xs text-center mt-2">${org.city || ''}, ${org.province || ''}</p>
-                        <p class="view-profile-btn text-blue-600 text-xs text-center mt-4 cursor-pointer hover:underline">
-                            View Organization Profile →
-                        </p>
+                        <div class="w-full pt-3 border-t border-gray-100 mt-2">
+                            <p class="view-profile-btn text-xs text-blue-600 hover:text-blue-800 font-medium transition inline-flex items-center gap-1 cursor-pointer">
+                                View Profile →
+                            </p>
+                        </div>
                     </div>
                 `;
             });
@@ -163,7 +164,6 @@ document.addEventListener('DOMContentLoaded', async function() {
     const org = organizations.find(o => o.organization_id == id);
     if (!org) return;
 
-    // Kung walang data, gawing empty string para blanko ang display
     if (dropoffTitle) {
         dropoffTitle.textContent = org.dropoff_location_name || ""; 
     }
@@ -180,15 +180,12 @@ document.addEventListener('DOMContentLoaded', async function() {
         dropoffNotes.textContent = org.dropoff_notes || "";
     }
 
-    // Para sa image, maglagay lamang ng source kung may file path, 
-    // kung wala, gawing blanko o gumamit ng placeholder na hindi nakakalito
     if (dropoffImg) {
         if (org.dropoff_image) {
             const dropoffImgUrl = getValidImageUrl(org.dropoff_image, "/assets/images/cspc.png");
             dropoffImg.src = dropoffImgUrl;
-            dropoffImg.style.display = "block"; // Siguraduhing visible ang image tag
+            dropoffImg.style.display = "block";
         } else {
-            // Itago ang image tag o gawing blanko kung walang image
             dropoffImg.src = ""; 
             dropoffImg.style.display = "none"; 
         }
@@ -203,20 +200,17 @@ document.addEventListener('DOMContentLoaded', async function() {
         const org = organizations.find(o => o.organization_id == id);
         if (!org || !modal) return;
 
-        // 1. I-display muna ang cached data para mabilis mag-load
         if (orgName) orgName.textContent = org.organization_name;
         if (orgAddress) orgAddress.innerHTML = `<i class="fa-solid fa-location-dot"></i> ${org.city || ''}, ${org.province || ''}`;
         if (orgPhone) orgPhone.textContent = org.contact_number || "N/A";
         if (orgEmail) orgEmail.textContent = org.email || "N/A";
         if (orgMission) orgMission.textContent = org.description || "No description available.";
 
-        // 2. Mag-fetch ng live data at logo galing sa backend API
         try {
             const response = await fetch(`/api/organizations/${id}`);
             if (response.ok) {
                 const fullOrg = await response.json();
                 
-                // I-update ang mga field gamit ang live database response
                 if (orgName) orgName.textContent = fullOrg.organization_name || org.organization_name;
                 if (orgAddress) {
                     const addressText = fullOrg.city && fullOrg.province 
@@ -228,7 +222,6 @@ document.addEventListener('DOMContentLoaded', async function() {
                 if (orgEmail) orgEmail.textContent = fullOrg.email || fullOrg.org_email || "N/A";
                 if (orgMission) orgMission.textContent = fullOrg.description || fullOrg.mission || "No description available.";
 
-                // 3. Pag-fetch at pag-display ng Logo / Profile Picture
                 const logoElement = document.getElementById("modalOrgLogo");
                 const logoPath = fullOrg.logo || fullOrg.avatar || fullOrg.image || org.profile_pic || org.logo;
 
@@ -285,12 +278,8 @@ if (submitBtn) {
         const finalItemName = itemNameInput ? itemNameInput.value.trim() : "";
         const quantity = quantityInput ? quantityInput.value.trim() : "";
 
-        // --- MAHIGPIT NA VALIDATION PARA SA ITEM NAME ---
-        // Hinaharang ang gibberish (hal. paulit-ulit na letra tulad ng wwww, o walang katinuang halo)
         const gibberishPattern = /(.)\1{3,}/;
         const validItemPattern = /^[a-zA-Z0-9\sñÑ-]{3,}$/;
-        
-        // Dagdag check para sa mga random mashing na walang vowels o halatang pinindot lang sa tabi-tabi
         const hasVowel = /[aeiouAEIOU]/.test(finalItemName);
 
         if (!finalItemName || finalItemName.length < 3) {
@@ -306,9 +295,7 @@ if (submitBtn) {
             return;
         }
 
-        // --- MAHIGPIT NA VALIDATION PARA SA QUANTITY ---
-        // Sinisigurong mayroon itong tunay na numero at unit (bawal ang puro letters o random letters tulad ng qwdefrg22)
-        const strictQuantityPattern = /^\d+(\s*[a-zA-Z]+)?$/; // Halimbawa: "5", "5kg", "10 packs", "2 boxes"
+        const strictQuantityPattern = /^\d+(\s*[a-zA-Z]+)?$/;
 
         if (!quantity || !strictQuantityPattern.test(quantity)) {
             showToast("Please enter a valid quantity with a number (e.g., 5, 5kg, 3 packs).", "error");
