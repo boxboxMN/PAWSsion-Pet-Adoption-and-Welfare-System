@@ -88,49 +88,35 @@ document.addEventListener("DOMContentLoaded", async function () {
             }
         });
     }
-            // Kunin ang mga elements para sa QR Modal
-        const qrModal = document.getElementById("qrModal");
-        const qrModalClose = document.getElementById("qrModalClose");
-        const qrModalCloseBtn = document.getElementById("qrModalCloseBtn");
-        const viewQrBtn = document.getElementById("viewQrBtn");
-        const modalQrImage = document.getElementById("modalQrImage");
-        const qrModalAccountName = document.getElementById("qrModalAccountName");
-        const qrModalAccountNumber = document.getElementById("qrModalAccountNumber");
+const viewQrBtn = document.getElementById("viewQrBtn");
+const qrModal = document.getElementById("qrModal");
+const qrModalClose = document.getElementById("qrModalClose");
+const qrModalCloseBtn = document.getElementById("qrModalCloseBtn");
+const modalQrImage = document.getElementById("modalQrImage");
+const qrModalAccountName = document.getElementById("qrModalAccountName");
+const qrModalAccountNumber = document.getElementById("qrModalAccountNumber");
 
-        // Function para buksan ang QR modal
-        if (viewQrBtn) {
-            viewQrBtn.addEventListener("click", function () {
-                const mainQrImage = document.getElementById("qrImage");
-                const gcashNameDisplay = document.getElementById("gcashName");
-                const gcashNumberDisplay = document.getElementById("gcashNumber");
+if (viewQrBtn) {
+    viewQrBtn.addEventListener("click", function() {
+        const qrImageSrc = document.getElementById("qrImage").src;
+        const gcashNameText = document.getElementById("gcashName").textContent;
+        const gcashNumberText = document.getElementById("gcashNumber").textContent;
+        const accountNameLabelText = document.getElementById("accountNameLabel").textContent;
 
-                if (mainQrImage && mainQrImage.src) {
-                    modalQrImage.src = mainQrImage.src;
-                    qrModalAccountName.textContent = gcashNameDisplay ? gcashNameDisplay.textContent : "";
-                    qrModalAccountNumber.textContent = gcashNumberDisplay ? gcashNumberDisplay.textContent : "";
-                    
-                    qrModal.classList.add("active");
-                    document.body.style.overflow = "hidden";
-                }
-            });
-        }
+        if (modalQrImage) modalQrImage.src = qrImageSrc;
+        if (qrModalAccountName) qrModalAccountName.textContent = `${accountNameLabelText} ${gcashNameText}`;
+        if (qrModalAccountNumber) qrModalAccountNumber.textContent = gcashNumberText;
 
-        // Functions para isara ang QR modal
-        function closeQrModal() {
-            if (qrModal) {
-                qrModal.classList.remove("active");
-                document.body.style.overflow = "";
-            }
-        }
-
-        if (qrModalClose) qrModalClose.addEventListener("click", closeQrModal);
-        if (qrModalCloseBtn) qrModalCloseBtn.addEventListener("click", closeQrModal);
-
-        if (qrModal) {
-            qrModal.addEventListener("click", function (e) {
-                if (e.target === qrModal) closeQrModal();
-            });
+        if (qrModal) qrModal.classList.add("active");
+    });
 }
+
+function closeQrModal() {
+    if (qrModal) qrModal.classList.remove("active");
+}
+
+if (qrModalClose) qrModalClose.addEventListener("click", closeQrModal);
+if (qrModalCloseBtn) qrModalCloseBtn.addEventListener("click", closeQrModal);
 
     const privacyCheckbox = document.querySelector('input[type="checkbox"]');
     const receiptFileInput = document.querySelector('input[type="file"]');
@@ -159,140 +145,77 @@ document.addEventListener("DOMContentLoaded", async function () {
         }
     }
 
-   async function loadOrganizations() {
+    async function loadOrganizations() {
+        try {
+            const response = await fetch("/api/organizations");
 
-    try {
+            if (!response.ok) {
+                throw new Error(`Failed to load organizations (${response.status})`);
+            }
 
-        const response =
-            await fetch(
-                "/api/organizations"
-            );
+            const data = await response.json();
 
-        if (!response.ok) {
-
-            throw new Error(
-                `Failed to load organizations (${response.status})`
-            );
-        }
-
-        const data =
-            await response.json();
-
-        console.log(
-            "USER ORGANIZATIONS:",
-            data
-        );
-
-
-        organizations =
-            Array.isArray(data)
+            organizations = Array.isArray(data)
                 ? data
-                : (
-                    data.organizations ||
-                    data.data ||
-                    []
-                );
+                : (data.organizations || data.data || []);
 
+            const container = document.getElementById("orgContainer");
+            if (!container) return;
 
-        console.log(
-            "USER ORGANIZATION DROP-OFF DATA:",
-            organizations.map(org => ({
-                organization_id:
-                    org.organization_id,
+            container.innerHTML = "";
 
-                organization_name:
-                    org.organization_name,
+            if (!organizations || organizations.length === 0) {
+                container.innerHTML = `
+                    <p class="text-gray-500 text-center col-span-3">
+                        No verified organizations available at the moment.
+                    </p>
+                `;
+                return;
+            }
 
-                dropoff_location_name:
-                    org.dropoff_location_name,
-
-                dropoff_address:
-                    org.dropoff_address,
-
-                dropoff_hours:
-                    org.dropoff_hours,
-
-                dropoff_notes:
-                    org.dropoff_notes,
-
-                dropoff_image:
-                    org.dropoff_image
-            }))
-        );
-
-
-        const container =
-            document.getElementById(
-                "orgContainer"
-            );
-
-        if (!container) return;
-
-
-        container.innerHTML = "";
-
-
-        if (
-            !organizations ||
-            organizations.length === 0
-        ) {
-
-            container.innerHTML = `
-                <p class="text-gray-500 text-center col-span-3">
-                    No verified organizations available at the moment.
-                </p>
-            `;
-
-            return;
-        }
-
-
-        organizations.forEach(org => {
-
-            const profileImg =
-                getValidImageUrl(
+            organizations.forEach(org => {
+                const profileImg = getValidImageUrl(
                     org.profile_pic,
                     "https://via.placeholder.com/64"
                 );
 
-
-            container.innerHTML += `
-                <div
-                    class="org-card border rounded-xl p-4 relative cursor-pointer"
-                    data-id="${org.organization_id}"
-                >
-
+                container.innerHTML += `
                     <div
-                        class="checkmark absolute top-0 right-0 bg-blue-600 text-white text-xs px-2 py-1 rounded-bl-lg"
+                        class="org-card border rounded-xl p-4 relative cursor-pointer flex flex-col items-center text-center justify-between"
+                        data-id="${org.organization_id}"
                     >
-                        ✓
+                        <div
+                            class="checkmark absolute top-0 right-0 bg-blue-600 text-white text-xs px-2 py-1 rounded-bl-lg"
+                        >
+                            ✓
+                        </div>
+
+                        <div class="w-full flex flex-col items-center">
+                            <img
+                                src="${profileImg}"
+                                class="w-16 h-16 rounded-full object-cover mb-3"
+                            >
+                            <h3 class="font-semibold text-gray-800 mb-2">
+                                ${org.organization_name || "Organization"}
+                            </h3>
+                        </div>
+
+                        <div class="w-full pt-2 border-t border-gray-100 mt-2">
+                            <button type="button" class="view-profile-btn text-xs text-blue-600 hover:text-blue-800 font-medium transition inline-flex items-center gap-1 cursor-pointer">
+                                View Profile →
+                            </button>
+                        </div>
                     </div>
+                `;
+            });
 
-                    <img
-                        src="${profileImg}"
-                        class="w-16 h-16 rounded-full object-cover mb-3"
-                    >
+            initializeCards();
 
-                    <h3 class="font-semibold">
-                        ${org.organization_name || "Organization"}
-                    </h3>
-
-                </div>
-            `;
-        });
-
-
-        initializeCards();
-
-
-    } catch (error) {
-
-        console.error(
-            "Error loading organizations:",
-            error
-        );
+        } catch (error) {
+            console.error("Error loading organizations:", error);
+        }
     }
-}
+
     function initializeCards() {
         document.querySelectorAll(".org-card").forEach(card => {
             card.addEventListener("click", function (e) {
@@ -314,79 +237,78 @@ document.addEventListener("DOMContentLoaded", async function () {
             }
         });
     }
-   // Helper para suriin kung valid ang QR Code image path
-function isValidQrPath(path) {
-    if (!path || typeof path !== "string") return false;
-    const trimmed = path.trim();
-    return (
-        trimmed !== "" && 
-        trimmed !== "/uploads/qr" && 
-        !trimmed.endsWith("/uploads/") &&
-        !trimmed.endsWith("/null") &&
-        !trimmed.endsWith("/undefined")
-    );
-}function updateDonationInfo(id) {
-    const org = organizations.find(o => String(o.organization_id) === String(id));
 
-    const nameEl = document.getElementById("gcashName"); // Label/Display ng Account Name
-    const numEl = document.getElementById("gcashNumber");   // Label/Display ng Account Number
-    const qrEl = document.getElementById("qrImage");
-
-    if (!org) {
-        if (nameEl) nameEl.textContent = "Select an organization";
-        if (numEl) numEl.textContent = "Select an organization";
-        if (qrEl) qrEl.classList.add("hidden");
-        return;
+    function isValidQrPath(path) {
+        if (!path || typeof path !== "string") return false;
+        const trimmed = path.trim();
+        return (
+            trimmed !== "" && 
+            trimmed !== "/uploads/qr" && 
+            !trimmed.endsWith("/uploads/") &&
+            !trimmed.endsWith("/null") &&
+            !trimmed.endsWith("/undefined")
+        );
     }
 
-    // Kunin ang kasalukuyang piniling payment method mula sa dropdown (GCash o Maya)
-    const method = paymentMethodSelect ? paymentMethodSelect.value : "GCash";
+    function updateDonationInfo(id) {
+        const org = organizations.find(o => String(o.organization_id) === String(id));
 
-    if (method === "Maya") {
-        if (accountNameLabel) accountNameLabel.textContent = "Maya Account Name:";
-        if (accountNumberLabel) accountNumberLabel.textContent = "Maya Number:";
-        
-        // Babasahin mula sa database columns: maya_name at maya_number
-        if (nameEl) nameEl.textContent = org.maya_name ? org.maya_name : "N/A";
-        if (numEl) numEl.textContent = org.maya_number ? org.maya_number : "N/A";
+        const nameEl = document.getElementById("gcashName");
+        const numEl = document.getElementById("gcashNumber");
+        const qrEl = document.getElementById("qrImage");
 
-        if (qrEl) {
-            if (org.maya_qr_code && org.maya_qr_code.trim() !== "") {
-                qrEl.src = org.maya_qr_code;
-                qrEl.classList.remove("hidden");
-            } else {
-                qrEl.src = "https://via.placeholder.com/200x200?text=No+Maya+QR";
-                qrEl.classList.remove("hidden");
-            }
+        if (!org) {
+            if (nameEl) nameEl.textContent = "Select an organization";
+            if (numEl) numEl.textContent = "Select an organization";
+            if (qrEl) qrEl.classList.add("hidden");
+            return;
         }
-    } else {
-        if (accountNameLabel) accountNameLabel.textContent = "GCASH Account Name:";
-        if (accountNumberLabel) accountNumberLabel.textContent = "GCASH Number:";
-        
-        // Babasahin mula sa database columns: gcash_name at gcash_number
-        if (nameEl) nameEl.textContent = org.gcash_name ? org.gcash_name : "N/A";
-        if (numEl) numEl.textContent = org.gcash_number ? org.gcash_number : "N/A";
 
-        if (qrEl) {
-            if (org.qr_code && org.qr_code.trim() !== "") {
-                qrEl.src = org.qr_code;
-                qrEl.classList.remove("hidden");
-            } else {
-                qrEl.src = "https://via.placeholder.com/200x200?text=No+GCash+QR";
-                qrEl.classList.remove("hidden");
+        const method = paymentMethodSelect ? paymentMethodSelect.value : "GCash";
+
+        if (method === "Maya") {
+            if (accountNameLabel) accountNameLabel.textContent = "Maya Account Name:";
+            if (accountNumberLabel) accountNumberLabel.textContent = "Maya Number:";
+            
+            if (nameEl) nameEl.textContent = org.maya_name ? org.maya_name : "N/A";
+            if (numEl) numEl.textContent = org.maya_number ? org.maya_number : "N/A";
+
+            if (qrEl) {
+                if (org.maya_qr_code && org.maya_qr_code.trim() !== "") {
+                    qrEl.src = org.maya_qr_code;
+                    qrEl.classList.remove("hidden");
+                } else {
+                    qrEl.src = "https://via.placeholder.com/200x200?text=No+Maya+QR";
+                    qrEl.classList.remove("hidden");
+                }
+            }
+        } else {
+            if (accountNameLabel) accountNameLabel.textContent = "GCASH Account Name:";
+            if (accountNumberLabel) accountNumberLabel.textContent = "GCASH Number:";
+            
+            if (nameEl) nameEl.textContent = org.gcash_name ? org.gcash_name : "N/A";
+            if (numEl) numEl.textContent = org.gcash_number ? org.gcash_number : "N/A";
+
+            if (qrEl) {
+                if (org.qr_code && org.qr_code.trim() !== "") {
+                    qrEl.src = org.qr_code;
+                    qrEl.classList.remove("hidden");
+                } else {
+                    qrEl.src = "https://via.placeholder.com/200x200?text=No+GCash+QR";
+                    qrEl.classList.remove("hidden");
+                }
             }
         }
     }
-}
 
-// Magdagdag ng event listener para mag-update kapag pinalitan ang Payment Method dropdown
-if (paymentMethodSelect) {
-    paymentMethodSelect.addEventListener("change", function() {
-        if (selectedOrganization) {
-            updateDonationInfo(selectedOrganization);
-        }
-    });
-}
+    if (paymentMethodSelect) {
+        paymentMethodSelect.addEventListener("change", function() {
+            if (selectedOrganization) {
+                updateDonationInfo(selectedOrganization);
+            }
+        });
+    }
+
     async function openModal(id) {
         const org = organizations.find(o => o.organization_id == id);
         if (!org || !modal) return;
