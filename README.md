@@ -166,37 +166,21 @@ Mga ned iconfirm kay jhy: donation side, profile yung sa pagchange ng pass, kamu
 ORGANIZATION:
 
 Pets: 
-	
 	✓ Sa available, makikita pa din yung all status, all species and add pet
-
 	✓ Sa adopted, dapat makikita pa din yung all species
-
 	✓ Sa Add new pet, alisin yung archive sa adoption status
-
     ✓ alisin din ang archive sa all; status
-
     ✓ ilipat ang archive sa sarili; nyang button
-
     ✓ Sa add new pet, kapag pinili ang adopted satus dapat may lilitaw na additional form for adopters information
-
 	✓ Sa view Profile, alisin ang birth date, date sa medical history
-
     ✓ Edit Record may bug pet_desciption = behavior_description
-
 	✓ Iseparate ang available sa adopted para hindi malito ang orgs
 	Iseparate ang archive pero tignan sa controller dapat gumagana pa din yung ibang functions
-
 	✓ Dapat once na adopted is wala ng edit, archive and delete buttons instead dapat may view adoption applications button na mapupunta doon sa adoption application details
-
 	✓ Once available may archive, edit & delete buttons
-
     ✓ Under add pet, sa may adoption status dapat once na adopted auto na malalgay sa adopted pets, and yung available and pending is sa active status
-
     ✓ Archive is may unarchive buttons and nakahide ang edit, delete buttons
-
     Once na approved na dapat may inotify pa ang user kung kelan makukuha ang pet 
-
-    
 # Questions and Testing
 
     Under add pet, itanong if magkaiba ang pet description at personality & traits since pwede naman mailagay ang personality & traits sa pet description??
@@ -204,19 +188,12 @@ Pets:
     Itry ni mayie mag edit, delete, at add pet if nagpafunction pa
 
 Adoption:
-
 	✓ Export Summary
-
 	✓ lagyan ng edit schedule ang application details
-
     ✓ kapag nagrequest ang adopter ng resched of interview dapat makikita ng org
-
     ✓ kapag decline, instead of idisable ang declined button dapat auto na napapalitan ng view declined details
-
     ✓ Under Interview nschedule, yung date is hindi tugma doon sa napiliing date, ang inistore is yung kung kailan ka nag sched ng interview
-
     ✓ ayusing yung sa applicant name diba yung org naglagay ng add pet na adopted dapat lumabas doon yuyng name ng nagadopt
-
     ✓ fixed date and time
 
 Settings & Support:
@@ -228,7 +205,6 @@ Notification:
 	Dapat nakikita ang lahat ng changes sa notif and dapat sa sidebar is kapag may changes may pula na bilog na nagaappear
 	
 NOTES:
-
 ✓ Itanong kay jhy if ok na yung kamustahan
 
 ADMIN:
