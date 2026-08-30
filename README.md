@@ -437,3 +437,19 @@ ALTER TABLE user_adoption_applications
 
 ALTER TABLE user_adoption_applications
     MODIFY COLUMN adoption_intent TEXT NULL;
+
+# add this in the db:
+
+CREATE TABLE organization_availability (
+    availability_id INT AUTO_INCREMENT PRIMARY KEY,
+    organization_id INT NOT NULL,
+    day_of_week TINYINT NOT NULL, -- 0 = Sunday ... 6 = Saturday
+    is_open TINYINT(1) NOT NULL DEFAULT 1,
+    start_time TIME NOT NULL DEFAULT '08:00:00',
+    end_time TIME NOT NULL DEFAULT '18:00:00',
+    UNIQUE KEY uniq_org_day (organization_id, day_of_week),
+    FOREIGN KEY (organization_id) REFERENCES organizations(organization_id) ON DELETE CASCADE
+);
+
+ALTER TABLE organization_availability 
+MODIFY COLUMN end_time TIME NOT NULL DEFAULT '21:00:00';

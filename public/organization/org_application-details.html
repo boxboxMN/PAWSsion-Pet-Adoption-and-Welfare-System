@@ -469,21 +469,8 @@
                 });
             }
 
-            // Harangin agad kapag pinili ang Sunday (getDay() === 0) sa date picker
-            document.getElementById("interviewDate")?.addEventListener("change", function() {
-                const selectedDate = new Date(this.value);
-                
-                // 0 = Sunday
-                if (selectedDate.getDay() === 0) {
-                    Swal.fire({
-                        icon: 'warning',
-                        title: 'Closed on Sundays',
-                        text: 'The organization is closed on Sundays. Please choose another date (Monday to Saturday).',
-                        confirmButtonColor: '#2563EB'
-                    });
-                    this.value = ""; // Awtomatikong buburahin ang napiling petsa
-                }
-            });
+            // I-load ang org availability nang isang beses sa simula
+            await fetchOrgAvailability();
         });
     
         async function fetchApplicationDetail(id) {
@@ -1113,13 +1100,16 @@
                 });
             }
 
-            // ================= SUNDAY VALIDATION =================
-            const selectedDateObj = new Date(dateVal);
-            if (selectedDateObj.getDay() === 0) {
+            // ================= WORKING DAY VALIDATION (dynamic, batay sa org's saved availability) =================
+            const [selY, selM, selD] = dateVal.split('-').map(Number);
+            const selectedDow = new Date(selY, selM - 1, selD).getDay();
+            const selectedDayConfig = getAvailabilityForDay(selectedDow);
+
+            if (!selectedDayConfig || !selectedDayConfig.is_open) {
                 return Swal.fire({
                     icon: 'warning',
                     title: 'Invalid Day',
-                    text: 'Interviews cannot be scheduled on Sundays. Please select a working day (Monday to Saturday).',
+                    text: `The organization is closed on ${DAY_NAMES[selectedDow]}s. Please select a different working day.`,
                     confirmButtonColor: '#2563EB'
                 });
             }
@@ -1742,13 +1732,57 @@
             doc.save(`Adoption_Form_${cleanFileName}.pdf`);
         }
 
-        // Populate time slots (e.g., 8:00 AM to 5:00 PM in 30-minute intervals)
+        // Fallback lang ito habang naglo-load pa o kung walang laman ang response
+        const DAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+        let ORG_AVAILABILITY_BY_DAY = DAY_NAMES.map((_, i) => ({
+            day_of_week: i,
+            is_open: i !== 0,
+            start_time: "08:00:00",
+            end_time: "18:00:00"
+        }));
+
+        async function fetchOrgAvailability() {
+            try {
+                const res = await fetch('/api/organization/availability', { credentials: 'include' });
+                const data = await res.json();
+                if (data.success && Array.isArray(data.availability) && data.availability.length === 7) {
+                    ORG_AVAILABILITY_BY_DAY = data.availability;
+                }
+            } catch (err) {
+                console.error("Failed to load org availability:", err);
+            }
+        }
+
+        function getAvailabilityForDay(dow) {
+            return ORG_AVAILABILITY_BY_DAY.find(d => d.day_of_week === dow) || ORG_AVAILABILITY_BY_DAY[dow];
+        }
+
+        // Populate time slots batay sa naka-configure na org availability (per day of week)
         function generateTimeOptions() {
             const dropdown = document.getElementById("timeDropdownList");
             if (!dropdown) return;
 
             // Kunin ang napiling petsa sa date picker
             const selectedDateVal = document.getElementById("interviewDate")?.value;
+
+            if (!selectedDateVal) {
+                dropdown.innerHTML = `<div class="p-3 text-sm text-gray-400 italic text-center">Please select a date first.</div>`;
+                return;
+            }
+
+            const [selY, selM, selD] = selectedDateVal.split('-').map(Number);
+            const selectedDow = new Date(selY, selM - 1, selD).getDay();
+            const dayConfig = getAvailabilityForDay(selectedDow);
+
+            if (!dayConfig || !dayConfig.is_open) {
+                dropdown.innerHTML = `<div class="p-3 text-sm text-gray-400 italic text-center">Closed on ${DAY_NAMES[selectedDow]}s. Please select a different date.</div>`;
+                return;
+            }
+
+            const [startHour, startMin] = (dayConfig.start_time || "08:00:00").split(':').map(Number);
+            const [endHour, endMin] = (dayConfig.end_time || "18:00:00").split(':').map(Number);
+            const startTotalMin = startHour * 60 + startMin;
+            const endTotalMin = endHour * 60 + endMin;
 
             // Kunin ang mga naka-schedule nang interviews para sa petsang ito mula sa global 'allApplications'
             const bookedTimesForDate = new Set();
@@ -1778,11 +1812,10 @@
             const isToday = selectedDateVal === todayStr;
             const nowMinutes = now.getHours() * 60 + now.getMinutes();
 
-            for (let hour = 8; hour <= 17; hour++) {
-                for (let minute = 0; minute < 60; minute += 30) {
-                    // Skip 5:30 PM if 5:00 PM is the max limit, optional
-                    if (hour === 17 && minute > 0) break;
-
+            for (let totalMin = startTotalMin; totalMin <= endTotalMin; totalMin += 30) {
+                {
+                    const hour = Math.floor(totalMin / 60);
+                    const minute = totalMin % 60;
                     const h24 = String(hour).padStart(2, '0') + ":" + String(minute).padStart(2, '0');
                     
                     // Huwag ipakita ang oras na lumipas na kung ang petsa ay ngayong araw

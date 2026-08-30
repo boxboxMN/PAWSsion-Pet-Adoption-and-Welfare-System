@@ -324,6 +324,52 @@ app.put("/api/organization/update-password", async (req, res) => {
     }
 });
 
+// org availability (view calendar)
+app.get("/api/organization/availability", async (req, res) => {
+
+    if (!req.session.accountId) {
+      return res.status(401).json({ success: false, message: "Unauthorized" });
+    }
+  
+    try {
+      const availability = await Organization.getAvailability(req.session.accountId);
+      res.json({ success: true, availability });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ success: false, message: "Server Error" });
+    }
+});
+
+app.put("/api/organization/availability", async (req, res) => {
+
+    if (!req.session.accountId) {
+      return res.status(401).json({ success: false, message: "Unauthorized" });
+    }
+  
+    try {
+      const { days } = req.body;
+  
+      if (!Array.isArray(days) || days.length !== 7) {
+        return res.status(400).json({ success: false, message: "Invalid availability data." });
+      }
+  
+      for (const d of days) {
+        if (typeof d.day_of_week !== 'number' || d.day_of_week < 0 || d.day_of_week > 6) {
+          return res.status(400).json({ success: false, message: "Invalid day_of_week value." });
+        }
+        if (d.is_open && (!d.start_time || !d.end_time || d.start_time >= d.end_time)) {
+          return res.status(400).json({ success: false, message: "Start time must be earlier than end time for open days." });
+        }
+      }
+  
+      await Organization.updateAvailability(req.session.accountId, days);
+      res.json({ success: true, message: "Availability updated successfully." });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ success: false, message: "Server Error" });
+    }
+});
+
 //org edit profile
 app.put("/api/organization/update-profile", uploadOrgPic.single('profile_pic'), async (req, res) => {
   // 1. Siguraduhing naka-login ang user via session

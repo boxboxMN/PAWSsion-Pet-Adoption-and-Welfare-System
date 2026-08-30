@@ -101,6 +101,7 @@
                     <i class="fa-regular fa-calendar-days text-blue-500"></i> View Calendar
                 </button>
 
+
                 <!-- Export Summary Dropdown Container -->
                 <div class="relative inline-block text-left">
                     <button id="exportBtn" type="button" class="bg-white border border-gray-200 text-gray-700 px-4 py-2.5 rounded-lg text-sm font-medium inline-flex items-center gap-2 hover:bg-gray-50 cursor-pointer">
@@ -154,6 +155,34 @@
             </div>
         </div>
 
+        <!-- Edit Availability Modal -->
+        <div id="editAvailabilityModal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center bg-black/45 backdrop-blur-sm p-4">
+            <div class="bg-white rounded-2xl max-w-lg w-full max-h-[90vh] overflow-hidden shadow-2xl flex flex-col">
+                <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-900">Edit Availability</h3>
+                        <p class="text-xs text-gray-400 mt-0.5">Set which days you're open and your hours per day</p>
+                    </div>
+                    <button onclick="closeEditAvailabilityModal()" class="text-gray-400 hover:text-gray-700 w-9 h-9 flex items-center justify-center rounded-full hover:bg-gray-100 cursor-pointer">
+                        <i class="fa-solid fa-xmark text-lg"></i>
+                    </button>
+                </div>
+
+                <div id="availabilityFormBody" class="flex-1 overflow-y-auto p-6 space-y-3">
+                    <!-- 7 day rows injected by JS -->
+                </div>
+
+                <div class="px-6 py-4 border-t border-gray-100 flex items-center justify-end gap-3">
+                    <button onclick="closeEditAvailabilityModal()" class="px-4 py-2 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50 text-sm font-semibold transition">
+                        Cancel
+                    </button>
+                    <button id="saveAvailabilityBtn" onclick="saveAvailability()" class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition shadow-md shadow-blue-200">
+                        Save Changes
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <!-- View Calendar Modal -->
         <div id="calendarModal" class="hidden fixed inset-0 z-[9998] flex items-center justify-center bg-black/45 backdrop-blur-sm p-4">
             <div class="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden shadow-2xl flex flex-col">
@@ -162,9 +191,14 @@
                         <h3 class="text-lg font-bold text-gray-900">Interview Calendar</h3>
                         <p class="text-xs text-gray-400 mt-0.5">Scheduled interviews and open availability</p>
                     </div>
-                    <button onclick="closeCalendarModal()" class="text-gray-400 hover:text-gray-700 w-9 h-9 flex items-center justify-center rounded-full hover:bg-gray-100 cursor-pointer">
-                        <i class="fa-solid fa-xmark text-lg"></i>
-                    </button>
+                    <div class="flex items-center gap-2">
+                        <button onclick="openEditAvailabilityModal()" class="text-sm font-medium text-blue-600 hover:text-blue-800 border border-blue-200 hover:bg-blue-50 rounded-lg px-3 py-2 inline-flex items-center gap-2 cursor-pointer transition">
+                            <i class="fa-regular fa-clock"></i> Edit Time
+                        </button>
+                        <button onclick="closeCalendarModal()" class="text-gray-400 hover:text-gray-700 w-9 h-9 flex items-center justify-center rounded-full hover:bg-gray-100 cursor-pointer">
+                            <i class="fa-solid fa-xmark text-lg"></i>
+                        </button>
+                    </div>
                 </div>
 
                 <div class="flex-1 overflow-y-auto p-6 grid grid-cols-1 lg:grid-cols-5 gap-6">
@@ -189,8 +223,8 @@
                             <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-teal-500"></span> Fully open</span>
                             <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-slate-300"></span> Closed</span>
                         </div>
-                        <p class="text-xs text-gray-400 mt-3">
-                            Availability is based on default hours (Mon–Sat, 8:00 AM–5:00 PM, hourly slots).
+                        <p id="calendarAvailabilityHint" class="text-xs text-gray-400 mt-3">
+                            Loading availability...
                         </p>
                     </div>
 
@@ -556,22 +590,58 @@
     // ==========================================================
     // Default weekly availability, since there's no stored org schedule yet.
     // Change this if your org's actual hours differ (0 = Sunday ... 6 = Saturday).
-    const ORG_AVAILABILITY = {
-        workingDays: [0, 1, 2, 3, 4, 5, 6], // Mon-Sat, closed Sunday
-        startHour: 8,   // 8:00 AM
-        endHour: 18,    // 5:00 PM (slots run up to 4:00 PM, 1hr each)
-        slotMinutes: 60
-    };
+    const DAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
+    // Fallback lang ito habang naglo-load pa o kung walang laman ang response
+    let ORG_AVAILABILITY_BY_DAY = DAY_NAMES.map((_, i) => ({
+        day_of_week: i,
+        is_open: i !== 0,
+        start_time: "08:00:00",
+        end_time: "18:00:00"
+    }));
+
+    async function fetchOrgAvailability() {
+        try {
+            const res = await fetch('/api/organization/availability', { credentials: 'include' });
+            const data = await res.json();
+            if (data.success && Array.isArray(data.availability) && data.availability.length === 7) {
+                ORG_AVAILABILITY_BY_DAY = data.availability;
+            }
+        } catch (err) {
+            console.error("Failed to load org availability:", err);
+        }
+        updateAvailabilityHint();
+    }
+
+    function getAvailabilityForDay(dow) {
+        return ORG_AVAILABILITY_BY_DAY.find(d => d.day_of_week === dow) || ORG_AVAILABILITY_BY_DAY[dow];
+    }
+
+    function updateAvailabilityHint() {
+        const hintEl = document.getElementById("calendarAvailabilityHint");
+        if (!hintEl) return;
+
+        const openDays = ORG_AVAILABILITY_BY_DAY.filter(d => d.is_open);
+        if (openDays.length === 0) {
+            hintEl.textContent = "No availability set. Click \"Edit Time\" to configure your schedule.";
+            return;
+        }
+
+        const openDayNames = openDays.map(d => DAY_NAMES[d.day_of_week].slice(0, 3)).join(", ");
+        hintEl.textContent = `Open: ${openDayNames}. Click "Edit Time" to change your hours.`;
+    }
 
     let calendarViewDate = new Date();
     calendarViewDate.setDate(1);
     let calendarSelectedDateStr = null;
 
-    function openCalendarModal() {
+    async function openCalendarModal() {
         document.getElementById("calendarModal").classList.remove("hidden");
         calendarViewDate = new Date();
         calendarViewDate.setDate(1);
-        
+
+        await fetchOrgAvailability();
+
         // Kunin ang kasalukuyang petsa ngayon (bugal/araw ngayon)
         const now = new Date();
         const todayStr = formatDateStr(now.getFullYear(), now.getMonth(), now.getDate());
@@ -580,6 +650,95 @@
         renderCalendarGrid();
         // Awtomatikong i-load at ipakita ang schedule ng araw na ito sa kanang panel
         selectCalendarDate(todayStr);
+    }
+
+    // ================= EDIT AVAILABILITY MODAL =================
+    function openEditAvailabilityModal() {
+        const body = document.getElementById("availabilityFormBody");
+        body.innerHTML = DAY_NAMES.map((name, dow) => {
+            const day = getAvailabilityForDay(dow);
+            const startVal = (day.start_time || "08:00:00").slice(0, 5);
+            const endVal = (day.end_time || "18:00:00").slice(0, 5);
+            return `
+                <div class="availability-day-row flex items-center gap-3 p-3 rounded-xl border border-gray-100 bg-gray-50/50" data-day="${dow}">
+                    <label class="flex items-center gap-2 w-28 shrink-0 cursor-pointer">
+                        <input type="checkbox" class="day-open-toggle w-4 h-4 accent-blue-600 cursor-pointer" data-day="${dow}" ${day.is_open ? 'checked' : ''} onchange="toggleDayRow(${dow})">
+                        <span class="text-sm font-semibold text-gray-700">${name.slice(0, 3)}</span>
+                    </label>
+                    <input type="time" class="day-start-input flex-1 border border-gray-200 rounded-lg px-2 py-1.5 text-sm" data-day="${dow}" value="${startVal}" ${day.is_open ? '' : 'disabled'}>
+                    <span class="text-gray-400 text-sm">to</span>
+                    <input type="time" class="day-end-input flex-1 border border-gray-200 rounded-lg px-2 py-1.5 text-sm" data-day="${dow}" value="${endVal}" ${day.is_open ? '' : 'disabled'}>
+                </div>
+            `;
+        }).join('');
+
+        document.getElementById("editAvailabilityModal").classList.remove("hidden");
+    }
+
+    function closeEditAvailabilityModal() {
+        document.getElementById("editAvailabilityModal").classList.add("hidden");
+    }
+
+    function toggleDayRow(dow) {
+        const row = document.querySelector(`#availabilityFormBody .availability-day-row[data-day="${dow}"]`);
+        if (!row) return;
+        const isOpen = row.querySelector('.day-open-toggle').checked;
+        row.querySelector('.day-start-input').disabled = !isOpen;
+        row.querySelector('.day-end-input').disabled = !isOpen;
+    }
+
+    async function saveAvailability() {
+        const rows = document.querySelectorAll('#availabilityFormBody .availability-day-row');
+        const days = [];
+
+        for (const row of rows) {
+            const dow = parseInt(row.dataset.day, 10);
+            const isOpen = row.querySelector('.day-open-toggle').checked;
+            const startTime = row.querySelector('.day-start-input').value;
+            const endTime = row.querySelector('.day-end-input').value;
+
+            if (isOpen && (!startTime || !endTime || startTime >= endTime)) {
+                alert(`${DAY_NAMES[dow]}: Start time must be earlier than end time.`);
+                return;
+            }
+
+            days.push({
+                day_of_week: dow,
+                is_open: isOpen,
+                start_time: startTime ? `${startTime}:00` : "08:00:00",
+                end_time: endTime ? `${endTime}:00` : "18:00:00"
+            });
+        }
+
+        const saveBtn = document.getElementById("saveAvailabilityBtn");
+        saveBtn.disabled = true;
+        saveBtn.textContent = "Saving...";
+
+        try {
+            const res = await fetch('/api/organization/availability', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ days })
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                ORG_AVAILABILITY_BY_DAY = days;
+                closeEditAvailabilityModal();
+                updateAvailabilityHint();
+                renderCalendarGrid();
+                if (calendarSelectedDateStr) selectCalendarDate(calendarSelectedDateStr);
+            } else {
+                alert(data.message || "Failed to save availability.");
+            }
+        } catch (err) {
+            console.error(err);
+            alert("Something went wrong while saving.");
+        } finally {
+            saveBtn.disabled = false;
+            saveBtn.textContent = "Save Changes";
+        }
     }
 
     function closeCalendarModal() {
@@ -632,18 +791,21 @@
     function getSlotsForDate(dateStr) {
         const [y, m, d] = dateStr.split('-').map(Number);
         const dow = new Date(y, m - 1, d).getDay();
-        if (!ORG_AVAILABILITY.workingDays.includes(dow)) return [];
+        const dayConfig = getAvailabilityForDay(dow);
+
+        if (!dayConfig || !dayConfig.is_open) return [];
+
+        const [startH, startM] = (dayConfig.start_time || "08:00:00").split(':').map(Number);
+        const [endH, endM] = (dayConfig.end_time || "21:00:00").split(':').map(Number);
+
+        const startTotalMin = startH * 60 + startM;
+        const endTotalMin = endH * 60 + endM;
 
         const slots = [];
-        for (let h = ORG_AVAILABILITY.startHour; h < ORG_AVAILABILITY.endHour; h++) {
-            for (let minute = 0; minute < 60; minute += 30) {
-                // Huwag nang magdagdag ng slots kung lampas na ng 5:00 PM (17:00)
-                if (h === 17 && minute > 0) break;
-
-                const hStr = String(h).padStart(2, '0');
-                const mStr = String(minute).padStart(2, '0');
-                slots.push(`${hStr}:${mStr}`);
-            }
+        for (let totalMin = startTotalMin; totalMin <= endTotalMin; totalMin += 30) {
+            const hStr = String(Math.floor(totalMin / 60)).padStart(2, '0');
+            const mStr = String(totalMin % 60).padStart(2, '0');
+            slots.push(`${hStr}:${mStr}`);
         }
         return slots;
     }
