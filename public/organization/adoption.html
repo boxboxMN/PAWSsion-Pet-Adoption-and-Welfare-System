@@ -557,7 +557,7 @@
     // Default weekly availability, since there's no stored org schedule yet.
     // Change this if your org's actual hours differ (0 = Sunday ... 6 = Saturday).
     const ORG_AVAILABILITY = {
-        workingDays: [1, 2, 3, 4, 5, 6], // Mon-Sat, closed Sunday
+        workingDays: [0, 1, 2, 3, 4, 5, 6], // Mon-Sat, closed Sunday
         startHour: 8,   // 8:00 AM
         endHour: 18,    // 5:00 PM (slots run up to 4:00 PM, 1hr each)
         slotMinutes: 60

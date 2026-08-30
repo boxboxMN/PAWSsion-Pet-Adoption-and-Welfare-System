@@ -452,6 +452,8 @@ HOW TO RUN WITH WORKING MATCHMAKING FEATURE
 - Pets (org):
     ✓ sa contact number nasa loob na sila ng snapshot baka hindi mo nabago
 
+- Fix the UI must be responsive
+
 # RUN THIS IN THE DB, MAKE SURE TO IMPORT THE application_interview TABLE IN THE DB BEFORE DOING THIS (AUG 29, 2026):
 
 ALTER TABLE user_adoption_applications
