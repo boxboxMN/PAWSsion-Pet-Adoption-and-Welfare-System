@@ -129,6 +129,7 @@ exports.addPet = async (req, res) => {
                 });
             }
 
+
             // Built snapshot object para sa direct admin entry
             const snapshotData = {
                 full_name: req.body.adopter_full_name || null,
@@ -153,11 +154,13 @@ exports.addPet = async (req, res) => {
                     emergency_phone,
                     emergency_relation,
                     document_path,
-                    status
+                    status,
+                    created_at,
+                    updated_at
                 )
                 VALUES (
                     NULL,
-                    ?, ?, ?, NULL,
+                    ?, ?, ?, ?,
                     ?, ?, ?,
                     NULL,
                     'Approved',
@@ -169,6 +172,7 @@ exports.addPet = async (req, res) => {
                     organization_id,
                     animal_id,
                     JSON.stringify(snapshotData),
+                    (req.body.adopter_adoption_intent && req.body.adopter_adoption_intent.trim() !== "") ? req.body.adopter_adoption_intent.trim() : null,
                     req.body.adopter_emergency_name || null,
                     req.body.adopter_emergency_phone || null,
                     req.body.adopter_emergency_relation || null
@@ -454,6 +458,122 @@ exports.updatePet = async (req, res) => {
                 message: "Pet not found or does not belong to your organization."
             });
         }
+
+         // ==========================================
+        // SAVE ADOPTER DETAILS IF ADOPTED
+        // ==========================================
+        if (adoption_status === "Adopted" && req.body.adopter_full_name) {
+
+            const phPhoneRegex = /^09\d{9}$/;
+
+            const contactNum = req.body.adopter_contact_number
+                ? req.body.adopter_contact_number.trim()
+                : "";
+
+            const emergencyNum = req.body.adopter_emergency_phone
+                ? req.body.adopter_emergency_phone.trim()
+                : "";
+
+            if (!phPhoneRegex.test(contactNum)) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Invalid Contact Number. It must be an 11-digit Philippine mobile number starting with 09."
+                });
+            }
+
+            if (!phPhoneRegex.test(emergencyNum)) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Invalid Emergency Phone Number. It must be an 11-digit Philippine mobile number starting with 09."
+                });
+            }
+
+            const adoptionIntentValue = (req.body.adopter_adoption_intent && req.body.adopter_adoption_intent.trim() !== "") 
+            ? req.body.adopter_adoption_intent.trim() 
+            : null;
+
+            // Check muna kung may existing manual application record na para sa pet na ito
+            const [existingSnapshot] = await pool.query(
+                `SELECT application_id FROM user_adoption_applications WHERE animal_id = ? AND adopter_id IS NULL LIMIT 1`,
+                [id]
+            );
+
+            const snapshotData = {
+                full_name: req.body.adopter_full_name || null,
+                contact_number: req.body.adopter_contact_number || null,
+                email: req.body.adopter_email || null,
+                full_address: req.body.adopter_full_address || null,
+                civil_status: req.body.adopter_civil_status || null,
+                age: req.body.adopter_age || null,
+                occupation: req.body.adopter_occupation || null
+            };
+
+            if (existingSnapshot.length) {
+                // May existing manual record na — I-update na lang ito
+                await pool.query(
+                    `
+                    UPDATE user_adoption_applications
+                    SET
+                        applicant_snapshot = ?,
+                        adoption_intent = ?,
+                        emergency_name = ?,
+                        emergency_phone = ?,
+                        emergency_relation = ?,
+                        status = 'Approved',
+                        updated_at = NOW()
+                    WHERE application_id = ?
+                    `,
+                    [
+                        JSON.stringify(snapshotData),
+                        adoptionIntentValue,
+                        req.body.adopter_emergency_name || null,
+                        req.body.adopter_emergency_phone || null,
+                        req.body.adopter_emergency_relation || null,
+                        existingSnapshot[0].application_id
+                    ]
+                );
+            } else {
+                // Walang existing record — gumawa ng bago
+                await pool.query(
+                    `
+                    INSERT INTO user_adoption_applications
+                    (
+                        adopter_id,
+                        organization_id,
+                        animal_id,
+                        applicant_snapshot,
+                        adoption_intent,
+                        emergency_name,
+                        emergency_phone,
+                        emergency_relation,
+                        document_path,
+                        status,
+                        created_at,
+                        updated_at
+                    )
+                    VALUES (
+                        NULL,
+                        ?, ?, ?, ?,
+                        ?, ?, ?,
+                        NULL,
+                        'Approved',
+                        NOW(),
+                        NOW()
+                    )
+                    `,
+                    [
+                        organizationId,
+                        id,
+                        JSON.stringify(snapshotData),
+                        adoptionIntentValue,
+                        req.body.adopter_emergency_name || null,
+                        req.body.adopter_emergency_phone || null,
+                        req.body.adopter_emergency_relation || null
+                    ]
+                );
+            }
+        }
+
         // ==========================================
         // UPDATE EMBEDDING
         // ==========================================

@@ -27,6 +27,7 @@ async function loadPets() {
         health: pet.health_status,
         vaccination: pet.vaccination_status,
         organization: pet.organization_name,
+        organization_id: pet.organization_id,
         organization_logo: pet.profile_pic,
         medical_history: pet.medical_history || [],
         img: pet.image_path
@@ -36,6 +37,7 @@ async function loadPets() {
 
     filteredPets = [...petsData];
 
+    populateOrgFilter();
     renderGrid(filteredPets);
 
     } catch (err) {
@@ -44,6 +46,40 @@ async function loadPets() {
 
     }
 }
+
+// Awtomatikong bubuo ng listahan ng mga organization batay sa aktwal na pets na naka-load,
+// kaya kahit may bagong org na nadagdag na may pet, lalabas ito rito ng walang extra config.
+function populateOrgFilter() {
+    const orgFilterSelect = document.getElementById("org-filter");
+    if (!orgFilterSelect) return;
+
+    // Panatilihin ang currently selected value (kung meron) bago i-rebuild ang options
+    const previouslySelected = orgFilterSelect.value || "All";
+
+    // Kunin lang ang mga unique organizations (id + name), at ayusin ng alphabetical base sa pangalan
+    const orgMap = new Map();
+    petsData.forEach(pet => {
+        if (pet.organization_id && pet.organization && !orgMap.has(String(pet.organization_id))) {
+            orgMap.set(String(pet.organization_id), pet.organization);
+        }
+    });
+
+    const uniqueOrgs = [...orgMap.entries()].sort((a, b) => a[1].localeCompare(b[1]));
+
+    orgFilterSelect.innerHTML = '<option value="All">All Organizations</option>';
+    uniqueOrgs.forEach(([orgId, orgName]) => {
+        const opt = document.createElement("option");
+        opt.value = orgId;
+        opt.textContent = orgName;
+        orgFilterSelect.appendChild(opt);
+    });
+
+    // I-restore ang dating napiling org kung nandiyan pa rin ito sa bagong listahan
+    if (orgMap.has(previouslySelected) || previouslySelected === "All") {
+        orgFilterSelect.value = previouslySelected;
+    }
+}
+
 function renderGrid(pets = filteredPets) {
 
     const grid = document.getElementById("pet-grid");
@@ -158,6 +194,14 @@ function filterPets() {
         .getElementById("type-filter")
         .value;
 
+        const org = document
+        .getElementById("org-filter")
+        .value;
+
+    const sortOption = document
+        .getElementById("sort-filter")
+        .value;
+
     filteredPets = petsData.filter(pet => {
 
         const matchesSearch =
@@ -170,8 +214,19 @@ function filterPets() {
             type === "All" ||
             pet.species === type;
 
-        return matchesSearch && matchesType;
+        const matchesOrg =
+            org === "All" ||
+            String(pet.organization_id) === org;
+
+        return matchesSearch && matchesType && matchesOrg;
     });
+
+     // I-apply ang sorting pagkatapos mag-filter
+     if (sortOption === "name-asc") {
+        filteredPets.sort((a, b) => a.name.localeCompare(b.name));
+    } else if (sortOption === "name-desc") {
+        filteredPets.sort((a, b) => b.name.localeCompare(a.name));
+    }
 
     renderGrid(filteredPets);
 }
@@ -180,6 +235,12 @@ document.getElementById("search-input")
     .addEventListener("input", filterPets);
 
 document.getElementById("type-filter")
+    .addEventListener("change", filterPets);
+
+    document.getElementById("org-filter")
+    .addEventListener("change", filterPets);
+
+document.getElementById("sort-filter")
     .addEventListener("change", filterPets);
 
 document.addEventListener("click", e => {

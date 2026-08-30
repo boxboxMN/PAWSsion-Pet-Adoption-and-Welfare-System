@@ -17,6 +17,7 @@ npx tailwindcss init
 2. npx tailwindcss -i ./public/assets/css/input.css -o ./public/assets/css/tailwind.css --watch
 3. npm install multer for uploading files
 4. working admin side email: admin@pawpon.com || password: admin@pawpon.com || org and user accounts: use email for password
+password for pup org: PupSintang_08@
 5. add sessions for each user (not yet started)
 6. Pa add nalang sa database nito 
 ALTER TABLE accounts
@@ -98,23 +99,6 @@ ADD COLUMN interview_time VARCHAR(50) NULL,
 ADD COLUMN interview_method ENUM('onsite', 'virtual') DEFAULT 'virtual',
 ADD COLUMN interview_location_link TEXT NULL;
 
-
-HOW TO RUN WITH WORKING MATCHMAKING FEATURE
-- import new db (7.23)
-- create .venv first inside flask-api
-    *terminal: cd flask-api then python -m venv .venv
-             : .venv\Scripts\activate
-             :.venv\Scripts\Activate.ps1
-- install requrements
-    *terminal: pip install -r requirements.txt
-             : pip install -r requirements.txt
-             : python -m pip install flask sentence-transformers torch scikit-learn python-dotenv
-             : python download_model.py
-- run Flask API
-    *terminal: python app.py (keep this running on venv)
-- run Node.js
-    *terminal: node server.js (this should be in new terminal)
-
 # August 4, 2026
 
 # Paimport na lang ng user_adoption_applications sa db nyo may nabago lang doon
@@ -183,37 +167,21 @@ Mga ned iconfirm kay jhy: donation side, profile yung sa pagchange ng pass, kamu
 ORGANIZATION:
 
 Pets: 
-	
 	✓ Sa available, makikita pa din yung all status, all species and add pet
-
 	✓ Sa adopted, dapat makikita pa din yung all species
-
 	✓ Sa Add new pet, alisin yung archive sa adoption status
-
     ✓ alisin din ang archive sa all; status
-
     ✓ ilipat ang archive sa sarili; nyang button
-
     ✓ Sa add new pet, kapag pinili ang adopted satus dapat may lilitaw na additional form for adopters information
-
 	✓ Sa view Profile, alisin ang birth date, date sa medical history
-
     ✓ Edit Record may bug pet_desciption = behavior_description
-
 	✓ Iseparate ang available sa adopted para hindi malito ang orgs
 	Iseparate ang archive pero tignan sa controller dapat gumagana pa din yung ibang functions
-
 	✓ Dapat once na adopted is wala ng edit, archive and delete buttons instead dapat may view adoption applications button na mapupunta doon sa adoption application details
-
 	✓ Once available may archive, edit & delete buttons
-
     ✓ Under add pet, sa may adoption status dapat once na adopted auto na malalgay sa adopted pets, and yung available and pending is sa active status
-
     ✓ Archive is may unarchive buttons and nakahide ang edit, delete buttons
-
     Once na approved na dapat may inotify pa ang user kung kelan makukuha ang pet 
-
-    
 # Questions and Testing
 
     Under add pet, itanong if magkaiba ang pet description at personality & traits since pwede naman mailagay ang personality & traits sa pet description??
@@ -221,19 +189,12 @@ Pets:
     Itry ni mayie mag edit, delete, at add pet if nagpafunction pa
 
 Adoption:
-
 	✓ Export Summary
-
 	✓ lagyan ng edit schedule ang application details
-
     ✓ kapag nagrequest ang adopter ng resched of interview dapat makikita ng org
-
     ✓ kapag decline, instead of idisable ang declined button dapat auto na napapalitan ng view declined details
-
     ✓ Under Interview nschedule, yung date is hindi tugma doon sa napiliing date, ang inistore is yung kung kailan ka nag sched ng interview
-
     ✓ ayusing yung sa applicant name diba yung org naglagay ng add pet na adopted dapat lumabas doon yuyng name ng nagadopt
-
     ✓ fixed date and time
 
 Settings & Support:
@@ -245,7 +206,6 @@ Notification:
 	Dapat nakikita ang lahat ng changes sa notif and dapat sa sidebar is kapag may changes may pula na bilog na nagaappear
 	
 NOTES:
-
 ✓ Itanong kay jhy if ok na yung kamustahan
 
 ADMIN:
@@ -443,3 +403,35 @@ is match with the address in the user profile ✓
 Tignan if yung view profile organization will appear in under review, approved, declined or cancelled  ✓
 
 # gawin ang nasa org profile tom (Aug 26, 2026)
+
+HOW TO RUN WITH WORKING MATCHMAKING FEATURE
+- import new db (7.23)
+- create .venv first inside flask-api
+    *terminal: cd flask-api then python -m venv .venv
+             : .venv\Scripts\activate
+             :.venv\Scripts\Activate.ps1
+- install requrements
+    *terminal: pip install -r requirements.txt
+             : pip install -r requirements.txt
+             : python -m pip install flask sentence-transformers torch scikit-learn python-dotenv
+- run Flask API
+    *terminal: python app.py (keep this running on venv)
+- run Node.js
+    *terminal: node server.js (this should be in new terminal)
+
+# mga need pa ayusin
+- Feedback & notification (user, org, & admin side)
+- Org Profile: 
+    ✓ sanitation & validation of contact number
+    ✓ May problem pa sa pagkuha ng profile sa mismong dashboard hindi nareread ng maayos if ibang org
+
+- Pets (org):
+    ✓ sa contact number nasa loob na sila ng snapshot baka hindi mo nabago
+
+# RUN THIS IN THE DB, MAKE SURE TO IMPORT THE application_interview TABLE IN THE DB BEFORE DOING THIS (AUG 29, 2026):
+
+ALTER TABLE user_adoption_applications
+    MODIFY COLUMN document_path VARCHAR(255) NULL;
+
+ALTER TABLE user_adoption_applications
+    MODIFY COLUMN adoption_intent TEXT NULL;
