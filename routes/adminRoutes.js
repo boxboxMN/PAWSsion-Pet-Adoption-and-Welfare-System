@@ -58,7 +58,6 @@ router.get("/users", async (req, res) => {
                 a.email_verified,
                 a.created_at,
                 a.last_login,
-                a.profile_pic,
                 ad.first_name,
                 ad.last_name,
                 ad.phone_number,
@@ -72,6 +71,7 @@ router.get("/users", async (req, res) => {
             FROM accounts a
             LEFT JOIN adopters ad ON a.account_id = ad.account_id
             LEFT JOIN organizations o ON a.account_id = o.account_id
+            WHERE a.role != 'admin'
             ORDER BY a.created_at DESC
         `);
 
@@ -85,7 +85,6 @@ router.get("/users", async (req, res) => {
             }
 
             const profilePicture = 
-                user.profile_pic || 
                 user.adopter_profile_picture || 
                 user.organization_profile_picture || 
                 null;
@@ -416,7 +415,8 @@ router.get("/users/:id", async (req, res) => {
                 o.contact_number,
                 o.address,
                 o.city,
-                o.province
+                o.province,
+                o.profile_pic AS organization_profile_picture
 
             FROM accounts a
 
@@ -443,6 +443,11 @@ router.get("/users/:id", async (req, res) => {
             ? user.organization_name
             : `${user.first_name || ""} ${user.last_name || ""}`.trim();
 
+        user.profile_pic =
+            user.role==="organization"
+            ? user.organization_profile_picture
+            : user.profile_picture;
+
         res.json(user);
 
     } catch(err){
@@ -468,12 +473,16 @@ router.put("/users/:id/status", async (req, res) => {
         }
 
         const [[account]] = await pool.query(
-            `SELECT account_id FROM accounts WHERE account_id = ?`,
+            `SELECT account_id, role FROM accounts WHERE account_id = ?`,
             [id]
         );
 
         if (!account) {
             return res.status(404).json({ message: "User not found" });
+        }
+
+        if (account.role === "admin") {
+            return res.status(403).json({ message: "Admin accounts cannot be modified here." });
         }
 
         await pool.query(
@@ -504,6 +513,19 @@ router.put("/users/:id/suspend", async(req,res)=>{
     try{
 
         const id=req.params.id;
+
+        const [[account]] = await pool.query(
+            `SELECT role FROM accounts WHERE account_id = ?`,
+            [id]
+        );
+
+        if (!account) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        if (account.role === "admin") {
+            return res.status(403).json({ message: "Admin accounts cannot be modified here." });
+        }
 
         await pool.query(
 
@@ -588,6 +610,19 @@ router.put("/users/:id/ban", async (req, res) => {
 
         const id = req.params.id;
 
+        const [[account]] = await pool.query(
+            `SELECT role FROM accounts WHERE account_id = ?`,
+            [id]
+        );
+
+        if (!account) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        if (account.role === "admin") {
+            return res.status(403).json({ message: "Admin accounts cannot be modified here." });
+        }
+
         await pool.query(
             `
             UPDATE accounts
@@ -618,10 +653,10 @@ router.put("/users/:id/ban", async (req, res) => {
 router.get("/dashboard/top-organizations", async (req, res) => {
     try {
         const [rows] = await pool.query(`
-            SELECT
+             SELECT
                 o.organization_id,
                 o.organization_name,
-                COALESCE(o.profile_pic, acc.profile_pic) AS profile_pic,
+                o.profile_pic,
                 COUNT(DISTINCT CASE WHEN a.adoption_status = 'Adopted' THEN a.animal_id END) AS adoptions,
                 COUNT(DISTINCT CASE WHEN a.adoption_status = 'Available' THEN a.animal_id END) AS active_pets,
                 COALESCE((
@@ -630,14 +665,12 @@ router.get("/dashboard/top-organizations", async (req, res) => {
                     WHERE cd.organization_id = o.organization_id AND cd.status = 'Approved'
                 ), 0) AS total_donations
             FROM organizations o
-            LEFT JOIN accounts acc ON o.account_id = acc.account_id
             LEFT JOIN animals a ON o.organization_id = a.organization_id
             WHERE o.verification_status = 'Approved'
             GROUP BY 
                 o.organization_id,
                 o.organization_name,
-                o.profile_pic,
-                acc.profile_pic
+                o.profile_pic
             ORDER BY 
                 adoptions DESC,
                 active_pets DESC,
@@ -658,4 +691,7 @@ router.get("/dashboard/top-organizations", async (req, res) => {
         });
     }
 });
+
+router.get("/feedback/list", adminController.getFeedback);
+router.put("/feedback/:id/status", adminController.updateFeedbackStatus);
 module.exports = router;

@@ -51,9 +51,19 @@
 
                 <!-- Total Count Badge -->
                 <div class="inline-flex items-center gap-2 self-start sm:self-auto px-3.5 py-1.5 bg-white border border-slate-200 rounded-xl shadow-sm text-xs font-semibold text-slate-600">
-                    <span class="w-2 h-2 rounded-full bg-brand-500"></span>
+                    <span class="w-2 h-2 rounded-full bg-indigo-500"></span>
                     <span id="feedbackCount">0 Feedbacks</span>
-                </div>
+                 </div>
+            </div>
+
+             <!-- View Tabs -->
+             <div class="flex items-center gap-2 fade-in">
+                <button type="button" id="tabActive" class="view-tab-btn px-4 py-2 rounded-xl text-xs font-semibold bg-indigo-600 text-white shadow-sm transition">
+                    <i class="fa-regular fa-comments mr-1.5"></i> Feedback
+                </button>
+                <button type="button" id="tabArchived" class="view-tab-btn px-4 py-2 rounded-xl text-xs font-semibold bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 transition">
+                    <i class="fa-regular fa-box-archive mr-1.5"></i> Archived
+                </button>
             </div>
 
             <!-- Table Card Container -->

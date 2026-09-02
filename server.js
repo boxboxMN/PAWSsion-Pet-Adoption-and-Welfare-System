@@ -206,6 +206,103 @@ try {
 }
 });
 
+// =====================================================
+// FEEDBACK (shared by organizations and users)
+// =====================================================
+app.post("/api/feedback", async (req, res) => {
+    const accountId = req.session?.accountId;
+    if (!accountId) {
+        return res.status(401).json({
+            success: false,
+            message: "Unauthorized"
+        });
+    }
+
+    try {
+        const { feedback_type, subject, message, rating } = req.body;
+
+        // ---- Validation (unchanged) ----
+        const allowedTypes = ["bug", "suggestion", "general", "other"];
+
+        if (!feedback_type || !allowedTypes.includes(feedback_type)) {
+            return res.status(400).json({
+                success: false,
+                message: "Please select a valid feedback type."
+            });
+        }
+
+        if (!subject || !subject.trim()) {
+            return res.status(400).json({
+                success: false,
+                message: "Subject is required."
+            });
+        }
+
+        if (!message || message.trim().length < 10) {
+            return res.status(400).json({
+                success: false,
+                message: "Message must be at least 10 characters."
+            });
+        }
+
+        let ratingValue = null;
+        if (rating !== null && rating !== undefined && rating !== "") {
+            ratingValue = Number(rating);
+            if (!Number.isInteger(ratingValue) || ratingValue < 1 || ratingValue > 5) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Rating must be a whole number between 1 and 5."
+                });
+            }
+        }
+
+        // ---- Determine whether this account is an organization or a user ----
+        let submittedBy;
+        let organizationId = null;
+
+        try {
+            organizationId = await Organization.getOrganizationIdByAccountId(accountId);
+            submittedBy = "organization";
+        } catch (notAnOrgErr) {
+            const [adopterRows] = await pool.query(
+                `SELECT adopter_id FROM adopters WHERE account_id = ?`,
+                [accountId]
+            );
+
+            if (!adopterRows.length) {
+                return res.status(404).json({
+                    success: false,
+                    message: "Account not found."
+                });
+            }
+
+            submittedBy = "user";
+        }
+
+        // ---- Insert feedback ----
+        await pool.query(
+            `
+            INSERT INTO feedback
+                (account_id, organization_id, submitted_by, feedback_type, subject, message, rating)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            `,
+            [accountId, organizationId, submittedBy, feedback_type, subject.trim(), message.trim(), ratingValue]
+        );
+
+        res.status(201).json({
+            success: true,
+            message: "Thanks! Your feedback has been submitted."
+        });
+
+    } catch (err) {
+        console.error("Submit Feedback Error:", err);
+        res.status(500).json({
+            success: false,
+            message: "Server error while submitting feedback."
+        });
+    }
+});
+
 //FOR CHANGE PASSWORD
 
 // MODAL CURRENT PASSWORD VERIFICATION: 

@@ -11,6 +11,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 filterFeedback(this.value.trim().toLowerCase());
             });
 
+            document.getElementById("tabActive").addEventListener("click", () => setViewFilter("active"));
+            document.getElementById("tabArchived").addEventListener("click", () => setViewFilter("archived"))
+
             document.getElementById("panelClose").addEventListener("click", closePanel);
             document.getElementById("panelOverlay").addEventListener("click", closePanel);
 
@@ -21,44 +24,38 @@ document.addEventListener("DOMContentLoaded", () => {
 
         let allFeedback = [];
         let selectedFeedbackId = null;
+        let currentViewFilter = "active"; // "active" (everything not archived) or "archived"
 
-        const avatarImages = [
-            "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=120",
-            "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=120",
-            "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&q=80&w=120",
-            "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=120",
-            "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=120",
-        ];
-
-        function getAvatarUrl(index) {
-            return avatarImages[index % avatarImages.length];
+        function getAvatarUrl(item) {
+            if (item.sender_profile_picture) {
+                return item.sender_profile_picture;
+            }
+        
+            // Fallback: generated initials avatar when no profile picture is on file
+            const name = encodeURIComponent(item.sender_name || "Unknown");
+            return `https://ui-avatars.com/api/?name=${name}&background=e0e7ff&color=3730a3&bold=true`;
         }
 
         async function loadFeedback() {
             try {
-                const res = await fetch("/admin/feedback");
+                const res = await fetch("/admin/feedback/list");
+        
+                if (!res.ok) {
+                    throw new Error(`Request failed with status ${res.status}`);
+                }
+        
                 allFeedback = await res.json();
-
+        
                 if (!allFeedback || allFeedback.length === 0) {
                     renderEmptyState("No feedback available.");
                     return;
                 }
-                renderFeedback(allFeedback);
+        
+                renderFeedback(getFilteredFeedback(""));
             } catch (err) {
-                console.warn("Using sample feedback data (fallback):", err);
-                allFeedback = getSampleFeedback();
-                renderFeedback(allFeedback);
+                console.error("Failed to load feedback:", err);
+                renderEmptyState("Unable to load feedback. Please try refreshing the page.");
             }
-        }
-
-        function getSampleFeedback() {
-            return [
-                { id: 1, sender_name: "Ezekiel Roswell", sender_email: "ezek@gmail.com", sender_role: "User", message: "di ako maka donate, sira ata system niyo ...", date: "2026-05-03T10:29:00", status: "pending" },
-                { id: 2, sender_name: "Maria Santos", sender_email: "mari@gmail.com", sender_role: "User", message: "Thank you for the quick response to my concern. Great support team!", date: "2026-05-02T14:15:00", status: "resolved" },
-                { id: 3, sender_name: "Joseph Mark", sender_email: "jm@gmail.com", sender_role: "User", message: "I think there's a bug in the payment processing page. It keeps loading.", date: "2026-05-01T09:45:00", status: "pending" },
-                { id: 4, sender_name: "Jonel Lomeda", sender_email: "jonle@gmail.com", sender_role: "User", message: "The new update is great! Love the new features.", date: "2026-04-30T16:20:00", status: "resolved" },
-                { id: 5, sender_name: "Angeline Regine", sender_email: "arg@gmail.com", sender_role: "User", message: "Can we have a dark mode option? It would be very helpful.", date: "2026-04-29T11:00:00", status: "archived" },
-            ];
         }
 
         function renderFeedback(feedback) {
@@ -75,6 +72,36 @@ document.addEventListener("DOMContentLoaded", () => {
             });
 
             document.getElementById("feedbackCount").textContent = `${feedback.length} Feedbacks`;
+        }
+
+        function setViewFilter(view) {
+            currentViewFilter = view;
+        
+            const activeClasses = "view-tab-btn px-4 py-2 rounded-xl text-xs font-semibold bg-indigo-600 text-white shadow-sm transition";
+            const inactiveClasses = "view-tab-btn px-4 py-2 rounded-xl text-xs font-semibold bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 transition";
+        
+            document.getElementById("tabActive").className = (view === "active") ? activeClasses : inactiveClasses;
+            document.getElementById("tabArchived").className = (view === "archived") ? activeClasses : inactiveClasses;
+        
+            const currentQuery = document.getElementById("searchInput").value.trim().toLowerCase();
+            filterFeedback(currentQuery);
+        }
+        
+        function getFilteredFeedback(query) {
+            let result = allFeedback;
+        
+            result = result.filter(item => {
+                const status = (item.status || "").toLowerCase();
+                return currentViewFilter === "archived" ? status === "archived" : status !== "archived";
+            });
+        
+            if (!query) return result;
+        
+            return result.filter(item => {
+                return (item.sender_name || "").toLowerCase().includes(query) ||
+                       (item.sender_email || "").toLowerCase().includes(query) ||
+                       (item.message || "").toLowerCase().includes(query);
+            });
         }
 
         function renderEmptyState(message) {
@@ -110,7 +137,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 dateStr = d.toLocaleDateString("en-US", { month: "short", day: "numeric" }) + ", " + d.toLocaleTimeString("en-US", { hour: '2-digit', minute: '2-digit' });
             }
 
-            const avatarUrl = getAvatarUrl(index);
+            const avatarUrl = getAvatarUrl(item);
             const tr = document.createElement("tr");
             tr.className = `hover:bg-slate-50/80 transition-colors cursor-pointer ${selectedFeedbackId === id ? 'bg-brand-50/50' : ''}`;
 
@@ -160,7 +187,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const email = item.sender_email || "N/A";
             const message = item.message || "No content provided.";
             const status = (item.status || "pending").toLowerCase();
-            const avatarUrl = getAvatarUrl(allFeedback.indexOf(item));
+            const avatarUrl = getAvatarUrl(item);
 
             const d = item.date ? new Date(item.date) : new Date();
             const fullDate = d.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }) + " at " + d.toLocaleTimeString("en-US", { hour: '2-digit', minute: '2-digit' });
@@ -180,7 +207,10 @@ document.addEventListener("DOMContentLoaded", () => {
                     </div>
                     <div class="flex justify-between items-center">
                         <span class="text-slate-400 font-medium uppercase tracking-wider text-[10px]">Status</span>
-                        <span class="capitalize font-bold text-slate-800">${status}</span>
+                        <span class="text-right">
+                            <span class="capitalize font-bold text-slate-800 block">${status}</span>
+                            ${status === "archived" && item.previous_status ? `<span class="text-slate-400 text-[10px] capitalize">(was ${item.previous_status})</span>` : ""}
+                        </span>
                     </div>
                 </div>
 
@@ -192,12 +222,24 @@ document.addEventListener("DOMContentLoaded", () => {
                 <div class="pt-2">
                     <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Actions</label>
                     <div class="flex gap-2">
+                        ${status !== "archived" ? `
+                        ${status === "resolved" ? `
+                        <button onclick="handleAction('unresolve', ${item.id})" class="flex-1 py-2.5 px-4 bg-amber-50 hover:bg-amber-600 text-amber-700 hover:text-white border border-amber-200 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition shadow-sm">
+                            <i class="fa-regular fa-circle-xmark"></i> Unresolve
+                        </button>
+                        ` : `
                         <button onclick="handleAction('resolve', ${item.id})" class="flex-1 py-2.5 px-4 bg-emerald-50 hover:bg-emerald-600 text-emerald-700 hover:text-white border border-emerald-200 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition shadow-sm">
                             <i class="fa-regular fa-circle-check"></i> Resolve
                         </button>
+                        `}
                         <button onclick="handleAction('archive', ${item.id})" class="flex-1 py-2.5 px-4 bg-slate-100 hover:bg-slate-700 text-slate-700 hover:text-white border border-slate-200 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition shadow-sm">
                             <i class="fa-regular fa-box-archive"></i> Archive
                         </button>
+                        ` : `
+                        <button onclick="handleAction('unarchive', ${item.id})" class="flex-1 py-2.5 px-4 bg-indigo-50 hover:bg-indigo-600 text-indigo-700 hover:text-white border border-indigo-200 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition shadow-sm">
+                            <i class="fa-solid fa-box-open"></i> Unarchive
+                        </button>
+                        `}
                     </div>
                 </div>
             `;
@@ -213,18 +255,42 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         function filterFeedback(query) {
-            if (!query) {
-                renderFeedback(allFeedback);
-                return;
-            }
-            const filtered = allFeedback.filter(item => {
-                return (item.sender_name || "").toLowerCase().includes(query) ||
-                       (item.sender_email || "").toLowerCase().includes(query) ||
-                       (item.message || "").toLowerCase().includes(query);
-            });
-            renderFeedback(filtered);
+            renderFeedback(getFilteredFeedback(query));
         }
 
-        function handleAction(action, id) {
-            alert(`[Action: ${action.toUpperCase()}] Request triggered for Feedback ID: ${id}`);
+        async function handleAction(action, id) {
+            const validActions = ["resolve", "unresolve", "archive", "unarchive"];
+            if (!validActions.includes(action)) {
+                console.error("Unknown feedback action:", action);
+                return;
+            }
+
+            try {
+                const res = await fetch(`/admin/feedback/${id}/status`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ action })
+                });
+        
+                if (!res.ok) {
+                    throw new Error(`Request failed with status ${res.status}`);
+                }
+        
+                const data = await res.json();
+        
+                // Update local state so the table/panel reflect the change immediately
+                const item = allFeedback.find(f => f.id === id);
+                if (item) {
+                    item.status = data.status;
+                    item.previous_status = data.previous_status;
+                }
+        
+                const currentQuery = document.getElementById("searchInput").value.trim().toLowerCase();
+                renderFeedback(getFilteredFeedback(currentQuery));
+                closePanel();
+        
+            } catch (err) {
+                console.error("Failed to update feedback status:", err);
+                alert("Unable to update feedback status. Please try again.");
+            }
         }

@@ -428,7 +428,15 @@ HOW TO RUN WITH WORKING MATCHMAKING FEATURE
 - Pets (org):
     ✓ sa contact number nasa loob na sila ng snapshot baka hindi mo nabago
 
-- Fix the UI must be responsive
+- Fix the UI must be responsive (dashboard profile)
+
+- If naka 3 reschedule na or yung reason is hindi valid, automatic na syang madedecline
+
+- admin maglagay ng logs
+
+- sa notification dapatn nakikita na yung feedback is naresolved na
+
+- sa org maglagay ng trash bin
 
 # RUN THIS IN THE DB, MAKE SURE TO IMPORT THE application_interview TABLE IN THE DB BEFORE DOING THIS (AUG 29, 2026):
 
@@ -453,3 +461,30 @@ CREATE TABLE organization_availability (
 
 ALTER TABLE organization_availability 
 MODIFY COLUMN end_time TIME NOT NULL DEFAULT '21:00:00';
+
+# add this for feedback
+
+CREATE TABLE feedback (
+    feedback_id     INT AUTO_INCREMENT PRIMARY KEY,
+    account_id      INT NOT NULL,
+    organization_id INT NULL,
+    submitted_by    ENUM('organization', 'user') NOT NULL,
+    feedback_type   ENUM('bug', 'suggestion', 'general', 'other') NOT NULL,
+    subject         VARCHAR(150) NOT NULL,
+    message         TEXT NOT NULL,
+    rating          TINYINT NULL,
+    status          ENUM('New', 'In Review', 'Resolved') NOT NULL DEFAULT 'New',
+    created_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_feedback_account
+        FOREIGN KEY (account_id) REFERENCES accounts(account_id)
+        ON DELETE CASCADE,
+    CONSTRAINT fk_feedback_organization
+        FOREIGN KEY (organization_id) REFERENCES organizations(organization_id)
+        ON DELETE CASCADE
+);
+
+ALTER TABLE feedback
+    MODIFY COLUMN status ENUM('pending', 'resolved', 'archived') NOT NULL DEFAULT 'pending';
+
+ALTER TABLE feedback
+    ADD COLUMN previous_status ENUM('pending', 'resolved') NULL DEFAULT NULL AFTER status;

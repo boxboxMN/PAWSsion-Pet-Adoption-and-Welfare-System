@@ -13,6 +13,13 @@ document.addEventListener("DOMContentLoaded", () => {
         filterUsers(this.value.trim().toLowerCase());
     });
 
+     // Role filter
+     document.getElementById("roleFilter").addEventListener("change", function() {
+        currentRoleFilter = this.value;
+        const currentQuery = document.getElementById("searchInput").value.trim().toLowerCase();
+        filterUsers(currentQuery);
+    });
+
     // Panel close
     document.getElementById("panelClose").addEventListener("click", closePanel);
     document.getElementById("panelOverlay").addEventListener("click", closePanel);
@@ -24,6 +31,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // ─── Data ──────────────────────────────────────────────
 let allUsers = [];
+let currentRoleFilter = "all";
 let selectedUserId = null;
 
 
@@ -183,8 +191,15 @@ function selectUser(userId) {
 }
 
 function getFilteredUsers(query) {
-    if (!query) return allUsers;
-    return allUsers.filter(user => {
+    let result = allUsers;
+
+    if (currentRoleFilter !== "all") {
+        result = result.filter(user => (user.role || "").toLowerCase() === currentRoleFilter);
+    }
+
+    if (!query) return result;
+
+    return result.filter(user => {
         const name = (user.name || "").toLowerCase();
         const email = (user.email || "").toLowerCase();
         const phone = (user.phone || "").toLowerCase();
@@ -242,7 +257,7 @@ function openPanel(user) {
         hour12: true
     }) : "—";
 
-    const avatarUrl = user.profile_pic || "";
+    const avatarUrl = user.profile_picture || "";
 
     body.innerHTML = `
         <img

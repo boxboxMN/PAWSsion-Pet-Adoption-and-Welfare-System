@@ -196,7 +196,7 @@ exports.getCurrentAdmin = async (req, res) => {
         }
 
         const [[user]] = await pool.query(`
-            SELECT account_id, email, role, profile_pic
+            SELECT account_id, email, role
             FROM accounts
             WHERE account_id = ?
         `, [accountId]);
@@ -243,5 +243,118 @@ exports.updateAdminProfile = async (req, res) => {
     } catch (err) {
         console.error("Database Update Error:", err);
         res.status(500).json({ success: false, message: "Database Error: " + err.message });
+    }
+};
+
+/**
+ * GET ALL FEEDBACK (from organizations and adopters)
+ * GET /admin/feedback/list
+ */
+exports.getFeedback = async (req, res) => {
+    try {
+        const [rows] = await pool.query(`
+            SELECT
+                f.feedback_id AS id,
+                accounts.email AS sender_email,
+                CASE
+                    WHEN f.submitted_by = 'organization' THEN 'Organization'
+                    WHEN f.submitted_by = 'user' THEN 'Adopter'
+                END AS sender_role,
+                CASE
+                    WHEN f.submitted_by = 'organization' THEN organizations.organization_name
+                    WHEN f.submitted_by = 'user' THEN CONCAT(adopters.first_name, ' ', adopters.last_name)
+                END AS sender_name,
+                CASE
+                    WHEN f.submitted_by = 'organization' THEN organizations.profile_pic
+                    WHEN f.submitted_by = 'user' THEN adopters.profile_picture
+                END AS sender_profile_picture,
+                CONCAT(f.subject, ' — ', f.message) AS message,
+                f.rating,
+                f.status,
+                f.previous_status,
+                f.created_at AS date
+            FROM feedback f
+            JOIN accounts ON accounts.account_id = f.account_id
+            LEFT JOIN organizations ON organizations.organization_id = f.organization_id
+            LEFT JOIN adopters ON adopters.account_id = f.account_id
+            ORDER BY f.created_at DESC
+        `);
+
+        res.json(rows);
+    } catch (err) {
+        console.error("Get Feedback Error:", err);
+        res.status(500).json({ message: "Database Error" });
+    }
+};
+
+/**
+ * UPDATE FEEDBACK STATUS (resolve / archive)
+ * PUT /admin/feedback/:id/status
+ */
+exports.updateFeedbackStatus = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { action } = req.body;
+
+        const validActions = ["resolve", "unresolve", "archive", "unarchive"];
+        if (!validActions.includes(action)) {
+            return res.status(400).json({ success: false, message: "Invalid action provided." });
+        }
+
+        if (action === "archive") {
+            const [[current]] = await pool.query(
+                `SELECT status FROM feedback WHERE feedback_id = ?`,
+                [id]
+            );
+
+            if (!current) {
+                return res.status(404).json({ success: false, message: "Feedback not found." });
+            }
+
+            await pool.query(
+                `UPDATE feedback SET previous_status = ?, status = 'archived' WHERE feedback_id = ?`,
+                [current.status, id]
+            );
+
+            return res.json({ success: true, status: "archived", previous_status: current.status });
+        }
+
+        if (action === "unarchive") {
+            const [[current]] = await pool.query(
+                `SELECT previous_status FROM feedback WHERE feedback_id = ?`,
+                [id]
+            );
+
+            if (!current) {
+                return res.status(404).json({ success: false, message: "Feedback not found." });
+            }
+
+            const restoredStatus = current.previous_status || "pending";
+
+            await pool.query(
+                `UPDATE feedback SET status = ?, previous_status = NULL WHERE feedback_id = ?`,
+                [restoredStatus, id]
+            );
+
+            return res.json({ success: true, status: restoredStatus, previous_status: null });
+        }
+
+            // action === "resolve" or "unresolve"
+            const newStatus = action === "resolve" ? "resolved" : "pending";
+
+            const [result] = await pool.query(
+                   `UPDATE feedback SET status = ?, previous_status = NULL WHERE feedback_id = ?`,
+                   [newStatus, id]
+            );
+       
+            if (result.affectedRows === 0) {
+                   return res.status(404).json({ success: false, message: "Feedback not found." });
+            }
+       
+               res.json({ success: true, status: newStatus, previous_status: null });
+
+    } catch (err) {
+        console.error("Update Feedback Status Error:", err);
+        res.status(500).json({ success: false, message: "Database Error" });
     }
 };

@@ -140,6 +140,9 @@ router.get("/inkind-donation", (req, res) => {
 router.get("/kamustahan", (req, res) => {
   res.sendFile(path.join(__dirname, "../public/user/kamustahan.html"));
 });
+router.get("/feedback", (req, res) => {
+  res.sendFile(path.join(__dirname, "../public/user/feedback.html"));
+});
 router.get("/profile", (req, res) => {
   res.sendFile(path.join(__dirname, "../public/user/userProfile.html"));
 }); 
