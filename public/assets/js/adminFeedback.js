@@ -12,7 +12,16 @@ document.addEventListener("DOMContentLoaded", () => {
             });
 
             document.getElementById("tabActive").addEventListener("click", () => setViewFilter("active"));
-            document.getElementById("tabArchived").addEventListener("click", () => setViewFilter("archived"))
+            document.getElementById("tabArchived").addEventListener("click", () => setViewFilter("archived"));
+
+            document.getElementById("modalCancelBtn").addEventListener("click", closeConfirmModal);
+            document.getElementById("modalConfirmBtn").addEventListener("click", async () => {
+                if (!pendingFeedbackAction || !pendingFeedbackId) return;
+                const action = pendingFeedbackAction;
+                const id = pendingFeedbackId;
+                closeConfirmModal();
+                await performAction(action, id);
+            });
 
             document.getElementById("panelClose").addEventListener("click", closePanel);
             document.getElementById("panelOverlay").addEventListener("click", closePanel);
@@ -224,19 +233,19 @@ document.addEventListener("DOMContentLoaded", () => {
                     <div class="flex gap-2">
                         ${status !== "archived" ? `
                         ${status === "resolved" ? `
-                        <button onclick="handleAction('unresolve', ${item.id})" class="flex-1 py-2.5 px-4 bg-amber-50 hover:bg-amber-600 text-amber-700 hover:text-white border border-amber-200 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition shadow-sm">
+                                                <button onclick="confirmAction('unresolve', ${item.id})" class="flex-1 py-2.5 px-4 bg-amber-50 hover:bg-amber-600 text-amber-700 hover:text-white border border-amber-200 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition shadow-sm">
                             <i class="fa-regular fa-circle-xmark"></i> Unresolve
                         </button>
                         ` : `
-                        <button onclick="handleAction('resolve', ${item.id})" class="flex-1 py-2.5 px-4 bg-emerald-50 hover:bg-emerald-600 text-emerald-700 hover:text-white border border-emerald-200 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition shadow-sm">
+                        <button onclick="confirmAction('resolve', ${item.id})" class="flex-1 py-2.5 px-4 bg-emerald-50 hover:bg-emerald-600 text-emerald-700 hover:text-white border border-emerald-200 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition shadow-sm">
                             <i class="fa-regular fa-circle-check"></i> Resolve
                         </button>
                         `}
-                        <button onclick="handleAction('archive', ${item.id})" class="flex-1 py-2.5 px-4 bg-slate-100 hover:bg-slate-700 text-slate-700 hover:text-white border border-slate-200 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition shadow-sm">
+                        <button onclick="confirmAction('archive', ${item.id})" class="flex-1 py-2.5 px-4 bg-slate-100 hover:bg-slate-700 text-slate-700 hover:text-white border border-slate-200 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition shadow-sm">
                             <i class="fa-regular fa-box-archive"></i> Archive
                         </button>
                         ` : `
-                        <button onclick="handleAction('unarchive', ${item.id})" class="flex-1 py-2.5 px-4 bg-indigo-50 hover:bg-indigo-600 text-indigo-700 hover:text-white border border-indigo-200 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition shadow-sm">
+                        <button onclick="confirmAction('unarchive', ${item.id})" class="flex-1 py-2.5 px-4 bg-indigo-50 hover:bg-indigo-600 text-indigo-700 hover:text-white border border-indigo-200 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition shadow-sm">
                             <i class="fa-solid fa-box-open"></i> Unarchive
                         </button>
                         `}
@@ -258,7 +267,7 @@ document.addEventListener("DOMContentLoaded", () => {
             renderFeedback(getFilteredFeedback(query));
         }
 
-        async function handleAction(action, id) {
+        async function performAction(action, id) {
             const validActions = ["resolve", "unresolve", "archive", "unarchive"];
             if (!validActions.includes(action)) {
                 console.error("Unknown feedback action:", action);
@@ -293,4 +302,82 @@ document.addEventListener("DOMContentLoaded", () => {
                 console.error("Failed to update feedback status:", err);
                 alert("Unable to update feedback status. Please try again.");
             }
+        }
+
+        const feedbackActionConfig = {
+            resolve: {
+                title: "Resolve Feedback?",
+                desc: "This will mark the feedback as resolved.",
+                icon: "fa-regular fa-circle-check",
+                iconClasses: "bg-emerald-100 text-emerald-600",
+                confirmClasses: "bg-emerald-600 hover:bg-emerald-700",
+                confirmLabel: "Resolve"
+            },
+            unresolve: {
+                title: "Unresolve Feedback?",
+                desc: "This will mark the feedback as pending again.",
+                icon: "fa-regular fa-circle-xmark",
+                iconClasses: "bg-amber-100 text-amber-600",
+                confirmClasses: "bg-amber-600 hover:bg-amber-700",
+                confirmLabel: "Unresolve"
+            },
+            archive: {
+                title: "Archive Feedback?",
+                desc: "This will move the feedback to the Archived tab.",
+                icon: "fa-regular fa-box-archive",
+                iconClasses: "bg-slate-200 text-slate-700",
+                confirmClasses: "bg-slate-700 hover:bg-slate-800",
+                confirmLabel: "Archive"
+            },
+            unarchive: {
+                title: "Unarchive Feedback?",
+                desc: "This will restore the feedback to its previous status.",
+                icon: "fa-solid fa-box-open",
+                iconClasses: "bg-indigo-100 text-indigo-600",
+                confirmClasses: "bg-indigo-600 hover:bg-indigo-700",
+                confirmLabel: "Unarchive"
+            }
+        };
+        
+        let pendingFeedbackAction = null;
+        let pendingFeedbackId = null;
+        
+        function confirmAction(action, id) {
+            const config = feedbackActionConfig[action];
+            if (!config) return;
+        
+            pendingFeedbackAction = action;
+            pendingFeedbackId = id;
+        
+            document.getElementById("modalIconContainer").className =
+                `w-10 h-10 rounded-full flex items-center justify-center ${config.iconClasses}`;
+            document.getElementById("modalIcon").className = `${config.icon} text-lg`;
+            document.getElementById("modalTitle").textContent = config.title;
+            document.getElementById("modalDesc").textContent = config.desc;
+        
+            const confirmBtn = document.getElementById("modalConfirmBtn");
+            confirmBtn.textContent = config.confirmLabel;
+            confirmBtn.className = `px-4 py-2 text-xs font-semibold text-white rounded-lg transition-colors shadow-sm ${config.confirmClasses}`;
+        
+            openConfirmModal();
+        }
+        
+        function openConfirmModal() {
+            const modal = document.getElementById("customConfirmModal");
+            const box = document.getElementById("modalContentBox");
+            modal.classList.remove("hidden");
+            requestAnimationFrame(() => {
+                box.classList.remove("scale-95", "opacity-0");
+                box.classList.add("scale-100", "opacity-100");
+            });
+        }
+        
+        function closeConfirmModal() {
+            const modal = document.getElementById("customConfirmModal");
+            const box = document.getElementById("modalContentBox");
+            box.classList.remove("scale-100", "opacity-100");
+            box.classList.add("scale-95", "opacity-0");
+            setTimeout(() => modal.classList.add("hidden"), 150);
+            pendingFeedbackAction = null;
+            pendingFeedbackId = null;
         }

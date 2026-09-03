@@ -440,7 +440,7 @@ HOW TO RUN WITH WORKING MATCHMAKING FEATURE
 
 Admin side:
 
--sa pag archive and resolve ng feedback ng user dapat may confirmation modal (admin side) eto ang ayusin kapag ok na si claude
+-sa pag archive and resolve ng feedback ng user dapat may confirmation modal (admin side) eto ang ayusin kapag ok na si claude  ✓
 
 -sa contact support ng org and user, dapat maging dynamic sya
 
