@@ -45,6 +45,26 @@ document.addEventListener("DOMContentLoaded", () => {
             return `https://ui-avatars.com/api/?name=${name}&background=e0e7ff&color=3730a3&bold=true`;
         }
 
+        function getFeedbackTypeBadge(type) {
+            const map = {
+                "Report a Bug": { icon: "fa-solid fa-bug", classes: "bg-rose-50 text-rose-600 border-rose-200" },
+                "Feature Suggestion": { icon: "fa-solid fa-lightbulb", classes: "bg-sky-50 text-sky-600 border-sky-200" },
+                "General Feedback": { icon: "fa-solid fa-comment-dots", classes: "bg-slate-100 text-slate-600 border-slate-200" },
+                "Other": { icon: "fa-solid fa-ellipsis", classes: "bg-purple-50 text-purple-600 border-purple-200" }
+            };
+            const entry = map[type] || map["General Feedback"];
+            return `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold border ${entry.classes}"><i class="${entry.icon} text-[9px]"></i>${type}</span>`;
+        }
+        
+        function renderStars(rating) {
+            if (!rating) return "";
+            let stars = "";
+            for (let i = 1; i <= 5; i++) {
+                stars += `<i class="fa-solid fa-star text-xs ${i <= rating ? "text-amber-400" : "text-slate-200"}"></i>`;
+            }
+            return `<div class="flex items-center gap-0.5">${stars}</div>`;
+        }
+
         async function loadFeedback() {
             try {
                 const res = await fetch("/admin/feedback/list");
@@ -130,7 +150,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const id = item.id || `feedback-${index}`;
             const name = item.sender_name || "Unknown";
             const role = item.sender_role || "User";
-            const message = item.message || "No message content";
+            // const message = item.message || "No message content";
             const status = (item.status || "pending").toLowerCase();
 
             let badgeUI = '<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200/60"><span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Pending</span>';
@@ -161,7 +181,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     </div>
                 </td>
                 <td class="py-3.5 px-5">
-                    <p class="text-slate-600 text-xs sm:text-sm line-clamp-1 max-w-xs" title="${message}">${message}</p>
+                    ${getFeedbackTypeBadge(item.feedback_type)}
                 </td>
                 <td class="py-3.5 px-5 hidden md:table-cell text-xs text-slate-500 font-medium">
                     ${dateStr}
@@ -221,6 +241,16 @@ document.addEventListener("DOMContentLoaded", () => {
                             ${status === "archived" && item.previous_status ? `<span class="text-slate-400 text-[10px] capitalize">(was ${item.previous_status})</span>` : ""}
                         </span>
                     </div>
+                </div>
+
+                <div class="flex items-center justify-between">
+                    ${getFeedbackTypeBadge(item.feedback_type)}
+                    ${item.rating ? `<div class="flex items-center gap-1">${renderStars(item.rating)}<span class="text-[10px] text-slate-400">(${item.rating}/5)</span></div>` : ""}
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Subject</label>
+                    <p class="text-sm font-semibold text-slate-800">${item.subject || "No subject"}</p>
                 </div>
 
                 <div>

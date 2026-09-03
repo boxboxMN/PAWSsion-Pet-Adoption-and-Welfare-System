@@ -222,7 +222,7 @@ app.post("/api/feedback", async (req, res) => {
         const { feedback_type, subject, message, rating } = req.body;
 
         // ---- Validation (unchanged) ----
-        const allowedTypes = ["bug", "suggestion", "general", "other"];
+        const allowedTypes = ["Report a Bug", "Feature Suggestion", "General Feedback", "Other"];
 
         if (!feedback_type || !allowedTypes.includes(feedback_type)) {
             return res.status(400).json({

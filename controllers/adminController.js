@@ -268,7 +268,9 @@ exports.getFeedback = async (req, res) => {
                     WHEN f.submitted_by = 'organization' THEN organizations.profile_pic
                     WHEN f.submitted_by = 'user' THEN adopters.profile_picture
                 END AS sender_profile_picture,
-                CONCAT(f.subject, ' — ', f.message) AS message,
+                f.feedback_type,
+                f.subject,
+                f.message,
                 f.rating,
                 f.status,
                 f.previous_status,

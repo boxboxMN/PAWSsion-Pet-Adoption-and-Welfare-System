@@ -448,7 +448,7 @@ Admin side:
 
 - feedback maglagay ng sort or filter dropdown
 
-- display rating ng users
+- display rating ng users ✓
 
 # RUN THIS IN THE DB, MAKE SURE TO IMPORT THE application_interview TABLE IN THE DB BEFORE DOING THIS (AUG 29, 2026):
 
@@ -500,3 +500,10 @@ ALTER TABLE feedback
 
 ALTER TABLE feedback
     ADD COLUMN previous_status ENUM('pending', 'resolved') NULL DEFAULT NULL AFTER status;
+
+ALTER TABLE feedback MODIFY COLUMN feedback_type VARCHAR(50) NOT NULL;
+
+UPDATE feedback SET feedback_type = 'Report a Bug'      WHERE feedback_type = 'bug';
+UPDATE feedback SET feedback_type = 'Feature Suggestion' WHERE feedback_type = 'suggestion';
+UPDATE feedback SET feedback_type = 'General Feedback'   WHERE feedback_type = 'general';
+UPDATE feedback SET feedback_type = 'Other'               WHERE feedback_type = 'other';
