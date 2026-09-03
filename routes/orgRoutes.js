@@ -256,6 +256,7 @@ router.get('/applications/:id', async (req, res) => {
             CASE WHEN app.status = 'Under Review' THEN NULL ELSE i.requested_interview_time END AS requested_interview_time,
             CASE WHEN app.status = 'Under Review' THEN NULL ELSE i.reschedule_reason END AS reschedule_reason,
             CASE WHEN app.status = 'Under Review' THEN NULL ELSE i.resched_status END AS resched_status,
+            CASE WHEN app.status = 'Under Review' THEN 0 ELSE COALESCE(i.org_reschedule_count, 0) END AS org_reschedule_count,
             DATE_FORMAT(app.created_at, '%b %d, %Y • %h:%i %p') AS applied_date,
             p.name AS pet_name
             FROM user_adoption_applications app
@@ -457,7 +458,7 @@ router.patch('/applications/:id/status', async (req, res) => {
 router.post('/applications/:id/schedule', async (req, res) => {
     try {
         const { id } = req.params;
-        let { interview_date, interview_time, interview_method, interview_location_link } = req.body;
+        let { interview_date, interview_time, interview_method, interview_location_link, override_reason } = req.body;
 
         if (!interview_date || !interview_time) {
             return res.status(400).json({ success: false, error: "Interview date and time are required." });
@@ -495,6 +496,31 @@ router.post('/applications/:id/schedule', async (req, res) => {
                 });
             }
         }
+
+        // =========================================================================
+        // Reschedule limit check (server-side source of truth)
+        // =========================================================================
+        const [existingRows] = await pool.query(
+            `SELECT interview_date, org_reschedule_count 
+             FROM application_interviews 
+             WHERE application_id = ? 
+             ORDER BY interview_id DESC 
+             LIMIT 1`,
+            [id]
+        );
+
+        const existing = existingRows[0] || null;
+        const isReschedule = !!(existing && existing.interview_date); // may existing schedule na = reschedule ito, hindi first-time
+        const currentCount = existing ? (existing.org_reschedule_count || 0) : 0;
+
+        if (isReschedule && currentCount >= 3 && !(override_reason && override_reason.trim())) {
+            return res.status(409).json({
+                success: false,
+                code: 'RESCHEDULE_LIMIT_EXCEEDED',
+                reschedule_count: currentCount,
+                message: `This application has already been rescheduled ${currentCount} times. Please state why you need to reschedule again.`
+            });
+        }
         
         // 1. Update main application status
         await pool.query(
@@ -503,16 +529,18 @@ router.post('/applications/:id/schedule', async (req, res) => {
         );
 
         // 2. Upsert (Insert or Update) into application_interviews
+        //    org_reschedule_count += 1 lang kapag reschedule ito (may existing schedule na dati)
         const scheduleQuery = `
             INSERT INTO application_interviews 
-                (application_id, interview_date, interview_time, interview_method, interview_location_link, resched_status)
-            VALUES (?, ?, ?, ?, ?, 'Approved')
+                (application_id, interview_date, interview_time, interview_method, interview_location_link, resched_status, org_reschedule_count)
+            VALUES (?, ?, ?, ?, ?, 'Approved', 0)
             ON DUPLICATE KEY UPDATE 
                 interview_date = VALUES(interview_date),
                 interview_time = VALUES(interview_time),
                 interview_method = VALUES(interview_method),
                 interview_location_link = VALUES(interview_location_link),
-                resched_status = 'Approved'
+                resched_status = 'Approved',
+                org_reschedule_count = org_reschedule_count + ?
         `;
 
         await pool.query(scheduleQuery, [
@@ -520,7 +548,8 @@ router.post('/applications/:id/schedule', async (req, res) => {
             interview_date,
             interview_time,
             cleanMethod,
-            interview_location_link
+            interview_location_link,
+            isReschedule ? 1 : 0
         ]);
 
         return res.json({ success: true, message: "Interview scheduled!" });

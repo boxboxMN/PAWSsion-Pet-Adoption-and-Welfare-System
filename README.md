@@ -430,13 +430,25 @@ HOW TO RUN WITH WORKING MATCHMAKING FEATURE
 
 - Fix the UI must be responsive (dashboard profile)
 
-- If naka 3 reschedule na or yung reason is hindi valid, automatic na syang madedecline
+- If naka 3 reschedule na or yung reason is hindi valid, automatic na syang madedecline ✓
+
+- sa notification dapat nakikita na yung feedback is naresolved na
+
+- sa org maglagay ng trash bin
+
+- ayusin ang support sa org side yung may user guide
+
+Admin side:
+
+-sa pag archive and resolve ng feedback ng user dapat may confirmation modal (admin side) eto ang ayusin kapag ok na si claude
+
+-sa contact support ng org and user, dapat maging dynamic sya
 
 - admin maglagay ng logs
 
-- sa notification dapatn nakikita na yung feedback is naresolved na
+- feedback maglagay ng sort or filter dropdown
 
-- sa org maglagay ng trash bin
+- display rating ng users
 
 # RUN THIS IN THE DB, MAKE SURE TO IMPORT THE application_interview TABLE IN THE DB BEFORE DOING THIS (AUG 29, 2026):
 
