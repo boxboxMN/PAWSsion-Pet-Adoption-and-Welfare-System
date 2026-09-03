@@ -14,6 +14,16 @@ document.addEventListener("DOMContentLoaded", () => {
             document.getElementById("tabActive").addEventListener("click", () => setViewFilter("active"));
             document.getElementById("tabArchived").addEventListener("click", () => setViewFilter("archived"));
 
+            document.getElementById("statusFilter").addEventListener("change", function() {
+                currentStatusFilter = this.value;
+                filterFeedback(document.getElementById("searchInput").value.trim().toLowerCase());
+            });
+
+            document.getElementById("senderTypeFilter").addEventListener("change", function() {
+                currentSenderTypeFilter = this.value;
+                filterFeedback(document.getElementById("searchInput").value.trim().toLowerCase());
+            });
+
             document.getElementById("modalCancelBtn").addEventListener("click", closeConfirmModal);
             document.getElementById("modalConfirmBtn").addEventListener("click", async () => {
                 if (!pendingFeedbackAction || !pendingFeedbackId) return;
@@ -34,6 +44,8 @@ document.addEventListener("DOMContentLoaded", () => {
         let allFeedback = [];
         let selectedFeedbackId = null;
         let currentViewFilter = "active"; // "active" (everything not archived) or "archived"
+        let currentStatusFilter = "all"; // "all" | "pending" | "resolved"
+        let currentSenderTypeFilter = "all"; // "all" | "organization" | "adopter"
 
         function getAvatarUrl(item) {
             if (item.sender_profile_picture) {
@@ -118,18 +130,31 @@ document.addEventListener("DOMContentLoaded", () => {
         
         function getFilteredFeedback(query) {
             let result = allFeedback;
-        
+
+            // View tab: active (non-archived) vs archived
             result = result.filter(item => {
                 const status = (item.status || "").toLowerCase();
                 return currentViewFilter === "archived" ? status === "archived" : status !== "archived";
             });
-        
+
+            // Status filter (only meaningful on the active tab — archived items don't carry pending/resolved as their current status)
+            if (currentStatusFilter !== "all" && currentViewFilter !== "archived") {
+                result = result.filter(item => (item.status || "").toLowerCase() === currentStatusFilter);
+            }
+
+            // Sender type filter
+            if (currentSenderTypeFilter !== "all") {
+                const roleMap = { organization: "organization", adopter: "adopter" };
+                result = result.filter(item => (item.sender_role || "").toLowerCase() === roleMap[currentSenderTypeFilter]);
+            }
+
             if (!query) return result;
-        
+
             return result.filter(item => {
                 return (item.sender_name || "").toLowerCase().includes(query) ||
-                       (item.sender_email || "").toLowerCase().includes(query) ||
-                       (item.message || "").toLowerCase().includes(query);
+                    (item.sender_email || "").toLowerCase().includes(query) ||
+                    (item.subject || "").toLowerCase().includes(query) ||
+                    (item.message || "").toLowerCase().includes(query);
             });
         }
 
@@ -250,7 +275,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 <div>
                     <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Subject</label>
-                    <p class="text-sm font-semibold text-slate-800">${item.subject || "No subject"}</p>
+                    <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 text-sm font-semibold text-slate-800">${item.subject || "No subject"}</div>
                 </div>
 
                 <div>

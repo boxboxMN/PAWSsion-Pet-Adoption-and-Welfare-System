@@ -347,50 +347,38 @@
                     </div>
 
                     <!-- Contact Items -->
+                     <!-- Email -->
                     <div class="space-y-3">
-                        <!-- Email -->
-                        <div class="flex items-center gap-4 p-3.5 rounded-xl border border-slate-200 bg-white hover:border-blue-200 hover:bg-blue-50/40 transition">
-                            <div class="w-10 h-10 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center shrink-0">
-                                <i class="fa-solid fa-envelope"></i>
+                        <div class="flex items-center gap-4 p-3.5 rounded-xl border border-gray-200 bg-white hover:border-blue-200 hover:bg-blue-50/40 transition">
+                            <div class="w-10 h-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
+                                <i class="fas fa-envelope"></i>
                             </div>
                             <div class="min-w-0">
-                                <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Email</p>
-                                <p class="text-sm font-semibold text-slate-700 mt-0.5 truncate">pawssion_admin@gmail.com</p>
+                                <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Email</p>
+                                <p id="contactEmail" class="text-sm font-semibold text-gray-700 mt-0.5 truncate">Loading...</p>
                             </div>
                         </div>
 
                         <!-- Phone -->
-                        <div class="flex items-center gap-4 p-3.5 rounded-xl border border-slate-200 bg-white hover:border-emerald-200 hover:bg-emerald-50/40 transition">
-                            <div class="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0">
-                                <i class="fa-solid fa-phone"></i>
+                        <div class="flex items-center gap-4 p-3.5 rounded-xl border border-gray-200 bg-white hover:border-green-200 hover:bg-green-50/40 transition">
+                            <div class="w-10 h-10 rounded-lg bg-green-100 text-green-600 flex items-center justify-center shrink-0">
+                                <i class="fas fa-phone"></i>
                             </div>
                             <div>
-                                <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Contact Number</p>
-                                <p class="text-sm font-semibold text-slate-700 mt-0.5">(+63) 951 450 1937</p>
+                                <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Contact Number</p>
+                                <p id="contactPhone" class="text-sm font-semibold text-gray-700 mt-0.5">Loading...</p>
                             </div>
                         </div>
 
                         <!-- Support Hours -->
-                        <div class="flex items-center gap-4 p-3.5 rounded-xl border border-slate-200 bg-white hover:border-amber-200 hover:bg-amber-50/40 transition">
-                            <div class="w-10 h-10 rounded-lg bg-amber-50 text-amber-700 flex items-center justify-center shrink-0">
-                                <i class="fa-solid fa-clock"></i>
+                        <div class="flex items-center gap-4 p-3.5 rounded-xl border border-gray-200 bg-white hover:border-amber-200 hover:bg-amber-50/40 transition">
+                            <div class="w-10 h-10 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center shrink-0">
+                                <i class="fas fa-clock"></i>
                             </div>
                             <div>
-                                <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Support Hours</p>
-                                <p class="text-sm font-semibold text-slate-700 mt-0.5">Monday – Friday</p>
-                                <p class="text-xs text-slate-500">8:00 AM – 5:00 PM</p>
-                            </div>
-                        </div>
-
-                        <!-- Office -->
-                        <div class="flex items-center gap-4 p-3.5 rounded-xl border border-slate-200 bg-white hover:border-purple-200 hover:bg-purple-50/40 transition">
-                            <div class="w-10 h-10 rounded-lg bg-purple-50 text-purple-700 flex items-center justify-center shrink-0">
-                                <i class="fa-solid fa-location-dot"></i>
-                            </div>
-                            <div>
-                                <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Office</p>
-                                <p class="text-sm font-semibold text-slate-700 mt-0.5">Pawpon Support Center</p>
-                                <p class="text-xs text-slate-500">Philippines</p>
+                                <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Support Hours</p>
+                                <p id="contactHoursDays" class="text-sm font-semibold text-gray-700 mt-0.5">Loading...</p>
+                                <p id="contactHoursTime" class="text-xs text-gray-500">&nbsp;</p>
                             </div>
                         </div>
                     </div>
@@ -830,6 +818,28 @@
                     submitBtn.innerHTML = originalBtnHTML;
                 }
             });
+        })();
+
+        // =============================================
+        // LOAD SITE CONTACT INFO
+        // =============================================
+        (async () => {
+            try {
+                const res = await fetch("/api/contact-info");
+                const data = await res.json();
+                if (data.success && data.contactInfo) {
+                    document.getElementById("contactEmail").textContent = data.contactInfo.support_email || "—";
+                    document.getElementById("contactPhone").textContent = data.contactInfo.support_phone || "—";
+                    document.getElementById("contactHoursDays").textContent = data.contactInfo.support_hours_days || "—";
+                    document.getElementById("contactHoursTime").textContent = data.contactInfo.support_hours_time || "";
+                }
+            } catch (err) {
+                console.error("Failed to load contact info:", err);
+                document.getElementById("contactEmail").textContent = "pawssion_admin@gmail.com";
+                document.getElementById("contactPhone").textContent = "(+63) 951 450 1937";
+                document.getElementById("contactHoursDays").textContent = "Monday – Friday";
+                document.getElementById("contactHoursTime").textContent = "8:00 AM – 5:00 PM";
+            }
         })();
 
         // =============================================

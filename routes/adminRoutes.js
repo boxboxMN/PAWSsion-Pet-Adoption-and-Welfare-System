@@ -694,4 +694,10 @@ router.get("/dashboard/top-organizations", async (req, res) => {
 
 router.get("/feedback/list", adminController.getFeedback);
 router.put("/feedback/:id/status", adminController.updateFeedbackStatus);
+
+router.get("/settings", (req, res) => {
+    res.sendFile(path.join(__dirname, "../public/admin/settings.html"));
+});
+
+router.put("/settings/contact-info", adminController.updateContactInfo);
 module.exports = router;

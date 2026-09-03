@@ -442,11 +442,11 @@ Admin side:
 
 -sa pag archive and resolve ng feedback ng user dapat may confirmation modal (admin side) eto ang ayusin kapag ok na si claude  ✓
 
--sa contact support ng org and user, dapat maging dynamic sya
+-sa contact support ng org and user, dapat maging dynamic sya ✓
 
 - admin maglagay ng logs
 
-- feedback maglagay ng sort or filter dropdown
+- feedback maglagay ng sort or filter dropdown ✓
 
 - display rating ng users ✓
 
@@ -507,3 +507,21 @@ UPDATE feedback SET feedback_type = 'Report a Bug'      WHERE feedback_type = 'b
 UPDATE feedback SET feedback_type = 'Feature Suggestion' WHERE feedback_type = 'suggestion';
 UPDATE feedback SET feedback_type = 'General Feedback'   WHERE feedback_type = 'general';
 UPDATE feedback SET feedback_type = 'Other'               WHERE feedback_type = 'other';
+
+# admin settings
+
+CREATE TABLE site_settings (
+    setting_key   VARCHAR(50) PRIMARY KEY,
+    setting_value VARCHAR(255) NOT NULL,
+    updated_at    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+INSERT INTO site_settings (setting_key, setting_value) VALUES
+    ('support_email', 'pawssion_admin@gmail.com'),
+    ('support_phone', '(+63) 951 450 1937'),
+    ('support_hours_days', 'Monday – Friday'),
+    ('support_hours_time', '8:00 AM – 5:00 PM');
+
+# recycle bin (org side)
+
+ALTER TABLE animals ADD COLUMN deleted_at DATETIME DEFAULT NULL;

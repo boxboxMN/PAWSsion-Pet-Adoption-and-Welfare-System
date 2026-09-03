@@ -9,7 +9,10 @@ const {
     updatePet, 
     deletePet,
     archivePet, 
-    getPets, 
+    getPets,
+    getDeletedPets,
+    restorePet,
+    permanentlyDeletePet, 
     getPetDetails,
     getApplicationByAnimalId,
     getDonations, 
@@ -123,6 +126,9 @@ router.post("/pets/add", uploadPet.single("image"), addPet);
 router.put("/pets/update/:id", uploadPet.single("image"), updatePet);
 router.delete("/pets/delete/:id", deletePet);
 router.get("/pets/list", getPets);
+router.get("/pets/trash", getDeletedPets);
+router.post("/pets/restore/:id", restorePet);
+router.delete("/pets/permanent/:id", permanentlyDeletePet);
 router.get("/pets/:id", getPetDetails);
 // Corrected donations route (serves GET /org/donations)
 router.get("/donations", getDonations);

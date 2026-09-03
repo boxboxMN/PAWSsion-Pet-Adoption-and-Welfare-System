@@ -360,3 +360,79 @@ exports.updateFeedbackStatus = async (req, res) => {
         res.status(500).json({ success: false, message: "Database Error" });
     }
 };
+
+/**
+ * GET SITE CONTACT INFO (public — used by org & user support pages)
+ * GET /api/contact-info
+ */
+exports.getContactInfo = async (req, res) => {
+    try {
+        const [rows] = await pool.query(`SELECT setting_key, setting_value FROM site_settings`);
+
+        const info = {};
+        rows.forEach(row => {
+            info[row.setting_key] = row.setting_value;
+        });
+
+        res.json({ success: true, contactInfo: info });
+    } catch (err) {
+        console.error("Get Contact Info Error:", err);
+        res.status(500).json({ success: false, message: "Database Error" });
+    }
+};
+
+/**
+ * UPDATE SITE CONTACT INFO (admin only)
+ * PUT /admin/settings/contact-info
+ */
+exports.updateContactInfo = async (req, res) => {
+    try {
+        const accountId = req.session?.accountId;
+        if (!accountId) {
+            return res.status(401).json({ success: false, message: "Unauthorized" });
+        }
+
+        let { support_email, support_phone, support_hours_days, support_hours_time } = req.body;
+
+        // --- Sanitize ---
+        if (support_email) support_email = support_email.trim();
+        if (support_phone) support_phone = support_phone.replace(/\D/g, "").slice(0, 11);
+        if (support_hours_days) support_hours_days = support_hours_days.trim();
+        if (support_hours_time) support_hours_time = support_hours_time.trim();
+
+        // --- Validate ---
+        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (support_email !== undefined && !emailPattern.test(support_email)) {
+            return res.status(400).json({ success: false, message: "Invalid email address." });
+        }
+
+        const phPhonePattern = /^09\d{9}$/;
+        if (support_phone !== undefined && !phPhonePattern.test(support_phone)) {
+            return res.status(400).json({ success: false, message: "Phone number must be 11 digits starting with 09 (PH mobile format)." });
+        }
+
+        const validDays = ["Monday – Friday", "Monday – Saturday", "Monday – Sunday", "Saturday – Sunday"];
+        if (support_hours_days !== undefined && !validDays.includes(support_hours_days)) {
+            return res.status(400).json({ success: false, message: "Invalid support days selection." });
+        }
+
+        if (support_hours_time !== undefined && support_hours_time.trim() === "") {
+            return res.status(400).json({ success: false, message: "Support time is required." });
+        }
+
+        const updates = { support_email, support_phone, support_hours_days, support_hours_time };
+
+        for (const [key, value] of Object.entries(updates)) {
+            if (value === undefined) continue;
+            await pool.query(
+                `UPDATE site_settings SET setting_value = ? WHERE setting_key = ?`,
+                [value, key]
+            );
+        }
+
+        res.json({ success: true, message: "Contact info updated successfully!" });
+    } catch (err) {
+        console.error("Update Contact Info Error:", err);
+        res.status(500).json({ success: false, message: "Database Error" });
+    }
+};

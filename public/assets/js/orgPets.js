@@ -78,6 +78,33 @@ document.addEventListener("DOMContentLoaded", async () => {
             filterPets();
         });
     }
+
+    const recycleBinBtn = document.getElementById("recycleBinBtn");
+
+    // RECYCLE BIN TOGGLE
+    if (recycleBinBtn) {
+        recycleBinBtn.addEventListener("click", () => {
+            if (currentViewMode !== "trash") {
+                currentViewMode = "trash";
+                statusFilter.classList.add("hidden");
+                addPetBtn.classList.add("hidden");
+
+                recycleBinBtn.className = "bg-red-700 hover:bg-red-800 text-white w-11 h-11 rounded-xl flex items-center justify-center font-medium transition cursor-pointer shadow-sm";
+                recycleBinBtn.innerHTML = `<i class="fa-solid fa-arrow-left"></i>`;
+
+                adoptedBtn.className = "bg-emerald-600 hover:bg-emerald-700 text-white w-11 h-11 rounded-xl flex items-center justify-center font-medium transition cursor-pointer shadow-sm";
+                adoptedBtn.innerHTML = `<i class="fa-solid fa-heart text-base"></i>`;
+
+                archivedBtn.className = "bg-slate-600 hover:bg-slate-700 text-white w-11 h-11 rounded-xl flex items-center justify-center font-medium transition cursor-pointer shadow-sm";
+                archivedBtn.innerHTML = `<i class="fa-solid fa-box-archive text-base"></i>`;
+
+                loadTrash();
+            } else {
+                resetToActiveView();
+                loadPets();
+            }
+        });
+    }
 });
 
 // ==========================
@@ -106,6 +133,13 @@ function resetToActiveView() {
 
         archivedBtn.className = "bg-slate-600 hover:bg-slate-700 text-white w-11 h-11 rounded-xl flex items-center justify-center font-medium transition cursor-pointer shadow-sm";
         archivedBtn.innerHTML = `<i class="fa-solid fa-box-archive text-base"></i>`;
+        
+        const recycleBinBtn = document.getElementById("recycleBinBtn");
+        if (recycleBinBtn) {
+            recycleBinBtn.className = "bg-red-600 hover:bg-red-700 text-white w-11 h-11 rounded-xl flex items-center justify-center font-medium transition cursor-pointer shadow-sm";
+            recycleBinBtn.innerHTML = `<i class="fa-solid fa-trash-can text-base"></i>`;
+        }
+
         statusFilter.value = "";
     }
 
@@ -342,6 +376,129 @@ function renderPets(pets) {
         </div>
     `;
 }
+
+// ==========================
+// RECYCLE BIN
+// ==========================
+async function loadTrash() {
+    const container = document.getElementById("petsContainer");
+    container.innerHTML = `
+        <div class="text-center py-10">
+            Loading recycle bin...
+        </div>
+    `;
+
+    try {
+        const res = await fetch("/org/pets/trash");
+        const data = await res.json();
+
+        if (!data.success) {
+            container.innerHTML = `<div class="text-red-600">Failed to load recycle bin.</div>`;
+            return;
+        }
+
+        renderTrashPets(data.pets || []);
+    } catch (err) {
+        console.error("LOAD TRASH ERROR:", err);
+        container.innerHTML = `<div class="text-red-600">Failed to load recycle bin.</div>`;
+    }
+}
+
+function renderTrashPets(pets) {
+    const container = document.getElementById("petsContainer");
+
+    if (!pets.length) {
+        container.innerHTML = `
+            <div class="bg-white rounded-xl p-10 text-center shadow">
+                <i class="fa-solid fa-trash-can text-3xl text-slate-300 mb-3"></i>
+                <p>Recycle Bin is empty.</p>
+            </div>
+        `;
+        return;
+    }
+
+    container.innerHTML = `
+        <div class="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-5">
+            ${pets.map(createTrashCard).join("")}
+        </div>
+    `;
+}
+
+function createTrashCard(pet) {
+    const image = pet.image_path
+        ? `/uploads/pets/${pet.image_path}`
+        : "/assets/images/no-image.png";
+
+    const daysLeft = pet.days_left != null ? Math.max(0, pet.days_left) : "—";
+
+    return `
+        <div class="bg-white rounded-3xl overflow-hidden shadow-md flex flex-col opacity-90">
+            <div class="relative overflow-hidden bg-slate-100">
+                <img src="${image}" alt="${pet.name}" class="w-full h-60 object-cover grayscale">
+                <span class="absolute top-3 right-3 bg-red-600 text-white text-xs font-bold uppercase px-3 py-1 rounded-xl shadow-md">
+                    Deleted
+                </span>
+            </div>
+
+            <div class="p-5 flex flex-col flex-1 justify-between gap-4">
+                <div>
+                    <h2 class="text-xl font-extrabold text-slate-900 tracking-tight">${pet.name}</h2>
+                    <p class="text-xs text-amber-600 font-semibold mt-1">
+                        <i class="fa-solid fa-clock"></i> Purges automatically in ${daysLeft} day${daysLeft === 1 ? '' : 's'}
+                    </p>
+                </div>
+
+                <div class="flex gap-2">
+                    <button class="restorePetBtn flex-1 rounded-xl bg-blue-600 hover:bg-blue-700 text-white py-2.5 text-xs font-bold transition" data-id="${pet.animal_id}" data-name="${pet.name}">
+                        <i class="fa-solid fa-rotate-left mr-1"></i> Restore
+                    </button>
+                    <button class="permanentDeleteBtn flex-1 rounded-xl border border-red-500 text-red-600 hover:bg-red-50 py-2.5 text-xs font-bold transition" data-id="${pet.animal_id}" data-name="${pet.name}">
+                        <i class="fa-solid fa-trash mr-1"></i> Delete Forever
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+document.addEventListener("click", async (e) => {
+    const restoreBtn = e.target.closest(".restorePetBtn");
+    if (restoreBtn) {
+        const id = restoreBtn.dataset.id;
+        const name = restoreBtn.dataset.name;
+        if (!confirm(`Restore ${name} from the Recycle Bin?`)) return;
+
+        try {
+            const res = await fetch(`/org/pets/restore/${id}`, { method: "POST" });
+            const data = await res.json();
+            alert(data.message);
+            if (data.success) loadTrash();
+        } catch (err) {
+            console.error("RESTORE ERROR:", err);
+            alert("Failed to restore pet.");
+        }
+        return;
+    }
+
+    const permDeleteBtn = e.target.closest(".permanentDeleteBtn");
+    if (permDeleteBtn) {
+        const id = permDeleteBtn.dataset.id;
+        const name = permDeleteBtn.dataset.name;
+        if (!confirm(`Permanently delete ${name}? This CANNOT be undone.`)) return;
+
+        try {
+            const res = await fetch(`/org/pets/permanent/${id}`, { method: "DELETE" });
+            const data = await res.json();
+            alert(data.message);
+            if (data.success) loadTrash();
+        } catch (err) {
+            console.error("PERMANENT DELETE ERROR:", err);
+            alert("Failed to permanently delete pet.");
+        }
+        return;
+    }
+});
+
 function createPetCard(pet) {
     const genderColor = pet.gender === "Female" ? "text-pink-500" : "text-blue-500";
     const genderIcon = pet.gender === "Female" ? "fa-venus" : "fa-mars";
@@ -608,7 +765,7 @@ function openPetDetailsModal(pet){
 
     document.getElementById("deletePetBtn").onclick = async () => {
         const confirmed = confirm(
-            `Are you sure you want to delete ${pet.name}?`
+            `Move ${pet.name} to the Recycle Bin? You can restore it within 30 days from the Recycle Bin.`
         );
         if (!confirmed) return;
         try {

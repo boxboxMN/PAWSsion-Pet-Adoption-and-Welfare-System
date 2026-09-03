@@ -44,16 +44,44 @@
                         type="text"
                         id="searchInput"
                         class="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-700 placeholder-slate-400 focus:outline-none focus:border-brand-600 focus:ring-4 focus:ring-brand-500/10 transition-all shadow-sm"
-                        placeholder="Search feedback by name, email, or content..."
+                        placeholder="Search feedback by name, email, subject, or content..."
                         autocomplete="off"
                     />
                 </div>
 
-                <!-- Total Count Badge -->
-                <div class="inline-flex items-center gap-2 self-start sm:self-auto px-3.5 py-1.5 bg-white border border-slate-200 rounded-xl shadow-sm text-xs font-semibold text-slate-600">
-                    <span class="w-2 h-2 rounded-full bg-indigo-500"></span>
-                    <span id="feedbackCount">0 Feedbacks</span>
-                 </div>
+                <div class="flex items-center gap-2">
+                    <!-- Status Filter -->
+                    <div class="relative">
+                        <select
+                            id="statusFilter"
+                            class="appearance-none pl-4 pr-9 py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none focus:border-brand-600 focus:ring-4 focus:ring-brand-500/10 transition-all shadow-sm cursor-pointer"
+                        >
+                            <option value="all">All Status</option>
+                            <option value="pending">Pending</option>
+                            <option value="resolved">Resolved</option>
+                        </select>
+                        <i class="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-[10px] pointer-events-none"></i>
+                    </div>
+
+                    <!-- Sender Type Filter -->
+                    <div class="relative">
+                        <select
+                            id="senderTypeFilter"
+                            class="appearance-none pl-4 pr-9 py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none focus:border-brand-600 focus:ring-4 focus:ring-brand-500/10 transition-all shadow-sm cursor-pointer"
+                        >
+                            <option value="all">All Senders</option>
+                            <option value="organization">Organization</option>
+                            <option value="adopter">Adopter</option>
+                        </select>
+                        <i class="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-[10px] pointer-events-none"></i>
+                    </div>
+
+                    <!-- Total Count Badge -->
+                    <div class="inline-flex items-center gap-2 self-start sm:self-auto px-3.5 py-2 bg-white border border-slate-200 rounded-xl shadow-sm text-xs font-semibold text-slate-600">
+                        <span class="w-2 h-2 rounded-full bg-indigo-500"></span>
+                        <span id="feedbackCount">0 Feedbacks</span>
+                    </div>
+                </div>
             </div>
 
              <!-- View Tabs -->

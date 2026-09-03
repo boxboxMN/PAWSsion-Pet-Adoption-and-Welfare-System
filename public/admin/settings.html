@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-50">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href="../assets/images/Pawpon_logo.png">
+    <title>PAWPON ADMIN – Settings </title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="../assets/js/adminSidebar.js"></script>
+    <script src="../assets/js/adminTopbar.js"></script>
+</head>
+<body class="h-full font-sans text-slate-800 antialiased flex overflow-hidden bg-slate-50">
+
+    <div id="sidebar" class="flex-shrink-0"></div>
+
+    <main class="flex-1 flex flex-col min-w-0 h-full overflow-hidden bg-white">
+        <div id="topbar" class="flex-shrink-0 border-b border-slate-200"></div>
+
+        <div class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-6">
+            <div class="max-w-3xl mx-auto bg-white border border-slate-200 rounded-2xl shadow-sm p-6 sm:p-8">
+                <h2 class="text-lg font-bold text-slate-900 mb-1">Site Contact Info</h2>
+                <p class="text-xs text-slate-500 mb-6">This is shown to organizations and adopters on their Contact & Feedback pages.</p>
+
+                <div id="contactAlertBox" class="hidden mb-4 p-3 rounded-xl text-xs font-semibold"></div>
+
+                <form id="contactInfoForm" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">Support Email</label>
+                        <input type="email" id="supportEmail" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-blue-600" />
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">Support Phone</label>
+                        <input
+                            type="tel"
+                            id="supportPhone"
+                            inputmode="numeric"
+                            maxlength="11"
+                            placeholder="09XXXXXXXXX"
+                            required
+                            class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-blue-600"
+                        />
+                        <p class="text-[11px] text-slate-400 mt-1">11 digits, PH mobile format (e.g. 09171234567)</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">Support Days</label>
+                            <select id="supportHoursDays" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm bg-white focus:outline-none focus:border-blue-600">
+                                <option value="" disabled selected>Select days</option>
+                                <option value="Monday – Friday">Monday – Friday</option>
+                                <option value="Monday – Saturday">Monday – Saturday</option>
+                                <option value="Monday – Sunday">Monday – Sunday (Everyday)</option>
+                                <option value="Saturday – Sunday">Saturday – Sunday (Weekends Only)</option>
+                            </select>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">Start Time</label>
+                                <select id="supportTimeStart" required class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm bg-white focus:outline-none focus:border-blue-600"></select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">End Time</label>
+                                <select id="supportTimeEnd" required class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm bg-white focus:outline-none focus:border-blue-600"></select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="pt-4 flex justify-end">
+                        <button type="submit" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs rounded-xl shadow-sm transition-all">
+                            Save Changes
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <script>
+         // Generate 30-min interval time options, 6:00 AM – 11:30 PM
+         function buildTimeOptions(selectEl) {
+            selectEl.innerHTML = '<option value="" disabled selected>--</option>';
+            for (let hour = 6; hour <= 23; hour++) {
+                for (const minute of [0, 30]) {
+                    const period = hour < 12 ? "AM" : "PM";
+                    const displayHour = (hour % 12) === 0 ? 12 : (hour % 12);
+                    const displayMinute = minute === 0 ? "00" : "30";
+                    const label = `${displayHour}:${displayMinute} ${period}`;
+                    const opt = document.createElement("option");
+                    opt.value = label;
+                    opt.textContent = label;
+                    selectEl.appendChild(opt);
+                }
+            }
+        }
+
+        function showContactAlert(box, isSuccess, message) {
+            box.classList.remove("hidden");
+            box.className = isSuccess
+                ? "mb-4 p-3 rounded-xl text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200"
+                : "mb-4 p-3 rounded-xl text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200";
+            box.textContent = message;
+            setTimeout(() => box.classList.add("hidden"), 4000);
+        }
+
+        document.addEventListener("DOMContentLoaded", async () => {
+            loadSidebar("settings");
+            loadTopbar({ title: "Settings", subtitle: "Manage platform-wide configuration." });
+
+            const contactForm = document.getElementById("contactInfoForm");
+            const contactAlertBox = document.getElementById("contactAlertBox");
+            const emailInput = document.getElementById("supportEmail");
+            const phoneInput = document.getElementById("supportPhone");
+            const daysSelect = document.getElementById("supportHoursDays");
+            const startSelect = document.getElementById("supportTimeStart");
+            const endSelect = document.getElementById("supportTimeEnd");
+
+            buildTimeOptions(startSelect);
+            buildTimeOptions(endSelect);
+
+            // Sanitize phone input: digits only, capped at 11 chars, as the admin types
+            phoneInput.addEventListener("input", () => {
+                phoneInput.value = phoneInput.value.replace(/\D/g, "").slice(0, 11);
+            });
+
+            try {
+                const res = await fetch('/api/contact-info');
+                const data = await res.json();
+                if (data.success && data.contactInfo) {
+                    emailInput.value = data.contactInfo.support_email || "";
+                    phoneInput.value = (data.contactInfo.support_phone || "").replace(/\D/g, "").slice(0, 11);
+                    daysSelect.value = data.contactInfo.support_hours_days || "";
+
+                    const [start, end] = (data.contactInfo.support_hours_time || "").split(" – ");
+                    if (start) startSelect.value = start.trim();
+                    if (end) endSelect.value = end.trim();
+                }
+            } catch (err) {
+                console.error("Failed to load contact info", err);
+            }
+
+            contactForm.addEventListener("submit", async (e) => {
+                e.preventDefault();
+
+                const email = emailInput.value.trim();
+                const phone = phoneInput.value.trim();
+                const days = daysSelect.value;
+                const start = startSelect.value;
+                const end = endSelect.value;
+
+                // --- Validation ---
+                const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailPattern.test(email)) {
+                    showContactAlert(contactAlertBox, false, "Please enter a valid email address.");
+                    return;
+                }
+
+                const phPhonePattern = /^09\d{9}$/;
+                if (!phPhonePattern.test(phone)) {
+                    showContactAlert(contactAlertBox, false, "Phone number must be 11 digits starting with 09 (PH mobile format).");
+                    return;
+                }
+
+                if (!days) {
+                    showContactAlert(contactAlertBox, false, "Please select support days.");
+                    return;
+                }
+
+                if (!start || !end) {
+                    showContactAlert(contactAlertBox, false, "Please select both a start and end support time.");
+                    return;
+                }
+
+                const payload = {
+                    support_email: email,
+                    support_phone: phone,
+                    support_hours_days: days,
+                    support_hours_time: `${start} – ${end}`
+                };
+
+                try {
+                    const res = await fetch('/admin/settings/contact-info', {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    const result = await res.json();
+                    showContactAlert(contactAlertBox, result.success, result.success ? "Contact info updated successfully!" : (result.message || "Failed to update contact info."));
+                } catch (err) {
+                    console.error(err);
+                    showContactAlert(contactAlertBox, false, "Something went wrong. Please try again.");
+                }
+            });
+        });
+    </script>
+</body>
+</html>

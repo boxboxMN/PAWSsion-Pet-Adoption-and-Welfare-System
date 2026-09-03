@@ -31,6 +31,8 @@ const authRoutes = require("./routes/auth");
 const bcrypt = require('bcrypt');
 const Organization = require('./models/organizationModel');
 
+const adminController = require("./controllers/adminController");
+
 app.use("/auth", authRoutes);
 app.use(userRoutes);
 app.use("/admin", adminRoutes);
@@ -677,6 +679,8 @@ app.post('/api/user/applications/:id/reschedule-request', async (req, res) => {
         return res.status(500).json({ success: false, message: "Server error." });
     }
 });
+
+app.get("/api/contact-info", adminController.getContactInfo);
 
 const PORT = 3000;
 app.listen(PORT, () => {

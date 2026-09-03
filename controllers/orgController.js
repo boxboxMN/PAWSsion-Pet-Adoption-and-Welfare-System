@@ -5,6 +5,33 @@ const { generateEmbedding } = require("../services/embeddingService");
 // PET MANAGEMENT CONTROLLERS
 // ==========================================
 
+// ==========================================
+// RECYCLE BIN: Auto-purge pets na sobra na sa 30 araw
+// ==========================================
+async function purgeExpiredTrash(organizationId) {
+    // Kunin muna ang mga animal_id na lalampas na sa 30-day window para malinis din ang kanilang medical history
+    const [expired] = await pool.query(
+        `SELECT animal_id FROM animals 
+         WHERE organization_id = ? 
+           AND deleted_at IS NOT NULL 
+           AND deleted_at < (NOW() - INTERVAL 30 DAY)`,
+        [organizationId]
+    );
+
+    if (!expired.length) return;
+
+    const ids = expired.map(r => r.animal_id);
+
+    await pool.query(
+        `DELETE FROM animal_medical_history WHERE animal_id IN (?)`,
+        [ids]
+    );
+    await pool.query(
+        `DELETE FROM animals WHERE animal_id IN (?)`,
+        [ids]
+    );
+}
+
 exports.addPet = async (req, res) => {
     try {
         const {
@@ -272,11 +299,16 @@ exports.getPets = async (req, res) => {
             });
         }
         const organization_id = org[0].organization_id;
+
+        // I-clear muna ang mga trash entries na sobra na sa 30 araw
+        await purgeExpiredTrash(organization_id);
+
         const [pets] = await pool.query(
             `
             SELECT *
             FROM animals
             WHERE organization_id = ?
+             AND deleted_at IS NULL
             ORDER BY animal_id DESC
             `,
             [organization_id]
@@ -682,14 +714,31 @@ exports.deletePet = async (req, res) => {
         const organizationId = organizations[0].organization_id;
 
         // Delete medical history
-        await pool.query(
-            "DELETE FROM animal_medical_history WHERE animal_id = ?",
-            [id]
-        );
+        // await pool.query(
+        //     "DELETE FROM animal_medical_history WHERE animal_id = ?",
+        //     [id]
+        // );
 
-        // Delete pet (ensure ownership)
+        // // Delete pet (ensure ownership)
+        // const [result] = await pool.query(
+        //     "DELETE FROM animals WHERE animal_id = ? AND organization_id = ?",
+        //     [id, organizationId]
+        // );
+
+        // if (result.affectedRows === 0) {
+        //     return res.status(404).json({
+        //         success: false,
+        //         message: "Pet not found or does not belong to your organization."
+        //     });
+        // }
+
+        // I-move sa Recycle Bin (soft delete) sa halip na tanggalin agad. 
+        // Hindi na natin binabago ang animal_medical_history o adoption_status dito
+        // para kumpleto pa rin ang record kapag na-restore.
         const [result] = await pool.query(
-            "DELETE FROM animals WHERE animal_id = ? AND organization_id = ?",
+            `UPDATE animals 
+             SET deleted_at = NOW() 
+             WHERE animal_id = ? AND organization_id = ? AND deleted_at IS NULL`,
             [id, organizationId]
         );
 
@@ -702,7 +751,7 @@ exports.deletePet = async (req, res) => {
 
         res.json({
             success: true,
-            message: "Pet deleted successfully."
+            message: "Pet moved to Recycle Bin. You can restore it within 30 days."
         });
 
     } catch (err) {
@@ -712,7 +761,127 @@ exports.deletePet = async (req, res) => {
             message: err.message
         });
     }
-};exports.getPaymentInfo = async (req, res) => {
+};
+
+// ==========================================
+// GET RECYCLE BIN (Deleted Pets)
+// ==========================================
+exports.getDeletedPets = async (req, res) => {
+    try {
+        const [org] = await pool.query(
+            `SELECT organization_id FROM organizations WHERE account_id = ?`,
+            [req.session.accountId]
+        );
+
+        if (!org.length) {
+            return res.json({ success: false, message: "Organization not found" });
+        }
+
+        const organizationId = org[0].organization_id;
+
+        // I-clear muna ang expired trash bago kunin ang listahan
+        await purgeExpiredTrash(organizationId);
+
+        const [pets] = await pool.query(
+            `SELECT *, 
+                    DATEDIFF((deleted_at + INTERVAL 30 DAY), NOW()) AS days_left
+             FROM animals
+             WHERE organization_id = ?
+               AND deleted_at IS NOT NULL
+             ORDER BY deleted_at DESC`,
+            [organizationId]
+        );
+
+        res.json({ success: true, pets });
+    } catch (err) {
+        console.error("GET DELETED PETS ERROR:", err);
+        res.status(500).json({ success: false, message: "Unable to load recycle bin." });
+    }
+};
+
+// ==========================================
+// RESTORE PET FROM RECYCLE BIN
+// ==========================================
+exports.restorePet = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const [org] = await pool.query(
+            `SELECT organization_id FROM organizations WHERE account_id = ?`,
+            [req.session.accountId]
+        );
+
+        if (!org.length) {
+            return res.status(403).json({ success: false, message: "Organization not found." });
+        }
+
+        const organizationId = org[0].organization_id;
+
+        const [result] = await pool.query(
+            `UPDATE animals 
+             SET deleted_at = NULL 
+             WHERE animal_id = ? AND organization_id = ? AND deleted_at IS NOT NULL`,
+            [id, organizationId]
+        );
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "Pet not found in Recycle Bin or does not belong to your organization."
+            });
+        }
+
+        res.json({ success: true, message: "Pet restored successfully." });
+    } catch (err) {
+        console.error("RESTORE PET ERROR:", err);
+        res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+// ==========================================
+// PERMANENTLY DELETE PET (Recycle Bin only)
+// ==========================================
+exports.permanentlyDeletePet = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const [org] = await pool.query(
+            `SELECT organization_id FROM organizations WHERE account_id = ?`,
+            [req.session.accountId]
+        );
+
+        if (!org.length) {
+            return res.status(403).json({ success: false, message: "Organization not found." });
+        }
+
+        const organizationId = org[0].organization_id;
+
+        // SAFETY: puwede lang i-permanent delete kung nasa Recycle Bin na talaga (may deleted_at)
+        // Pinipigilan nito ang direct/skip-the-bin na pag-delete kahit sa direktang API call.
+        const [pet] = await pool.query(
+            `SELECT animal_id FROM animals 
+             WHERE animal_id = ? AND organization_id = ? AND deleted_at IS NOT NULL`,
+            [id, organizationId]
+        );
+
+        if (!pet.length) {
+            return res.status(404).json({
+                success: false,
+                message: "Pet not found in Recycle Bin. Move it to the Recycle Bin first before permanent deletion."
+            });
+        }
+
+        await pool.query(`DELETE FROM animal_medical_history WHERE animal_id = ?`, [id]);
+        await pool.query(`DELETE FROM animals WHERE animal_id = ? AND organization_id = ?`, [id, organizationId]);
+
+        res.json({ success: true, message: "Pet permanently deleted." });
+    } catch (err) {
+        console.error("PERMANENT DELETE PET ERROR:", err);
+        res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+exports.getPaymentInfo = async (req, res) => {
     try {
 
         // =====================================================
