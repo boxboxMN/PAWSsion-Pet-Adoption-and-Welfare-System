@@ -436,3 +436,247 @@ exports.updateContactInfo = async (req, res) => {
         res.status(500).json({ success: false, message: "Database Error" });
     }
 };
+
+/**
+ * GET GUIDE SECTIONS (public — used by support pages, and admin editor)
+ * GET /api/guide?audience=organization
+ */
+exports.getGuideSections = async (req, res) => {
+    try {
+        const audience = req.query.audience || "organization";
+
+        const [rows] = await pool.query(
+            `SELECT section_id, title, badge_color, bullets, display_order
+             FROM guide_sections
+             WHERE audience = ? AND deleted_at IS NULL
+             ORDER BY display_order ASC, section_id ASC`,
+            [audience]
+        );
+
+        res.json({ success: true, sections: rows });
+    } catch (err) {
+        console.error("Get Guide Sections Error:", err);
+        res.status(500).json({ success: false, message: "Database Error" });
+    }
+};
+
+/**
+ * CREATE GUIDE SECTION (admin only)
+ * POST /admin/guide/sections
+ */
+exports.createGuideSection = async (req, res) => {
+    try {
+        const accountId = req.session?.accountId;
+        if (!accountId) return res.status(401).json({ success: false, message: "Unauthorized" });
+
+        const { audience, title, badge_color, bullets } = req.body;
+
+        if (!title || !title.trim()) {
+            return res.status(400).json({ success: false, message: "Title is required." });
+        }
+        if (!bullets || !bullets.trim()) {
+            return res.status(400).json({ success: false, message: "At least one bullet point is required." });
+        }
+
+        const [[maxOrder]] = await pool.query(
+            `SELECT COALESCE(MAX(display_order), 0) AS maxOrder FROM guide_sections WHERE audience = ?`,
+            [audience || "organization"]
+        );
+
+        await pool.query(
+            `INSERT INTO guide_sections (audience, title, badge_color, bullets, display_order)
+             VALUES (?, ?, ?, ?, ?)`,
+            [audience || "organization", title.trim(), badge_color || "blue", bullets.trim(), maxOrder.maxOrder + 1]
+        );
+
+        res.status(201).json({ success: true, message: "Section added." });
+    } catch (err) {
+        console.error("Create Guide Section Error:", err);
+        res.status(500).json({ success: false, message: "Database Error" });
+    }
+};
+
+/**
+ * UPDATE GUIDE SECTION (admin only)
+ * PUT /admin/guide/sections/:id
+ */
+exports.updateGuideSection = async (req, res) => {
+    try {
+        const accountId = req.session?.accountId;
+        if (!accountId) return res.status(401).json({ success: false, message: "Unauthorized" });
+
+        const { id } = req.params;
+        const { title, badge_color, bullets, display_order } = req.body;
+
+        if (!title || !title.trim()) {
+            return res.status(400).json({ success: false, message: "Title is required." });
+        }
+        if (!bullets || !bullets.trim()) {
+            return res.status(400).json({ success: false, message: "At least one bullet point is required." });
+        }
+
+        const [result] = await pool.query(
+            `UPDATE guide_sections SET title = ?, badge_color = ?, bullets = ?, display_order = ? WHERE section_id = ?`,
+            [title.trim(), badge_color || "blue", bullets.trim(), display_order || 0, id]
+        );
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ success: false, message: "Section not found." });
+        }
+
+        res.json({ success: true, message: "Section updated." });
+    } catch (err) {
+        console.error("Update Guide Section Error:", err);
+        res.status(500).json({ success: false, message: "Database Error" });
+    }
+};
+
+/**
+ * DELETE GUIDE SECTION (admin only)
+ * DELETE /admin/guide/sections/:id
+ */
+exports.deleteGuideSection = async (req, res) => {
+    try {
+        const accountId = req.session?.accountId;
+        if (!accountId) return res.status(401).json({ success: false, message: "Unauthorized" });
+
+        const { id } = req.params;
+
+        const [result] = await pool.query(
+            `UPDATE guide_sections SET deleted_at = NOW() WHERE section_id = ? AND deleted_at IS NULL`,
+            [id]
+        );
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ success: false, message: "Section not found." });
+        }
+
+        res.json({ success: true, message: "Section moved to Recycle Bin." });
+    } catch (err) {
+        console.error("Delete Guide Section Error:", err);
+        res.status(500).json({ success: false, message: "Database Error" });
+    }
+};
+
+/**
+ * GET TRASHED GUIDE SECTIONS (admin only)
+ * GET /admin/guide/sections/trash?audience=organization
+ */
+exports.getTrashedGuideSections = async (req, res) => {
+    try {
+        const accountId = req.session?.accountId;
+        if (!accountId) return res.status(401).json({ success: false, message: "Unauthorized" });
+
+        const audience = req.query.audience || "organization";
+
+        await purgeExpiredGuideTrash();
+
+        const [rows] = await pool.query(
+            `SELECT section_id, title, badge_color, bullets, deleted_at,
+                    DATEDIFF((deleted_at + INTERVAL 30 DAY), NOW()) AS days_left
+             FROM guide_sections
+             WHERE audience = ? AND deleted_at IS NOT NULL
+             ORDER BY deleted_at DESC`,
+            [audience]
+        );
+
+        res.json({ success: true, sections: rows });
+    } catch (err) {
+        console.error("Get Trashed Guide Sections Error:", err);
+        res.status(500).json({ success: false, message: "Database Error" });
+    }
+};
+
+/**
+ * RESTORE GUIDE SECTION FROM TRASH (admin only)
+ * PUT /admin/guide/sections/:id/restore
+ */
+exports.restoreGuideSection = async (req, res) => {
+    try {
+        const accountId = req.session?.accountId;
+        if (!accountId) return res.status(401).json({ success: false, message: "Unauthorized" });
+
+        const { id } = req.params;
+
+        const [result] = await pool.query(
+            `UPDATE guide_sections SET deleted_at = NULL WHERE section_id = ? AND deleted_at IS NOT NULL`,
+            [id]
+        );
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ success: false, message: "Section not found in Recycle Bin." });
+        }
+
+        res.json({ success: true, message: "Section restored." });
+    } catch (err) {
+        console.error("Restore Guide Section Error:", err);
+        res.status(500).json({ success: false, message: "Database Error" });
+    }
+};
+
+/**
+ * RECYCLE BIN: Auto-purge guide sections trashed over 30 days
+ */
+async function purgeExpiredGuideTrash() {
+    await pool.query(
+        `DELETE FROM guide_sections
+         WHERE deleted_at IS NOT NULL
+         AND deleted_at < (NOW() - INTERVAL 30 DAY)`
+    );
+}
+
+/**
+ * PERMANENTLY DELETE GUIDE SECTION (admin only)
+ * DELETE /admin/guide/sections/:id/permanent
+ */
+exports.permanentlyDeleteGuideSection = async (req, res) => {
+    try {
+        const accountId = req.session?.accountId;
+        if (!accountId) return res.status(401).json({ success: false, message: "Unauthorized" });
+
+        const { id } = req.params;
+
+        const [result] = await pool.query(
+            `DELETE FROM guide_sections WHERE section_id = ? AND deleted_at IS NOT NULL`,
+            [id]
+        );
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ success: false, message: "Section not found in Recycle Bin." });
+        }
+
+        res.json({ success: true, message: "Section permanently deleted." });
+    } catch (err) {
+        console.error("Permanently Delete Guide Section Error:", err);
+        res.status(500).json({ success: false, message: "Database Error" });
+    }
+};
+
+/**
+ * REORDER GUIDE SECTIONS (admin only)
+ * PUT /admin/guide/sections/reorder
+ */
+exports.reorderGuideSections = async (req, res) => {
+    try {
+        const accountId = req.session?.accountId;
+        if (!accountId) return res.status(401).json({ success: false, message: "Unauthorized" });
+
+        const { orderedIds } = req.body;
+
+        if (!Array.isArray(orderedIds) || orderedIds.length === 0) {
+            return res.status(400).json({ success: false, message: "orderedIds must be a non-empty array." });
+        }
+
+        for (let i = 0; i < orderedIds.length; i++) {
+            await pool.query(
+                `UPDATE guide_sections SET display_order = ? WHERE section_id = ?`,
+                [i + 1, orderedIds[i]]
+            );
+        }
+
+        res.json({ success: true, message: "Order updated." });
+    } catch (err) {
+        console.error("Reorder Guide Sections Error:", err);
+        res.status(500).json({ success: false, message: "Database Error" });
+    }
+};

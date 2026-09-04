@@ -682,6 +682,8 @@ app.post('/api/user/applications/:id/reschedule-request', async (req, res) => {
 
 app.get("/api/contact-info", adminController.getContactInfo);
 
+app.get("/api/guide", adminController.getGuideSections);
+
 const PORT = 3000;
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);

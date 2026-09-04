@@ -1,22 +1,22 @@
 <header
   id="appHeader"
-  class="fixed top-0 left-0 md:left-[280px] right-0 h-20 bg-white border-b border-gray-200/80 px-8 flex items-center justify-between z-30 transition-all duration-200 shadow-sm">
+  class="fixed top-0 left-0 md:left-[280px] right-0 h-20 bg-white border-b border-gray-200/80 pl-16 pr-4 sm:pr-6 md:pl-8 md:pr-8 flex items-center justify-between gap-3 z-30 transition-all duration-200 shadow-sm">
 
-  <div>
+  <div class="min-w-0 flex-1">
       <h1
           id="pageTitle"
-          class="text-3xl font-bold text-blue-700">
+          class="text-xl sm:text-2xl lg:text-3xl font-bold text-blue-700 truncate">
           Dashboard
       </h1>
 
       <p
           id="pageSubtitle"
-          class="text-sm text-gray-500 mt-1">
+          class="hidden sm:block text-xs sm:text-sm text-gray-500 mt-1 truncate">
           Manage your rescue pets, track adoption requests, and stay updated with your organization's progress.
       </p>
   </div>
 
-  <div class="flex items-center gap-4 relative">
+  <div class="flex items-center gap-2 sm:gap-4 relative shrink-0">
     <button
       id="notificationBtn"
       class="relative w-11 h-11 rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors text-blue-900"
@@ -28,7 +28,7 @@
 
     <div
       id="notificationPopup"
-      class="absolute top-full right-0 mt-2 w-80 bg-white rounded-2xl border border-gray-200 shadow-xl overflow-hidden opacity-0 invisible transition-all duration-200 scale-95 origin-top-right data-[open=true]:opacity-100 data-[open=true]:visible data-[open=true]:scale-100 z-50"
+      class="absolute top-full right-0 mt-2 w-[85vw] max-w-80 bg-white rounded-2xl border border-gray-200 shadow-xl overflow-hidden opacity-0 invisible transition-all duration-200 scale-95 origin-top-right data-[open=true]:opacity-100 data-[open=true]:visible data-[open=true]:scale-100 z-50"
     >
       <div class="px-5 py-3.5 border-b border-gray-100 flex justify-between items-center">
         <h3 class="font-semibold text-gray-900 text-sm">Notifications</h3>

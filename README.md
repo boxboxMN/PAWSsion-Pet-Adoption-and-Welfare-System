@@ -366,7 +366,6 @@ ALTER TABLE animals
 DROP COLUMN color,
 DROP COLUMN personality_tags;
 
-
 # Aug 21, 2026 (5 am)
 
 ALTER TABLE user_adoption_applications
@@ -428,15 +427,15 @@ HOW TO RUN WITH WORKING MATCHMAKING FEATURE
 - Pets (org):
     ✓ sa contact number nasa loob na sila ng snapshot baka hindi mo nabago
 
-- Fix the UI must be responsive (dashboard profile)
+- Fix the UI must be responsive (dashboard profile) ✓
 
 - If naka 3 reschedule na or yung reason is hindi valid, automatic na syang madedecline ✓
 
 - sa notification dapat nakikita na yung feedback is naresolved na
 
-- sa org maglagay ng trash bin
+- sa org maglagay ng trash bin ✓
 
-- ayusin ang support sa org side yung may user guide
+- ayusin ang support sa org side yung may user guide ✓
 
 Admin side:
 
@@ -445,6 +444,8 @@ Admin side:
 -sa contact support ng org and user, dapat maging dynamic sya ✓
 
 - admin maglagay ng logs
+
+- user guide dynamic in the admin ✓
 
 - feedback maglagay ng sort or filter dropdown ✓
 
@@ -508,7 +509,7 @@ UPDATE feedback SET feedback_type = 'Feature Suggestion' WHERE feedback_type = '
 UPDATE feedback SET feedback_type = 'General Feedback'   WHERE feedback_type = 'general';
 UPDATE feedback SET feedback_type = 'Other'               WHERE feedback_type = 'other';
 
-# admin settings
+# admin settings 
 
 CREATE TABLE site_settings (
     setting_key   VARCHAR(50) PRIMARY KEY,
@@ -525,3 +526,29 @@ INSERT INTO site_settings (setting_key, setting_value) VALUES
 # recycle bin (org side)
 
 ALTER TABLE animals ADD COLUMN deleted_at DATETIME DEFAULT NULL;
+
+# User guide dynamic (admin)
+
+CREATE TABLE guide_sections (
+    section_id     INT AUTO_INCREMENT PRIMARY KEY,
+    audience       VARCHAR(20) NOT NULL DEFAULT 'organization',
+    title          VARCHAR(150) NOT NULL,
+    badge_color    VARCHAR(20) NOT NULL DEFAULT 'blue',
+    bullets        TEXT NOT NULL,
+    display_order  INT NOT NULL DEFAULT 0
+);
+
+INSERT INTO guide_sections (audience, title, badge_color, bullets, display_order) VALUES
+('organization', 'Managing Pets & Profiles', 'blue',
+'**Adding Pets:** Navigate to the Pets module, click "Add Pet", fill out required details (name, breed, age), and upload clear pictures.
+**Adoption Status:** Update the status regularly (Available, Pending, or Adopted) so adopters see accurate information.
+**Archiving:** Use the archive option for pets that are no longer active on the listing to keep your workspace clean.', 1),
+
+('organization', 'Reviewing Adoption Requests', 'emerald',
+'Check incoming applications submitted by potential adopters through the Adoptions tab.
+Verify adopter information and match scores provided by the system.
+Approve or reject applications based on your organization''s shelter screening standards.', 2),
+
+('organization', 'Donations & Organization Profile', 'amber',
+'**Donations:** Monitor records and ensure your organization''s payment methods or drop-off instructions are updated.
+**Profile Settings:** Keep your shelter''s contact number, address, and description accurate so donors and adopters can reach you easily.', 3);

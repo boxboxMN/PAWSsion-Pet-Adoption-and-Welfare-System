@@ -27,10 +27,6 @@ router.get("/feedback", (req, res) => {
     res.sendFile(path.join(__dirname, "../public/admin/feedback.html"));
 });
 
-router.get("/setting", (req, res) => {
-    res.sendFile(path.join(__dirname, "../public/admin/setting.html"));
-});
-
 router.get("/notifications", (req, res) => {
     res.sendFile(path.join(__dirname, "../public/admin/notifications.html"));
 });
@@ -695,9 +691,20 @@ router.get("/dashboard/top-organizations", async (req, res) => {
 router.get("/feedback/list", adminController.getFeedback);
 router.put("/feedback/:id/status", adminController.updateFeedbackStatus);
 
+//settings route
 router.get("/settings", (req, res) => {
     res.sendFile(path.join(__dirname, "../public/admin/settings.html"));
 });
-
 router.put("/settings/contact-info", adminController.updateContactInfo);
+
+//user guide (org side)
+router.post("/guide/sections", adminController.createGuideSection);
+router.put("/guide/sections/reorder", adminController.reorderGuideSections);
+router.put("/guide/sections/:id", adminController.updateGuideSection);
+router.delete("/guide/sections/:id", adminController.deleteGuideSection);
+
+//user guide (org side) - trash and restore
+router.get("/guide/sections/trash", adminController.getTrashedGuideSections);
+router.put("/guide/sections/:id/restore", adminController.restoreGuideSection);
+router.delete("/guide/sections/:id/permanent", adminController.permanentlyDeleteGuideSection);
 module.exports = router;
