@@ -38,55 +38,6 @@ app.use(userRoutes);
 app.use("/admin", adminRoutes);
 app.use("/org", orgRoutes);
 
-
-// app.get('/api/current-user', async (req, res) => {
-//   try {
-//     const accountId = req.session?.accountId || req.session?.userId || req.query.accountId || req.query.userId;
-//     let displayName = req.session?.displayName || req.session?.userName || 'User';
-
-//     //eto yung bagong dagdag
-//     let profilePicture = null;
-
-//     if (accountId) {
-//       const [rows] = await pool.query(
-//         `SELECT a.account_id, a.email, ad.first_name, ad.last_name, ad.profile_picture
-//          FROM accounts a
-//          LEFT JOIN adopters ad ON ad.account_id = a.account_id
-//          WHERE a.account_id = ?
-//          LIMIT 1`,
-//         [accountId]
-//       );
-
-//       if (rows[0]) {
-//         const firstName = rows[0].first_name || '';
-//         const lastName = rows[0].last_name || '';
-//         displayName = [firstName, lastName].filter(Boolean).join(' ') || rows[0].email || 'User';
-//         //new add
-//         profilePicture = rows[0].profile_picture || null;
-//         req.session.displayName = displayName;
-//       }
-//     } else {
-//       const [rows] = await pool.query(
-//         `SELECT first_name, last_name FROM adopters ORDER BY adopter_id LIMIT 1`
-//       );
-
-//       if (rows[0]) {
-//         const firstName = rows[0].first_name || '';
-//         const lastName = rows[0].last_name || '';
-//         displayName = [firstName, lastName].filter(Boolean).join(' ') || 'User';
-//         // new add
-//         profilePicture = rows[0].profile_picture || null;
-//         req.session.displayName = displayName;
-//       }
-//     }
-
-//     res.json({ name: displayName });
-//   } catch (error) {
-//     console.error('current-user error:', error);
-//     res.json({ name: req.session?.displayName || 'User', profile_picture: null});
-//   }
-// });
-
 app.get('/api/current-user', async (req, res) => {
   try {
     const accountId = req.session?.accountId || req.session?.userId || req.query.accountId || req.query.userId;
@@ -536,17 +487,6 @@ app.get("/api/organization/session-data", async (req, res) => {
       console.error("Error fetching session data:", err);
       res.status(500).json({ error: "Server error" });
   }
-});
-
-// API to fetch all pets
-app.get("/api/pets", async (req, res) => {
-    try {
-        const [rows] = await pool.query("SELECT * FROM animals WHERE adoption_status = 'Available'");
-        res.status(200).json(rows); // Send the pet data as JSON
-    } catch (err) {
-        console.error("Error fetching pets:", err);
-        res.status(500).json({ message: "Failed to fetch pets." });
-    }
 });
 
 // Fetching adoption applications FOR LOGGED-IN ORGANIZATION ONLY

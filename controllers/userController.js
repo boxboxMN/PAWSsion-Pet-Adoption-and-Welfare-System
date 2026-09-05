@@ -282,6 +282,7 @@ exports.getAvailablePets = async (req, res) => {
             INNER JOIN organizations o
                 ON a.organization_id = o.organization_id
             WHERE a.adoption_status='Available'
+            AND a.deleted_at IS NULL
             ORDER BY a.created_at DESC
         `);
 
@@ -701,6 +702,7 @@ exports.getPetById = async (req, res) => {
             JOIN organizations o
                 ON a.organization_id = o.organization_id
             WHERE a.animal_id = ?
+            AND a.deleted_at IS NULL
         `, [petId]);
 
         if (rows.length === 0) {
@@ -764,7 +766,7 @@ exports.submitAdoptionApplication = async (req, res) => {
         } = req.body;
 
         const [petRows] = await pool.query(
-            `SELECT organization_id FROM animals WHERE animal_id = ?`,
+            `SELECT organization_id FROM animals WHERE animal_id = ? AND deleted_at IS NULL`,
             [animal_id]
         );
 

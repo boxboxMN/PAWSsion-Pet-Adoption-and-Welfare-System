@@ -432,6 +432,8 @@ and if kaya is dapat may message sa gmail ng user na yung account nya has violat
 
 - yung pending pa ang org is hindi nakikita sa logs na naglogin sya
 
+- when the org deactivate the account, the account can still login pero dapat hindi na eh
+
 # may bug (user & org side):
 kapag pinagdelete nakikita pa din ng user ang pets detailed kahit deleted na
 
