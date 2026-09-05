@@ -420,6 +420,32 @@ HOW TO RUN WITH WORKING MATCHMAKING FEATURE
 
 # mga need pa ayusin
 - Feedback & notification (user, org, & admin side)
+
+- sa notification dapat nakikita na yung feedback is naresolved na (pets org)
+
+-  nadedetect ang user and org logging in, attempts for security purposes (logs admin)
+
+- blocked attempts logged (e.g. "a suspended user tried to log in")
+
+- fixed also the UI in the admin profile, and make sure that when editing a profile or password, it is safe
+
+- when banning/disabled an account it should have a warning first from the user
+and if kaya is dapat may message sa gmail ng user na yung account nya has vioalted the policy or something
+
+- ayusin ang nasa url dapat walang .html na makikita doon
+
+- in pending ng org (after logging in), hindi nakiclick ang hamburger sidebar, logout kapag nakamaliit yung web browser
+
+
+# may bug (user & org side):
+kapag pinagdelete nakikita pa din ng user ang pets detailed kahit deleted na
+
+kulang pa ng validations and sanitations sa number sa donations
+
+sa mga description dapat hindi nalalagyan ng nonsense na text sa mga reason especially sa application 
+(user & org side) much better if may parang pagpipilian ang org at user na ilalagay na message ara hindi makaubmit ng nonsense na text
+
+# done na ayusin:
 - Org Profile: 
     ✓ sanitation & validation of contact number
     ✓ May problem pa sa pagkuha ng profile sa mismong dashboard hindi nareread ng maayos if ibang org
@@ -431,8 +457,6 @@ HOW TO RUN WITH WORKING MATCHMAKING FEATURE
 
 - If naka 3 reschedule na or yung reason is hindi valid, automatic na syang madedecline ✓
 
-- sa notification dapat nakikita na yung feedback is naresolved na
-
 - sa org maglagay ng trash bin ✓
 
 - ayusin ang support sa org side yung may user guide ✓
@@ -443,7 +467,17 @@ Admin side:
 
 -sa contact support ng org and user, dapat maging dynamic sya ✓
 
-- admin maglagay ng logs
+- admin maglagay ng logs: ✓
+
+    org:
+    adoption
+    donation
+    kamustahan or pets?
+
+    user:
+    adoption
+    donation
+    kamustahan?
 
 - user guide dynamic in the admin ✓
 
@@ -552,3 +586,50 @@ Approve or reject applications based on your organization''s shelter screening s
 ('organization', 'Donations & Organization Profile', 'amber',
 '**Donations:** Monitor records and ensure your organization''s payment methods or drop-off instructions are updated.
 **Profile Settings:** Keep your shelter''s contact number, address, and description accurate so donors and adopters can reach you easily.', 3);
+
+# admin logs
+CREATE TABLE activity_logs (
+    log_id       INT AUTO_INCREMENT PRIMARY KEY,
+    account_id   INT NOT NULL,
+    action       VARCHAR(100) NOT NULL,
+    target_type  VARCHAR(50) NOT NULL,
+    target_id    VARCHAR(50) NULL,
+    details      VARCHAR(255) NULL,
+    created_at   TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_log_account
+        FOREIGN KEY (account_id) REFERENCES accounts(account_id)
+        ON DELETE CASCADE
+);
+
+ALTER TABLE activity_logs MODIFY COLUMN account_id INT NULL;
+
+# ACTIVITY LOGS (yung narerecord sa admin):
+
+- User side:
+    Submit an adoption application
+    Re-submit after a declined application
+    Cancel an application
+    Submit a cash donation
+    Submit an in-kind donation
+    Submit a Kamustahan update
+
+- Org Side:
+    Add a pet
+    Edit a pet
+    Delete a pet
+    Archive a pet
+    Approve/reject a cash donation
+    Approve/reject an in-kind donation
+
+    Added logs but not tested yet:
+        - scheduled/ recheduled and approved, declined adoption application
+
+- Admin:
+    Resolve/unresolve/archive/unarchive feedback (hindi pa to natetest)
+    Create/edit/delete/restore/purge/reorder a guide section
+    Update site contact info (hindi pa to natetest)
+    Suspend/ban a user (hindi pa to natetest)
+    Approve/reject an organization (hindi pa to natetest)
+    Update own admin profile (hindi pa to natetest)
+    
+    the email na doesn't exist is nalalagay sa logs ✓

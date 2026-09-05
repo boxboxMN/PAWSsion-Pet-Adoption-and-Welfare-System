@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-50">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href="../assets/images/Pawpon_logo.png">
+    <title>PAWPON ADMIN – Activity Logs </title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="../assets/js/adminSidebar.js"></script>
+    <script src="../assets/js/adminTopbar.js"></script>
+</head>
+<body class="h-full font-sans text-slate-800 antialiased flex overflow-hidden bg-slate-50">
+
+    <div id="sidebar" class="flex-shrink-0"></div>
+
+    <main class="flex-1 flex flex-col min-w-0 h-full overflow-hidden bg-white">
+        <div id="topbar" class="flex-shrink-0 border-b border-slate-200"></div>
+
+        <div class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+            <div class="max-w-4xl mx-auto bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+                <div class="p-6 border-b border-slate-100">
+                    <h2 class="text-lg font-bold text-slate-900">Activity Logs</h2>
+                    <p class="text-xs text-slate-500 mt-0.5">Most recent 200 admin actions across the platform.</p>
+                </div>
+                <div id="logsList" class="divide-y divide-slate-100">
+                    <p class="p-6 text-xs text-slate-400">Loading...</p>
+                </div>
+                <div id="logsPagination" class="hidden flex items-center justify-between px-6 py-4 border-t border-slate-100">
+                    <p id="logsPaginationText" class="text-xs text-slate-500"></p>
+                    <div id="logsPaginationButtons" class="flex items-center gap-1"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const actionLabels = {
+            organization_approved: "Approved organization",
+            pet_created: "Added a pet",
+            pet_updated: "Updated a pet",
+            pet_deleted: "Deleted a pet",
+            pet_archived: "Archived a pet",
+            donation_status_updated: "Updated donation status",
+            adoption_application_submitted: "Submitted adoption application",
+            adoption_application_cancelled: "Cancelled adoption application",
+            donation_submitted: "Submitted a donation",
+            kamustahan_submitted: "Submitted a Kamustahan update",
+            application_approved: "Approved adoption application",
+            application_declined: "Declined adoption application",
+            application_status_updated: "Updated application status",
+            account_registered: "Registered new account",
+            login_success: "Logged in",
+            login_failed: "Failed login attempt",
+            logout: "Logged out",
+            suspicious_login_input: "Suspicious login input detected",
+            interview_scheduled: "Scheduled an interview",
+            interview_rescheduled: "Rescheduled an interview",
+            reschedule_request_approved: "Approved reschedule request",
+            reschedule_request_rejected: "Rejected reschedule request",
+            organization_rejected: "Rejected organization",
+            user_suspended: "Suspended user account",
+            user_banned: "Banned user account",
+            feedback_resolved: "Resolved feedback",
+            feedback_unresolved: "Unresolved feedback",
+            feedback_archived: "Archived feedback",
+            feedback_unarchived: "Unarchived feedback",
+            guide_section_created: "Created guide section",
+            guide_section_updated: "Updated guide section",
+            guide_section_deleted: "Deleted guide section",
+            guide_section_restored: "Restored guide section",
+            guide_section_purged: "Permanently deleted guide section",
+            guide_sections_reordered: "Reordered guide sections",
+            contact_info_updated: "Updated site contact info",
+            user_status_changed: "Changed user status",
+            admin_profile_updated: "Updated own profile"
+        };
+
+        const PAGE_SIZE = 10;
+        let allLogs = [];
+        let currentPage = 1;
+
+        function renderLogRow(log) {
+            const label = actionLabels[log.action] || log.action;
+            const date = new Date(log.created_at).toLocaleString("en-US", {
+                month: "short", day: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit"
+            });
+
+            return `
+                <div class="p-4 flex items-start justify-between gap-4">
+                    <div class="min-w-0">
+                        <p class="text-sm font-semibold text-slate-800">${label}</p>
+                        <p class="text-xs text-slate-500">${log.actor_email || "Unknown"} <span class="text-slate-300">(${log.actor_role || "unknown"})</span>${log.details ? " · " + log.details : ""}</p>
+                    </div>
+                    <span class="text-xs text-slate-400 shrink-0">${date}</span>
+                </div>
+            `;
+        }
+
+        function renderPage(page) {
+            const container = document.getElementById("logsList");
+            const paginationBox = document.getElementById("logsPagination");
+            const paginationText = document.getElementById("logsPaginationText");
+            const paginationButtons = document.getElementById("logsPaginationButtons");
+
+            const totalPages = Math.max(1, Math.ceil(allLogs.length / PAGE_SIZE));
+            currentPage = Math.min(Math.max(1, page), totalPages);
+
+            const start = (currentPage - 1) * PAGE_SIZE;
+            const pageItems = allLogs.slice(start, start + PAGE_SIZE);
+
+            container.innerHTML = pageItems.map(renderLogRow).join("");
+
+            if (allLogs.length === 0) {
+                paginationBox.classList.add("hidden");
+                return;
+            }
+
+            paginationBox.classList.remove("hidden");
+            paginationText.textContent = `Showing ${start + 1}-${Math.min(start + PAGE_SIZE, allLogs.length)} of ${allLogs.length} results`;
+
+            const btnBase = "w-8 h-8 flex items-center justify-center rounded-lg text-xs font-semibold transition";
+            const disabledBtn = `${btnBase} text-slate-300 cursor-not-allowed`;
+            const enabledBtn = `${btnBase} text-slate-500 hover:bg-slate-100`;
+            const activeBtn = `${btnBase} bg-blue-600 text-white`;
+
+            let buttonsHtml = `<button type="button" data-page="${currentPage - 1}" class="page-btn ${currentPage === 1 ? disabledBtn : enabledBtn}" ${currentPage === 1 ? "disabled" : ""}><i class="fa-solid fa-chevron-left text-[10px]"></i></button>`;
+
+            for (let i = 1; i <= totalPages; i++) {
+                buttonsHtml += `<button type="button" data-page="${i}" class="page-btn ${i === currentPage ? activeBtn : enabledBtn}">${i}</button>`;
+            }
+
+            buttonsHtml += `<button type="button" data-page="${currentPage + 1}" class="page-btn ${currentPage === totalPages ? disabledBtn : enabledBtn}" ${currentPage === totalPages ? "disabled" : ""}><i class="fa-solid fa-chevron-right text-[10px]"></i></button>`;
+
+            paginationButtons.innerHTML = buttonsHtml;
+
+            paginationButtons.querySelectorAll(".page-btn:not(:disabled)").forEach(btn => {
+                btn.addEventListener("click", () => renderPage(Number(btn.dataset.page)));
+            });
+        }
+
+        document.addEventListener("DOMContentLoaded", async () => {
+            loadSidebar("logs");
+            loadTopbar({ title: "Activity Logs", subtitle: "Review recent admin actions." });
+
+            const container = document.getElementById("logsList");
+
+            try {
+                const res = await fetch("/admin/logs");
+                const data = await res.json();
+
+                if (!data.success || !data.logs || data.logs.length === 0) {
+                    container.innerHTML = '<p class="p-6 text-xs text-slate-400">No activity recorded yet.</p>';
+                    return;
+                }
+
+                allLogs = data.logs;
+                renderPage(1);
+
+            } catch (err) {
+                console.error("Failed to load logs", err);
+                container.innerHTML = '<p class="p-6 text-xs text-rose-500">Unable to load activity logs.</p>';
+            }
+        });
+    </script>
+</body>
+</html>

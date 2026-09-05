@@ -3,7 +3,7 @@ const path = require("path");
 
 const pool = require("../config/database");
 const adminController = require("../controllers/adminController"); // <--- Idagdag ito
-
+const { logActivity } = require("../controllers/adminController");
 
 const router = express.Router();
 
@@ -289,6 +289,7 @@ router.put("/approve/:id", async (req, res) => {
         );
 
         await connection.commit();
+        await logActivity(req.session?.accountId, "organization_approved", "organization", id);
         res.json({ success: true });
     } catch (err) {
         await connection.rollback();
@@ -330,6 +331,9 @@ router.put("/reject/:id", async (req, res) => {
         );
 
         await connection.commit();
+
+        await logActivity(req.session?.accountId, "organization_rejected", "organization", id);
+
         res.json({ success: true });
     } catch (err) {
         await connection.rollback();
@@ -533,6 +537,8 @@ router.put("/users/:id/suspend", async(req,res)=>{
 
         );
 
+        await logActivity(req.session?.accountId, "user_suspended", "user", id);
+
         res.json({
             success:true
         });
@@ -628,6 +634,8 @@ router.put("/users/:id/ban", async (req, res) => {
             [id]
         );
 
+        await logActivity(req.session?.accountId, "user_banned", "user", id);
+
         res.json({
             success: true
         });
@@ -707,4 +715,10 @@ router.delete("/guide/sections/:id", adminController.deleteGuideSection);
 router.get("/guide/sections/trash", adminController.getTrashedGuideSections);
 router.put("/guide/sections/:id/restore", adminController.restoreGuideSection);
 router.delete("/guide/sections/:id/permanent", adminController.permanentlyDeleteGuideSection);
+
+//activity logs route
+router.get("/logs", adminController.getActivityLogs);
+router.get("/logs", (req, res) => {
+    res.sendFile(path.join(__dirname, "../public/admin/logs.html"));
+});
 module.exports = router;

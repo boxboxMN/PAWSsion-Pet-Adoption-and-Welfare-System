@@ -6,6 +6,7 @@ const phoneRegex = /^(09\d{9}|\+639\d{9})$/;
 const zipRegex = /^\d{4}$/; //for zip code
 const crypto = require("crypto");
 const transporter = require("../config/email");
+const { logActivity } = require("./adminController");
 
 exports.register = async (req, res) => {
   console.log("=== REGISTER START ===");
@@ -105,6 +106,9 @@ exports.register = async (req, res) => {
       );
 
       await connection.commit();
+
+      await logActivity(accountResult.insertId, "account_registered", "user", accountResult.insertId, `Adopter: ${firstName} ${lastName}`);
+
       return res.redirect('/auth/login.html?success=1');
     } catch (error) {
       await connection.rollback();
@@ -127,6 +131,12 @@ exports.login = async (req, res) => {
       return res.status(400).send('Email and password are required.');
     }
 
+    // Check for suspicious patterns in email and password to detect potential SQL injection attempts
+    const suspiciousPattern = /('|--|;|\bor\b\s+\d+\s*=\s*\d+|\bunion\b\s+\bselect\b)/i;
+    if (suspiciousPattern.test(email) || suspiciousPattern.test(password)) {
+      await logActivity(null, "suspicious_login_input", "auth", null, `Email: ${email}`);
+    }
+
     const [rows] = await pool.query(
       'SELECT account_id, email, password_hash, status, role FROM accounts WHERE email = ? LIMIT 1',
       [email]
@@ -134,6 +144,7 @@ exports.login = async (req, res) => {
     const genericAuthError = 'Invalid email or password.';
 
     if (rows.length === 0) {
+      await logActivity(null, "login_failed", "auth", null, `Unknown email: ${email}`);
       return res.status(401).send(genericAuthError);
     }
 
@@ -175,6 +186,7 @@ if (account.role === "organization" && account.status === "pending") {
     // Password check
     const isValidPassword = await bcrypt.compare(password, account.password_hash);
         if (!isValidPassword) {
+            await logActivity(account.account_id, "login_failed", "auth", account.account_id, "Wrong password");
             return res.status(401).send(genericAuthError);
         }
 
@@ -191,6 +203,9 @@ if (account.role === "organization" && account.status === "pending") {
     // Create session
     req.session.accountId = account.account_id;
     req.session.role = account.role;
+
+    await logActivity(account.account_id, "login_success", "auth", account.account_id);
+
     if (account.role === "admin") {
         return res.redirect("/admin/dashboard");
     }
@@ -224,8 +239,10 @@ if (account.role === "organization" && account.status === "pending") {
   }
 };
 
-exports.logout = (req, res) => {
-    req.session.destroy((err) => {
+exports.logout = (req, res, ) => {
+    const accountId = req.session?.accountId;
+
+    req.session.destroy(async (err) => {
         if (err) {
             console.error("Logout error:", err);
 
@@ -236,6 +253,8 @@ exports.logout = (req, res) => {
         }
 
         res.clearCookie("connect.sid");
+
+        await logActivity(accountId, "logout", "auth", accountId);
 
         return res.status(200).json({
             success: true,
@@ -332,6 +351,9 @@ exports.registerOrganization = async (req, res) => {
             );
 
             await connection.commit();
+
+            await logActivity(accountId, "account_registered", "user", accountId, `Organization: ${organizationName}`);
+
             res.send("Organization registered successfully.");
 
         } catch(err) {

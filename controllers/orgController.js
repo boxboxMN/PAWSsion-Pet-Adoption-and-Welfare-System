@@ -1,5 +1,6 @@
 const pool = require("../config/database");
 const { generateEmbedding } = require("../services/embeddingService");
+const { logActivity } = require("./adminController");
 
 // ==========================================
 // PET MANAGEMENT CONTROLLERS
@@ -265,6 +266,9 @@ exports.addPet = async (req, res) => {
         // ==========================================
         // SUCCESS
         // ==========================================
+        //log activity
+        await logActivity(req.session.accountId, "pet_created", "pet", animal_id, name);
+        
         res.json({
             success: true,
             message: "Pet added successfully"
@@ -679,6 +683,8 @@ exports.updatePet = async (req, res) => {
         // ==========================================
         // SUCCESS
         // ==========================================
+        await logActivity(req.session.accountId, "pet_updated", "pet", id);
+
         res.json({
             success: true,
             message: "Pet updated successfully."
@@ -748,6 +754,8 @@ exports.deletePet = async (req, res) => {
                 message: "Pet not found or does not belong to your organization."
             });
         }
+
+        await logActivity(req.session.accountId, "pet_deleted", "pet", id);
 
         res.json({
             success: true,
@@ -1800,6 +1808,7 @@ exports.updateDonationStatus = async (req, res) => {
                 message: "Donation record not found or does not belong to your organization."
             });
         }
+        await logActivity(req.session.accountId, "donation_status_updated", "cash_donation", donationId, `Status: ${status}`);
 
         return res.json({
             success: true,
@@ -1993,6 +2002,7 @@ exports.updateInKindDonationStatus = async (req, res) => {
                 message: "In-kind donation record not found."
             });
         }
+        await logActivity(req.session.accountId, "donation_status_updated", "inkind_donation", donationId, `Status: ${status}`);
 
         res.json({
             success: true,
@@ -2751,6 +2761,8 @@ exports.archivePet = async (req, res) => {
                 `UPDATE animals SET adoption_status = 'Archived' WHERE animal_id = ? AND organization_id = ?`,
                 [id, organizationId]
             );
+
+            await logActivity(req.session.accountId, "pet_archived", "pet", id);
 
             return res.json({
                 success: true,

@@ -3,6 +3,7 @@ const pool = require("../config/database");
 const bcrypt = require("bcrypt");
 const validator = require('validator');
 const AdoptionModel = require('../models/userModel');
+const { logActivity } = require("./adminController");
 
 exports.getProfile = async (req, res) => {
     const accountId = req.session?.accountId;
@@ -483,6 +484,7 @@ exports.submitCashDonation = async (req, res) => {
                 selectedMethod
             ]
         );
+        await logActivity(accountId, "donation_submitted", "cash_donation", result.insertId, `₱${parsedAmount}`);
 
         return res.json({
             success: true,
@@ -641,6 +643,7 @@ exports.submitInKindDonation = async (req, res) => {
                 cleanQuantity
             ]
         );
+        await logActivity(accountId, "donation_submitted", "inkind_donation", result.insertId, cleanItemName);
 
         return res.json({
             success: true,
@@ -848,6 +851,7 @@ exports.submitAdoptionApplication = async (req, res) => {
                 `DELETE FROM application_interviews WHERE application_id = ?`,
                 [existingApp[0].application_id]
             );
+            await logActivity(accountId, "adoption_application_submitted", "application", existingApp[0].application_id, "Re-application");
 
             return res.status(200).json({
                 status: 'success',
@@ -886,6 +890,8 @@ exports.submitAdoptionApplication = async (req, res) => {
         ];
 
         await pool.query(insertQuery, values);
+
+        await logActivity(accountId, "adoption_application_submitted", "application", null, animal_id ? `Pet #${animal_id}` : null);
 
         return res.status(200).json({
             status: 'success',
@@ -1102,6 +1108,7 @@ exports.cancelAdoptionApplication = async (req, res) => {
                 message: "Unable to cancel application. It may already be processed or not found." 
             });
         }
+        await logActivity(accountId, "adoption_application_cancelled", "application", applicationId);
 
         return res.status(200).json({
             success: true,
@@ -1251,7 +1258,9 @@ exports.submitKamustahanUpdate = async (req, res) => {
                 created_at = NOW()
             WHERE update_id = ?
         `, [update_text, photoPath, updateId]);
-
+        
+        await logActivity(accountId, "kamustahan_submitted", "kamustahan_update", updateId);
+        
         return res.json({
             success: true,
             message: "Kamustahan update successfully submitted!"

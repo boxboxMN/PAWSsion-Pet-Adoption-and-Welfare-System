@@ -1,7 +1,25 @@
 //logic para sa lahat ng Admin modules.
 
 const pool = require("../config/database");
-const bcrypt = require("bcrypt")
+const bcrypt = require("bcrypt");
+
+/**
+ * Records an admin activity log entry. Never throws — logging failures
+ * should never block the actual action from completing.
+ */
+async function logActivity(accountId, action, targetType, targetId = null, details = null) {
+    try {
+        await pool.query(
+            `INSERT INTO activity_logs (account_id, action, target_type, target_id, details)
+             VALUES (?, ?, ?, ?, ?)`,
+            [accountId, action, targetType, targetId, details]
+        );
+    } catch (err) {
+        console.error("Log Activity Error:", err);
+    }
+}
+exports.logActivity = logActivity;
+
 /**
  * GET ALL PENDING ORGANIZATION REQUESTS
  * GET /admin/api/partner-requests
@@ -178,9 +196,11 @@ exports.getUsers = async (req, res) => {
 exports.updateUserStatus = async (req, res) => {
     try {
         const { id } = req.params;
+        const accountId = req.session?.accountId;
         const { status } = req.body; // or set specific logic per route endpoint
         
         await pool.query("UPDATE accounts SET status = ? WHERE account_id = ?", [status, id]);
+        await logActivity(accountId, "user_status_changed", "user", id, `New status: ${status}`);
         
         res.json({ success: true, message: "Account status updated successfully." });
     } catch (err) {
@@ -239,6 +259,8 @@ exports.updateAdminProfile = async (req, res) => {
             );
         }
 
+        await logActivity(accountId, "admin_profile_updated", "admin_profile", accountId, password ? "Email & password changed" : "Email changed");
+
         res.json({ success: true, message: "Profile updated successfully in the database!" });
     } catch (err) {
         console.error("Database Update Error:", err);
@@ -248,7 +270,7 @@ exports.updateAdminProfile = async (req, res) => {
 
 /**
  * GET ALL FEEDBACK (from organizations and adopters)
- * GET /admin/feedback/list
+ * GET /admin/feedback/listORGANIZATION
  */
 exports.getFeedback = async (req, res) => {
     try {
@@ -296,6 +318,7 @@ exports.getFeedback = async (req, res) => {
 exports.updateFeedbackStatus = async (req, res) => {
     try {
         const { id } = req.params;
+        const accountId = req.session?.accountId;
         const { action } = req.body;
 
         const validActions = ["resolve", "unresolve", "archive", "unarchive"];
@@ -318,6 +341,9 @@ exports.updateFeedbackStatus = async (req, res) => {
                 [current.status, id]
             );
 
+            //for logging the archive action
+            await logActivity(accountId, "feedback_archived", "feedback", id, `Was: ${current.status}`);
+
             return res.json({ success: true, status: "archived", previous_status: current.status });
         }
 
@@ -338,6 +364,9 @@ exports.updateFeedbackStatus = async (req, res) => {
                 [restoredStatus, id]
             );
 
+            //for logging the unarchive action
+            await logActivity(accountId, "feedback_unarchived", "feedback", id, `Restored to: ${restoredStatus}`);
+
             return res.json({ success: true, status: restoredStatus, previous_status: null });
         }
 
@@ -348,11 +377,14 @@ exports.updateFeedbackStatus = async (req, res) => {
                    `UPDATE feedback SET status = ?, previous_status = NULL WHERE feedback_id = ?`,
                    [newStatus, id]
             );
+
+            //for logging the resolve/unresolve action
+            await logActivity(accountId, action === "resolve" ? "feedback_resolved" : "feedback_unresolved", "feedback", id);
        
             if (result.affectedRows === 0) {
                    return res.status(404).json({ success: false, message: "Feedback not found." });
             }
-       
+
                res.json({ success: true, status: newStatus, previous_status: null });
 
     } catch (err) {
@@ -430,6 +462,8 @@ exports.updateContactInfo = async (req, res) => {
             );
         }
 
+        await logActivity(accountId, "contact_info_updated", "contact_info", null);
+
         res.json({ success: true, message: "Contact info updated successfully!" });
     } catch (err) {
         console.error("Update Contact Info Error:", err);
@@ -489,6 +523,9 @@ exports.createGuideSection = async (req, res) => {
             [audience || "organization", title.trim(), badge_color || "blue", bullets.trim(), maxOrder.maxOrder + 1]
         );
 
+        // Log the creation of a new guide section
+        await logActivity(accountId, "guide_section_created", "guide_section", null, title.trim());
+
         res.status(201).json({ success: true, message: "Section added." });
     } catch (err) {
         console.error("Create Guide Section Error:", err);
@@ -520,6 +557,8 @@ exports.updateGuideSection = async (req, res) => {
             [title.trim(), badge_color || "blue", bullets.trim(), display_order || 0, id]
         );
 
+        await logActivity(accountId, "guide_section_updated", "guide_section", id, title.trim());
+
         if (result.affectedRows === 0) {
             return res.status(404).json({ success: false, message: "Section not found." });
         }
@@ -546,6 +585,8 @@ exports.deleteGuideSection = async (req, res) => {
             `UPDATE guide_sections SET deleted_at = NOW() WHERE section_id = ? AND deleted_at IS NULL`,
             [id]
         );
+
+        await logActivity(accountId, "guide_section_deleted", "guide_section", id);
 
         if (result.affectedRows === 0) {
             return res.status(404).json({ success: false, message: "Section not found." });
@@ -603,6 +644,8 @@ exports.restoreGuideSection = async (req, res) => {
             [id]
         );
 
+        await logActivity(accountId, "guide_section_restored", "guide_section", id);
+
         if (result.affectedRows === 0) {
             return res.status(404).json({ success: false, message: "Section not found in Recycle Bin." });
         }
@@ -641,6 +684,8 @@ exports.permanentlyDeleteGuideSection = async (req, res) => {
             [id]
         );
 
+        await logActivity(accountId, "guide_section_purged", "guide_section", id);
+
         if (result.affectedRows === 0) {
             return res.status(404).json({ success: false, message: "Section not found in Recycle Bin." });
         }
@@ -674,9 +719,56 @@ exports.reorderGuideSections = async (req, res) => {
             );
         }
 
+        await logActivity(accountId, "guide_sections_reordered", "guide_section", null, `${orderedIds.length} section(s)`);
+
         res.json({ success: true, message: "Order updated." });
     } catch (err) {
         console.error("Reorder Guide Sections Error:", err);
+        res.status(500).json({ success: false, message: "Database Error" });
+    }
+};
+
+/**
+ * ACTIVITY LOGS: Auto-purge entries older than the retention window
+ */
+async function purgeExpiredActivityLogs() {
+    await pool.query(
+        `DELETE FROM activity_logs
+         WHERE created_at < (NOW() - INTERVAL 180 DAY)`
+         
+    );
+}
+
+/**
+ * GET ACTIVITY LOGS (admin only)
+ * GET /admin/logs
+ */
+exports.getActivityLogs = async (req, res) => {
+    try {
+        const accountId = req.session?.accountId;
+        if (!accountId) return res.status(401).json({ success: false, message: "Unauthorized" });
+
+        await purgeExpiredActivityLogs();
+        
+        const [rows] = await pool.query(`
+            SELECT
+                l.log_id,
+                l.action,
+                l.target_type,
+                l.target_id,
+                l.details,
+                l.created_at,
+                a.email AS actor_email,
+                a.role AS actor_role
+            FROM activity_logs l
+            LEFT JOIN accounts a ON a.account_id = l.account_id
+            ORDER BY l.created_at DESC
+            LIMIT 200
+        `);
+
+        res.json({ success: true, logs: rows });
+    } catch (err) {
+        console.error("Get Activity Logs Error:", err);
         res.status(500).json({ success: false, message: "Database Error" });
     }
 };

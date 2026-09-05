@@ -2,6 +2,7 @@ const express = require("express");
 const path = require("path");
 const pool = require("../config/database");
 const { uploadPet, uploadQR, uploadDropoff } = require('../config/upload');
+const { logActivity } = require("../controllers/adminController");
 
 // Controller functions
 const { 
@@ -442,6 +443,14 @@ router.patch('/applications/:id/status', async (req, res) => {
         await connection.commit();
         connection.release();
 
+        await logActivity(
+            req.session?.accountId,
+            status === "Approved" ? "application_approved" : status === "Declined" ? "application_declined" : "application_status_updated",
+            "application",
+            id,
+            status === "Declined" ? decline_reason : null
+        );
+
         res.json({
             success: true,
             message: `Application status successfully updated to "${status}".`,
@@ -558,6 +567,14 @@ router.post('/applications/:id/schedule', async (req, res) => {
             isReschedule ? 1 : 0
         ]);
 
+        await logActivity(
+            req.session?.accountId,
+            isReschedule ? "interview_rescheduled" : "interview_scheduled",
+            "interview",
+            req.params.id,
+            `${interview_date} ${interview_time}`
+        );
+
         return res.json({ success: true, message: "Interview scheduled!" });
     } catch (err) {
         console.error("❌ Schedule Error:", err);
@@ -600,6 +617,8 @@ router.patch('/applications/:id/approve-reschedule', async (req, res) => {
             [reqDate, reqTime, id]
         );
 
+        await logActivity(req.session?.accountId, "reschedule_request_approved", "interview", req.params.id);
+
         res.json({ success: true, message: "Interview schedule updated to the requested time!" });
     } catch (err) {
         console.error("Approve Reschedule Error:", err);
@@ -623,6 +642,7 @@ router.patch('/applications/:id/reject-reschedule', async (req, res) => {
              WHERE application_id = ?`,
             [id]
         );
+        await logActivity(req.session?.accountId, "reschedule_request_rejected", "interview", req.params.id);
 
         res.json({ success: true, message: "Reschedule request rejected. Original schedule kept." });
     } catch (err) {
