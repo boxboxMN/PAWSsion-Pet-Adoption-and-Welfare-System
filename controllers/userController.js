@@ -414,9 +414,9 @@ exports.submitCashDonation = async (req, res) => {
 
     // --- VALIDATION: Ensure valid reference number format ---
     const cleanRefNum = reference_number.trim();
-    const refRegex = /^[a-zA-Z0-9]{10,15}$/; // Standard reference numbers are alphanumeric lengths around 10-15
+    const refRegex = /^(?=.*[0-9])[a-zA-Z0-9]{10,15}$/; // Alphanumeric, 10-15 chars, must contain at least one digit
     if (!refRegex.test(cleanRefNum)) {
-        return res.status(400).json({ success: false, error: "Please enter a valid reference number (typically 10-15 alphanumeric characters)." });
+        return res.status(400).json({ success: false, error: "Please enter a valid reference number (10-15 characters, letters and numbers, must include at least one digit)." });
     }
 
     if (!req.file) {

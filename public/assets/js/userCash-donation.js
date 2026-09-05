@@ -408,6 +408,11 @@ if (qrModalCloseBtn) qrModalCloseBtn.addEventListener("click", closeQrModal);
                 showToast("Please enter the Reference Number.", "error");
                 return;
             }
+            const refNumPattern = /^(?=.*[0-9])[a-zA-Z0-9]{10,15}$/;
+            if (!refNumPattern.test(refNumInput.value.trim())) {
+                showToast("Reference number must be 10-15 characters (letters and numbers) and include at least one digit. Please check your receipt and try again.", "error");
+                return;
+            }
             if (!amountInput || !amountInput.value.trim() || parseFloat(amountInput.value) <= 0) {
                 showToast("Please enter a valid donation amount greater than zero.", "error");
                 return;

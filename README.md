@@ -435,17 +435,26 @@ and if kaya is dapat may message sa gmail ng user na yung account nya has violat
 - when the org deactivate the account, the account can still login pero dapat hindi na eh
 
 # may bug (user & org side):
-kapag pinagdelete nakikita pa din ng user ang pets detailed kahit deleted na
 
-kulang pa ng validations and sanitations sa number sa donations
+# donation info (org)
+sa complete address under inkind it should be auto filled based on the org's profile
+
+tanungin kay jhy bakit need pa ng account name if nakakasubmit kahit wala yun? then pagdating sa organization is nakikita yung donor name (from profile) which is parang walang silbi yung account name
+
+# donation (user)
+sa cash and inkind donation dapat active pa din yung blue highlight sa donation tab sa sidebar
 
 sa mga description dapat hindi nalalagyan ng nonsense na text sa mga reason especially sa application 
 (user & org side) much better if may parang pagpipilian ang org at user na ilalagay na message ara hindi makaubmit ng nonsense na text
 
+kulang pa ng validations and sanitations sa quantity sa inkind donations (user)
+
+tanungin kay jhy bakit need pa ng account name if nakakasubmit kahit wala yun? then pagdating sa organization is nakikita yung donor name (from profile) which is parang walang silbi yung account name
+
 # done na ayusin:
 - in pending ng org (after logging in), hindi nakiclick ang hamburger sidebar, logout kapag nakamaliit yung web browser ✓
 
-- feedback
+- feedback ✓
 
 -  nadedetect ang user and org logging in, attempts for security purposes (logs admin) ✓
 
@@ -489,6 +498,10 @@ Admin side:
 - feedback maglagay ng sort or filter dropdown ✓
 
 - display rating ng users ✓
+
+- kapag pinagdelete nakikita pa din ng user ang pets detailed kahit deleted na (org & user) ✓
+
+- may validations and sanitations sa numbers sa donations (org) ✓
 
 # RUN THIS IN THE DB, MAKE SURE TO IMPORT THE application_interview TABLE IN THE DB BEFORE DOING THIS (AUG 29, 2026):
 

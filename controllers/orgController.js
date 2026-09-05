@@ -1292,11 +1292,20 @@ exports.updatePaymentInfo = async (req, res) => {
                 ? String(gcash_name).trim()
                 : null;
 
+        const phMobileRegex = /^09\d{9}$/;
+
+        const rawGcashNumber =
+            gcash_number ? String(gcash_number).replace(/\D/g, "") : "";
+
+        if (rawGcashNumber && !phMobileRegex.test(rawGcashNumber)) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid GCash number. It must be exactly 11 digits and start with 09 (e.g., 09123456789)."
+            });
+        }
+
         const submittedGcashNumber =
-            gcash_number &&
-            String(gcash_number).trim()
-                ? String(gcash_number).trim()
-                : null;
+            rawGcashNumber ? rawGcashNumber : null;
 
         const submittedMayaName =
             maya_name &&
@@ -1304,11 +1313,18 @@ exports.updatePaymentInfo = async (req, res) => {
                 ? String(maya_name).trim()
                 : null;
 
+        const rawMayaNumber =
+            maya_number ? String(maya_number).replace(/\D/g, "") : "";
+
+        if (rawMayaNumber && !phMobileRegex.test(rawMayaNumber)) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid Maya number. It must be exactly 11 digits and start with 09 (e.g., 09123456789)."
+            });
+        }
+
         const submittedMayaNumber =
-            maya_number &&
-            String(maya_number).trim()
-                ? String(maya_number).trim()
-                : null;
+            rawMayaNumber ? rawMayaNumber : null;
 
         // =====================================================
         // NORMALIZE IN-KIND VALUES

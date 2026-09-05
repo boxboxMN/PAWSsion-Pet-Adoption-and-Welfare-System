@@ -33,6 +33,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         togglePaymentMethodFields(); // trigger initially
     }
 
+    //restrict input fields to digits only
+    restrictToDigitsOnly("inputAccountNum", 11);
+    restrictToDigitsOnly("inputMayaNum", 11);
+
     // Load Initial Data
     fetchPaymentDetails();
     fetchDonations();
@@ -58,6 +62,30 @@ function togglePaymentMethodFields() {
         gcashGroup.classList.remove('hidden');
         mayaGroup.classList.add('hidden');
     }
+}
+
+//restricts input to digits only and limits length
+function restrictToDigitsOnly(inputId, maxLength = 11) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+
+    input.addEventListener("input", function () {
+        const cleaned = this.value.replace(/\D/g, "").slice(0, maxLength);
+        if (this.value !== cleaned) {
+            this.value = cleaned;
+        }
+    });
+
+    // Pinipigilan din ang pag-paste ng hindi-numeric na text
+    input.addEventListener("paste", function (e) {
+        const pastedText = (e.clipboardData || window.clipboardData).getData("text");
+        if (/\D/.test(pastedText)) {
+            e.preventDefault();
+            const cleaned = pastedText.replace(/\D/g, "").slice(0, maxLength);
+            const cursorPos = this.selectionStart;
+            this.value = this.value.slice(0, cursorPos) + cleaned + this.value.slice(this.selectionEnd);
+        }
+    });
 }
 
 /**
@@ -1254,6 +1282,27 @@ async function savePaymentDetails(e) {
                 : "";
         };
 
+        const phMobileRegex = /^09\d{9}$/;
+
+        const validateMobileNumber = (value, label, errorElId) => {
+            const errorEl = document.getElementById(errorElId);
+            const digitsOnly = value.replace(/\D/g, "");
+
+            if (!digitsOnly) {
+                // Wala namang ibinigay na number, hayaan lang — hindi required field
+                if (errorEl) errorEl.classList.add("hidden");
+                return { valid: true, value: "" };
+            }
+
+            if (!phMobileRegex.test(digitsOnly)) {
+                if (errorEl) errorEl.classList.remove("hidden");
+                return { valid: false, value: digitsOnly };
+            }
+
+            if (errorEl) errorEl.classList.add("hidden");
+            return { valid: true, value: digitsOnly };
+        };
+
         // =====================================================
         // GET CURRENT FORM VALUES
         // =====================================================
@@ -1311,6 +1360,28 @@ async function savePaymentDetails(e) {
                 )
         };
 
+         // =====================================================
+        // VALIDATE GCASH / MAYA NUMBER FORMAT BEFORE SAVING
+        // =====================================================
+
+        const gcashCheck = validateMobileNumber(current.gcash_number, "GCash", "gcashNumError");
+        const mayaCheck = validateMobileNumber(current.maya_number, "Maya", "mayaNumError");
+
+        if (!gcashCheck.valid || !mayaCheck.valid) {
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = originalBtnText;
+            Swal.fire({
+                icon: 'error',
+                title: 'Invalid Number',
+                text: 'Please enter a valid 11-digit GCash/Maya number starting with 09 (e.g., 09123456789).',
+                confirmButtonColor: '#EF4444'
+            });
+            return;
+        }
+
+        // Gamitin ang na-clean (digits-only) na number sa halip na raw input
+        current.gcash_number = gcashCheck.value;
+        current.maya_number = mayaCheck.value;
 
         // =====================================================
         // PREVIOUS VALUES
