@@ -419,23 +419,18 @@ HOW TO RUN WITH WORKING MATCHMAKING FEATURE
     *terminal: node server.js (this should be in new terminal)
 
 # mga need pa ayusin
-- Feedback & notification (user, org, & admin side)
+- notification (user, org, & admin side)
 
 - sa notification dapat nakikita na yung feedback is naresolved na (pets org)
-
--  nadedetect ang user and org logging in, attempts for security purposes (logs admin)
-
-- blocked attempts logged (e.g. "a suspended user tried to log in")
 
 - fixed also the UI in the admin profile, and make sure that when editing a profile or password, it is safe
 
 - when banning/disabled an account it should have a warning first from the user
-and if kaya is dapat may message sa gmail ng user na yung account nya has vioalted the policy or something
+and if kaya is dapat may message sa gmail ng user na yung account nya has violated the policy or something
 
 - ayusin ang nasa url dapat walang .html na makikita doon
 
-- in pending ng org (after logging in), hindi nakiclick ang hamburger sidebar, logout kapag nakamaliit yung web browser
-
+- yung pending pa ang org is hindi nakikita sa logs na naglogin sya
 
 # may bug (user & org side):
 kapag pinagdelete nakikita pa din ng user ang pets detailed kahit deleted na
@@ -446,6 +441,14 @@ sa mga description dapat hindi nalalagyan ng nonsense na text sa mga reason espe
 (user & org side) much better if may parang pagpipilian ang org at user na ilalagay na message ara hindi makaubmit ng nonsense na text
 
 # done na ayusin:
+- in pending ng org (after logging in), hindi nakiclick ang hamburger sidebar, logout kapag nakamaliit yung web browser ✓
+
+- feedback
+
+-  nadedetect ang user and org logging in, attempts for security purposes (logs admin) ✓
+
+- blocked attempts logged suspended,banneda, disabled (e.g. "a suspended user tried to log in") ✓
+
 - Org Profile: 
     ✓ sanitation & validation of contact number
     ✓ May problem pa sa pagkuha ng profile sa mismong dashboard hindi nareread ng maayos if ibang org
@@ -624,6 +627,10 @@ ALTER TABLE activity_logs MODIFY COLUMN account_id INT NULL;
     Added logs but not tested yet:
         - scheduled/ recheduled and approved, declined adoption application
 
+    -  nadedetect ang user and org logging in, attempts for security purposes (logs admin) ✓
+
+- blocked attempts logged suspended,banneda, disabled (e.g. "a suspended user tried to log in") ✓
+
 - Admin:
     Resolve/unresolve/archive/unarchive feedback (hindi pa to natetest)
     Create/edit/delete/restore/purge/reorder a guide section
@@ -631,5 +638,5 @@ ALTER TABLE activity_logs MODIFY COLUMN account_id INT NULL;
     Suspend/ban a user (hindi pa to natetest)
     Approve/reject an organization (hindi pa to natetest)
     Update own admin profile (hindi pa to natetest)
-    
+
     the email na doesn't exist is nalalagay sa logs ✓

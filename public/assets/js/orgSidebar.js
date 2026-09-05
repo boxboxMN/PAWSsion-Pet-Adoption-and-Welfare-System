@@ -201,8 +201,31 @@ function setupLogoutControl() {
 
         // 3. Ituloy ang Logout (Confirm)
         if (confirmLogoutBtn) {
-            confirmLogoutBtn.addEventListener("click", () => {
-                window.location.href = "/auth/login.html";
+            confirmLogoutBtn.addEventListener("click", async () => {
+                confirmLogoutBtn.disabled = true;
+                confirmLogoutBtn.textContent = "Logging out...";
+
+                try {
+                    const response = await fetch("/auth/logout", {
+                        method: "POST",
+                        credentials: "include"
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok && data.success) {
+                        window.location.href = "/auth/login.html";
+                    } else {
+                        confirmLogoutBtn.disabled = false;
+                        confirmLogoutBtn.textContent = "Yes, Logout";
+                        alert(data.message || "Logout failed. Please try again.");
+                    }
+                } catch (error) {
+                    console.error("Logout error:", error);
+                    confirmLogoutBtn.disabled = false;
+                    confirmLogoutBtn.textContent = "Yes, Logout";
+                    alert("Unable to logout. Please try again.");
+                }
             });
         }
     }

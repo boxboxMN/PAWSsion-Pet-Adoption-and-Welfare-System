@@ -168,18 +168,22 @@ if (account.role === "organization" && account.status === "pending") {
 
 
     if (account.status === "disabled") {
+        await logActivity(account.account_id, "login_blocked", "auth", account.account_id, "Account disabled");
         return res.status(403).send("This account has been disabled.");
     }
 
     if (account.status === "suspended") {
+        await logActivity(account.account_id, "login_blocked", "auth", account.account_id, "Account suspended");
         return res.status(403).send("This account has been suspended.");
     }
 
     if (account.status === "banned") {
+        await logActivity(account.account_id, "login_blocked", "auth", account.account_id, "Account banned");
         return res.status(403).send("This account has been permanently banned.");
     }
 
     if (account.status === "rejected") {
+        await logActivity(account.account_id, "login_blocked", "auth", account.account_id, "Account rejected");
         return res.status(403).send("Your account has been rejected.");
     }
 
