@@ -1331,28 +1331,24 @@ exports.updatePaymentInfo = async (req, res) => {
         // =====================================================
 
         const submittedDropoffLocationName =
-            dropoff_location_name &&
-            String(dropoff_location_name).trim()
-                ? String(dropoff_location_name).trim()
-                : null;
+            dropoff_location_name !== undefined
+            ? String(dropoff_location_name).trim()
+            : undefined;
 
         const submittedDropoffAddress =
-            dropoff_address &&
-            String(dropoff_address).trim()
-                ? String(dropoff_address).trim()
-                : null;
+            dropoff_address !== undefined
+            ? String(dropoff_address).trim()
+            : undefined;
 
         const submittedDropoffHours =
-            dropoff_hours &&
-            String(dropoff_hours).trim()
-                ? String(dropoff_hours).trim()
-                : null;
+            dropoff_hours !== undefined
+            ? String(dropoff_hours).trim()
+            : undefined;
 
         const submittedDropoffNotes =
-            dropoff_notes &&
-            String(dropoff_notes).trim()
-                ? String(dropoff_notes).trim()
-                : null;
+            dropoff_notes !== undefined
+            ? String(dropoff_notes).trim()
+            : undefined;
 
         // =====================================================
         // PREPARE PAYMENT VALUES
@@ -1442,6 +1438,29 @@ exports.updatePaymentInfo = async (req, res) => {
                 finalMayaQr =
                     mayaQrFile;
             }
+        }
+
+        // =====================================================
+        // REQUIRE COMPLETE DETAILS FOR THE ACTIVE PAYMENT METHOD
+        // =====================================================
+
+        const missingFields = [];
+
+        if (selectedPaymentMethod === "gcash") {
+            if (!finalGcashName) missingFields.push("GCash Account Name");
+            if (!finalGcashNumber) missingFields.push("GCash Number");
+            if (!finalGcashQr) missingFields.push("GCash QR Code Image");
+        } else {
+            if (!finalMayaName) missingFields.push("Maya Account Name");
+            if (!finalMayaNumber) missingFields.push("Maya Number");
+            if (!finalMayaQr) missingFields.push("Maya QR Code Image");
+        }
+
+        if (missingFields.length > 0) {
+            return res.status(400).json({
+                success: false,
+                message: `Incomplete ${selectedPaymentMethod === "maya" ? "Maya" : "GCash"} details. Missing: ${missingFields.join(", ")}. All fields, including the QR code image, are required for your active payment method.`
+            });
         }
 
         // =====================================================
@@ -1549,28 +1568,28 @@ exports.updatePaymentInfo = async (req, res) => {
         // =====================================================
 
         if (
-            submittedDropoffLocationName !== null
+            submittedDropoffLocationName !== undefined
         ) {
             finalDropoffLocationName =
                 submittedDropoffLocationName;
         }
 
         if (
-            submittedDropoffAddress !== null
+            submittedDropoffAddress !== undefined
         ) {
             finalDropoffAddress =
                 submittedDropoffAddress;
         }
 
         if (
-            submittedDropoffHours !== null
+            submittedDropoffHours !== undefined
         ) {
             finalDropoffHours =
                 submittedDropoffHours;
         }
 
         if (
-            submittedDropoffNotes !== null
+            submittedDropoffNotes !== undefined
         ) {
             finalDropoffNotes =
                 submittedDropoffNotes;
@@ -1579,6 +1598,32 @@ exports.updatePaymentInfo = async (req, res) => {
         if (dropoffImageFile) {
             finalDropoffImage =
                 dropoffImageFile;
+        }
+
+         // =====================================================
+        // Kung may laman ang alinman sa In-Kind fields,
+        // dapat kumpleto lahat maliban sa Notes
+        // =====================================================
+
+        const anyInkindProvided =
+            !!finalDropoffLocationName ||
+            !!finalDropoffAddress ||
+            !!finalDropoffHours ||
+            !!finalDropoffImage;
+
+        if (anyInkindProvided) {
+            const missingInkind = [];
+            if (!finalDropoffLocationName) missingInkind.push("Location Name");
+            if (!finalDropoffAddress) missingInkind.push("Complete Address");
+            if (!finalDropoffHours) missingInkind.push("Drop-Off Days & Hours");
+            if (!finalDropoffImage) missingInkind.push("Drop-Off Location Photo");
+
+            if (missingInkind.length > 0) {
+                return res.status(400).json({
+                    success: false,
+                    message: `In-Kind Drop-Off setup is incomplete. Missing: ${missingInkind.join(", ")}.`
+                });
+            }
         }
 
         // =====================================================

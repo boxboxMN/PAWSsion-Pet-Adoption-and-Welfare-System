@@ -143,6 +143,62 @@ const Organization = {
             );
         }
         return true;
+    },
+
+     // Kunin ang weekly drop-off hours (para sa in-kind donations); kung wala pang naka-set, i-seed ng defaults
+     getDropoffHours: async (accountId) => {
+        const organizationId = await Organization.getOrganizationIdByAccountId(accountId);
+
+        const [rows] = await pool.query(
+            `SELECT day_of_week, is_open, start_time, end_time FROM organization_dropoff_hours WHERE organization_id = ? ORDER BY day_of_week`,
+            [organizationId]
+        );
+
+        if (rows.length === 7) return rows;
+
+        const defaults = [];
+        for (let day = 0; day <= 6; day++) {
+            defaults.push({
+                organization_id: organizationId,
+                day_of_week: day,
+                is_open: day === 0 ? 0 : 1,
+                start_time: '08:00:00',
+                end_time: '18:00:00'
+            });
+        }
+
+        for (const d of defaults) {
+            await pool.query(
+                `INSERT INTO organization_dropoff_hours (organization_id, day_of_week, is_open, start_time, end_time) 
+                 VALUES (?, ?, ?, ?, ?)
+                 ON DUPLICATE KEY UPDATE day_of_week = day_of_week`,
+                [d.organization_id, d.day_of_week, d.is_open, d.start_time, d.end_time]
+            );
+        }
+
+        const [seededRows] = await pool.query(
+            `SELECT day_of_week, is_open, start_time, end_time FROM organization_dropoff_hours WHERE organization_id = ? ORDER BY day_of_week`,
+            [organizationId]
+        );
+        return seededRows;
+    },
+
+    // I-save ang bagong weekly drop-off hours (array ng 7 entries, isa per day)
+    updateDropoffHours: async (accountId, days) => {
+        const organizationId = await Organization.getOrganizationIdByAccountId(accountId);
+
+        for (const d of days) {
+            await pool.query(
+                `INSERT INTO organization_dropoff_hours (organization_id, day_of_week, is_open, start_time, end_time)
+                 VALUES (?, ?, ?, ?, ?)
+                 ON DUPLICATE KEY UPDATE 
+                    is_open = VALUES(is_open),
+                    start_time = VALUES(start_time),
+                    end_time = VALUES(end_time)`,
+                [organizationId, d.day_of_week, d.is_open ? 1 : 0, d.start_time, d.end_time]
+            );
+        }
+        return true;
     }
 };
 

@@ -155,9 +155,15 @@ if (qrModalCloseBtn) qrModalCloseBtn.addEventListener("click", closeQrModal);
 
             const data = await response.json();
 
-            organizations = Array.isArray(data)
-                ? data
-                : (data.organizations || data.data || []);
+            const allOrganizations = Array.isArray(data)
+            ? data
+            : (data.organizations || data.data || []);
+
+            // Ipakita lang ang mga org na may configured GCash o Maya na payment method
+            organizations = allOrganizations.filter(org =>
+                (org.gcash_number && org.gcash_number.trim() !== "") ||
+                (org.maya_number && org.maya_number.trim() !== "")
+            );
 
             const container = document.getElementById("orgContainer");
             if (!container) return;
@@ -166,8 +172,8 @@ if (qrModalCloseBtn) qrModalCloseBtn.addEventListener("click", closeQrModal);
 
             if (!organizations || organizations.length === 0) {
                 container.innerHTML = `
-                    <p class="text-gray-500 text-center col-span-3">
-                        No verified organizations available at the moment.
+                     <p class="text-gray-500 text-center col-span-3">
+                        No organizations currently accept cash donations. Please check back later.
                     </p>
                 `;
                 return;
@@ -262,6 +268,27 @@ if (qrModalCloseBtn) qrModalCloseBtn.addEventListener("click", closeQrModal);
             if (numEl) numEl.textContent = "Select an organization";
             if (qrEl) qrEl.classList.add("hidden");
             return;
+        }
+
+        // Ipakita lang sa dropdown ang payment method na talagang naka-configure ng org
+        const hasGcash = org.gcash_number && org.gcash_number.trim() !== "";
+        const hasMaya = org.maya_number && org.maya_number.trim() !== "";
+
+        if (paymentMethodSelect) {
+            const previousValue = paymentMethodSelect.value;
+            let optionsHtml = "";
+            if (hasGcash) optionsHtml += `<option value="GCash">GCash</option>`;
+            if (hasMaya) optionsHtml += `<option value="Maya">Maya</option>`;
+            paymentMethodSelect.innerHTML = optionsHtml;
+
+            // Panatilihin ang dating napili kung available pa rin ito, kung hindi, gamitin ang una sa listahan
+            if (hasGcash && previousValue === "GCash") {
+                paymentMethodSelect.value = "GCash";
+            } else if (hasMaya && previousValue === "Maya") {
+                paymentMethodSelect.value = "Maya";
+            } else {
+                paymentMethodSelect.value = paymentMethodSelect.options[0]?.value || "";
+            }
         }
 
         const method = paymentMethodSelect ? paymentMethodSelect.value : "GCash";

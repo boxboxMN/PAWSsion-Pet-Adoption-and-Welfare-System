@@ -1019,6 +1019,7 @@ function openReviewModal(id) {
     document.getElementById("reviewAmount").value = parseFloat(donation.amount || 0).toFixed(2);
     document.getElementById("reviewRefNo").value = donation.reference_number || donation.reference_no || "N/A";
     document.getElementById("reviewMethod").value = (donation.payment_method || 'GCASH').toUpperCase();
+    document.getElementById("reviewAccountName").value = donation.gcash_account_name || "N/A";
     
     let receiptPath = "";
     if (donation.receipt_path) {
@@ -1202,11 +1203,37 @@ async function rejectDonation() {
  * Opens the donation settings
  * configuration modal[cite: 5].
  */
-function openConfigModal() {
+async function openConfigModal() {
     const modal = document.getElementById('paymentConfigModal');
     if (modal) {
         modal.classList.remove('opacity-0', 'pointer-events-none');
         modal.querySelector('div').classList.remove('scale-95');
+    }
+
+    fetchDropoffHours();
+    // Auto-fill ang Complete Address galing sa Org Profile, pero LANG kung wala pa itong laman
+    // (hindi papatungan ang address na sadyang na-customize na ng org para sa drop-off)
+    const addressInput = document.getElementById("inputLocationAddress");
+    if (addressInput && !addressInput.value.trim()) {
+        try {
+            const res = await fetch("/api/organization/profile");
+            if (res.ok) {
+                const data = await res.json();
+                const addressParts = [
+                    data.address,
+                    data.barangay ? `Brgy. ${data.barangay}` : "",
+                    data.city,
+                    data.province,
+                    data.zip_code
+                ].filter(part => part && String(part).trim() !== "");
+
+                if (addressParts.length > 0) {
+                    addressInput.value = addressParts.join(", ");
+                }
+            }
+        } catch (err) {
+            console.error("Unable to auto-fill address from profile:", err);
+        }
     }
 }
 
@@ -1370,18 +1397,96 @@ async function savePaymentDetails(e) {
         if (!gcashCheck.valid || !mayaCheck.valid) {
             saveBtn.disabled = false;
             saveBtn.innerHTML = originalBtnText;
-            Swal.fire({
-                icon: 'error',
-                title: 'Invalid Number',
-                text: 'Please enter a valid 11-digit GCash/Maya number starting with 09 (e.g., 09123456789).',
-                confirmButtonColor: '#EF4444'
-            });
+            showToast("Please enter a valid 11-digit GCash/Maya number starting with 09 (e.g., 09123456789).", "error");
             return;
         }
 
         // Gamitin ang na-clean (digits-only) na number sa halip na raw input
         current.gcash_number = gcashCheck.value;
         current.maya_number = mayaCheck.value;
+
+        // =====================================================
+        // REQUIRE COMPLETE DETAILS FOR THE ACTIVE PAYMENT METHOD
+        // =====================================================
+
+        const qrPreviewEl = document.getElementById("qrPreview");
+        const mayaQrPreviewEl = document.getElementById("mayaQrPreview");
+        const qrInputEl = document.getElementById("qrInput");
+        const mayaQrInputEl = document.getElementById("mayaQrInput");
+
+        // May bagong napiling file ba, o may existing QR na naka-save na (hindi hidden ang preview)?
+        const hasGcashQr =
+            (qrInputEl && qrInputEl.files && qrInputEl.files.length > 0) ||
+            (qrPreviewEl && !qrPreviewEl.classList.contains("hidden"));
+
+        const hasMayaQr =
+            (mayaQrInputEl && mayaQrInputEl.files && mayaQrInputEl.files.length > 0) ||
+            (mayaQrPreviewEl && !mayaQrPreviewEl.classList.contains("hidden"));
+
+        const missingFields = [];
+
+        if (current.payment_method === "maya") {
+            if (!current.maya_name) missingFields.push("Maya Account Name");
+            if (!current.maya_number) missingFields.push("Maya Number");
+            if (!hasMayaQr) missingFields.push("Maya QR Code Image");
+        } else {
+            if (!current.gcash_name) missingFields.push("GCash Account Name");
+            if (!current.gcash_number) missingFields.push("GCash Number");
+            if (!hasGcashQr) missingFields.push("GCash QR Code Image");
+        }
+
+        if (missingFields.length > 0) {
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = originalBtnText;
+            showToast(
+                `Incomplete ${current.payment_method === "maya" ? "Maya" : "GCash"} details — missing: ${missingFields.join(", ")}. All fields, including the QR code, are required.`,
+                "error"
+            );
+            return;
+        }
+
+        // =====================================================
+        // Kung sinimulan ng org ang In-Kind section,
+        // dapat kumpleto lahat maliban sa Important Notes
+        // =====================================================
+
+        const locationPreviewEl = document.getElementById("locationPreview");
+        const locationImgInputEl = document.getElementById("locationImgInput");
+
+        const hasLocationPhoto =
+            (locationImgInputEl && locationImgInputEl.files && locationImgInputEl.files.length > 0) ||
+            (locationPreviewEl && locationPreviewEl.src && !locationPreviewEl.src.includes("placeholder.com"));
+
+        const inkindValues = {
+            locationName: current.dropoff_location_name,
+            address: current.dropoff_address,
+            hours: current.dropoff_hours,
+            hasPhoto: hasLocationPhoto
+        };
+
+        const anyInkindFilled =
+            !!inkindValues.locationName ||
+            !!inkindValues.address ||
+            !!inkindValues.hours ||
+            inkindValues.hasPhoto;
+
+        if (anyInkindFilled) {
+            const missingInkindFields = [];
+            if (!inkindValues.locationName) missingInkindFields.push("Location Name");
+            if (!inkindValues.address) missingInkindFields.push("Complete Address");
+            if (!inkindValues.hours) missingInkindFields.push("Drop-Off Days & Hours");
+            if (!inkindValues.hasPhoto) missingInkindFields.push("Drop-Off Location Photo");
+
+            if (missingInkindFields.length > 0) {
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = originalBtnText;
+                showToast(
+                    `You've started setting up In-Kind Drop-Off — please also complete: ${missingInkindFields.join(", ")}.`,
+                    "error"
+                );
+                return;
+            }
+        }
 
         // =====================================================
         // PREVIOUS VALUES
@@ -2396,3 +2501,156 @@ document.addEventListener(
 
     }
 );
+
+// ==========================================
+// DROP-OFF HOURS EDITOR (separate schedule from interview availability)
+// ==========================================
+
+const DROPOFF_DAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+let ORG_DROPOFF_HOURS = DROPOFF_DAY_NAMES.map((_, i) => ({
+    day_of_week: i,
+    is_open: i !== 0,
+    start_time: "08:00:00",
+    end_time: "18:00:00"
+}));
+
+function formatTimeToAMPM(timeStr) {
+    const [hStr, mStr] = timeStr.split(":");
+    let h = parseInt(hStr, 10);
+    const m = mStr || "00";
+    const ampm = h >= 12 ? "PM" : "AM";
+    h = h % 12;
+    if (h === 0) h = 12;
+    return `${h}:${m} ${ampm}`;
+}
+
+function generateDropoffHoursSummary(days) {
+    const sorted = [...days].sort((a, b) => a.day_of_week - b.day_of_week);
+    const groups = [];
+
+    for (const d of sorted) {
+        const key = d.is_open ? `${d.start_time}-${d.end_time}` : "closed";
+        const last = groups[groups.length - 1];
+        if (last && last.key === key) {
+            last.endDow = d.day_of_week;
+        } else {
+            groups.push({ key, startDow: d.day_of_week, endDow: d.day_of_week, is_open: !!d.is_open, start_time: d.start_time, end_time: d.end_time });
+        }
+    }
+
+    const openGroups = groups.filter(g => g.is_open);
+    if (openGroups.length === 0) return "Closed";
+
+    return openGroups.map(g => {
+        const dayLabel = g.startDow === g.endDow
+            ? DROPOFF_DAY_NAMES[g.startDow]
+            : `${DROPOFF_DAY_NAMES[g.startDow]} - ${DROPOFF_DAY_NAMES[g.endDow]}`;
+        return `${dayLabel} ${formatTimeToAMPM(g.start_time)} - ${formatTimeToAMPM(g.end_time)}`;
+    }).join(", ");
+}
+
+async function fetchDropoffHours() {
+    try {
+        const res = await fetch('/api/organization/dropoff-hours', { credentials: 'include' });
+        const data = await res.json();
+        if (data.success && Array.isArray(data.hours) && data.hours.length === 7) {
+            ORG_DROPOFF_HOURS = data.hours;
+        }
+    } catch (err) {
+        console.error("Failed to load drop-off hours:", err);
+    }
+
+    const summaryEl = document.getElementById("dropoffHoursSummary");
+    const hiddenInput = document.getElementById("inputOperatingHours");
+    const summary = generateDropoffHoursSummary(ORG_DROPOFF_HOURS);
+    if (summaryEl) summaryEl.textContent = summary;
+    if (hiddenInput) hiddenInput.value = summary;
+}
+
+function openEditDropoffHoursModal() {
+    const body = document.getElementById("dropoffHoursFormBody");
+    body.innerHTML = DROPOFF_DAY_NAMES.map((name, dow) => {
+        const day = ORG_DROPOFF_HOURS.find(d => d.day_of_week === dow) || ORG_DROPOFF_HOURS[dow];
+        const startVal = (day.start_time || "08:00:00").slice(0, 5);
+        const endVal = (day.end_time || "18:00:00").slice(0, 5);
+        return `
+            <div class="dropoff-day-row flex items-center gap-3 p-3 rounded-xl border border-gray-100 bg-gray-50/50" data-day="${dow}">
+                <label class="flex items-center gap-2 w-28 shrink-0 cursor-pointer">
+                    <input type="checkbox" class="dropoff-day-open-toggle w-4 h-4 accent-indigo-600 cursor-pointer" data-day="${dow}" ${day.is_open ? 'checked' : ''} onchange="toggleDropoffDayRow(${dow})">
+                    <span class="text-sm font-semibold text-gray-700">${name.slice(0, 3)}</span>
+                </label>
+                <input type="time" class="dropoff-day-start-input flex-1 border border-gray-200 rounded-lg px-2 py-1.5 text-sm" data-day="${dow}" value="${startVal}" ${day.is_open ? '' : 'disabled'}>
+                <span class="text-gray-400 text-sm">to</span>
+                <input type="time" class="dropoff-day-end-input flex-1 border border-gray-200 rounded-lg px-2 py-1.5 text-sm" data-day="${dow}" value="${endVal}" ${day.is_open ? '' : 'disabled'}>
+            </div>
+        `;
+    }).join('');
+
+    document.getElementById("editDropoffHoursModal").classList.remove("hidden");
+}
+
+function closeEditDropoffHoursModal() {
+    document.getElementById("editDropoffHoursModal").classList.add("hidden");
+}
+
+function toggleDropoffDayRow(dow) {
+    const row = document.querySelector(`#dropoffHoursFormBody .dropoff-day-row[data-day="${dow}"]`);
+    if (!row) return;
+    const isOpen = row.querySelector('.dropoff-day-open-toggle').checked;
+    row.querySelector('.dropoff-day-start-input').disabled = !isOpen;
+    row.querySelector('.dropoff-day-end-input').disabled = !isOpen;
+}
+
+async function saveDropoffHours() {
+    const rows = document.querySelectorAll('#dropoffHoursFormBody .dropoff-day-row');
+    const days = [];
+
+    for (const row of rows) {
+        const dow = parseInt(row.dataset.day, 10);
+        const isOpen = row.querySelector('.dropoff-day-open-toggle').checked;
+        const startTime = row.querySelector('.dropoff-day-start-input').value;
+        const endTime = row.querySelector('.dropoff-day-end-input').value;
+
+        if (isOpen && (!startTime || !endTime || startTime >= endTime)) {
+            showToast(`${DROPOFF_DAY_NAMES[dow]}: Start time must be earlier than end time.`, "error");
+            return;
+        }
+
+        days.push({
+            day_of_week: dow,
+            is_open: isOpen,
+            start_time: startTime ? `${startTime}:00` : "08:00:00",
+            end_time: endTime ? `${endTime}:00` : "18:00:00"
+        });
+    }
+
+    const saveBtn = document.getElementById("saveDropoffHoursBtn");
+    saveBtn.disabled = true;
+    saveBtn.textContent = "Saving...";
+
+    try {
+        const res = await fetch('/api/organization/dropoff-hours', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ days })
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            ORG_DROPOFF_HOURS = days;
+            const summary = generateDropoffHoursSummary(days);
+            document.getElementById("dropoffHoursSummary").textContent = summary;
+            document.getElementById("inputOperatingHours").value = summary;
+            closeEditDropoffHoursModal();
+        } else {
+            showToast(data.message || "Failed to save drop-off hours.", "error");
+        }
+    } catch (err) {
+        console.error(err);
+        showToast("Something went wrong while saving drop-off hours.", "error");
+    } finally {
+        saveBtn.disabled = false;
+        saveBtn.textContent = "Save Hours";
+    }
+}

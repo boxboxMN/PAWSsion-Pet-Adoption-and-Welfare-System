@@ -8,6 +8,18 @@ document.addEventListener('DOMContentLoaded', async function() {
     const termsCheckbox = document.getElementById('termsCheckbox');
     const submitBtn = document.getElementById('submitInKindBtn');
 
+    // Pinipigilan ang pag-type ng symbols/emoji sa Quantity field
+    // Pinapayagan: digits, letters, at space lang (para sa mga tulad ng "5kg", "3 packs")
+    if (quantityInput) {
+        quantityInput.setAttribute("maxlength", "5");
+        quantityInput.addEventListener("input", function () {
+            const cleaned = this.value.replace(/\D/g, "");
+            if (this.value !== cleaned) {
+                this.value = cleaned;
+            }
+        });
+    }
+
     const dropoffTitle = document.getElementById('dropoffTitle');
     const dropoffAddress = document.getElementById('dropoffAddress');
     const dropoffHours = document.getElementById('dropoffHours');
@@ -22,61 +34,6 @@ document.addEventListener('DOMContentLoaded', async function() {
     const orgPhone = document.getElementById("modalOrgPhone");
     const orgEmail = document.getElementById("modalOrgEmail");
     const orgMission = document.getElementById("modalOrgMission");
-
-    /**
-     * Loads an HTML component (e.g., sidebar or header)[cite: 2]
-     */
-    async function loadComponent(id, file) {
-        try {
-            const response = await fetch(file);
-            if (!response.ok) throw new Error(`Cannot load ${file}`);
-            document.getElementById(id).innerHTML = await response.text();
-        } catch (error) {
-            console.error(error);
-        }
-    }
-
-    Promise.all([
-        loadComponent("sidebar", "/user/userSidebar.html"),
-        loadComponent("header", "/user/userHeader.html")
-    ])
-    .then(() => {
-        const sidebar = document.getElementById("sidebar");
-        const header = document.getElementById("header");
-        if (sidebar) sidebar.style.visibility = "visible";
-        if (header) header.style.visibility = "visible";
-
-        const currentPath = window.location.pathname;
-        const pageTitle = document.getElementById("pageTitle");
-
-        const customTitles = {
-            "/profile": "Profile",
-            "/cash-donation": "Donation",
-            "/inkind-donation": "Donation"
-        };
-
-        if (pageTitle && customTitles[currentPath]) {
-            pageTitle.textContent = customTitles[currentPath];
-        }
-
-        const links = document.querySelectorAll("#sidebar .nav-link");
-        links.forEach(link => {
-            const href = link.getAttribute("href");
-            const isActive = href === currentPath || (href !== "/dashboard" && currentPath.startsWith(href));
-
-            if (isActive) {
-                link.className = "nav-link flex items-center gap-4 px-5 py-4 rounded-2xl bg-blue-600 text-white shadow";
-                if (pageTitle && !customTitles[currentPath]) {
-                    pageTitle.textContent = link.dataset.title;
-                }
-            } else {
-                link.className = "nav-link flex items-center gap-4 px-5 py-4 rounded-2xl text-gray-800 hover:bg-blue-50 hover:text-blue-600 transition";
-            }
-        });
-
-        document.body.style.visibility = "visible";
-    })
-    .catch(error => console.error("Component load error:", error));
 
     /**
      * Returns a valid image URL.[cite: 2]
@@ -97,7 +54,12 @@ document.addEventListener('DOMContentLoaded', async function() {
     async function loadOrganizations() {
         try {
             const response = await fetch("/api/organizations");
-            organizations = await response.json();
+            const allOrganizations = await response.json();
+
+            // Ipakita lang ang mga org na may configured drop-off address para sa in-kind donations
+            organizations = (Array.isArray(allOrganizations) ? allOrganizations : []).filter(org =>
+                org.dropoff_address && org.dropoff_address.trim() !== ""
+            );
 
             const container = document.getElementById("orgContainer");
             if (!container) return;
@@ -105,7 +67,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             container.innerHTML = "";
 
             if (!organizations || organizations.length === 0) {
-                container.innerHTML = `<p class="text-gray-500 text-center col-span-3">No verified organizations available at the moment.</p>`;
+                container.innerHTML = `<p class="text-gray-500 text-center col-span-3">No organizations currently accept in-kind donations. Please check back later.</p>`;
                 return;
             }
 
@@ -294,11 +256,10 @@ if (submitBtn) {
             showToast("Invalid item name detected. Please enter a proper item description (e.g., Dry Dog Food, Canned Goods).", "error");
             return;
         }
-
-        const strictQuantityPattern = /^\d+(\s*[a-zA-Z]+)?$/;
+        const strictQuantityPattern = /^[1-9]\d*$/;
 
         if (!quantity || !strictQuantityPattern.test(quantity)) {
-            showToast("Please enter a valid quantity with a number (e.g., 5, 5kg, 3 packs).", "error");
+            showToast("Please enter a valid quantity (numbers only, greater than zero).", "error");
             return;
         }
 

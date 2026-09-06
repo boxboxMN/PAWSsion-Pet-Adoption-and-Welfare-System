@@ -441,21 +441,27 @@ and if kaya is dapat may message sa gmail ng user na yung account nya has violat
 # may bug (user & org side):
 
 # donation info (org)
-sa complete address under inkind it should be auto filled based on the org's profile
+sa complete address under inkind it should be auto filled based on the org's profile ✓
 
 tanungin kay jhy bakit need pa ng account name if nakakasubmit kahit wala yun? then pagdating sa organization is nakikita yung donor name (from profile) which is parang walang silbi yung account name
 
 # donation (user)
-sa cash and inkind donation dapat active pa din yung blue highlight sa donation tab sa sidebar
+sa cash and inkind donation dapat active pa din yung blue highlight sa donation tab sa sidebar ✓
 
 sa mga description dapat hindi nalalagyan ng nonsense na text sa mga reason especially sa application 
+
 (user & org side) much better if may parang pagpipilian ang org at user na ilalagay na message ara hindi makaubmit ng nonsense na text
 
-kulang pa ng validations and sanitations sa quantity sa inkind donations (user)
+ayusing ang swal error sa pagkasave changes kapag walang input ang account name (org) ✓
+
+kulang pa ng validations and sanitations sa quantity sa inkind donations (user) ✓
+
+kapag wala pang info na nilagay ang user about donation is hindi muna sya lalabas sa donation ng user since hindi pa yun ready for donation. same with showing payment method ✓
 
 tanungin kay jhy bakit need pa ng account name if nakakasubmit kahit wala yun? then pagdating sa organization is nakikita yung donor name (from profile) which is parang walang silbi yung account name
 
 # done na ayusin:
+- sa cash and inkind donation dapat active pa din yung blue highlight sa donation tab sa sidebar (user) ✓
 - in pending ng org (after logging in), hindi nakiclick ang hamburger sidebar, logout kapag nakamaliit yung web browser ✓
 
 - feedback ✓
@@ -631,6 +637,17 @@ ALTER TABLE activity_logs MODIFY COLUMN account_id INT NULL;
 
 ALTER TABLE accounts ADD COLUMN profile_verify_attempts INT NOT NULL DEFAULT 0;
 ALTER TABLE accounts ADD COLUMN profile_verify_locked_until TIMESTAMP NULL DEFAULT NULL;
+
+#  ORG drop off inkind donation
+CREATE TABLE organization_dropoff_hours (
+    organization_id INT NOT NULL,
+    day_of_week TINYINT NOT NULL,
+    is_open TINYINT(1) NOT NULL DEFAULT 1,
+    start_time TIME NOT NULL DEFAULT '08:00:00',
+    end_time TIME NOT NULL DEFAULT '18:00:00',
+    PRIMARY KEY (organization_id, day_of_week),
+    FOREIGN KEY (organization_id) REFERENCES organizations(organization_id) ON DELETE CASCADE
+);
 
 # ACTIVITY LOGS (yung narerecord sa admin):
 

@@ -626,14 +626,14 @@ exports.submitInKindDonation = async (req, res) => {
     const gibberishPattern = /(.)\1{3,}/;
     const validItemPattern = /^[a-zA-Z0-9\sñÑ-]{3,}$/;
     const hasVowel = /[aeiouAEIOU]/.test(cleanItemName);
-    const strictQuantityPattern = /^\d+(\s*[a-zA-Z]+)?$/;
+    const strictQuantityPattern = /^[1-9]\d*$/;
 
     if (cleanItemName.length < 3 || /^[0-9]+$/.test(cleanItemName) || !hasVowel || gibberishPattern.test(cleanItemName) || !validItemPattern.test(cleanItemName)) {
         return res.status(400).json({ success: false, error: "Invalid item name format. Please enter a real item description." });
     }
 
     if (!strictQuantityPattern.test(cleanQuantity)) {
-        return res.status(400).json({ success: false, error: "Invalid quantity format. Please include proper numbers and units (e.g., 5, 5kg, 3 packs)." });
+        return res.status(400).json({ success: false, error: "Invalid quantity. Please enter a whole number greater than zero (e.g., 5)." });
     }
 
     try {

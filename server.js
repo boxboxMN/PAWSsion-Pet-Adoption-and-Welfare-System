@@ -133,6 +133,11 @@ app.get("/api/organization/pending", async (req, res) => {
 //org profile
 app.get("/api/organization/profile", async (req, res) => {
 
+     // Pinipigilan ang browser mula sa pag-cache ng profile data (dapat laging updated/fresh)
+  res.set("Cache-Control", "no-store, no-cache, must-revalidate, private");
+  res.set("Pragma", "no-cache");
+  res.set("Expires", "0");
+
   if (!req.session.accountId) {
     return res.status(401).json({
         error: "Unauthorized"
@@ -460,9 +465,50 @@ app.put("/api/organization/availability", async (req, res) => {
     }
 });
 
+// org drop-off hours (donation settings — separate schedule from interview availability)
+app.get("/api/organization/dropoff-hours", async (req, res) => {
+    if (!req.session.accountId) {
+        return res.status(401).json({ success: false, message: "Unauthorized" });
+    }
+    try {
+        const hours = await Organization.getDropoffHours(req.session.accountId);
+        res.json({ success: true, hours });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false, message: "Server Error" });
+    }
+});
+
+app.put("/api/organization/dropoff-hours", async (req, res) => {
+    if (!req.session.accountId) {
+        return res.status(401).json({ success: false, message: "Unauthorized" });
+    }
+    try {
+        const { days } = req.body;
+        if (!Array.isArray(days) || days.length !== 7) {
+            return res.status(400).json({ success: false, message: "Invalid drop-off hours data." });
+        }
+        for (const d of days) {
+            if (typeof d.day_of_week !== 'number' || d.day_of_week < 0 || d.day_of_week > 6) {
+                return res.status(400).json({ success: false, message: "Invalid day_of_week value." });
+            }
+            if (d.is_open && (!d.start_time || !d.end_time || d.start_time >= d.end_time)) {
+                return res.status(400).json({ success: false, message: "Start time must be earlier than end time for open days." });
+            }
+        }
+        await Organization.updateDropoffHours(req.session.accountId, days);
+        res.json({ success: true, message: "Drop-off hours updated successfully." });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false, message: "Server Error" });
+    }
+});
+
 //org edit profile
 app.put("/api/organization/update-profile", uploadOrgPic.single('profile_pic'), async (req, res) => {
-  // 1. Siguraduhing naka-login ang user via session
+    res.set("Cache-Control", "no-store");
+    
+    // 1. Siguraduhing naka-login ang user via session
   if (!req.session.accountId) {
       return res.status(401).json({ message: "Unauthorized" });
   }

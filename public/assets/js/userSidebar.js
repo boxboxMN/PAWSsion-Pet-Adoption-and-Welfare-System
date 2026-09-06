@@ -191,7 +191,15 @@ async function loadSidebar(activePage = "") {
 
     document.querySelectorAll("#sidebar .nav-link").forEach(link => {
         const href = link.getAttribute("href");
-        const active = href === currentPath || (href !== "/dashboard" && currentPath.startsWith(href));
+        const extraPaths = (link.getAttribute("data-active-paths") || "")
+            .split(",")
+            .map(p => p.trim())
+            .filter(Boolean);
+
+        const active =
+            href === currentPath ||
+            (href !== "/dashboard" && currentPath.startsWith(href)) ||
+            extraPaths.includes(currentPath);
 
         if (active) {
             link.className = "nav-link flex items-center gap-4 px-5 py-4 rounded-2xl bg-blue-600 text-white shadow";
