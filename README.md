@@ -425,9 +425,9 @@ HOW TO RUN WITH WORKING MATCHMAKING FEATURE
 
 - fixed also the UI in the admin profile, and make sure that when editing a profile or password, it is safe ✓
 
-- magtest na muna ng new password
+- magtest na muna ng new password sa user, and org
 
-- addition sa profile, kapag naka 3 wrong attempts
+- addition sa profile, kapag naka 3 wrong attempts (user)
 
 - when banning/disabled an account it should have a warning first from the user
 and if kaya is dapat may message sa gmail ng user na yung account nya has violated the policy or something
@@ -436,7 +436,7 @@ and if kaya is dapat may message sa gmail ng user na yung account nya has violat
 
 - when the org deactivate the account, the account can still login pero dapat hindi na eh
 
-- mglagay din ng 5 attempts sa login
+- mglagay din ng 5 attempts sa login 
 
 # may bug (user & org side):
 

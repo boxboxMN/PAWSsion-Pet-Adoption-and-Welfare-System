@@ -2987,31 +2987,6 @@ exports.archiveKamustahanUpdate = async (req, res) => {
         res.status(500).json({ success: false, message: err.message });
     }
 };
-exports.submitCashDonation = async (req, res) => {
-    try {
-        const { 
-            campaign_id, 
-            donor_name, 
-            amount, 
-            payment_method, // 'gcash' or 'maya'
-            reference_number, 
-            gcash_account_name 
-        } = req.body;
-
-        const proofFile = req.file ? req.file.filename : null;
-
-        await pool.query(`
-            INSERT INTO cash_donations 
-            (campaign_id, donor_name, amount, payment_method, reference_number, gcash_account_name, proof_image, status)
-            VALUES (?, ?, ?, ?, ?, ?, ?, 'Pending')
-        `, [campaign_id, donor_name, amount, payment_method || 'gcash', reference_number, gcash_account_name, proofFile]);
-
-        res.json({ success: true, message: "Donation submitted successfully and is pending verification." });
-    } catch (err) {
-        console.error("Donation Submit Error:", err);
-        res.status(500).json({ success: false, message: "Failed to submit donation." });
-    }
-};
 
 exports.submitKamustahanUpdate = async (req, res) => {
     try {
