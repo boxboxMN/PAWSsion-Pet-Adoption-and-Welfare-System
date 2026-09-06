@@ -5,6 +5,7 @@ const app = express();
 const path = require('path');
 const pool = require('./config/database');
 const { uploadOrgPic } = require('./config/upload'); //for org profile pic upload
+const { logActivity } = require("./controllers/adminController");
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -294,11 +295,15 @@ app.post("/api/organization/verify-password", async (req, res) => {
           if (req.session.passwordAttempts <= 0) {
               req.session.lockoutUntil = Date.now() + 15 * 60 * 1000; // 15 mins lock
               req.session.passwordAttempts = 5;
+
+              await logActivity(req.session.accountId, "org_profile_verify_locked", "org_profile", req.session.accountId, "Locked after 5 failed attempts");
               
               return res.status(429).json({ 
                   message: "Too many failed attempts. You are locked out from changing password for 15 minutes." 
               });
           }
+
+          await logActivity(req.session.accountId, "org_profile_verification_failed", "org_profile", req.session.accountId, `Attempts remaining: ${req.session.passwordAttempts}`);
 
           return res.status(400).json({ 
               message: `Incorrect password. You have ${req.session.passwordAttempts} attempt(s) remaining.` 
@@ -324,6 +329,14 @@ app.put("/api/organization/update-password", async (req, res) => {
         return res.status(401).json({ message: "Unauthorized" });
     }
 
+     // 1.5. CHECK LOCKOUT (shared with verify-password)
+     if (req.session.lockoutUntil && Date.now() < req.session.lockoutUntil) {
+        const remainingTime = Math.ceil((req.session.lockoutUntil - Date.now()) / 60000);
+        return res.status(429).json({
+            message: `Too many failed attempts. Try again in ${remainingTime} minute(s).`
+        });
+    }
+
     const { currentPassword, newPassword } = req.body;
     const accountId = req.session.accountId;
 
@@ -341,8 +354,33 @@ app.put("/api/organization/update-password", async (req, res) => {
         // 3. I-verify muna kung tugma ang isinumiteng Current Password sa DB hash
         const isCurrentMatch = await bcrypt.compare(currentPassword, currentHash);
         if (!isCurrentMatch) {
-            return res.status(400).json({ message: "Incorrect current password." });
+            if (!req.session.passwordAttempts) {
+                req.session.passwordAttempts = 5;
+            }
+
+            req.session.passwordAttempts -= 1;
+
+            if (req.session.passwordAttempts <= 0) {
+                req.session.lockoutUntil = Date.now() + 15 * 60 * 1000;
+                req.session.passwordAttempts = 5;
+
+                await logActivity(accountId, "org_profile_verify_locked", "org_profile", accountId, "Locked after 5 failed attempts (via save)");
+
+                return res.status(429).json({
+                    message: "Too many failed attempts. You are locked out from changing your profile for 15 minutes."
+                });
+            }
+
+            await logActivity(accountId, "org_profile_verification_failed", "org_profile", accountId, `Wrong current password (via save), attempts remaining: ${req.session.passwordAttempts}`);
+
+            return res.status(400).json({
+                message: `Incorrect current password. You have ${req.session.passwordAttempts} attempt(s) remaining.`
+            });
         }
+
+         // Reset on success
+         req.session.passwordAttempts = 5;
+         req.session.lockoutUntil = null;
 
         // 4. SECURE BACKEND CHECK: I-verify kung ang New Password ay kapareho ng Current Password
         const isSameAsOld = await bcrypt.compare(newPassword, currentHash);
@@ -365,6 +403,8 @@ app.put("/api/organization/update-password", async (req, res) => {
 
         // 7. I-update ang password sa DB
         await pool.query("UPDATE accounts SET password_hash = ? WHERE account_id = ?", [newHash, accountId]);
+
+        await logActivity(accountId, "org_profile_updated", "org_profile", accountId, "Password changed");
 
         res.status(200).json({ message: "Password updated successfully!" });
 

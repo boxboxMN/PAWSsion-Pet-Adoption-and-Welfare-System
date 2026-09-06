@@ -721,4 +721,7 @@ router.get("/logs", adminController.getActivityLogs);
 router.get("/logs", (req, res) => {
     res.sendFile(path.join(__dirname, "../public/admin/logs.html"));
 });
+
+//admin password verification route
+router.post("/profile/verify-password", adminController.verifyAdminPassword);
 module.exports = router;

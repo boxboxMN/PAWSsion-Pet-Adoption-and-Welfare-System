@@ -150,20 +150,22 @@ exports.login = async (req, res) => {
 
     const account = rows[0];
 
-if (account.role === "organization" && account.status === "pending") {
-    req.session.accountId = account.account_id;
-    req.session.role = account.role;
+    if (account.role === "organization" && account.status === "pending") {
+        req.session.accountId = account.account_id;
+        req.session.role = account.role;
 
-    const [orgRows] = await pool.query(
-        `SELECT organization_name FROM organizations WHERE account_id = ? LIMIT 1`,
-        [account.account_id]
-    );
+        const [orgRows] = await pool.query(
+            `SELECT organization_name FROM organizations WHERE account_id = ? LIMIT 1`,
+            [account.account_id]
+        );
 
-    req.session.displayName = orgRows.length > 0
-        ? orgRows[0].organization_name
-        : account.email;
-
-    return res.redirect("/org/pending");
+        req.session.displayName = orgRows.length > 0
+            ? orgRows[0].organization_name
+            : account.email;
+        
+        await logActivity(account.account_id, "login_pending_org", "auth", account.account_id, "Org pending verification");
+        
+        return res.redirect("/org/pending");
     }
 
 

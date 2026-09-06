@@ -423,16 +423,20 @@ HOW TO RUN WITH WORKING MATCHMAKING FEATURE
 
 - sa notification dapat nakikita na yung feedback is naresolved na (pets org)
 
-- fixed also the UI in the admin profile, and make sure that when editing a profile or password, it is safe
+- fixed also the UI in the admin profile, and make sure that when editing a profile or password, it is safe ✓
+
+- magtest na muna ng new password
+
+- addition sa profile, kapag naka 3 wrong attempts
 
 - when banning/disabled an account it should have a warning first from the user
 and if kaya is dapat may message sa gmail ng user na yung account nya has violated the policy or something
 
 - ayusin ang nasa url dapat walang .html na makikita doon
 
-- yung pending pa ang org is hindi nakikita sa logs na naglogin sya
-
 - when the org deactivate the account, the account can still login pero dapat hindi na eh
+
+- mglagay din ng 5 attempts sa login
 
 # may bug (user & org side):
 
@@ -502,6 +506,8 @@ Admin side:
 - kapag pinagdelete nakikita pa din ng user ang pets detailed kahit deleted na (org & user) ✓
 
 - may validations and sanitations sa numbers sa donations (org) ✓
+
+- yung pending pa ang org is hindi nakikita sa logs na naglogin sya (admin & org) ✓
 
 # RUN THIS IN THE DB, MAKE SURE TO IMPORT THE application_interview TABLE IN THE DB BEFORE DOING THIS (AUG 29, 2026):
 
@@ -620,6 +626,11 @@ CREATE TABLE activity_logs (
 );
 
 ALTER TABLE activity_logs MODIFY COLUMN account_id INT NULL;
+
+# accounts login attempts for admin only:
+
+ALTER TABLE accounts ADD COLUMN profile_verify_attempts INT NOT NULL DEFAULT 0;
+ALTER TABLE accounts ADD COLUMN profile_verify_locked_until TIMESTAMP NULL DEFAULT NULL;
 
 # ACTIVITY LOGS (yung narerecord sa admin):
 

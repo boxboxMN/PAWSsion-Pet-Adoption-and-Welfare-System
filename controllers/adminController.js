@@ -240,19 +240,97 @@ exports.updateAdminProfile = async (req, res) => {
             return res.status(401).json({ success: false, message: "Unauthorized. Please log in again." });
         }
 
-        const { email, password } = req.body; // Hindi na natin kailangan ang 'name' dito
+        // --- CHECK LOCKOUT (shared with verify-password) ---
+        if (req.session.adminLockoutUntil && Date.now() < req.session.adminLockoutUntil) {
+            const remainingTime = Math.ceil((req.session.adminLockoutUntil - Date.now()) / 60000);
+            return res.status(429).json({
+                success: false,
+                message: `Too many failed attempts. Try again in ${remainingTime} minute(s).`
+            });
+        }
 
-        // 1. I-update ang email at updated_at timestamp lamang
+        const { email, currentPassword, password } = req.body;
+        const passwordComplexityRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#]).{8,}$/;
+        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+        // --- Require current password for ANY change to this profile ---
+        if (!currentPassword || !currentPassword.trim()) {
+            return res.status(400).json({ success: false, message: "Current password is required to save changes." });
+        }
+
+        const [[account]] = await pool.query(
+            `SELECT password_hash FROM accounts WHERE account_id = ?`,
+            [accountId]
+        );
+
+        if (!account) {
+            return res.status(404).json({ success: false, message: "Account not found." });
+        }
+
+        const isCurrentPasswordValid = await bcrypt.compare(currentPassword, account.password_hash);
+
+        if (!isCurrentPasswordValid) {
+            if (!req.session.adminPasswordAttempts) {
+                req.session.adminPasswordAttempts = 5;
+            }
+
+            req.session.adminPasswordAttempts -= 1;
+
+            if (req.session.adminPasswordAttempts <= 0) {
+                req.session.adminLockoutUntil = Date.now() + 15 * 60 * 1000;
+                req.session.adminPasswordAttempts = 5;
+
+                await logActivity(accountId, "admin_profile_verify_locked", "admin_profile", accountId, "Locked after 5 failed attempts (via save)");
+
+                return res.status(429).json({
+                    success: false,
+                    message: "Too many failed attempts. You are locked out from changing your profile for 15 minutes."
+                });
+            }
+
+            await logActivity(accountId, "admin_profile_verification_failed", "admin_profile", accountId, `Wrong current password (via save), attempts remaining: ${req.session.adminPasswordAttempts}`);
+
+            return res.status(401).json({
+                success: false,
+                message: `Current password is incorrect. You have ${req.session.adminPasswordAttempts} attempt(s) remaining.`
+            });
+        }
+
+        // Reset on success
+        req.session.adminPasswordAttempts = 5;
+        req.session.adminLockoutUntil = null;
+
+        // --- Validate email ---
+        if (!email || !emailPattern.test(email.trim())) {
+            return res.status(400).json({ success: false, message: "Please enter a valid email address." });
+        }
+
+        // 1. Update email
         await pool.query(
             `UPDATE accounts SET email = ?, updated_at = NOW() WHERE account_id = ?`,
-            [email, accountId]
+            [email.trim(), accountId]
         );
 
         // 2. I-update ang password_hash kung may inilagay na bago
         if (password && password.trim() !== "") {
+            if (!passwordComplexityRegex.test(password)) {
+                return res.status(400).json({
+                    success: false,
+                    message: "New password must be at least 8 characters, with uppercase, lowercase, a number, and a special character."
+                });
+            }
+
+            const isSameAsCurrent = await bcrypt.compare(password, account.password_hash);
+            if (isSameAsCurrent) {
+                return res.status(400).json({
+                    success: false,
+                    message: "New password cannot be the same as your current password."
+                });
+            }
+
             const saltRounds = 10;
             const hashedPassword = await bcrypt.hash(password, saltRounds);
-            
+
             await pool.query(
                 `UPDATE accounts SET password_hash = ?, updated_at = NOW() WHERE account_id = ?`,
                 [hashedPassword, accountId]
@@ -265,6 +343,84 @@ exports.updateAdminProfile = async (req, res) => {
     } catch (err) {
         console.error("Database Update Error:", err);
         res.status(500).json({ success: false, message: "Database Error: " + err.message });
+    }
+};
+
+/**
+ * VERIFY ADMIN'S CURRENT PASSWORD (used to unlock the New Password field)
+ * POST /admin/profile/verify-password
+ */
+exports.verifyAdminPassword = async (req, res) => {
+    try {
+        const accountId = req.session?.accountId;
+        if (!accountId) return res.status(401).json({ success: false, message: "Unauthorized" });
+
+         // 1. CHECK KUNG NAKA-LOCKOUT
+         if (req.session.adminLockoutUntil && Date.now() < req.session.adminLockoutUntil) {
+            const remainingTime = Math.ceil((req.session.adminLockoutUntil - Date.now()) / 60000);
+            return res.status(429).json({
+                success: false,
+                valid: false,
+                locked: true,
+                message: `Too many failed attempts. Try again in ${remainingTime} minute(s).`
+            });
+        }
+
+        const { currentPassword } = req.body;
+        if (!currentPassword) {
+            return res.status(400).json({ success: false, valid: false, message: "Password is required." });
+        }
+
+        const [[account]] = await pool.query(
+            `SELECT password_hash FROM accounts WHERE account_id = ?`,
+            [accountId]
+        );
+
+        if (!account) {
+            return res.status(404).json({ success: false, valid: false, message: "Account not found." });
+        }
+
+        const isValid = await bcrypt.compare(currentPassword, account.password_hash);
+
+        if (!isValid) {
+            if (!req.session.adminPasswordAttempts) {
+                req.session.adminPasswordAttempts = 5;
+            }
+
+            req.session.adminPasswordAttempts -= 1;
+
+            if (req.session.adminPasswordAttempts <= 0) {
+                req.session.adminLockoutUntil = Date.now() + 15 * 60 * 1000;
+                req.session.adminPasswordAttempts = 5;
+
+                await logActivity(accountId, "admin_profile_verify_locked", "admin_profile", accountId, "Locked after 5 failed attempts");
+
+                return res.status(429).json({
+                    success: false,
+                    valid: false,
+                    locked: true,
+                    message: "Too many failed attempts. You are locked out from changing password for 15 minutes."
+                });
+            }
+
+            await logActivity(accountId, "admin_profile_verification_failed", "admin_profile", accountId, `Attempts remaining: ${req.session.adminPasswordAttempts}`);
+
+            return res.json({
+                success: true,
+                valid: false,
+                attemptsLeft: req.session.adminPasswordAttempts,
+                message: `Incorrect password. You have ${req.session.adminPasswordAttempts} attempt(s) remaining.`
+            });
+        }
+
+        // Reset on success
+        req.session.adminPasswordAttempts = 5;
+        req.session.adminLockoutUntil = null;
+
+        res.json({ success: true, valid: true });
+    } catch (err) {
+        console.error("Verify Admin Password Error:", err);
+        res.status(500).json({ success: false, valid: false, message: "Database Error" });
     }
 };
 

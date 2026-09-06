@@ -38,15 +38,34 @@
                         <input type="email" id="adminEmail" name="email" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-blue-600" />
                     </div>
 
+                    <hr class="border-slate-100" />
+
                     <div>
-                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">New Password <span class="text-slate-400 font-normal">(Leave blank if unchanged)</span></label>
-                    <div class="relative">
-                        <input type="password" id="adminPassword" name="password" placeholder="••••••••" class="w-full px-4 py-2.5 pr-10 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-blue-600" />
-                        <button type="button" id="togglePassword" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 focus:outline-none">
-                            <i id="eyeIcon" class="fa-solid fa-eye text-sm"></i>
-                        </button>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">Current Password <span class="text-rose-500">*</span></label>
+                        <div class="relative">
+                            <input type="password" id="adminCurrentPassword" name="currentPassword" required placeholder="Enter your current password to confirm changes" class="w-full px-4 py-2.5 pr-10 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-blue-600" />
+                            <button type="button" id="toggleCurrentPassword" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 focus:outline-none">
+                                <i id="eyeIconCurrent" class="fa-solid fa-eye text-sm"></i>
+                            </button>
+                        </div>
+                        <p id="currentPasswordHint" class="text-[11px] text-slate-400 mt-1">Required to save any change to this profile.</p>
                     </div>
-                </div>
+
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">New Password <span class="text-slate-400 font-normal">(Leave blank if unchanged)</span></label>
+                        <div class="relative">
+                            <input type="password" id="adminPassword" name="password" placeholder="Verify current password first" disabled class="w-full px-4 py-2.5 pr-10 rounded-xl border border-slate-200 bg-slate-100 text-sm text-slate-400 cursor-not-allowed focus:outline-none" />
+                            <button type="button" id="togglePassword" disabled class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-300 cursor-not-allowed focus:outline-none">
+                                <i id="eyeIcon" class="fa-solid fa-eye text-sm"></i>
+                            </button>
+                        </div>
+                        <p class="text-[11px] text-slate-400 mt-1">Min. 8 characters, with uppercase, lowercase, a number, and a special character (@$!%*?&#).</p>
+                    </div>
+
+                    <div id="confirmPasswordWrapper" class="hidden">
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">Confirm New Password</label>
+                        <input type="password" id="adminConfirmPassword" name="confirmPassword" placeholder="••••••••" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-blue-600" />
+                    </div>
 
                     <div class="pt-4 flex justify-end">
                         <button type="submit" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs rounded-xl shadow-sm transition-all">
@@ -78,17 +97,135 @@
                 console.error("Failed to load profile data", err);
             }
 
-         // Handle Form Submit
+        const passwordComplexityRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#]).{8,}$/;
+        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+        const currentPasswordInputField = document.getElementById("adminCurrentPassword");
+        const currentPasswordHint = document.getElementById("currentPasswordHint");
+        const newPasswordInput = document.getElementById("adminPassword");
+        const togglePasswordBtn = document.getElementById("togglePassword");
+        const confirmPasswordWrapper = document.getElementById("confirmPasswordWrapper");
+        const confirmPasswordInput = document.getElementById("adminConfirmPassword");
+
+        let currentPasswordVerified = false;
+        let verifyDebounceTimer = null;
+
+        function lockNewPasswordField() {
+            currentPasswordVerified = false;
+            newPasswordInput.disabled = true;
+            newPasswordInput.value = "";
+            newPasswordInput.placeholder = "Verify current password first";
+            newPasswordInput.classList.add("bg-slate-100", "text-slate-400", "cursor-not-allowed");
+            togglePasswordBtn.disabled = true;
+            togglePasswordBtn.classList.add("text-slate-300", "cursor-not-allowed");
+            confirmPasswordWrapper.classList.add("hidden");
+            confirmPasswordInput.value = "";
+        }
+
+        function unlockNewPasswordField() {
+            currentPasswordVerified = true;
+            newPasswordInput.disabled = false;
+            newPasswordInput.placeholder = "••••••••";
+            newPasswordInput.classList.remove("bg-slate-100", "text-slate-400", "cursor-not-allowed");
+            togglePasswordBtn.disabled = false;
+            togglePasswordBtn.classList.remove("text-slate-300", "cursor-not-allowed");
+        }
+
+        async function verifyCurrentPassword() {
+            const value = currentPasswordInputField.value;
+
+            if (!value) {
+                lockNewPasswordField();
+                currentPasswordHint.textContent = "Required to save any change to this profile.";
+                currentPasswordHint.className = "text-[11px] text-slate-400 mt-1";
+                return;
+            }
+
+            try {
+                const res = await fetch('/admin/profile/verify-password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ currentPassword: value })
+                });
+                const result = await res.json();
+
+                if (result.success && result.valid) {
+                    unlockNewPasswordField();
+                    currentPasswordHint.textContent = "Verified — you may now set a new password.";
+                    currentPasswordHint.className = "text-[11px] text-emerald-600 mt-1";
+                } else {
+                    lockNewPasswordField();
+                    currentPasswordHint.textContent = "Incorrect password.";
+                    currentPasswordHint.className = "text-[11px] text-rose-500 mt-1";
+                }
+            } catch (err) {
+                console.error("Password verification failed:", err);
+                lockNewPasswordField();
+                currentPasswordHint.textContent = "Unable to verify right now. Please try again.";
+                currentPasswordHint.className = "text-[11px] text-rose-500 mt-1";
+            }
+        }
+
+        // Debounce so we're not firing a request on every single keystroke
+        currentPasswordInputField.addEventListener("input", () => {
+            clearTimeout(verifyDebounceTimer);
+            verifyDebounceTimer = setTimeout(verifyCurrentPassword, 500);
+        });
+
+        // Show the confirm-password field only once the admin starts typing a new password
+        newPasswordInput.addEventListener("input", () => {
+            confirmPasswordWrapper.classList.toggle("hidden", newPasswordInput.value.trim() === "");
+        });
+
+        // Handle Form Submit
         form.addEventListener("submit", async (e) => {
             e.preventDefault();
-            const email = document.getElementById("adminEmail").value;
-            const password = document.getElementById("adminPassword").value;
+
+            const email = document.getElementById("adminEmail").value.trim();
+            const currentPassword = document.getElementById("adminCurrentPassword").value;
+            const password = newPasswordInput.value;
+            const confirmPassword = confirmPasswordInput.value;
+
+            function showError(message) {
+                alertBox.classList.remove("hidden");
+                alertBox.className = "mb-4 p-3 rounded-xl text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200";
+                alertBox.textContent = message;
+            }
+
+            if (!currentPassword) {
+                showError("Please enter your current password to confirm this change.");
+                return;
+            }
+
+            if (!emailPattern.test(email)) {
+                showError("Please enter a valid email address.");
+                return;
+            }
+
+            if (password) {
+                if (!currentPasswordVerified) {
+                    showError("Please enter your correct current password before setting a new one.");
+                    return;
+                }
+                if (!passwordComplexityRegex.test(password)) {
+                    showError("New password must be at least 8 characters, with uppercase, lowercase, a number, and a special character.");
+                    return;
+                }
+                if (password === currentPassword) {
+                    showError("New password cannot be the same as your current password.");
+                    return;
+                }
+                if (password !== confirmPassword) {
+                    showError("New password and confirmation do not match.");
+                    return;
+                }
+            }
 
             try {
                 const res = await fetch('/admin/profile/update', {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, password })
+                    body: JSON.stringify({ email, currentPassword, password })
                 });
                 const result = await res.json();
 
@@ -96,13 +233,17 @@
                 if (result.success) {
                     alertBox.className = "mb-4 p-3 rounded-xl text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200";
                     alertBox.textContent = "Profile updated successfully!";
-                    document.getElementById("adminPassword").value = "";
+                    document.getElementById("adminCurrentPassword").value = "";
+                    confirmPasswordInput.value = "";
+                    confirmPasswordWrapper.classList.add("hidden");
+                    lockNewPasswordField();
+                    currentPasswordHint.textContent = "Required to save any change to this profile.";
+                    currentPasswordHint.className = "text-[11px] text-slate-400 mt-1";
                 } else {
                     alertBox.className = "mb-4 p-3 rounded-xl text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200";
                     alertBox.textContent = result.message || "Failed to update profile.";
                 }
 
-                // Mawawala ang alert box pagkalipas ng 4 na segundo (4000 milliseconds)
                 setTimeout(() => {
                     alertBox.classList.add("hidden");
                 }, 4000);
@@ -112,18 +253,27 @@
             }
         });
         });
-                // Password Toggle Logic
+
+        // Password Toggle Logic (New Password)
         const togglePassword = document.getElementById("togglePassword");
         const passwordInput = document.getElementById("adminPassword");
         const eyeIcon = document.getElementById("eyeIcon");
 
         togglePassword.addEventListener("click", () => {
-            // Palitan ang type ng input kung password o text
             const isPassword = passwordInput.type === "password";
             passwordInput.type = isPassword ? "text" : "password";
-            
-            // Palitan ang icon ng mata (eye / eye-slash)
             eyeIcon.className = isPassword ? "fa-solid fa-eye-slash text-sm" : "fa-solid fa-eye text-sm";
+        });
+
+        // Password Toggle Logic (Current Password)
+        const toggleCurrentPassword = document.getElementById("toggleCurrentPassword");
+        const currentPasswordInput = document.getElementById("adminCurrentPassword");
+        const eyeIconCurrent = document.getElementById("eyeIconCurrent");
+
+        toggleCurrentPassword.addEventListener("click", () => {
+            const isPassword = currentPasswordInput.type === "password";
+            currentPasswordInput.type = isPassword ? "text" : "password";
+            eyeIconCurrent.className = isPassword ? "fa-solid fa-eye-slash text-sm" : "fa-solid fa-eye text-sm";
         });
     </script>
 </body>

@@ -182,6 +182,15 @@ exports.updatePassword = async (req, res) => {
         return res.status(401).json({ error: "Unauthorized access" });
     }
 
+    // 1. CHECK KUNG NAKA-LOCKOUT
+    if (req.session.userLockoutUntil && Date.now() < req.session.userLockoutUntil) {
+        const remainingTime = Math.ceil((req.session.userLockoutUntil - Date.now()) / 60000);
+        return res.status(429).json({
+            error: `Too many failed attempts. Try again in ${remainingTime} minute(s).`,
+            locked: true
+        });
+    }
+
     const { currentPassword, newPassword } = req.body;
 
     if (!currentPassword || !newPassword) {
@@ -201,21 +210,44 @@ exports.updatePassword = async (req, res) => {
 
         const user = users[0];
 
-        
         const isMatch = await bcrypt.compare(currentPassword, user.password_hash);
+
         if (!isMatch) {
-            return res.status(400).json({ error: "Maling kasalukuyang password (Incorrect Current Password)" });
+            if (!req.session.userPasswordAttempts) {
+                req.session.userPasswordAttempts = 5;
+            }
+
+            req.session.userPasswordAttempts -= 1;
+
+            if (req.session.userPasswordAttempts <= 0) {
+                req.session.userLockoutUntil = Date.now() + 15 * 60 * 1000;
+                req.session.userPasswordAttempts = 5;
+
+                return res.status(429).json({
+                    error: "Too many failed attempts. You are locked out from changing password for 15 minutes.",
+                    locked: true
+                });
+            }
+
+            return res.status(400).json({
+                error: "Incorrect Current Password",
+                attemptsLeft: req.session.userPasswordAttempts
+            });
         }
 
-        
+        // Reset on success
+        req.session.userPasswordAttempts = 5;
+        req.session.userLockoutUntil = null;
+
         const saltRounds = 10;
         const newPasswordHash = await bcrypt.hash(newPassword, saltRounds);
 
-        
         await pool.query(
             `UPDATE accounts SET password_hash = ? WHERE account_id = ?`,
             [newPasswordHash, accountId]
         );
+
+        await logActivity(accountId, "user_profile_updated", "user_profile", accountId, "Password changed");
 
         res.json({ success: true, message: "Password updated successfully!" });
     } catch (error) {
@@ -223,6 +255,7 @@ exports.updatePassword = async (req, res) => {
         res.status(500).json({ error: "Server error during password update" });
     }
 };
+
 exports.updateAvatar = async (req, res) => {
     
     const accountId = req.session?.accountId; 
