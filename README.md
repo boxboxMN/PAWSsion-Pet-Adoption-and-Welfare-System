@@ -425,9 +425,9 @@ HOW TO RUN WITH WORKING MATCHMAKING FEATURE
 
 - fixed also the UI in the admin profile, and make sure that when editing a profile or password, it is safe ✓
 
-- magtest na muna ng new password sa user, and org
+- magtest na muna ng new password sa user, and org ✓
 
-- addition sa profile, kapag naka 3 wrong attempts (user)
+- addition sa profile, kapag naka 3 wrong attempts (user) ✓
 
 - when banning/disabled an account it should have a warning first from the user
 and if kaya is dapat may message sa gmail ng user na yung account nya has violated the policy or something
@@ -436,21 +436,21 @@ and if kaya is dapat may message sa gmail ng user na yung account nya has violat
 
 - when the org deactivate the account, the account can still login pero dapat hindi na eh
 
-- mglagay din ng 5 attempts sa login 
+- mglagay din ng 5 attempts sa login  ✓
 
 # may bug (user & org side):
 
 # donation info (org)
 sa complete address under inkind it should be auto filled based on the org's profile ✓
 
-tanungin kay jhy bakit need pa ng account name if nakakasubmit kahit wala yun? then pagdating sa organization is nakikita yung donor name (from profile) which is parang walang silbi yung account name
+tanungin kay jhy bakit need pa ng account name if nakakasubmit kahit wala yun? then pagdating sa organization is nakikita yung donor name (from profile) which is parang walang silbi yung account name ✓
 
 # donation (user)
 sa cash and inkind donation dapat active pa din yung blue highlight sa donation tab sa sidebar ✓
 
 sa mga description dapat hindi nalalagyan ng nonsense na text sa mga reason especially sa application 
 
-(user & org side) much better if may parang pagpipilian ang org at user na ilalagay na message ara hindi makaubmit ng nonsense na text
+(user & org side) much better if may parang pagpipilian ang org at user na ilalagay na message ara hindi makasubmit ng nonsense na text
 
 ayusing ang swal error sa pagkasave changes kapag walang input ang account name (org) ✓
 
@@ -458,7 +458,7 @@ kulang pa ng validations and sanitations sa quantity sa inkind donations (user) 
 
 kapag wala pang info na nilagay ang user about donation is hindi muna sya lalabas sa donation ng user since hindi pa yun ready for donation. same with showing payment method ✓
 
-tanungin kay jhy bakit need pa ng account name if nakakasubmit kahit wala yun? then pagdating sa organization is nakikita yung donor name (from profile) which is parang walang silbi yung account name
+tanungin kay jhy bakit need pa ng account name if nakakasubmit kahit wala yun? then pagdating sa organization is nakikita yung donor name (from profile) which is parang walang silbi yung account name ✓
 
 # done na ayusin:
 - sa cash and inkind donation dapat active pa din yung blue highlight sa donation tab sa sidebar (user) ✓

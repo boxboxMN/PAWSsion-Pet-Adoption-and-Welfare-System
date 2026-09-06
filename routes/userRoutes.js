@@ -152,6 +152,7 @@ router.get("/api/user/donations", userController.getUserDonations);
 router.get("/api/user/profile", userController.getProfile);
 router.post("/api/user/profile/update", userController.updateProfile);
 router.post("/api/user/profile/password", userController.updatePassword);
+router.post("/api/user/profile/verify-password", userController.verifyPassword);
 router.post("/api/user/profile/avatar", upload.single("avatar"), userController.updateAvatar);
 router.get("/api/organizations", userController.getOrganizations);
 router.post( "/api/user/donation/cash", uploadReceipt.single("receipt"), userController.submitCashDonation);
@@ -214,4 +215,6 @@ router.put('/api/user/kamustahan/:id', uploadKamustahan.single('photos'), async 
         res.status(500).json({ success: false, error: 'Server error' });
     }
 });
+
+
 module.exports = router;

@@ -176,15 +176,93 @@ exports.updateProfile = async (req, res) => {
     }
 };
 
+const userPasswordAttempts = new Map();
+
+function getUserAttemptRecord(accountId) {
+    return userPasswordAttempts.get(accountId) || { attempts: 5, lockedUntil: null };
+}
+
+/**
+ * VERIFY USER'S CURRENT PASSWORD (used to unlock New Password fields)
+ * POST /api/user/profile/verify-password
+ */
+exports.verifyPassword = async (req, res) => {
+    const accountId = req.session?.accountId;
+    if (!accountId) {
+        return res.status(401).json({ error: "Unauthorized access" });
+    }
+
+    const record = getUserAttemptRecord(accountId);
+
+    if (record.lockedUntil && Date.now() < record.lockedUntil) {
+        const remainingTime = Math.ceil((record.lockedUntil - Date.now()) / 60000);
+        return res.status(429).json({
+            valid: false,
+            locked: true,
+            message: `Too many failed attempts. Try again in ${remainingTime} minute(s).`
+        });
+    }
+
+    const { currentPassword } = req.body;
+    if (!currentPassword) {
+        return res.status(400).json({ valid: false, message: "Password is required." });
+    }
+
+    try {
+        const [users] = await pool.query(
+            `SELECT password_hash FROM accounts WHERE account_id = ? LIMIT 1`,
+            [accountId]
+        );
+
+        if (!users.length) {
+            return res.status(404).json({ valid: false, message: "User not found" });
+        }
+
+        const isMatch = await bcrypt.compare(currentPassword, users[0].password_hash);
+
+        if (!isMatch) {
+            record.attempts -= 1;
+
+            if (record.attempts <= 0) {
+                record.lockedUntil = Date.now() + 15 * 60 * 1000;
+                record.attempts = 5;
+                userPasswordAttempts.set(accountId, record);
+
+                return res.status(429).json({
+                    valid: false,
+                    locked: true,
+                    message: "Too many failed attempts. You are locked out from changing password for 15 minutes."
+                });
+            }
+
+            userPasswordAttempts.set(accountId, record);
+
+            return res.json({
+                valid: false,
+                attemptsLeft: record.attempts,
+                message: `Incorrect password. You have ${record.attempts} attempt(s) remaining.`
+            });
+        }
+
+        res.json({ valid: true });
+
+    } catch (error) {
+        console.error("Verify password error:", error);
+        res.status(500).json({ valid: false, message: "Server error during verification" });
+    }
+};
+
 exports.updatePassword = async (req, res) => {
     const accountId = req.session?.accountId;
     if (!accountId) {
         return res.status(401).json({ error: "Unauthorized access" });
     }
 
+    const record = getUserAttemptRecord(accountId);
+
     // 1. CHECK KUNG NAKA-LOCKOUT
-    if (req.session.userLockoutUntil && Date.now() < req.session.userLockoutUntil) {
-        const remainingTime = Math.ceil((req.session.userLockoutUntil - Date.now()) / 60000);
+    if (record.lockedUntil && Date.now() < record.lockedUntil) {
+        const remainingTime = Math.ceil((record.lockedUntil - Date.now()) / 60000);
         return res.status(429).json({
             error: `Too many failed attempts. Try again in ${remainingTime} minute(s).`,
             locked: true
@@ -198,7 +276,6 @@ exports.updatePassword = async (req, res) => {
     }
 
     try {
-        
         const [users] = await pool.query(
             `SELECT password_hash FROM accounts WHERE account_id = ? LIMIT 1`,
             [accountId]
@@ -213,15 +290,12 @@ exports.updatePassword = async (req, res) => {
         const isMatch = await bcrypt.compare(currentPassword, user.password_hash);
 
         if (!isMatch) {
-            if (!req.session.userPasswordAttempts) {
-                req.session.userPasswordAttempts = 5;
-            }
+            record.attempts -= 1;
 
-            req.session.userPasswordAttempts -= 1;
-
-            if (req.session.userPasswordAttempts <= 0) {
-                req.session.userLockoutUntil = Date.now() + 15 * 60 * 1000;
-                req.session.userPasswordAttempts = 5;
+            if (record.attempts <= 0) {
+                record.lockedUntil = Date.now() + 15 * 60 * 1000;
+                record.attempts = 5;
+                userPasswordAttempts.set(accountId, record);
 
                 return res.status(429).json({
                     error: "Too many failed attempts. You are locked out from changing password for 15 minutes.",
@@ -229,15 +303,16 @@ exports.updatePassword = async (req, res) => {
                 });
             }
 
+            userPasswordAttempts.set(accountId, record);
+
             return res.status(400).json({
                 error: "Incorrect Current Password",
-                attemptsLeft: req.session.userPasswordAttempts
+                attemptsLeft: record.attempts
             });
         }
 
         // Reset on success
-        req.session.userPasswordAttempts = 5;
-        req.session.userLockoutUntil = null;
+        userPasswordAttempts.delete(accountId);
 
         const saltRounds = 10;
         const newPasswordHash = await bcrypt.hash(newPassword, saltRounds);

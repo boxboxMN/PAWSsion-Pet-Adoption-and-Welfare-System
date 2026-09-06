@@ -241,8 +241,9 @@ exports.updateAdminProfile = async (req, res) => {
         }
 
         // --- CHECK LOCKOUT (shared with verify-password) ---
-        if (req.session.adminLockoutUntil && Date.now() < req.session.adminLockoutUntil) {
-            const remainingTime = Math.ceil((req.session.adminLockoutUntil - Date.now()) / 60000);
+        const adminRecord = getAdminAttemptRecord(accountId);
+        if (adminRecord.lockedUntil && Date.now() < adminRecord.lockedUntil) {
+            const remainingTime = Math.ceil((adminRecord.lockedUntil - Date.now()) / 60000);
             return res.status(429).json({
                 success: false,
                 message: `Too many failed attempts. Try again in ${remainingTime} minute(s).`
@@ -270,15 +271,12 @@ exports.updateAdminProfile = async (req, res) => {
         const isCurrentPasswordValid = await bcrypt.compare(currentPassword, account.password_hash);
 
         if (!isCurrentPasswordValid) {
-            if (!req.session.adminPasswordAttempts) {
-                req.session.adminPasswordAttempts = 5;
-            }
+            adminRecord.attempts -= 1;
 
-            req.session.adminPasswordAttempts -= 1;
-
-            if (req.session.adminPasswordAttempts <= 0) {
-                req.session.adminLockoutUntil = Date.now() + 15 * 60 * 1000;
-                req.session.adminPasswordAttempts = 5;
+            if (adminRecord.attempts <= 0) {
+                adminRecord.lockedUntil = Date.now() + 15 * 60 * 1000;
+                adminRecord.attempts = 5;
+                adminPasswordAttempts.set(accountId, adminRecord);
 
                 await logActivity(accountId, "admin_profile_verify_locked", "admin_profile", accountId, "Locked after 5 failed attempts (via save)");
 
@@ -288,17 +286,18 @@ exports.updateAdminProfile = async (req, res) => {
                 });
             }
 
-            await logActivity(accountId, "admin_profile_verification_failed", "admin_profile", accountId, `Wrong current password (via save), attempts remaining: ${req.session.adminPasswordAttempts}`);
+            adminPasswordAttempts.set(accountId, adminRecord);
+
+            await logActivity(accountId, "admin_profile_verification_failed", "admin_profile", accountId, `Wrong current password (via save), attempts remaining: ${adminRecord.attempts}`);
 
             return res.status(401).json({
                 success: false,
-                message: `Current password is incorrect. You have ${req.session.adminPasswordAttempts} attempt(s) remaining.`
+                message: `Current password is incorrect. You have ${adminRecord.attempts} attempt(s) remaining.`
             });
         }
 
         // Reset on success
-        req.session.adminPasswordAttempts = 5;
-        req.session.adminLockoutUntil = null;
+        adminPasswordAttempts.delete(accountId);
 
         // --- Validate email ---
         if (!email || !emailPattern.test(email.trim())) {
@@ -350,14 +349,21 @@ exports.updateAdminProfile = async (req, res) => {
  * VERIFY ADMIN'S CURRENT PASSWORD (used to unlock the New Password field)
  * POST /admin/profile/verify-password
  */
+const adminPasswordAttempts = new Map(); // Map<accountId, { attempts: number, lockedUntil: number|null }>
+
+function getAdminAttemptRecord(accountId) {
+    return adminPasswordAttempts.get(accountId) || { attempts: 5, lockedUntil: null };
+}
+
 exports.verifyAdminPassword = async (req, res) => {
     try {
         const accountId = req.session?.accountId;
         if (!accountId) return res.status(401).json({ success: false, message: "Unauthorized" });
 
-         // 1. CHECK KUNG NAKA-LOCKOUT
-         if (req.session.adminLockoutUntil && Date.now() < req.session.adminLockoutUntil) {
-            const remainingTime = Math.ceil((req.session.adminLockoutUntil - Date.now()) / 60000);
+        const record = getAdminAttemptRecord(accountId);
+
+        if (record.lockedUntil && Date.now() < record.lockedUntil) {
+            const remainingTime = Math.ceil((record.lockedUntil - Date.now()) / 60000);
             return res.status(429).json({
                 success: false,
                 valid: false,
@@ -383,15 +389,12 @@ exports.verifyAdminPassword = async (req, res) => {
         const isValid = await bcrypt.compare(currentPassword, account.password_hash);
 
         if (!isValid) {
-            if (!req.session.adminPasswordAttempts) {
-                req.session.adminPasswordAttempts = 5;
-            }
+            record.attempts -= 1;
 
-            req.session.adminPasswordAttempts -= 1;
-
-            if (req.session.adminPasswordAttempts <= 0) {
-                req.session.adminLockoutUntil = Date.now() + 15 * 60 * 1000;
-                req.session.adminPasswordAttempts = 5;
+            if (record.attempts <= 0) {
+                record.lockedUntil = Date.now() + 15 * 60 * 1000;
+                record.attempts = 5;
+                adminPasswordAttempts.set(accountId, record);
 
                 await logActivity(accountId, "admin_profile_verify_locked", "admin_profile", accountId, "Locked after 5 failed attempts");
 
@@ -403,19 +406,20 @@ exports.verifyAdminPassword = async (req, res) => {
                 });
             }
 
-            await logActivity(accountId, "admin_profile_verification_failed", "admin_profile", accountId, `Attempts remaining: ${req.session.adminPasswordAttempts}`);
+            adminPasswordAttempts.set(accountId, record);
+
+            await logActivity(accountId, "admin_profile_verification_failed", "admin_profile", accountId, `Attempts remaining: ${record.attempts}`);
 
             return res.json({
                 success: true,
                 valid: false,
-                attemptsLeft: req.session.adminPasswordAttempts,
-                message: `Incorrect password. You have ${req.session.adminPasswordAttempts} attempt(s) remaining.`
+                attemptsLeft: record.attempts,
+                message: `Incorrect password. You have ${record.attempts} attempt(s) remaining.`
             });
         }
 
         // Reset on success
-        req.session.adminPasswordAttempts = 5;
-        req.session.adminLockoutUntil = null;
+        adminPasswordAttempts.delete(accountId);
 
         res.json({ success: true, valid: true });
     } catch (err) {

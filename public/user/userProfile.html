@@ -265,8 +265,10 @@
 
                             <div id="password-form" class="hidden space-y-3">
                                 <input id="current-password" type="password" placeholder="Current Password" class="w-full rounded-xl border border-slate-300 px-4 py-3">
-                                <input id="new-password" type="password" placeholder="New Password" class="w-full rounded-xl border border-slate-300 px-4 py-3">
-                                <input id="confirm-password" type="password" placeholder="Confirm New Password" class="w-full rounded-xl border border-slate-300 px-4 py-3">
+                                <p id="current-password-hint" class="text-xs text-slate-400 -mt-2"></p>
+
+                                <input id="new-password" type="password" placeholder="New Password" disabled class="w-full rounded-xl border border-slate-300 bg-slate-100 text-slate-400 cursor-not-allowed px-4 py-3">
+                                <input id="confirm-password" type="password" placeholder="Confirm New Password" disabled class="w-full rounded-xl border border-slate-300 bg-slate-100 text-slate-400 cursor-not-allowed px-4 py-3">
 
                                 <button id="update-password-btn" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl py-3 font-semibold transition">Update Password</button>
                             </div>
@@ -338,9 +340,92 @@
         const togglePasswordBtn = document.getElementById('toggle-password-btn');
         const passwordForm = document.getElementById('password-form');
         const currentPassword = document.getElementById('current-password');
+        const currentPasswordHint = document.getElementById('current-password-hint');
         const newPassword = document.getElementById('new-password');
         const confirmPassword = document.getElementById('confirm-password');
         const updatePasswordBtn = document.getElementById('update-password-btn');
+
+        let currentPasswordVerified = false;
+        let verifyDebounceTimer = null;
+        let clientLockedUntil = null;
+
+        function lockNewPasswordFields() {
+            currentPasswordVerified = false;
+            [newPassword, confirmPassword].forEach(input => {
+                input.disabled = true;
+                input.value = '';
+                input.classList.add('bg-slate-100', 'text-slate-400', 'cursor-not-allowed');
+            });
+        }
+
+        function unlockNewPasswordFields() {
+            currentPasswordVerified = true;
+            [newPassword, confirmPassword].forEach(input => {
+                input.disabled = false;
+                input.classList.remove('bg-slate-100', 'text-slate-400', 'cursor-not-allowed');
+            });
+        }
+
+        function showLockoutHint(remainingMs) {
+            const minutesLeft = Math.max(1, Math.ceil(remainingMs / 60000));
+            currentPasswordHint.textContent = `Too many failed attempts. Try again in ${minutesLeft} minute(s).`;
+            currentPasswordHint.className = 'text-xs text-rose-600 font-semibold -mt-2';
+        }
+
+        async function verifyCurrentPassword() {
+            const value = currentPassword.value.trim();
+
+            // Skip the request entirely while we already know we're locked —
+            // no need to hit the server again until the timer actually expires.
+            if (clientLockedUntil && Date.now() < clientLockedUntil) {
+                lockNewPasswordFields();
+                showLockoutHint(clientLockedUntil - Date.now());
+                return;
+            }
+
+            clientLockedUntil = null;
+
+            if (!value) {
+                lockNewPasswordFields();
+                currentPasswordHint.textContent = '';
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/user/profile/verify-password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ currentPassword: value })
+                });
+                const result = await res.json();
+
+                if (result.valid) {
+                    unlockNewPasswordFields();
+                    currentPasswordHint.textContent = 'Verified — you may now set a new password.';
+                    currentPasswordHint.className = 'text-xs text-emerald-600 -mt-2';
+                } else if (result.locked) {
+                    lockNewPasswordFields();
+                    // Server doesn't return an exact timestamp, so estimate 15 min from now
+                    // for the client-side skip window (server remains the source of truth).
+                    clientLockedUntil = Date.now() + 15 * 60 * 1000;
+                    showLockoutHint(clientLockedUntil - Date.now());
+                } else {
+                    lockNewPasswordFields();
+                    currentPasswordHint.textContent = result.message || 'Incorrect password.';
+                    currentPasswordHint.className = 'text-xs text-rose-500 -mt-2';
+                }
+            } catch (err) {
+                console.error('Password verification failed:', err);
+                lockNewPasswordFields();
+                currentPasswordHint.textContent = 'Unable to verify right now.';
+                currentPasswordHint.className = 'text-xs text-rose-500 -mt-2';
+            }
+        }
+
+        currentPassword.addEventListener('input', () => {
+            clearTimeout(verifyDebounceTimer);
+            verifyDebounceTimer = setTimeout(verifyCurrentPassword, 500);
+        });
 
         const avatarContainer = document.getElementById('avatarContainer');
         const avatarOverlay = document.getElementById('avatarOverlay');
@@ -712,8 +797,8 @@
                 togglePasswordBtn.className = "flex items-center gap-2 border border-blue-500 text-blue-500 px-4 py-2 rounded-lg hover:bg-blue-50 transition-custom";
                 
                 currentPassword.value = '';
-                newPassword.value = '';
-                confirmPassword.value = '';
+                currentPasswordHint.textContent = '';
+                lockNewPasswordFields();
             }
         }
 
@@ -721,6 +806,11 @@
             const currentPwd = currentPassword.value.trim();
             const newPwd = newPassword.value.trim();
             const confirm = confirmPassword.value.trim();
+
+            if (!currentPasswordVerified) {
+                alert('Please enter your correct current password first.');
+                return;
+            }
 
             if (!currentPwd || !newPwd || !confirm) {
                 alert('Please fill in all password fields.');
@@ -751,7 +841,8 @@
 
                 if (result.success) {
                     alert('Password Changed Successfully in Database!');
-                    togglePasswordForm(); 
+                    currentPasswordVerified = false;
+                    togglePasswordForm();
                 } else {
                     alert('Failed to change password: ' + result.error);
                 }
