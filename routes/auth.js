@@ -6,7 +6,7 @@ const path = require("path");
 const crypto = require("crypto");
 
 
-const authController = require("../controllers/authController");
+const authController = require("../controllers/AuthController");
 console.log("AUTH ROUTES CHECK:");
 console.log("forgotPassword:", typeof authController.forgotPassword);
 console.log("resetPassword:", typeof authController.resetPassword);

@@ -300,13 +300,13 @@ function openPanel(user) {
                 <i class="fa-solid fa-arrows-rotate"></i>
                 ${isActive ? 'Deactivate' : 'Activate'} Account
             </button>
-            <button class="action-btn" data-action="suspend" data-id="${user.account_id || user.id}">
-                <i class="fa-solid fa-user-slash"></i>
-                Suspend Account
+            <button class="action-btn" data-action="${isSuspended ? 'unsuspend' : 'suspend'}" data-id="${user.account_id || user.id}">
+                <i class="fa-solid ${isSuspended ? 'fa-user-check' : 'fa-user-slash'}"></i>
+                ${isSuspended ? 'Unsuspend Account' : 'Suspend Account'}
             </button>
-            <button class="action-btn danger" data-action="ban" data-id="${user.account_id || user.id}">
-                <i class="fa-solid fa-ban"></i>
-                Permanent Ban
+            <button class="action-btn danger" data-action="${isBanned ? 'unban' : 'ban'}" data-id="${user.account_id || user.id}">
+                <i class="fa-solid ${isBanned ? 'fa-user-check' : 'fa-ban'}"></i>
+                ${isBanned ? 'Lift Ban' : 'Permanent Ban'}
             </button>
         </div>
     `;
@@ -344,49 +344,6 @@ function filterUsers(query) {
         if (!stillVisible) closePanel();
     }
 }
-
-async function handleAction(action, id, user) {
-    try {
-        let url = "";
-        let options = { method: "PUT" };
-
-        switch (action) {
-            case "toggle":
-                // Gumagamit ng generic status route na nagpapalit sa pagitan ng active at disabled/inactive
-                url = `/admin/users/${id}/status`;
-                const newStatus = (user.status || "active").toLowerCase() === "active" ? "disabled" : "active";
-                options.headers = { "Content-Type": "application/json" };
-                options.body = JSON.stringify({ status: newStatus });
-                break;
-            case "suspend":
-                url = `/admin/users/${id}/suspend`;
-                break;
-            case "ban":
-                url = `/admin/users/${id}/ban`;
-                break;
-            default:
-                return;
-        }
-
-        const confirmed = confirm(`Are you sure you want to ${action} this account?`);
-        if (!confirmed) return;
-
-        const response = await fetch(url, options);
-        const data = await response.json();
-
-        if (!response.ok) {
-            throw new Error(data.message || "Request failed");
-        }
-
-        alert("Action completed successfully.");
-        closePanel();
-        await loadUsers();
-
-    } catch (err) {
-        console.error(err);
-        alert(err.message);
-    }
-}
 // Function para sa magandang UI notification sa halip na default alert
 function showToast(message, type = "success") {
     const container = document.getElementById("toastContainer");
@@ -412,48 +369,6 @@ function showToast(message, type = "success") {
     }, 3000);
 }
 
-// Binagong handleAction na gumagamit ng showToast sa halip na alert()
-async function handleAction(action, id, user) {
-    try {
-        let url = "";
-        let options = { method: "PUT" };
-
-        switch (action) {
-            case "toggle":
-                url = `/admin/users/${id}/status`;
-                const newStatus = (user.status || "active").toLowerCase() === "active" ? "disabled" : "active";
-                options.headers = { "Content-Type": "application/json" };
-                options.body = JSON.stringify({ status: newStatus });
-                break;
-            case "suspend":
-                url = `/admin/users/${id}/suspend`;
-                break;
-            case "ban":
-                url = `/admin/users/${id}/ban`;
-                break;
-            default:
-                return;
-        }
-
-        const confirmed = confirm(`Are you sure you want to ${action} this account?`);
-        if (!confirmed) return;
-
-        const response = await fetch(url, options);
-        const data = await response.json();
-
-        if (!response.ok) {
-            throw new Error(data.message || "Request failed");
-        }
-
-        closePanel();
-        showToast("Action completed successfully.", "success");
-        await loadUsers();
-
-    } catch (err) {
-        console.error(err);
-        showToast(err.message, "error");
-    }
-}
 // Function para sa Custom Confirm Modal UI
 function showConfirmModal(title, description, confirmButtonText = "Confirm", isDanger = false) {
     return new Promise((resolve) => {
@@ -527,6 +442,20 @@ async function handleAction(action, id, user) {
                 actionTitle = "Permanent Ban";
                 actionDesc = "Are you sure you want to permanently ban this user? This action has major implications.";
                 isDanger = true;
+                break;
+            case "unsuspend":
+                url = `/admin/users/${id}/status`;
+                options.headers = { "Content-Type": "application/json" };
+                options.body = JSON.stringify({ status: "active" });
+                actionTitle = "Unsuspend Account";
+                actionDesc = "Are you sure you want to lift the suspension? The user will regain access immediately.";
+                break;
+            case "unban":
+                url = `/admin/users/${id}/status`;
+                options.headers = { "Content-Type": "application/json" };
+                options.body = JSON.stringify({ status: "active" });
+                actionTitle = "Lift Permanent Ban";
+                actionDesc = "Are you sure you want to lift this ban? This reverses a major enforcement action.";
                 break;
             default:
                 return;

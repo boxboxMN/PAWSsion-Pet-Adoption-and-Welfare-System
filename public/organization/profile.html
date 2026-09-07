@@ -378,6 +378,8 @@
             
                 if (data.contact_number) {
                     document.getElementById("infoContact").textContent = data.contact_number;
+                } else {
+                    document.getElementById("infoContact").textContent = "Not Specified";
                 }
                 
                 if (data.organization_type) {
@@ -670,13 +672,19 @@
         openEditModalBtn.addEventListener("click", async () => {
             if (!currentOrgData) return;
 
-            // I-pre-fill ang text fields
-            document.getElementById("editOrgName").value = currentOrgData.organization_name || "";
-            document.getElementById("editContact").value = currentOrgData.contact_number || "";
-            document.getElementById("editContactPerson").value = currentOrgData.contact_person || "";
-            document.getElementById("editAddress").value = currentOrgData.address || "";
-            document.getElementById("editZip").value = currentOrgData.zip_code || "";
-            document.getElementById("editDescription").value = currentOrgData.description || "";
+            // I-pre-fill ang text fields (with a guard against the literal
+            // strings "undefined"/"null" that older bad data may contain)
+            const safeValue = (val) => {
+                const str = (val || "").toString().trim();
+                return (str === "undefined" || str === "null") ? "" : str;
+            };
+
+            document.getElementById("editOrgName").value = safeValue(currentOrgData.organization_name);
+            document.getElementById("editContact").value = safeValue(currentOrgData.contact_number);
+            document.getElementById("editContactPerson").value = safeValue(currentOrgData.contact_person);
+            document.getElementById("editAddress").value = safeValue(currentOrgData.address);
+            document.getElementById("editZip").value = safeValue(currentOrgData.zip_code);
+            document.getElementById("editDescription").value = safeValue(currentOrgData.description);
 
             await setEditAddressValues();
 

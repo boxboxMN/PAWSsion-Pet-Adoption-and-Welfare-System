@@ -520,20 +520,37 @@ app.put("/api/organization/update-profile", uploadOrgPic.single('profile_pic'), 
   }
 
   try {
-      // Kunin ang text fields na pinadala ng FormData mula sa frontend
-      const { organization_name, contact_number, contact_person, address, region, province, city, barangay, zip_code, description } = req.body;
+    // Kunin ang text fields na pinadala ng FormData mula sa frontend
+    const { organization_name, contact_number, contact_person, address, region, province, city, barangay, zip_code, description } = req.body;
+      
+    // Guard against the literal strings "undefined"/"null" that FormData.append()
+    // silently produces if a field's value was ever a real JS undefined/null.
+    const sanitize = (value) => {
+        if (value === undefined || value === null) return "";
+        const trimmed = String(value).trim();
+        return (trimmed === "undefined" || trimmed === "null") ? "" : trimmed;
+    };
+
+    const sanitizedContactNumber = sanitize(contact_number);
+
+    if (sanitizedContactNumber) {
+        const phoneRegex = /^09\d{9}$/;
+        if (!phoneRegex.test(sanitizedContactNumber)) {
+            return res.status(400).json({ message: "Contact number must be 11 digits starting with 09." });
+        }
+    }
 
       const profileData = {
-        organization_name,
-        contact_number,
-        contact_person,
-        address,
-        region,
-        province,
-        city,
-        barangay,
-        zip_code,
-        description,
+        organization_name: sanitize(organization_name),
+        contact_number: sanitizedContactNumber,
+        contact_person: sanitize(contact_person),
+        address: sanitize(address),
+        region: sanitize(region),
+        province: sanitize(province),
+        city: sanitize(city),
+        barangay: sanitize(barangay),
+        zip_code: sanitize(zip_code),
+        description: sanitize(description),
         profile_pic: null // Naka-null muna by default
       };
 
