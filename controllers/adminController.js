@@ -630,6 +630,16 @@ exports.updateFeedbackStatus = async (req, res) => {
             // action === "resolve" or "unresolve"
             const newStatus = action === "resolve" ? "resolved" : "pending";
 
+            // Kunin muna ang orihinal na nagsumite bago i-update, para malaman kung sino ang aabisuhan
+            const [[feedbackRow]] = await pool.query(
+                `SELECT account_id, subject FROM feedback WHERE feedback_id = ?`,
+                [id]
+            );
+
+            if (!feedbackRow) {
+                return res.status(404).json({ success: false, message: "Feedback not found." });
+            }
+
             const [result] = await pool.query(
                    `UPDATE feedback SET status = ?, previous_status = NULL WHERE feedback_id = ?`,
                    [newStatus, id]
@@ -638,8 +648,29 @@ exports.updateFeedbackStatus = async (req, res) => {
             //for logging the resolve/unresolve action
             await logActivity(accountId, action === "resolve" ? "feedback_resolved" : "feedback_unresolved", "feedback", id);
        
-            if (result.affectedRows === 0) {
-                   return res.status(404).json({ success: false, message: "Feedback not found." });
+            // if (result.affectedRows === 0) {
+            //        return res.status(404).json({ success: false, message: "Feedback not found." });
+            // }
+
+              // Abisuhan ang orihinal na nagsumite (user o org) tungkol sa update ng status
+              if (feedbackRow.account_id) {
+                if (action === "resolve") {
+                    await createNotification(
+                        feedbackRow.account_id,
+                        "Your Feedback Has Been Resolved",
+                        `Your feedback "${feedbackRow.subject}" has been marked as resolved by our team. Thank you for helping us improve Pawpon!`,
+                        "feedback_resolved",
+                        null
+                    );
+                } else {
+                    await createNotification(
+                        feedbackRow.account_id,
+                        "Your Feedback Has Been Reopened",
+                        `Your feedback "${feedbackRow.subject}" has been reopened for further review.`,
+                        "feedback_reopened",
+                        null
+                    );
+                }
             }
 
                res.json({ success: true, status: newStatus, previous_status: null });

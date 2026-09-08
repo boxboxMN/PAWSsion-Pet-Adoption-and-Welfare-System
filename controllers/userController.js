@@ -1843,17 +1843,27 @@ exports.submitFeedback = async (req, res) => {
             cleanRating = parsedRating;
         }
 
+         // Alamin kung org ba o adopter ang nag-submit, para tama ang submitted_by/organization_id
+         const [orgRows] = await pool.query(
+            `SELECT organization_id FROM organizations WHERE account_id = ? LIMIT 1`,
+            [accountId]
+        );
+
+        const isOrganization = orgRows.length > 0;
+        const submittedBy = isOrganization ? "organization" : "user";
+        const organizationId = isOrganization ? orgRows[0].organization_id : null;
+
         const [result] = await pool.query(
             `INSERT INTO feedback (account_id, submitted_by, organization_id, feedback_type, subject, message, rating, status)
-             VALUES (?, 'user', NULL, ?, ?, ?, ?, 'pending')`,
-            [accountId, feedback_type, cleanSubject, cleanMessage, cleanRating]
+             VALUES (?, ?, ?, ?, ?, ?, ?, 'pending')`,
+            [accountId, submittedBy, organizationId, feedback_type, cleanSubject, cleanMessage, cleanRating]
         );
 
         await logActivity(accountId, "feedback_submitted", "feedback", result.insertId, feedback_type);
 
         await notifyAllAdmins(
             "New Feedback Received",
-            `A new "${feedback_type}" feedback was submitted: "${cleanSubject}"`,
+            `A new "${feedback_type}" feedback was submitted by ${isOrganization ? "an organization" : "an adopter"}: "${cleanSubject}"`,
             "feedback_new",
             "/admin/feedback"
         );
