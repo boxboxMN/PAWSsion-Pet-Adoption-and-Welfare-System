@@ -21,6 +21,103 @@ async function logActivity(accountId, action, targetType, targetId = null, detai
 exports.logActivity = logActivity;
 
 /**
+ * Creates a notification for one account. Never throws.
+ */
+async function createNotification(accountId, title, message, type, link = null) {
+    try {
+        await pool.query(
+            `INSERT INTO notifications (account_id, title, message, type, link) VALUES (?, ?, ?, ?, ?)`,
+            [accountId, title, message, type, link]
+        );
+    } catch (err) {
+        console.error("Create Notification Error:", err);
+    }
+}
+exports.createNotification = createNotification;
+
+/**
+ * Notifies every admin account at once (for admin-wide events).
+ */
+async function notifyAllAdmins(title, message, type, link = null) {
+    try {
+        const [admins] = await pool.query(`SELECT account_id FROM accounts WHERE role = 'admin'`);
+        for (const admin of admins) {
+            await createNotification(admin.account_id, title, message, type, link);
+        }
+    } catch (err) {
+        console.error("Notify All Admins Error:", err);
+    }
+}
+exports.notifyAllAdmins = notifyAllAdmins;
+
+/*** GET /api/notifications */
+exports.getNotifications = async (req, res) => {
+    try {
+        const accountId = req.session?.accountId;
+        if (!accountId) return res.status(401).json({ success: false, message: "Unauthorized" });
+
+        const [rows] = await pool.query(
+            `SELECT notification_id, title, message, type, is_read, link, created_at
+             FROM notifications
+             WHERE account_id = ?
+             ORDER BY created_at DESC
+             LIMIT 50`,
+            [accountId]
+        );
+
+        const [[{ unreadCount }]] = await pool.query(
+            `SELECT COUNT(*) AS unreadCount FROM notifications WHERE account_id = ? AND is_read = 0`,
+            [accountId]
+        );
+
+        res.json({ success: true, notifications: rows, unreadCount });
+    } catch (err) {
+        console.error("Get Notifications Error:", err);
+        res.status(500).json({ success: false, message: "Database Error" });
+    }
+};
+
+/**
+ * PUT /api/notifications/:id/read
+ */
+exports.markNotificationRead = async (req, res) => {
+    try {
+        const accountId = req.session?.accountId;
+        if (!accountId) return res.status(401).json({ success: false, message: "Unauthorized" });
+
+        await pool.query(
+            `UPDATE notifications SET is_read = 1 WHERE notification_id = ? AND account_id = ?`,
+            [req.params.id, accountId]
+        );
+
+        res.json({ success: true });
+    } catch (err) {
+        console.error("Mark Notification Read Error:", err);
+        res.status(500).json({ success: false, message: "Database Error" });
+    }
+};
+
+/**
+ * PUT /api/notifications/read-all
+ */
+exports.markAllNotificationsRead = async (req, res) => {
+    try {
+        const accountId = req.session?.accountId;
+        if (!accountId) return res.status(401).json({ success: false, message: "Unauthorized" });
+
+        await pool.query(
+            `UPDATE notifications SET is_read = 1 WHERE account_id = ? AND is_read = 0`,
+            [accountId]
+        );
+
+        res.json({ success: true });
+    } catch (err) {
+        console.error("Mark All Notifications Read Error:", err);
+        res.status(500).json({ success: false, message: "Database Error" });
+    }
+};
+
+/**
  * GET ALL PENDING ORGANIZATION REQUESTS
  * GET /admin/api/partner-requests
  */

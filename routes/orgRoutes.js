@@ -2,7 +2,8 @@ const express = require("express");
 const path = require("path");
 const pool = require("../config/database");
 const { uploadPet, uploadQR, uploadDropoff } = require('../config/upload');
-const { logActivity } = require("../controllers/adminController");
+// const { logActivity } = require("../controllers/adminController");
+const { logActivity, createNotification } = require("../controllers/adminController");
 
 // Controller functions
 const { 
@@ -451,6 +452,27 @@ router.patch('/applications/:id/status', async (req, res) => {
             status === "Declined" ? decline_reason : null
         );
 
+        const [[applicantAccount]] = await pool.query(
+            `SELECT acc.account_id
+             FROM user_adoption_applications app
+             JOIN adopters ad ON app.adopter_id = ad.adopter_id
+             JOIN accounts acc ON ad.account_id = acc.account_id
+             WHERE app.application_id = ?`,
+            [id]
+        );
+
+        if (applicantAccount) {
+            await createNotification(
+                applicantAccount.account_id,
+                status === "Approved" ? "Application Approved!" : status === "Declined" ? "Application Declined" : "Application Status Updated",
+                status === "Declined"
+                    ? `Your application was declined. ${decline_reason || ""}`.trim()
+                    : `Your application status is now "${status}".`,
+                "application_status",
+                "/application"
+            );
+        }
+
         res.json({
             success: true,
             message: `Application status successfully updated to "${status}".`,
@@ -575,6 +597,25 @@ router.post('/applications/:id/schedule', async (req, res) => {
             `${interview_date} ${interview_time}`
         );
 
+        const [[interviewApplicant]] = await pool.query(
+            `SELECT acc.account_id
+             FROM user_adoption_applications app
+             JOIN adopters ad ON app.adopter_id = ad.adopter_id
+             JOIN accounts acc ON ad.account_id = acc.account_id
+             WHERE app.application_id = ?`,
+            [id]
+        );
+
+        if (interviewApplicant) {
+            await createNotification(
+                interviewApplicant.account_id,
+                isReschedule ? "Interview Rescheduled" : "Interview Scheduled",
+                `Your interview is set for ${interview_date} at ${interview_time}.`,
+                isReschedule ? "interview_rescheduled" : "interview_scheduled",
+                "/application"
+            );
+        }
+
         return res.json({ success: true, message: "Interview scheduled!" });
     } catch (err) {
         console.error("❌ Schedule Error:", err);
@@ -619,6 +660,25 @@ router.patch('/applications/:id/approve-reschedule', async (req, res) => {
 
         await logActivity(req.session?.accountId, "reschedule_request_approved", "interview", req.params.id);
 
+        const [[approvedApplicant]] = await pool.query(
+            `SELECT acc.account_id
+             FROM user_adoption_applications app
+             JOIN adopters ad ON app.adopter_id = ad.adopter_id
+             JOIN accounts acc ON ad.account_id = acc.account_id
+             WHERE app.application_id = ?`,
+            [id]
+        );
+
+        if (approvedApplicant) {
+            await createNotification(
+                approvedApplicant.account_id,
+                "Reschedule Approved",
+                `Your requested interview time on ${reqDate} at ${reqTime} has been confirmed.`,
+                "interview_rescheduled",
+                "/application"
+            );
+        }
+
         res.json({ success: true, message: "Interview schedule updated to the requested time!" });
     } catch (err) {
         console.error("Approve Reschedule Error:", err);
@@ -643,6 +703,25 @@ router.patch('/applications/:id/reject-reschedule', async (req, res) => {
             [id]
         );
         await logActivity(req.session?.accountId, "reschedule_request_rejected", "interview", req.params.id);
+
+        const [[rejectedApplicant]] = await pool.query(
+            `SELECT acc.account_id
+             FROM user_adoption_applications app
+             JOIN adopters ad ON app.adopter_id = ad.adopter_id
+             JOIN accounts acc ON ad.account_id = acc.account_id
+             WHERE app.application_id = ?`,
+            [id]
+        );
+
+        if (rejectedApplicant) {
+            await createNotification(
+                rejectedApplicant.account_id,
+                "Reschedule Request Declined",
+                "Your requested interview time was not approved. Your original schedule remains in place.",
+                "interview_rescheduled",
+                "/application"
+            );
+        }
 
         res.json({ success: true, message: "Reschedule request rejected. Original schedule kept." });
     } catch (err) {

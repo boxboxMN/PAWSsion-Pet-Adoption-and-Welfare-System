@@ -44,6 +44,10 @@ function initializeTopbar() {
                 notifPopup.getAttribute("data-open") === "true";
 
             notifPopup.setAttribute("data-open", !isOpen);
+
+            if (!isOpen) {
+                loadNotifications();
+            }
         });
 
         document.addEventListener("click", (e) => {
@@ -56,27 +60,79 @@ function initializeTopbar() {
         });
     }
 
-    if (markReadBtn && notifList) {
-        markReadBtn.addEventListener("click", (e) => {
+    if (markReadBtn) {
+        markReadBtn.addEventListener("click", async (e) => {
             e.stopPropagation();
 
-            const dot = document.querySelector(".notif-dot");
-
-            if (dot) {
-                dot.style.display = "none";
+            try {
+                await fetch("/api/notifications/read-all", { method: "PUT" });
+                await loadNotifications();
+            } catch (err) {
+                console.error("Failed to mark all as read:", err);
             }
+        });
+    }
 
+    loadNotifications();
+    setInterval(loadNotifications, 30000);
+}
+
+function renderNotifIcon(type) {
+    const icons = {
+        application_submitted: "🐾",
+        donation_submitted: "💰",
+        feedback_resolved: "💬",
+        kamustahan_submitted: "🐶",
+        application_status: "📋",
+        interview_scheduled: "📅",
+        donation_status: "💵",
+        org_pending: "🏢",
+        feedback_new: "💬"
+    };
+    return icons[type] || "🔔";
+}
+
+async function loadNotifications() {
+    const notifList = document.getElementById("notifList");
+    const dot = document.querySelector(".notif-dot");
+    if (!notifList) return;
+
+    try {
+        const res = await fetch("/api/notifications");
+        const data = await res.json();
+
+        if (dot) {
+            dot.style.display = data.unreadCount > 0 ? "" : "none";
+        }
+
+        if (!data.success || !data.notifications || data.notifications.length === 0) {
             notifList.innerHTML = `
                 <div class="text-center py-8 text-gray-400 text-sm">
                     <i class="fa-regular fa-bell-slash text-xl block mb-1.5"></i>
                     No new notifications
                 </div>
             `;
+            return;
+        }
 
-            setTimeout(() => {
-                notifPopup.setAttribute("data-open", "false");
-            }, 300);
+        notifList.innerHTML = data.notifications.map(n => `
+            <a href="${n.link || '#'}" data-id="${n.notification_id}" class="notif-item flex gap-3.5 p-4 border-b border-gray-50 hover:bg-gray-50/80 transition-colors items-start ${n.is_read ? 'opacity-60' : ''}">
+                <span class="text-xl flex-shrink-0">${renderNotifIcon(n.type)}</span>
+                <div>
+                    <p class="font-medium text-gray-900 text-sm">${n.title}</p>
+                    <p class="text-xs text-gray-500 mt-0.5 leading-relaxed">${n.message}</p>
+                </div>
+            </a>
+        `).join("");
+
+        notifList.querySelectorAll(".notif-item").forEach(item => {
+            item.addEventListener("click", async () => {
+                await fetch(`/api/notifications/${item.dataset.id}/read`, { method: "PUT" });
+            });
         });
+
+    } catch (err) {
+        console.error("Failed to load notifications:", err);
     }
 }
 

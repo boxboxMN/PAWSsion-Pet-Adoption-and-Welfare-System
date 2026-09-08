@@ -143,6 +143,7 @@ router.get("/kamustahan", (req, res) => {
 router.get("/feedback", (req, res) => {
   res.sendFile(path.join(__dirname, "../public/user/feedback.html"));
 });
+router.post("/api/feedback", userController.submitFeedback);
 router.get("/profile", (req, res) => {
   res.sendFile(path.join(__dirname, "../public/user/userProfile.html"));
 }); 

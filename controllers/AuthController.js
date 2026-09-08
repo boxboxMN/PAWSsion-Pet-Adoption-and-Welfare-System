@@ -6,7 +6,8 @@ const phoneRegex = /^(09\d{9}|\+639\d{9})$/;
 const zipRegex = /^\d{4}$/; //for zip code
 const crypto = require("crypto");
 const transporter = require("../config/email");
-const { logActivity } = require("./adminController");
+// const { logActivity } = require("./adminController");
+const { logActivity, createNotification, notifyAllAdmins } = require("./adminController");
 
 exports.register = async (req, res) => {
   console.log("=== REGISTER START ===");
@@ -359,6 +360,13 @@ exports.registerOrganization = async (req, res) => {
             await connection.commit();
 
             await logActivity(accountId, "account_registered", "user", accountId, `Organization: ${organizationName}`);
+
+            await notifyAllAdmins(
+                "New Organization Pending Approval",
+                `${organizationName} has registered and is awaiting verification.`,
+                "org_pending",
+                "/admin/organization"
+            );
 
             res.send("Organization registered successfully.");
 

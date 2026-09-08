@@ -34,4 +34,90 @@
     } catch (err) {
         console.error("Error setting topbar avatar:", err);
     }
+
+     // 4. NOTIFICATIONS
+     initUserNotifications();
+}
+
+function userNotifIcon(type) {
+    const icons = {
+        application_status: "📋",
+        interview_scheduled: "📅",
+        interview_rescheduled: "📅",
+        donation_status: "💰",
+        kamustahan_due: "🐾"
+    };
+    return icons[type] || "🔔";
+}
+
+async function loadUserNotifications() {
+    const list = document.getElementById("userNotifList");
+    const dot = document.querySelector("#notificationBtn .bg-red-500");
+    if (!list) return;
+
+    try {
+        const res = await fetch("/api/notifications");
+        const data = await res.json();
+
+        if (dot) {
+            dot.style.display = data.unreadCount > 0 ? "" : "none";
+        }
+
+        if (!data.success || !data.notifications || data.notifications.length === 0) {
+            list.innerHTML = '<li class="text-gray-400 text-xs text-center py-4">No notifications yet.</li>';
+            return;
+        }
+
+        list.innerHTML = data.notifications.map(n => `
+            <li data-id="${n.notification_id}" data-link="${n.link || ''}" class="user-notif-item border-b pb-2 cursor-pointer ${n.is_read ? 'opacity-50' : ''}">
+                ${userNotifIcon(n.type)} <span class="font-medium">${n.title}</span><br>
+                <span class="text-xs text-gray-500">${n.message}</span>
+            </li>
+        `).join("");
+
+        list.querySelectorAll(".user-notif-item").forEach(item => {
+            item.addEventListener("click", async () => {
+                await fetch(`/api/notifications/${item.dataset.id}/read`, { method: "PUT" });
+                if (item.dataset.link) window.location.href = item.dataset.link;
+            });
+        });
+
+    } catch (err) {
+        console.error("Failed to load notifications:", err);
+    }
+}
+
+function initUserNotifications() {
+    const btn = document.getElementById("notificationBtn");
+    const popup = document.getElementById("notificationPopup");
+    const markAllBtn = document.getElementById("userMarkAllReadBtn");
+
+    if (btn && popup) {
+        btn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            const isHidden = popup.classList.contains("hidden");
+            popup.classList.toggle("hidden");
+            if (isHidden) loadUserNotifications();
+        });
+
+        document.addEventListener("click", (e) => {
+            if (!btn.contains(e.target) && !popup.contains(e.target)) {
+                popup.classList.add("hidden");
+            }
+        });
+    }
+
+    if (markAllBtn) {
+        markAllBtn.addEventListener("click", async (e) => {
+            e.stopPropagation();
+            await fetch("/api/notifications/read-all", { method: "PUT" });
+            await loadUserNotifications();
+        });
+    }
+
+    loadUserNotifications();
+    if (!window.__userNotifPolling) {
+        window.__userNotifPolling = true;
+        setInterval(loadUserNotifications, 30000);
+    }
 }

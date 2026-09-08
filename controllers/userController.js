@@ -4,6 +4,7 @@ const bcrypt = require("bcrypt");
 const validator = require('validator');
 const AdoptionModel = require('../models/userModel');
 const { logActivity } = require("./adminController");
+const { createNotification, notifyAllAdmins } = require("./adminController");
 
 exports.getProfile = async (req, res) => {
     const accountId = req.session?.accountId;
@@ -595,11 +596,28 @@ exports.submitCashDonation = async (req, res) => {
         );
         await logActivity(accountId, "donation_submitted", "cash_donation", result.insertId, `₱${parsedAmount}`);
 
+        const [[orgAccount]] = await pool.query(
+            `SELECT account_id FROM organizations WHERE organization_id = ?`,
+            [organization_id]
+        );
+
+        if (orgAccount) {
+            await createNotification(
+                orgAccount.account_id,
+                "New Cash Donation",
+                `${donor_name} submitted a cash donation of ₱${parsedAmount}.`,
+                "donation_submitted",
+                "/org/donation"
+            );
+        }
+
         return res.json({
             success: true,
             message: "Thank you! Your cash donation has been submitted and is pending verification.",
             donationId: result.insertId
         });
+
+        await notifyOrgOfNewDonation(organization_id, "cash"); // or "in-kind"
 
     } catch (error) {
         console.error("Submit Cash Donation Error:", error);
@@ -754,11 +772,28 @@ exports.submitInKindDonation = async (req, res) => {
         );
         await logActivity(accountId, "donation_submitted", "inkind_donation", result.insertId, cleanItemName);
 
+        const [[orgAccountInkind]] = await pool.query(
+            `SELECT account_id FROM organizations WHERE organization_id = ?`,
+            [organization_id]
+        );
+
+        if (orgAccountInkind) {
+            await createNotification(
+                orgAccountInkind.account_id,
+                "New In-Kind Donation",
+                `${donorName} wants to donate ${cleanQuantity}x ${cleanItemName}.`,
+                "donation_submitted",
+                "/org/donation"
+            );
+        }
+
         return res.json({
             success: true,
             message: "In-kind donation request submitted successfully!",
             inkindDonationId: result.insertId
         });
+
+        await notifyOrgOfNewDonation(organization_id, "in-kind");
 
     } catch (error) {
         console.error("Submit In-Kind Donation Error:", error);
@@ -963,6 +998,20 @@ exports.submitAdoptionApplication = async (req, res) => {
             );
             await logActivity(accountId, "adoption_application_submitted", "application", existingApp[0].application_id, "Re-application");
 
+            const [[orgAccountReapply]] = await pool.query(
+                `SELECT account_id FROM organizations WHERE organization_id = ?`,
+                [organizationId]
+            );
+            if (orgAccountReapply) {
+                await createNotification(
+                    orgAccountReapply.account_id,
+                    "New Adoption Application",
+                    "An adopter re-submitted an application for review.",
+                    "application_submitted",
+                    "/org/adoption"
+                );
+            }
+
             return res.status(200).json({
                 status: 'success',
                 message: 'Re-application submitted successfully! Your application status is now Under Review.'
@@ -1002,6 +1051,21 @@ exports.submitAdoptionApplication = async (req, res) => {
         await pool.query(insertQuery, values);
 
         await logActivity(accountId, "adoption_application_submitted", "application", null, animal_id ? `Pet #${animal_id}` : null);
+
+        const [[orgAccountNew]] = await pool.query(
+            `SELECT account_id FROM organizations WHERE organization_id = ?`,
+            [organizationId]
+        );
+
+        if (orgAccountNew) {
+            await createNotification(
+                orgAccountNew.account_id,
+                "New Adoption Application",
+                `A new application was submitted${animal_id ? ` for pet #${animal_id}` : ""}.`,
+                "application_submitted",
+                "/org/adoption"
+            );
+        }
 
         return res.status(200).json({
             status: 'success',
@@ -1371,10 +1435,27 @@ exports.submitKamustahanUpdate = async (req, res) => {
         
         await logActivity(accountId, "kamustahan_submitted", "kamustahan_update", updateId);
         
+        const [[orgAccountKamustahan]] = await pool.query(
+            `SELECT account_id FROM organizations WHERE organization_id = ?`,
+            [organization_id]
+        );
+
+        if (orgAccountKamustahan) {
+            await createNotification(
+                orgAccountKamustahan.account_id,
+                "New Kamustahan Update",
+                "An adopter posted a new pet update for you to review.",
+                "kamustahan_submitted",
+                "/org/kamustahan"
+            );
+        }
+
         return res.json({
             success: true,
             message: "Kamustahan update successfully submitted!"
         });
+
+        await createNotification(orgAccountId, "New Kamustahan Update", `An adopter posted an update for ${petName}.`, "kamustahan_submitted", "/org/kamustahan");
 
     } catch (error) {
         console.error("Submit Kamustahan Error:", error);
@@ -1469,6 +1550,37 @@ exports.getKamustahanHistory = async (req, res) => {
         return res.status(500).json({ success: false, error: "Failed to load history." });
     }
 };
+
+//check if there are any due kamustahan reminders for the user and create notifications if needed (new added)
+async function checkKamustahanRemindersDue(accountId) {
+    const [dueUpdates] = await pool.query(`
+        SELECT ku.update_id, ku.animal_id, ku.scheduled_date, a.name AS pet_name
+        FROM kamustahan_updates ku
+        JOIN animals a ON a.animal_id = ku.animal_id
+        WHERE ku.adopter_id = (SELECT adopter_id FROM adopters WHERE account_id = ?)
+          AND ku.status = 'For Update'
+          AND ku.scheduled_date IS NOT NULL
+          AND ku.scheduled_date <= CURDATE()
+          AND NOT EXISTS (
+              SELECT 1 FROM notifications n
+              WHERE n.account_id = ?
+                AND n.type = 'kamustahan_due'
+                AND n.link = CONCAT('/kamustahan?pet=', ku.animal_id)
+                AND DATE(n.created_at) = CURDATE()
+          )
+    `, [accountId, accountId]);
+
+    for (const item of dueUpdates) {
+        await createNotification(
+            accountId,
+            "Kamustahan Update Due",
+            `It's time to share an update on ${item.pet_name}!`,
+            "kamustahan_due",
+            `/kamustahan?pet=${item.animal_id}`
+        );
+    }
+}
+exports.checkKamustahanRemindersDue = checkKamustahanRemindersDue;
 
 //functions for recent activities in user dashboard
 exports.getUserRecentActivities = async (req, res) => {
@@ -1692,5 +1804,63 @@ exports.getOrganizationById = async (req, res) => {
     } catch (err) {
         console.error("Error fetching organization profile:", err);
         res.status(500).json({ error: "Server error" });
+    }
+};
+
+// ==========================================
+// SUBMIT FEEDBACK (Adopter)
+// POST /api/feedback
+// ==========================================
+exports.submitFeedback = async (req, res) => {
+    try {
+        const accountId = req.session?.accountId;
+        if (!accountId) {
+            return res.status(401).json({ success: false, message: "Please log in to send feedback." });
+        }
+
+        const { feedback_type, subject, message, rating } = req.body;
+
+        const cleanSubject = (subject || "").trim();
+        const cleanMessage = (message || "").trim();
+        const validTypes = ["Report a Bug", "Feature Suggestion", "General Feedback", "Other"];
+
+        if (!feedback_type || !validTypes.includes(feedback_type)) {
+            return res.status(400).json({ success: false, message: "Please select a valid feedback type." });
+        }
+        if (!cleanSubject) {
+            return res.status(400).json({ success: false, message: "Subject is required." });
+        }
+        if (!cleanMessage || cleanMessage.length < 10) {
+            return res.status(400).json({ success: false, message: "Message must be at least 10 characters." });
+        }
+
+        let cleanRating = null;
+        if (rating !== null && rating !== undefined && rating !== "") {
+            const parsedRating = parseInt(rating, 10);
+            if (isNaN(parsedRating) || parsedRating < 1 || parsedRating > 5) {
+                return res.status(400).json({ success: false, message: "Rating must be between 1 and 5." });
+            }
+            cleanRating = parsedRating;
+        }
+
+        const [result] = await pool.query(
+            `INSERT INTO feedback (account_id, submitted_by, organization_id, feedback_type, subject, message, rating, status)
+             VALUES (?, 'user', NULL, ?, ?, ?, ?, 'pending')`,
+            [accountId, feedback_type, cleanSubject, cleanMessage, cleanRating]
+        );
+
+        await logActivity(accountId, "feedback_submitted", "feedback", result.insertId, feedback_type);
+
+        await notifyAllAdmins(
+            "New Feedback Received",
+            `A new "${feedback_type}" feedback was submitted: "${cleanSubject}"`,
+            "feedback_new",
+            "/admin/feedback"
+        );
+
+        res.json({ success: true, message: "Thanks! Your feedback has been sent to the Pawpon team." });
+    } catch (err) {
+        console.error("Submit Feedback Error:", err);
+        res.status(500).json({ success: false, message: "Something went wrong while sending your feedback." });
     }
 };

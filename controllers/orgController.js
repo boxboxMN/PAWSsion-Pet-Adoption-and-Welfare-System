@@ -1,6 +1,7 @@
 const pool = require("../config/database");
 const { generateEmbedding } = require("../services/embeddingService");
 const { logActivity } = require("./adminController");
+const { createNotification, notifyAllAdmins } = require("./adminController");
 
 // ==========================================
 // PET MANAGEMENT CONTROLLERS
@@ -1869,6 +1870,22 @@ exports.updateDonationStatus = async (req, res) => {
                 message: "Donation record not found or does not belong to your organization."
             });
         }
+        // 3. Fetch donor's account_id for notification
+        const [[donorInfo]] = await pool.query(
+            `SELECT adopter_id FROM cash_donations WHERE cash_donation_id = ?`,
+            [donationId]
+        );
+
+        if (donorInfo) {
+            await createNotification(
+                donorInfo.account_id,
+                "Donation Status Updated",
+                `Your cash donation status is now "${status}".`,
+                "donation_status",
+                "/donation"
+            );
+        }
+    
         await logActivity(req.session.accountId, "donation_status_updated", "cash_donation", donationId, `Status: ${status}`);
 
         return res.json({
@@ -2062,6 +2079,20 @@ exports.updateInKindDonationStatus = async (req, res) => {
                 success: false,
                 message: "In-kind donation record not found."
             });
+        }
+
+        const [[donorInfo]] = await pool.query(
+            `SELECT adopter_id FROM cash_donations WHERE cash_donation_id = ?`,
+            [donationId]
+        );
+        if (donorInfo) {
+            await createNotification(
+                donorInfo.account_id,
+                "Donation Status Updated",
+                `Your cash donation status is now "${status}".`,
+                "donation_status",
+                "/donation"
+            );
         }
         await logActivity(req.session.accountId, "donation_status_updated", "inkind_donation", donationId, `Status: ${status}`);
 

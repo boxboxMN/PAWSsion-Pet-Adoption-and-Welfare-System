@@ -684,3 +684,16 @@ CREATE TABLE organization_dropoff_hours (
     Update own admin profile (hindi pa to natetest)
 
     the email na doesn't exist is nalalagay sa logs ✓
+
+# notifications:
+CREATE TABLE notifications (
+    notification_id INT AUTO_INCREMENT PRIMARY KEY,
+    account_id       INT NOT NULL,
+    title            VARCHAR(150) NOT NULL,
+    message          VARCHAR(255) NOT NULL,
+    type             VARCHAR(50) NOT NULL,
+    is_read          TINYINT(1) NOT NULL DEFAULT 0,
+    link             VARCHAR(255) NULL,
+    created_at       TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (account_id) REFERENCES accounts(account_id) ON DELETE CASCADE
+);
