@@ -217,5 +217,6 @@ router.put('/api/user/kamustahan/:id', uploadKamustahan.single('photos'), async 
     }
 });
 
+router.get("/api/user/kamustahan-due", userController.getKamustahanDue);
 
 module.exports = router;

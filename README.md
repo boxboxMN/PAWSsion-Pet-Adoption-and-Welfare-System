@@ -387,7 +387,6 @@ kapag nainterview sched at nadecline then nag re apply ulit, nakikita sa dashboa
 
 sa org naman kahit under review after ng decline, hindi naerase ang dating interview sched ✓
 
-
 # important notes:
 
 pagsamahin ang sa adoptionHub.html & yung sa vcalude ai na nasa cspc acc ✓
@@ -419,9 +418,15 @@ HOW TO RUN WITH WORKING MATCHMAKING FEATURE
     *terminal: node server.js (this should be in new terminal)
 
 # mga need pa ayusin
+- yung feedback ng admin to org gawing non clickable
+
+- then bakita may unknown sa admin sa mga logs and feedback
+
+- add admin logout modal
+
 - notification (user, org, & admin side)
 
-- sa notification dapat nakikita na yung feedback is naresolved na (pets org)
+- sa notification dapat nakikita na yung feedback is naresolved na (pets org) 
 
 - login lockout too  many attempts
 
@@ -432,6 +437,7 @@ and if kaya is dapat may message sa gmail ng user na yung account nya has violat
 
 - when the org deactivate the account, the account can still login pero dapat hindi na eh ✓
 
+- yung receipt sa donation try to naiscan na sya
 
 # Optional fixed (user & org side):
 - sa mga description dapat hindi nalalagyan ng nonsense na text sa mga reason especially sa application 
@@ -439,6 +445,7 @@ and if kaya is dapat may message sa gmail ng user na yung account nya has violat
 - (user & org side) much better if may parang pagpipilian ang org at user na ilalagay na message ara hindi makasubmit ng nonsense na text
 
 # done na ayusin: 
+- when the org deactivate the account, the account can still login pero dapat hindi na eh ✓
 
 # donation info (org)
 sa complete address under inkind it should be auto filled based on the org's profile ✓

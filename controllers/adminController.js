@@ -56,6 +56,11 @@ exports.getNotifications = async (req, res) => {
         const accountId = req.session?.accountId;
         if (!accountId) return res.status(401).json({ success: false, message: "Unauthorized" });
 
+        if (req.session.role === "adopter") {
+            const { checkKamustahanRemindersDue } = require("./userController");
+            await checkKamustahanRemindersDue(accountId);
+        }
+
         const [rows] = await pool.query(
             `SELECT notification_id, title, message, type, is_read, link, created_at
              FROM notifications

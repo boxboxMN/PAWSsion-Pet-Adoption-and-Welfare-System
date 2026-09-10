@@ -68,14 +68,22 @@ async function loadUserNotifications() {
             return;
         }
 
-        list.innerHTML = data.notifications.map(n => `
-            <li data-id="${n.notification_id}" data-link="${n.link || ''}" class="user-notif-item border-b pb-2 cursor-pointer ${n.is_read ? 'opacity-50' : ''}">
-                ${userNotifIcon(n.type)} <span class="font-medium">${n.title}</span><br>
-                <span class="text-xs text-gray-500">${n.message}</span>
+          // Mga notification type na pang-impormasyon lang, hindi dapat i-click/i-navigate
+          const NON_CLICKABLE_TYPES = ["feedback_resolved", "feedback_reopened"];
+
+        list.innerHTML = data.notifications.map(n => {
+            const isInfoOnly = NON_CLICKABLE_TYPES.includes(n.type);
+            const clickableClass = isInfoOnly ? "" : "cursor-pointer";
+            return `
+            <li data-id="${n.notification_id}" data-link="${n.link || ''}" data-info-only="${isInfoOnly}" class="user-notif-item border-b pb-2 ${clickableClass} ${n.is_read ? 'opacity-50' : ''}">
+                    ${userNotifIcon(n.type)} <span class="font-medium">${n.title}</span><br>
+                    <span class="text-xs text-gray-500">${n.message}</span>
             </li>
-        `).join("");
+        `}).join("");
 
         list.querySelectorAll(".user-notif-item").forEach(item => {
+            if (item.dataset.infoOnly === "true") return; // walang click behavior para dito
+
             item.addEventListener("click", async () => {
                 await fetch(`/api/notifications/${item.dataset.id}/read`, { method: "PUT" });
                 if (item.dataset.link) window.location.href = item.dataset.link;
