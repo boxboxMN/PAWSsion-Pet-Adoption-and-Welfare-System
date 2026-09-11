@@ -123,6 +123,30 @@ exports.markAllNotificationsRead = async (req, res) => {
 };
 
 /**
+ * DELETE /api/notifications/:id
+ */
+exports.deleteNotification = async (req, res) => {
+    try {
+        const accountId = req.session?.accountId;
+        if (!accountId) return res.status(401).json({ success: false, message: "Unauthorized" });
+
+        const [result] = await pool.query(
+            `DELETE FROM notifications WHERE notification_id = ? AND account_id = ?`,
+            [req.params.id, accountId]
+        );
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ success: false, message: "Notification not found." });
+        }
+
+        res.json({ success: true });
+    } catch (err) {
+        console.error("Delete Notification Error:", err);
+        res.status(500).json({ success: false, message: "Database Error" });
+    }
+};
+
+/**
  * GET ALL PENDING ORGANIZATION REQUESTS
  * GET /admin/api/partner-requests
  */

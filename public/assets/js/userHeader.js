@@ -68,25 +68,47 @@ async function loadUserNotifications() {
             return;
         }
 
-          // Mga notification type na pang-impormasyon lang, hindi dapat i-click/i-navigate
-          const NON_CLICKABLE_TYPES = ["feedback_resolved", "feedback_reopened"];
+        // Mga notification type na pang-impormasyon lang, hindi dapat i-click/i-navigate
+        const NON_CLICKABLE_TYPES = ["feedback_resolved", "feedback_reopened"];
 
         list.innerHTML = data.notifications.map(n => {
             const isInfoOnly = NON_CLICKABLE_TYPES.includes(n.type);
             const clickableClass = isInfoOnly ? "" : "cursor-pointer";
             return `
-            <li data-id="${n.notification_id}" data-link="${n.link || ''}" data-info-only="${isInfoOnly}" class="user-notif-item border-b pb-2 ${clickableClass} ${n.is_read ? 'opacity-50' : ''}">
+            <li data-id="${n.notification_id}" data-link="${n.link || ''}" data-info-only="${isInfoOnly}" class="user-notif-item flex items-start justify-between gap-2 border-b pb-2 ${n.is_read ? 'opacity-50' : ''}">
+                <div class="user-notif-content flex-1 min-w-0 ${clickableClass}">
                     ${userNotifIcon(n.type)} <span class="font-medium">${n.title}</span><br>
                     <span class="text-xs text-gray-500">${n.message}</span>
+                </div>
+                <button class="user-notif-delete-btn text-gray-300 hover:text-red-500 transition shrink-0 px-1" title="Delete">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
             </li>
         `}).join("");
 
         list.querySelectorAll(".user-notif-item").forEach(item => {
-            if (item.dataset.infoOnly === "true") return; // walang click behavior para dito
+            if (item.dataset.infoOnly !== "true") {
+                item.querySelector(".user-notif-content").addEventListener("click", async () => {
+                    await fetch(`/api/notifications/${item.dataset.id}/read`, { method: "PUT" });
+                    if (item.dataset.link) window.location.href = item.dataset.link;
+                });
+            }
+        });
 
-            item.addEventListener("click", async () => {
-                await fetch(`/api/notifications/${item.dataset.id}/read`, { method: "PUT" });
-                if (item.dataset.link) window.location.href = item.dataset.link;
+        list.querySelectorAll(".user-notif-delete-btn").forEach(btn => {
+            btn.addEventListener("click", async (e) => {
+                e.stopPropagation();
+                const row = btn.closest(".user-notif-item");
+                const id = row.dataset.id;
+                try {
+                    await fetch(`/api/notifications/${id}`, { method: "DELETE" });
+                    row.remove();
+                    if (!list.querySelector(".user-notif-item")) {
+                        loadUserNotifications();
+                    }
+                } catch (err) {
+                    console.error("Failed to delete notification:", err);
+                }
             });
         });
 

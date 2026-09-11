@@ -737,6 +737,7 @@ app.get("/api/guide", adminController.getGuideSections);
 app.get("/api/notifications", adminController.getNotifications);
 app.put("/api/notifications/:id/read", adminController.markNotificationRead);
 app.put("/api/notifications/read-all", adminController.markAllNotificationsRead);
+app.delete("/api/notifications/:id", adminController.deleteNotification);
 
 const PORT = 3000;
 app.listen(PORT, () => {
