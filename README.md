@@ -422,8 +422,6 @@ HOW TO RUN WITH WORKING MATCHMAKING FEATURE
 
 - then bakita may unknown sa admin sa mga logs and feedback
 
-- add admin logout modal
-
 - notification (user, org, & admin side)
 
 - sa notification dapat nakikita na yung feedback is naresolved na (pets org) 
@@ -445,6 +443,9 @@ and if kaya is dapat may message sa gmail ng user na yung account nya has violat
 - (user & org side) much better if may parang pagpipilian ang org at user na ilalagay na message ara hindi makasubmit ng nonsense na text
 
 # done na ayusin: 
+ 
+- add admin logout modal ✓
+
 - when the org deactivate the account, the account can still login pero dapat hindi na eh ✓
 
 # donation info (org)
