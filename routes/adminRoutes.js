@@ -3,7 +3,7 @@ const path = require("path");
 
 const pool = require("../config/database");
 const adminController = require("../controllers/adminController"); // <--- Idagdag ito
-const { logActivity } = require("../controllers/adminController");
+const { logActivity, createNotification, notifyAllAdmins } = require("../controllers/adminController");
 
 const router = express.Router();
 
@@ -461,10 +461,33 @@ router.get("/users/:id", async (req, res) => {
     }
 
 });
+
 router.put("/users/:id/status", async (req, res) => {
     try {
         const id = req.params.id;
         const { status } = req.body; // Dito tatanggapin kung suspended, banned, active, o disabled
+
+        // if (status === "disabled") {
+        //     const warned = await adminController.hasBeenWarned(id);
+        //     if (!warned) {
+        //         return res.status(400).json({
+        //             message: "This account must be sent a warning before it can be disabled."
+        //         });
+        //     }
+        // }
+
+        if (status === "disabled") {
+            const [[targetAccount]] = await pool.query(`SELECT role FROM accounts WHERE account_id = ?`, [id]);
+            const profileLink = targetAccount?.role === "organization" ? "/org/profile" : "/profile";
+
+            await createNotification(
+                id,
+                "Account Deactivated",
+                "Your account has been deactivated by an administrator.",
+                "account_disabled",
+                profileLink
+            );
+        }
 
         // I-validate kung valid status ang ipinasa
         const validStatuses = ['active', 'disabled', 'suspended', 'banned', 'pending', 'rejected'];
@@ -535,6 +558,17 @@ router.put("/users/:id/suspend", async(req,res)=>{
 
             [id]
 
+        );
+
+        const [[targetAccount]] = await pool.query(`SELECT role FROM accounts WHERE account_id = ?`, [id]);
+        const profileLink = targetAccount?.role === "organization" ? "/org/profile" : "/profile";
+
+        await createNotification(
+            id,
+            "Account Suspended",
+            "Your account has been suspended by an administrator. Please contact support if you believe this is a mistake.",
+            "account_suspended",
+            profileLink
         );
 
         await logActivity(req.session?.accountId, "user_suspended", "user", id);
@@ -632,6 +666,17 @@ router.put("/users/:id/ban", async (req, res) => {
             WHERE account_id=?
             `,
             [id]
+        );
+
+        const [[targetAccount]] = await pool.query(`SELECT role FROM accounts WHERE account_id = ?`, [id]);
+        const profileLink = targetAccount?.role === "organization" ? "/org/profile" : "/profile";
+
+        await createNotification(
+            id,
+            "Account Banned",
+            "Your account has been permanently banned for violating platform policies.",
+            "account_banned",
+            profileLink
         );
 
         await logActivity(req.session?.accountId, "user_banned", "user", id);

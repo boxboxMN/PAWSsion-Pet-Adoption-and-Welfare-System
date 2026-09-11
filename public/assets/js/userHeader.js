@@ -45,7 +45,8 @@ function userNotifIcon(type) {
         interview_scheduled: "📅",
         interview_rescheduled: "📅",
         donation_status: "💰",
-        kamustahan_due: "🐾"
+        kamustahan_due: "🐾",
+        account_warning: "⚠️"
     };
     return icons[type] || "🔔";
 }

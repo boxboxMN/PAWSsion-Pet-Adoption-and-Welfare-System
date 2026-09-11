@@ -88,7 +88,10 @@ function renderNotifIcon(type) {
         interview_scheduled: "📅",
         donation_status: "💵",
         org_pending: "🏢",
-        feedback_new: "💬"
+        feedback_new: "💬",
+        account_suspended: "🚫",
+        account_banned: "⛔",
+        account_disabled: "🔒",
     };
     return icons[type] || "🔔";
 }
