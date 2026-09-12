@@ -3,8 +3,10 @@ const express = require('express');
 const session = require('express-session');
 const app = express();
 const path = require('path');
+const fs = require('fs');
+const multer = require('multer');
 const pool = require('./config/database');
-const { uploadOrgPic } = require('./config/upload'); //for org profile pic upload
+const { uploadOrgPic } = require('./config/upload');
 const { logActivity } = require("./controllers/adminController");
 
 app.use(express.json());
@@ -28,6 +30,7 @@ const userRoutes = require("./routes/userRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 const orgRoutes = require("./routes/orgRoutes");
 const authRoutes = require("./routes/auth");
+const IndexController = require("./controllers/IndexController");   // ⭐ IDAGDAG
 
 const bcrypt = require('bcrypt');
 const Organization = require('./models/organizationModel');
@@ -39,7 +42,57 @@ const orgPasswordAttempts = new Map();
 
 function getOrgAttemptRecord(accountId) {
     return orgPasswordAttempts.get(accountId) || { attempts: 5, lockedUntil: null };
+
+
 }
+
+// ==========================================
+// RECEIPT UPLOAD (multer) — para sa cash donation
+// ==========================================
+const receiptDir = path.join(__dirname, 'uploads', 'receipts');
+if (!fs.existsSync(receiptDir)) {
+    fs.mkdirSync(receiptDir, { recursive: true });
+}
+
+const receiptStorage = multer.diskStorage({          
+    destination: (req, file, cb) => cb(null, receiptDir),
+    filename: (req, file, cb) => {
+        const ext = path.extname(file.originalname) || '.png';
+        const unique = `receipt-${Date.now()}-${Math.round(Math.random() * 1e6)}${ext}`;
+        cb(null, unique);
+    }
+});
+
+const uploadReceipt = multer({
+    storage: receiptStorage,
+    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB max
+    fileFilter: (req, file, cb) => {
+        if (/^image\/(png|jpe?g|webp|gif)$/i.test(file.mimetype)) {
+            cb(null, true);
+        } else {
+            cb(new Error('Only image files are allowed.'));
+        }
+    }
+});
+// ==========================================
+// DONATION ROUTES
+// ==========================================
+app.post(
+    '/api/donations/cash',
+    uploadReceipt.single('receipt'),
+    IndexController.submitCashDonation
+);
+
+
+//  In-Kind Donation 
+app.post(
+    '/api/donations/inkind',
+    uploadReceipt.none(),
+    IndexController.submitInKindDonation
+);
+
+//  PUBLIC ROUTE — para sa organizations list sa landing page
+app.get('/api/organizations', IndexController.getOrganizations);
 
 app.use("/auth", authRoutes);
 app.use(userRoutes);
@@ -737,7 +790,189 @@ app.get("/api/guide", adminController.getGuideSections);
 app.get("/api/notifications", adminController.getNotifications);
 app.put("/api/notifications/:id/read", adminController.markNotificationRead);
 app.put("/api/notifications/read-all", adminController.markAllNotificationsRead);
+/**
+ * Kunin ang listahan ng mga approved organizations para sa public landing page / donation selector
+ */
+app.get('/api/organizations', async (req, res) => {
+    try {
+        const [organizations] = await pool.query(`
+    SELECT
+        o.organization_id,
+        o.organization_name,
+        o.city,
+        o.province,
+        o.contact_number,
+        o.description,
+        o.profile_pic,
+        p.gcash_name,
+        p.gcash_number,
+        p.qr_code,
+        p.maya_name,
+        p.maya_number,
+        p.maya_qr_code,
+        d.dropoff_location_name,
+        d.dropoff_address,
+        d.dropoff_hours,
+        d.dropoff_notes,
+        d.dropoff_image
+    FROM organizations o
+    INNER JOIN organization_payment_details p ON o.organization_id = p.organization_id
+    LEFT JOIN organization_dropoff_details d ON o.organization_id = d.organization_id
+    WHERE o.verification_status = 'Approved'
+`);
 
+        const formattedOrgs = organizations.map(org => {
+            const profilePic = (org.profile_pic && org.profile_pic.trim() !== '')
+                ? (org.profile_pic.startsWith('/') ? org.profile_pic : `/uploads/${org.profile_pic}`)
+                : '/uploads/default-org.png';
+
+            const qrCode = (org.qr_code && org.qr_code.trim() !== '' && org.qr_code !== '/uploads/qr/')
+                ? (org.qr_code.startsWith('/') ? org.qr_code : `/uploads/qr/${org.qr_code}`)
+                : '';
+
+            const mayaQrCode = (org.maya_qr_code && org.maya_qr_code.trim() !== '' && org.maya_qr_code !== '/uploads/qr/')
+                ? (org.maya_qr_code.startsWith('/') ? org.maya_qr_code : `/uploads/qr/${org.maya_qr_code}`)
+                : '';
+
+            let dropoffImg = (org.dropoff_image && org.dropoff_image.trim() !== '') ? org.dropoff_image.trim() : '';
+
+            if (dropoffImg && !dropoffImg.startsWith('/') && !dropoffImg.startsWith('http')) {
+                dropoffImg = dropoffImg.startsWith('qr-') ? `/uploads/qr/${dropoffImg}` : `/uploads/${dropoffImg}`;
+            }
+
+            return {
+                ...org,
+                profile_pic: profilePic,
+                qr_code: qrCode,
+                maya_qr_code: mayaQrCode,
+                dropoff_image: dropoffImg
+            };
+        });
+
+        res.json({ success: true, organizations: formattedOrgs });
+    } catch (err) {
+        console.error("Get Public Organizations Error:", err);
+        res.status(500).json({ success: false, message: "Failed to load organizations." });
+    }
+});
+
+/**
+ * Pag-submit ng Cash Donation mula sa Landing Page (Public / Guest / Logged-in)
+ * Tandaan: Gumagamit ito ng Multer upload para sa resibo (receipt). Siguraduhing naisama mo ang angkop na upload middleware kung kinakailangan.
+ */
+app.post('/api/donations/cash', async (req, res) => {
+    const accountId = req.session?.accountId || null;
+
+    const {
+        organization_id,
+        donor_name,
+        gcash_account_name,
+        reference_number,
+        amount,
+        payment_method
+    } = req.body;
+
+    if (!organization_id || !donor_name || !reference_number || !amount) {
+        return res.status(400).json({ success: false, error: "Please fill in all required fields." });
+    }
+
+    const parsedAmount = parseFloat(amount);
+    if (isNaN(parsedAmount) || parsedAmount <= 0) {
+        return res.status(400).json({ success: false, error: "Donation amount must be greater than zero." });
+    }
+
+    const cleanRefNum = reference_number.trim();
+    const refRegex = /^(?=.*[0-9])[a-zA-Z0-9]{10,15}$/;
+    if (!refRegex.test(cleanRefNum)) {
+        return res.status(400).json({ success: false, error: "Please enter a valid reference number (10-15 alphanumeric characters including a digit)." });
+    }
+
+    if (!req.file) {
+        return res.status(400).json({ success: false, error: "Please upload your proof of payment (Receipt)." });
+    }
+
+    try {
+        const [existingRef] = await pool.query(
+            `SELECT cash_donation_id FROM cash_donations WHERE reference_number = ? LIMIT 1`,
+            [cleanRefNum]
+        );
+
+        if (existingRef.length > 0) {
+            return res.status(400).json({ success: false, error: "This reference number has already been submitted." });
+        }
+
+        const [paymentRows] = await pool.query(
+            `SELECT gcash_number, maya_number FROM organization_payment_details WHERE organization_id = ?`,
+            [organization_id]
+        );
+
+        const selectedMethod = payment_method ? payment_method.trim() : 'GCash';
+
+        if (selectedMethod.toLowerCase() === 'maya') {
+            if (!paymentRows.length || !paymentRows[0].maya_number) {
+                return res.status(400).json({ success: false, error: "Maya payment details are not set for this organization." });
+            }
+        } else {
+            if (!paymentRows.length || !paymentRows[0].gcash_number) {
+                return res.status(400).json({ success: false, error: "GCash payment details are not set for this organization." });
+            }
+        }
+
+        const receipt_path = `/uploads/receipts/${req.file.filename}`;
+
+        let adopter_id = null;
+        if (accountId) {
+            const [adopterRows] = await pool.query(`SELECT adopter_id FROM adopters WHERE account_id = ?`, [accountId]);
+            if (adopterRows.length > 0) adopter_id = adopterRows[0].adopter_id;
+        }
+
+        const [result] = await pool.query(
+            `INSERT INTO cash_donations 
+            (adopter_id, organization_id, donor_name, donor_email, gcash_account_name, reference_number, amount, receipt_path, payment_method, status, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pending', NOW())`,
+            [
+                adopter_id,
+                organization_id,
+                donor_name,
+                donor_email,
+                gcash_account_name || donor_name,
+                cleanRefNum,
+                parsedAmount,
+                receipt_path,
+                selectedMethod
+            ]
+        );
+
+        if (accountId) {
+            await logActivity(accountId, "donation_submitted", "cash_donation", result.insertId, `₱${parsedAmount}`);
+        }
+
+        const [[orgAccount]] = await pool.query(
+            `SELECT account_id FROM organizations WHERE organization_id = ?`,
+            [organization_id]
+        );
+
+        if (orgAccount) {
+            await createNotification(
+                orgAccount.account_id,
+                "New Cash Donation",
+                `${donor_name} submitted a cash donation of ₱${parsedAmount}.`,
+                "donation_submitted",
+                "/org/donation"
+            );
+        }
+
+        return res.json({
+            success: true,
+            message: "Thank you! Your cash donation has been submitted and is pending verification.",
+            donationId: result.insertId
+        });
+
+    } catch (error) {
+        console.error("Submit Public Cash Donation Error:", error);
+        return res.status(500).json({ success: false, error: "Database error while processing donation: " + error.message });
+    }
+});
 const PORT = 3000;
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);

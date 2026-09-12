@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+    <!-- Tesseract.js (OCR for auto-filling receipt details) --> <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
 
@@ -24,6 +24,18 @@
         .hero-title {
             letter-spacing: -2px;
         }
+
+        /* QR CODE MODAL */
+        .qr-modal{position:fixed;inset:0;z-index:9999;display:none;align-items:center;justify-content:center;padding:24px;background:rgba(15,23,42,.72);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+        .qr-modal.is-open{display:flex;animation:qrFadeIn .2s ease-out}
+        .qr-modal-card{width:min(100%,470px);max-height:calc(100vh - 48px);overflow-y:auto;background:#fff;border:1px solid rgba(255,255,255,.7);border-radius:28px;box-shadow:0 25px 70px rgba(15,23,42,.28);position:relative;animation:qrSlideUp .25s ease-out}
+        .qr-modal-top{padding:26px 28px 18px;text-align:center}.qr-modal-icon{width:48px;height:48px;margin:0 auto 12px;border-radius:15px;display:flex;align-items:center;justify-content:center;background:#eef3ff;color:#0151ff;font-size:21px}
+        .qr-modal-title{margin:0;color:#111827;font-size:23px;font-weight:800;line-height:1.25}.qr-modal-subtitle{margin:7px 0 0;color:#64748b;font-size:13px;font-weight:600}.qr-modal-org{margin:4px 0 0;color:#0151ff;font-size:14px;font-weight:700}
+        .qr-modal-qr-wrap{margin:6px 28px 22px;padding:18px;border-radius:22px;background:#f8faff;border:1px solid #e1e9ff;display:flex;align-items:center;justify-content:center}.qr-modal-qr{width:min(100%,330px);aspect-ratio:1/1;object-fit:contain;display:block;border-radius:14px;background:#fff;padding:10px;box-shadow:0 8px 25px rgba(15,23,42,.08)}
+        .qr-modal-close{position:absolute;top:17px;right:17px;width:40px;height:40px;border:0;border-radius:50%;background:#f1f5f9;color:#475569;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:17px;transition:all .2s ease}.qr-modal-close:hover{background:#e2e8f0;color:#111827;transform:rotate(90deg)}
+        .qr-modal-bottom{padding:0 28px 28px}.qr-modal-tip{margin:0 0 15px;text-align:center;color:#64748b;font-size:12px;line-height:1.5}.qr-modal-done{width:100%;border:0;padding:13px 18px;border-radius:14px;background:#0151ff;color:#fff;font-weight:800;cursor:pointer;transition:all .2s ease}.qr-modal-done:hover{background:#003fe0;transform:translateY(-1px)}
+        @keyframes qrFadeIn{from{opacity:0}to{opacity:1}}@keyframes qrSlideUp{from{opacity:0;transform:translateY(16px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+        @media(max-width:520px){.qr-modal{padding:14px}.qr-modal-card{border-radius:22px}.qr-modal-top{padding:23px 20px 15px}.qr-modal-qr-wrap{margin:5px 18px 18px;padding:12px}.qr-modal-bottom{padding:0 18px 20px}}
     </style>
 </head>
 
@@ -69,6 +81,12 @@
                     href="#beliefs"
                     class="no-underline text-[#374151] text-[15px] font-semibold transition-colors duration-200 hover:text-[#0151ff]">
                     Our Values
+                </a>
+
+                <a
+                    href="#donate"
+                    class="no-underline text-[#374151] text-[15px] font-semibold transition-colors duration-200 hover:text-[#0151ff]">
+                    Donate
                 </a>
 
                 <a
@@ -380,6 +398,242 @@
 
         </section>
 
+<!-- =========================
+     DONATION SECTION
+========================== -->
+<section id="donate" class="max-w-[1220px] mx-auto px-[30px] py-[110px]">
+    <div class="text-center mb-[55px]">
+        <h2 class="text-[40px] font-bold mb-3 max-[600px]:text-[32px]">Support Our Partner Organizations</h2>
+        <p class="text-[#697386] text-base">Your donations help provide food, shelter, and medical care for rescued animals.</p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 bg-white p-8 border border-[#e8ebf2] rounded-[24px] shadow-sm">
+
+        <!-- Org Info & Payment Method Display -->
+        <div class="flex flex-col justify-between">
+            <div class="space-y-6">
+                <div>
+                    <label for="orgSelect" class="block text-sm font-bold text-gray-700 mb-2">Select Organization:</label>
+                    <select id="orgSelect" onchange="updateOrgDetails()" class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:border-[#0151ff]">
+                        <!-- Dynamically loaded from database via index.js -->
+                    </select>
+                </div>
+
+                <div class="bg-[#f8f9fc] p-6 rounded-2xl border border-[#edf0f5]">
+                    <h3 id="displayOrgName" class="text-2xl font-bold text-[#111827] mb-2">Organization Name</h3>
+                    <p class="text-sm font-semibold text-[#0151ff] mb-4">Contact: <span id="displayOrgNumber">N/A</span></p>
+                    <p id="orgDescriptionBox" class="text-[#687386] text-sm leading-relaxed mb-6">Description goes here...</p>
+
+                    <!-- Payment Method -->
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">Payment Method</label>
+                        <select id="paymentMethodSelect" onchange="updatePaymentDetails()" class="w-full p-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:border-[#0151ff]">
+                            <option value="GCash">GCash</option>
+                            <option value="Maya">Maya</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===================== CASH QR PANEL ===================== -->
+            <div id="cashQrPanel" class="mt-6 p-6 bg-gradient-to-br from-[#f4f7ff] to-[#eef3ff] rounded-[24px] text-center border border-[#dbe5ff] shadow-sm">
+                <div class="flex items-center justify-center gap-2 mb-1">
+                    <div class="w-8 h-8 rounded-lg bg-white flex items-center justify-center text-[#0151ff] shadow-sm">
+                        <i class="fa-solid fa-qrcode"></i>
+                    </div>
+                    <h4 id="qrHeadingTitle" class="font-extrabold text-gray-900">Scan to Donate</h4>
+                </div>
+                <span id="qrCodeLabel" class="text-xs font-semibold text-[#64748b] block mb-4">[ QR Code ]</span>
+
+                <div id="qrImageContainer" class="w-52 h-52 mx-auto bg-white p-3 rounded-[20px] border border-[#dce4f5] shadow-[0_10px_30px_rgba(15,23,42,0.08)] flex items-center justify-center overflow-hidden">
+                    <div class="text-center">
+                        <i class="fa-solid fa-qrcode text-[52px] text-[#94a3b8] mb-2"></i>
+                        <span class="text-[11px] text-[#64748b] block font-semibold">No QR Available</span>
+                    </div>
+                </div>
+
+                <button type="button" id="viewQrBtn" onclick="openQrModal()"
+                    class="mt-4 hidden items-center justify-center gap-2 px-5 py-2.5 bg-[#0151ff] text-white rounded-xl font-bold text-sm transition-all hover:bg-[#003fe0] hover:-translate-y-0.5 shadow-[0_8px_20px_rgba(1,81,255,0.22)] cursor-pointer">
+                    <i class="fa-solid fa-expand"></i> View QR Full Size
+                </button>
+                <p class="mt-3 text-[11px] text-[#7b8798]">Scan the QR code using your selected payment app.</p>
+            </div>
+
+            <!-- ===================== IN-KIND DROP-OFF PANEL (hidden by default) ===================== -->
+            <div id="inkindDropoffPanel" class="mt-6 p-6 bg-gradient-to-br from-[#fff8ec] to-[#ffefd4] rounded-[24px] border border-[#ffe0a8] shadow-sm hidden">
+                <div class="flex items-center justify-center gap-2 mb-4">
+                    <div class="w-8 h-8 rounded-lg bg-white flex items-center justify-center text-[#ffa500] shadow-sm">
+                        <i class="fa-solid fa-location-dot"></i>
+                    </div>
+                    <h4 class="font-extrabold text-gray-900">Drop-off Information</h4>
+                </div>
+
+                <!-- Location Image -->
+                <div id="dropoffImageContainer"
+                    class="w-full h-44 mb-4 rounded-2xl bg-white border border-[#ffe0a8] shadow-sm flex items-center justify-center overflow-hidden">
+                    <div class="text-center">
+                        <i class="fa-solid fa-image text-[42px] text-[#cbd5e1]"></i>
+                        <span class="text-[11px] text-[#94a3b8] block font-semibold mt-1">No image available</span>
+                    </div>
+                </div>
+
+                <!-- Details Card -->
+                <div class="bg-white rounded-2xl p-4 text-left space-y-3 border border-[#ffe0a8]">
+                    <div>
+                        <span class="text-[11px] font-bold text-[#94a3b8] uppercase tracking-wider">Drop-off Location</span>
+                        <p id="displayDropoffName" class="text-[15px] font-bold text-[#111827] mt-0.5">Partner Shelter</p>
+                    </div>
+                    <div>
+                        <span class="text-[11px] font-bold text-[#94a3b8] uppercase tracking-wider">Address</span>
+                        <p id="displayDropoffLocation" class="text-[13px] text-[#4b5563] mt-0.5 leading-snug">Address not specified</p>
+                    </div>
+                    <div>
+                        <span class="text-[11px] font-bold text-[#94a3b8] uppercase tracking-wider">Drop-off Hours</span>
+                        <p id="displayDropoffHours" class="text-[13px] text-[#4b5563] mt-0.5 leading-snug">Standard shelter hours apply</p>
+                    </div>
+                    <div id="dropoffNotesWrapper" class="hidden">
+                        <span class="text-[11px] font-bold text-[#94a3b8] uppercase tracking-wider">Notes</span>
+                        <p id="displayDropoffNotes" class="text-[13px] text-[#4b5563] mt-0.5 leading-snug italic"></p>
+                    </div>
+                </div>
+
+                <p class="mt-3 text-[11px] text-[#a07338] text-center">
+                    Bring your pledged items to the partner shelter within the indicated hours.
+                </p>
+            </div>
+        </div>
+
+        <!-- Donation Forms (Cash & In-Kind with Switcher Tabs) -->
+        <div>
+            <!-- Tab Buttons -->
+            <div class="flex gap-2 mb-6 border-b border-gray-200 pb-4">
+                <button type="button" id="cashTabBtn" onclick="switchDonationType('cash')" class="flex-1 py-2.5 px-4 rounded-xl font-bold text-sm bg-[#0151ff] text-white transition-all shadow-sm">
+                    <i class="fa-solid fa-peso-sign mr-2"></i> Cash Donation
+                </button>
+                <button type="button" id="inkindTabBtn" onclick="switchDonationType('inkind')" class="flex-1 py-2.5 px-4 rounded-xl font-bold text-sm bg-gray-100 text-gray-700 hover:bg-gray-200 transition-all">
+                    <i class="fa-solid fa-box-archive mr-2"></i> In-Kind Donation
+                </button>
+            </div>
+
+            <!-- Cash Donation Form -->
+            <form id="donationForm" class="space-y-4">
+                <div class="flex items-center gap-2 py-1">
+                    <input type="checkbox" id="anonymousCheck" onchange="toggleDonorFields()" class="w-4 h-4 text-[#0151ff] rounded border-gray-300 focus:ring-[#0151ff]">
+                    <label for="anonymousCheck" class="text-sm font-semibold text-gray-700 cursor-pointer">Donate Anonymously</label>
+                </div>
+
+                <div id="donorDetailsFields" class="space-y-4 transition-all duration-200">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">Your Name</label>
+                        <input type="text" id="donorName" name="donor_name" class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:border-[#0151ff]" placeholder="Enter your full name">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Reference Number</label>
+                    <input type="text" name="reference_number" class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:border-[#0151ff]" placeholder="10-15 alphanumeric digits" required>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Amount (PHP)</label>
+                    <input type="number" step="0.01" name="amount" class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:border-[#0151ff]" placeholder="0.00" required>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Upload Receipt (Proof of Payment)</label>
+                    <input type="file" id="receiptInput" name="receipt" accept="image/*"
+                        class="w-full p-2 border border-gray-300 rounded-xl text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-[#f0f4ff] file:text-[#0151ff] hover:file:bg-[#e2eafc]"
+                        required>
+                    <p class="text-[11px] text-[#7b8798] mt-1">
+                        Upload your GCash or Maya receipt — we'll auto-fill the details for you.
+                    </p>
+
+                    <!-- OCR status -->
+                    <div id="ocrStatus"
+                        class="hidden mt-2 text-xs font-semibold text-[#0151ff] items-center gap-2">
+                        <i class="fa-solid fa-spinner fa-spin"></i>
+                        <span id="ocrStatusText">Scanning receipt...</span>
+                    </div>
+
+                    <!-- Uploaded receipt preview -->
+                    <div id="receiptPreviewWrap" class="hidden mt-3">
+                        <img id="receiptPreview"
+                            class="max-h-44 rounded-xl border border-[#dce4f5] shadow-sm"
+                            alt="Receipt preview">
+                        <p class="text-[11px] text-[#64748b] mt-1">
+                            <i class="fa-solid fa-circle-check text-[#16a34a]"></i>
+                            This is the receipt that will be submitted.
+                        </p>
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full bg-[#0151ff] text-white py-3.5 rounded-xl font-bold transition-all hover:bg-[#003fe0]">
+                    Submit Cash Donation
+                </button>
+            </form>
+<!-- In-Kind Donation Form -->
+<form id="inkindForm" class="space-y-4 hidden" onsubmit="handleInKindSubmit(event)">
+    <div class="flex items-center gap-2 py-1">
+        <input type="checkbox" id="inkindAnonymousCheck" onchange="toggleInKindDonorFields()" class="w-4 h-4 text-[#0151ff] rounded border-gray-300 focus:ring-[#0151ff]">
+        <label for="inkindAnonymousCheck" class="text-sm font-semibold text-gray-700 cursor-pointer">Donate Anonymously</label>
+    </div>
+
+    <!-- ⭐ Donor details lang ang naka-wrap dito -->
+    <div id="inkindDonorDetailsFields" class="space-y-4 transition-all duration-200">
+        <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-1">Your Name / Organization</label>
+            <input type="text" id="inkindDonorName" name="donor_name"
+                class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:border-[#0151ff]"
+                placeholder="Enter your full name" required>
+        </div>
+        <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-1">Contact Number / Email</label>
+            <input type="text" id="inkindContactInfo" name="contact_info"
+                class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:border-[#0151ff]"
+                placeholder="Phone number or email" required>
+        </div>
+    </div>
+    <!-- ⭐ TAMANG CLOSING — dito nagtatapos ang dinidim kapag anonymous -->
+
+    <!-- Item to Donate — HINDI na nadidim kapag anonymous -->
+    <div>
+        <label class="block text-sm font-semibold text-gray-700 mb-1">Item to Donate</label>
+        <input type="text" id="inkindItemName" name="item_name"
+            class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:border-[#0151ff]"
+            placeholder="e.g., Dry dog food, Cat cage, Vitamins"
+            required>
+    </div>
+
+    <div class="grid grid-cols-2 gap-3">
+        <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-1">Quantity</label>
+            <input type="number" id="inkindQuantity" name="quantity" min="1" step="1"
+                class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:border-[#0151ff]"
+                placeholder="e.g., 5"
+                required>
+        </div>
+        <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-1">Unit</label>
+            <select id="inkindUnit" name="unit"
+                class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:border-[#0151ff]">
+                <option value="pcs">pcs</option>
+                <option value="kg">kg</option>
+                <option value="packs">packs</option>
+                <option value="boxes">boxes</option>
+                <option value="sacks">sacks</option>
+                <option value="bottles">bottles</option>
+                <option value="liters">liters</option>
+            </select>
+        </div>
+    </div>
+
+    <button type="submit" class="w-full bg-[#ffa500] text-white py-3.5 rounded-xl font-bold transition-all hover:bg-[#e89500]">
+        Submit In-Kind Pledge
+    </button>
+</form>
+        </div>
+    </div>
+</section>
 
         <!-- =========================
              QUOTE
@@ -804,6 +1058,22 @@
     </main>
 
 
+
+    <!-- QR CODE FULL SIZE MODAL -->
+    <div id="qrModal" class="qr-modal" aria-hidden="true">
+        <div class="qr-modal-card" role="dialog" aria-modal="true" aria-labelledby="qrModalTitle">
+            <button type="button" class="qr-modal-close" onclick="closeQrModal()" aria-label="Close QR code"><i class="fa-solid fa-xmark"></i></button>
+            <div class="qr-modal-top">
+                <div class="qr-modal-icon"><i class="fa-solid fa-qrcode"></i></div>
+                <h2 id="qrModalTitle" class="qr-modal-title">Scan to Donate</h2>
+                <p id="qrModalSubtitle" class="qr-modal-subtitle">QR Code</p>
+                <p id="qrModalOrg" class="qr-modal-org">Organization</p>
+            </div>
+            <div class="qr-modal-qr-wrap"><img id="qrModalImage" class="qr-modal-qr" src="" alt="Donation QR Code"></div>
+            <div class="qr-modal-bottom"><p class="qr-modal-tip">Open your GCash or Maya app and scan this QR code to continue your donation.</p><button type="button" class="qr-modal-done" onclick="closeQrModal()"><i class="fa-solid fa-check mr-2"></i> Done</button></div>
+        </div>
+    </div>
+
     <!-- =========================
          FOOTER
     ========================== -->
@@ -990,6 +1260,9 @@
         </div>
 
     </footer>
+
+    <!-- SCRIPT PARA GUMANA ANG FETCH LOGIC MULA SA DATABASE -->
+    <script src="assets/js/index.js"></script>
 
 </body>
 
