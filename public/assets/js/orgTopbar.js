@@ -82,15 +82,22 @@ function renderNotifIcon(type) {
         application_submitted: "🐾",
         donation_submitted: "💰",
         feedback_resolved: "💬",
+        feedback_reopened: "💬",
         kamustahan_submitted: "🐶",
         application_status: "📋",
         interview_scheduled: "📅",
         donation_status: "💵",
         org_pending: "🏢",
-        feedback_new: "💬"
+        feedback_new: "💬",
+        account_suspended: "🚫",
+        account_banned: "⛔",
+        account_disabled: "🔒",
     };
     return icons[type] || "🔔";
 }
+
+// Mga notification type na pang-impormasyon lang, hindi dapat i-click/i-navigate
+const NON_CLICKABLE_NOTIF_TYPES = ["feedback_resolved", "feedback_reopened"];
 
 async function loadNotifications() {
     const notifList = document.getElementById("notifList");
@@ -115,19 +122,49 @@ async function loadNotifications() {
             return;
         }
 
-        notifList.innerHTML = data.notifications.map(n => `
-            <a href="${n.link || '#'}" data-id="${n.notification_id}" class="notif-item flex gap-3.5 p-4 border-b border-gray-50 hover:bg-gray-50/80 transition-colors items-start ${n.is_read ? 'opacity-60' : ''}">
-                <span class="text-xl flex-shrink-0">${renderNotifIcon(n.type)}</span>
-                <div>
-                    <p class="font-medium text-gray-900 text-sm">${n.title}</p>
-                    <p class="text-xs text-gray-500 mt-0.5 leading-relaxed">${n.message}</p>
+        notifList.innerHTML = data.notifications.map(n => {
+            const isInfoOnly = NON_CLICKABLE_NOTIF_TYPES.includes(n.type);
+            const interactiveClass = isInfoOnly ? "" : "hover:bg-gray-50/80 cursor-pointer";
+
+            return `
+                <div data-id="${n.notification_id}" data-info-only="${isInfoOnly}" data-link="${n.link || ''}" class="notif-item flex gap-3.5 p-4 border-b border-gray-50 transition-colors items-start ${n.is_read ? 'opacity-60' : ''}">
+                    <div class="notif-content flex gap-3.5 flex-1 min-w-0 ${interactiveClass}">
+                        <span class="text-xl flex-shrink-0">${renderNotifIcon(n.type)}</span>
+                        <div class="min-w-0">
+                            <p class="font-medium text-gray-900 text-sm">${n.title}</p>
+                            <p class="text-xs text-gray-500 mt-0.5 leading-relaxed">${n.message}</p>
+                        </div>
+                    </div>
+                    <button class="notif-delete-btn text-gray-300 hover:text-red-500 transition shrink-0 p-1" title="Delete">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
                 </div>
-            </a>
-        `).join("");
+            `;
+        }).join("");
 
         notifList.querySelectorAll(".notif-item").forEach(item => {
-            item.addEventListener("click", async () => {
-                await fetch(`/api/notifications/${item.dataset.id}/read`, { method: "PUT" });
+            if (item.dataset.infoOnly !== "true") {
+                item.querySelector(".notif-content").addEventListener("click", async () => {
+                    await fetch(`/api/notifications/${item.dataset.id}/read`, { method: "PUT" });
+                    if (item.dataset.link) window.location.href = item.dataset.link;
+                });
+            }
+        });
+
+        notifList.querySelectorAll(".notif-delete-btn").forEach(btn => {
+            btn.addEventListener("click", async (e) => {
+                e.stopPropagation();
+                const row = btn.closest(".notif-item");
+                const id = row.dataset.id;
+                try {
+                    await fetch(`/api/notifications/${id}`, { method: "DELETE" });
+                    row.remove();
+                    if (!notifList.querySelector(".notif-item")) {
+                        loadNotifications();
+                    }
+                } catch (err) {
+                    console.error("Failed to delete notification:", err);
+                }
             });
         });
 

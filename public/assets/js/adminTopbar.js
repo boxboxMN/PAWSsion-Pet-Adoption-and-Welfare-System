@@ -83,8 +83,8 @@ async function loadAdminNotifications() {
                 month: "short", day: "numeric", hour: "2-digit", minute: "2-digit"
             });
             return `
-                <div data-id="${n.notification_id}" data-link="${n.link || ''}" class="admin-notif-item px-5 py-3.5 hover:bg-slate-50/80 cursor-pointer transition-colors duration-150 group ${n.is_read ? 'opacity-50' : ''}">
-                    <div class="flex items-start gap-3">
+                 <div data-id="${n.notification_id}" class="admin-notif-item px-5 py-3.5 hover:bg-slate-50/80 transition-colors duration-150 group ${n.is_read ? 'opacity-50' : ''} flex items-start gap-2">
+                    <div class="admin-notif-content flex items-start gap-3 flex-1 min-w-0 cursor-pointer" data-link="${n.link || ''}">
                         <div class="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 border border-blue-100 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-600 group-hover:text-white transition-all duration-200 shadow-xs">
                             <i class="fa-solid ${adminNotifIcon(n.type)} text-xs"></i>
                         </div>
@@ -96,17 +96,38 @@ async function loadAdminNotifications() {
                             </p>
                         </div>
                     </div>
+                    <button class="admin-notif-delete-btn text-slate-300 hover:text-red-500 transition shrink-0 p-1" title="Delete">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
                 </div>
             `;
         }).join("");
 
-        list.querySelectorAll(".admin-notif-item").forEach(item => {
-            item.addEventListener("click", async () => {
-                await fetch(`/api/notifications/${item.dataset.id}/read`, { method: "PUT" });
-                if (item.dataset.link) window.location.href = item.dataset.link;
+        list.querySelectorAll(".admin-notif-content").forEach(content => {
+            content.addEventListener("click", async () => {
+                const id = content.closest(".admin-notif-item").dataset.id;
+                await fetch(`/api/notifications/${id}/read`, { method: "PUT" });
+                if (content.dataset.link) window.location.href = content.dataset.link;
             });
         });
 
+        list.querySelectorAll(".admin-notif-delete-btn").forEach(btn => {
+            btn.addEventListener("click", async (e) => {
+                e.stopPropagation();
+                const row = btn.closest(".admin-notif-item");
+                const id = row.dataset.id;
+                try {
+                    await fetch(`/api/notifications/${id}`, { method: "DELETE" });
+                    row.remove();
+                    if (!list.querySelector(".admin-notif-item")) {
+                        loadAdminNotifications();
+                    }
+                } catch (err) {
+                    console.error("Failed to delete notification:", err);
+                }
+            });
+        });
+        
     } catch (err) {
         console.error("Failed to load notifications:", err);
     }

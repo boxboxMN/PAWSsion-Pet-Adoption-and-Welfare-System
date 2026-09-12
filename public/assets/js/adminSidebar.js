@@ -53,4 +53,59 @@ async function loadSidebar(activePage) {
     } catch (error) {
         console.error("Error loading sidebar:", error);
     }
+
+    setupLogoutControl();
+}
+
+// Kaparehong logout confirmation pattern gaya ng org/user sidebars
+function setupLogoutControl() {
+    const logoutModal = document.getElementById("logoutModal");
+    const openLogoutBtn = document.getElementById("logoutLink");
+    const cancelLogoutBtn = document.getElementById("cancelLogoutBtn");
+    const confirmLogoutBtn = document.getElementById("confirmLogoutBtn");
+
+    if (openLogoutBtn && logoutModal) {
+
+        openLogoutBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            logoutModal.classList.remove("pointer-events-none", "opacity-0");
+            logoutModal.querySelector('div').classList.remove("scale-95");
+        });
+
+        if (cancelLogoutBtn) {
+            cancelLogoutBtn.addEventListener("click", () => {
+                logoutModal.classList.add("pointer-events-none", "opacity-0");
+                logoutModal.querySelector('div').classList.add("scale-95");
+            });
+        }
+
+        if (confirmLogoutBtn) {
+            confirmLogoutBtn.addEventListener("click", async () => {
+                confirmLogoutBtn.disabled = true;
+                confirmLogoutBtn.textContent = "Logging out...";
+
+                try {
+                    const response = await fetch("/auth/logout", {
+                        method: "POST",
+                        credentials: "include"
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok && data.success) {
+                        window.location.href = "/auth/login.html";
+                    } else {
+                        confirmLogoutBtn.disabled = false;
+                        confirmLogoutBtn.textContent = "Yes, Logout";
+                        alert(data.message || "Logout failed. Please try again.");
+                    }
+                } catch (error) {
+                    console.error("Logout error:", error);
+                    confirmLogoutBtn.disabled = false;
+                    confirmLogoutBtn.textContent = "Yes, Logout";
+                    alert("Unable to logout. Please try again.");
+                }
+            });
+        }
+    }
 }
