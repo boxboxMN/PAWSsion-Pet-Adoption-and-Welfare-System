@@ -790,7 +790,6 @@ app.get("/api/guide", adminController.getGuideSections);
 app.get("/api/notifications", adminController.getNotifications);
 app.put("/api/notifications/:id/read", adminController.markNotificationRead);
 app.put("/api/notifications/read-all", adminController.markAllNotificationsRead);
-<<<<<<< HEAD
 /**
  * Kunin ang listahan ng mga approved organizations para sa public landing page / donation selector
  */
@@ -821,9 +820,7 @@ app.get('/api/organizations', async (req, res) => {
     LEFT JOIN organization_dropoff_details d ON o.organization_id = d.organization_id
     WHERE o.verification_status = 'Approved'
 `);
-=======
 app.delete("/api/notifications/:id", adminController.deleteNotification);
->>>>>>> 9f335393780e1c593c04a27e470ef970184049bc
 
         const formattedOrgs = organizations.map(org => {
             const profilePic = (org.profile_pic && org.profile_pic.trim() !== '')
