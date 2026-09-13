@@ -36,6 +36,126 @@
         .qr-modal-bottom{padding:0 28px 28px}.qr-modal-tip{margin:0 0 15px;text-align:center;color:#64748b;font-size:12px;line-height:1.5}.qr-modal-done{width:100%;border:0;padding:13px 18px;border-radius:14px;background:#0151ff;color:#fff;font-weight:800;cursor:pointer;transition:all .2s ease}.qr-modal-done:hover{background:#003fe0;transform:translateY(-1px)}
         @keyframes qrFadeIn{from{opacity:0}to{opacity:1}}@keyframes qrSlideUp{from{opacity:0;transform:translateY(16px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
         @media(max-width:520px){.qr-modal{padding:14px}.qr-modal-card{border-radius:22px}.qr-modal-top{padding:23px 20px 15px}.qr-modal-qr-wrap{margin:5px 18px 18px;padding:12px}.qr-modal-bottom{padding:0 18px 20px}}
+        /* ==========================================
+   DONATION SUCCESS MODAL
+   ========================================== */
+.donate-success-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(15, 23, 42, .68);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+.donate-success-modal.is-open {
+    display: flex;
+    animation: dsmFadeIn .22s ease-out;
+}
+.donate-success-card {
+    width: min(100%, 440px);
+    background: #fff;
+    border-radius: 26px;
+    padding: 34px 30px 28px;
+    text-align: center;
+    box-shadow: 0 25px 70px rgba(15, 23, 42, .28);
+    position: relative;
+    animation: dsmPopIn .3s cubic-bezier(.22, 1, .36, 1);
+}
+.donate-success-icon {
+    width: 84px;
+    height: 84px;
+    margin: 0 auto 20px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 38px;
+    box-shadow: 0 12px 30px rgba(34, 197, 94, .35);
+    animation: dsmCheckBounce .55s cubic-bezier(.34, 1.56, .64, 1) .12s both;
+}
+.donate-success-icon.inkind {
+    background: linear-gradient(135deg, #ffa500, #e89500);
+    box-shadow: 0 12px 30px rgba(255, 165, 0, .35);
+}
+.donate-success-title {
+    font-size: 24px;
+    font-weight: 800;
+    color: #111827;
+    margin: 0 0 8px;
+    line-height: 1.25;
+}
+.donate-success-text {
+    color: #64748b;
+    font-size: 14.5px;
+    line-height: 1.55;
+    margin: 0 0 18px;
+}
+.donate-success-summary {
+    background: #f8faff;
+    border: 1px solid #e1e9ff;
+    border-radius: 16px;
+    padding: 14px 16px;
+    text-align: left;
+    margin-bottom: 22px;
+    font-size: 13.5px;
+}
+.donate-success-summary-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 5px 0;
+}
+.donate-success-summary-row + .donate-success-summary-row {
+    border-top: 1px dashed #e1e9ff;
+}
+.donate-success-summary-label {
+    color: #94a3b8;
+    font-weight: 600;
+}
+.donate-success-summary-value {
+    color: #111827;
+    font-weight: 700;
+    text-align: right;
+    word-break: break-word;
+}
+.donate-success-btn {
+    width: 100%;
+    border: 0;
+    padding: 13px 18px;
+    border-radius: 14px;
+    background: #0151ff;
+    color: #fff;
+    font-weight: 800;
+    font-size: 15px;
+    cursor: pointer;
+    transition: all .2s ease;
+}
+.donate-success-btn:hover {
+    background: #003fe0;
+    transform: translateY(-1px);
+}
+.donate-success-btn.inkind {
+    background: #ffa500;
+}
+.donate-success-btn.inkind:hover {
+    background: #e89500;
+}
+@keyframes dsmFadeIn { from { opacity: 0 } to { opacity: 1 } }
+@keyframes dsmPopIn {
+    from { opacity: 0; transform: translateY(20px) scale(.94); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes dsmCheckBounce {
+    0%   { transform: scale(0); opacity: 0; }
+    60%  { transform: scale(1.15); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+}
     </style>
 </head>
 
@@ -535,9 +655,19 @@
                 </div>
 
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-1">Amount (PHP)</label>
-                    <input type="number" step="0.01" name="amount" class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:border-[#0151ff]" placeholder="0.00" required>
-                </div>
+                <label class="block text-sm font-semibold text-gray-700 mb-1">Amount (PHP)</label>
+                <input
+                    type="number"
+                    id="donationAmountInput"
+                    name="amount"
+                    step="1"
+                    min="1"
+                    oninput="this.value = this.value.replace(/[^0-9]/g, ''); if(this.value && parseInt(this.value) < 1) this.value = '';"
+                    onkeydown="if(event.key === '-' || event.key === '.' || event.key === 'e' || event.key === 'E' || event.key === '+' || event.key === 'Subtract' || event.key === 'Decimal') event.preventDefault();"
+                    class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:border-[#0151ff]"
+                    placeholder="Enter amount"
+                    required>
+            </div>
 
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-1">Upload Receipt (Proof of Payment)</label>
@@ -1073,7 +1203,22 @@
             <div class="qr-modal-bottom"><p class="qr-modal-tip">Open your GCash or Maya app and scan this QR code to continue your donation.</p><button type="button" class="qr-modal-done" onclick="closeQrModal()"><i class="fa-solid fa-check mr-2"></i> Done</button></div>
         </div>
     </div>
-
+    <!-- DONATION SUCCESS MODAL -->
+    <div id="donateSuccessModal" class="donate-success-modal" aria-hidden="true">
+        <div class="donate-success-card" role="dialog" aria-modal="true" aria-labelledby="donateSuccessTitle">
+            <div id="donateSuccessIcon" class="donate-success-icon">
+                <i id="donateSuccessIconInner" class="fa-solid fa-check"></i>
+            </div>
+            <h2 id="donateSuccessTitle" class="donate-success-title">Thank You!</h2>
+            <p id="donateSuccessText" class="donate-success-text">
+                Your donation has been submitted successfully.
+            </p>
+            <div id="donateSuccessSummary" class="donate-success-summary" style="display:none;"></div>
+            <button type="button" id="donateSuccessBtn" class="donate-success-btn" onclick="closeDonateSuccessModal()">
+                <i class="fa-solid fa-check mr-2"></i> Done
+            </button>
+        </div>
+    </div>
     <!-- =========================
          FOOTER
     ========================== -->

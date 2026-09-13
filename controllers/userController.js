@@ -587,7 +587,9 @@ exports.submitCashDonation = async (req, res) => {
                 organization_id,
                 donor_name,
                 donor_email,
-                gcash_account_name || donor_name,
+                gcash_account_name && gcash_account_name.trim() !== ""
+                ? gcash_account_name.trim()
+                : null,         
                 cleanRefNum,
                 parsedAmount,
                 receipt_path,

@@ -88,6 +88,7 @@ document.addEventListener("DOMContentLoaded", async function () {
             }
         });
     }
+    
 const viewQrBtn = document.getElementById("viewQrBtn");
 const qrModal = document.getElementById("qrModal");
 const qrModalClose = document.getElementById("qrModalClose");
@@ -458,7 +459,10 @@ if (qrModalCloseBtn) qrModalCloseBtn.addEventListener("click", closeQrModal);
             formData.append("donor_name", donorNameInput.value.trim());
             formData.append("donor_email", donorEmailInput.value.trim());
             formData.append("payment_method", method);
-            formData.append("gcash_account_name", gcashNameInput ? gcashNameInput.value.trim() : "");
+            const accountNameValue = gcashNameInput ? gcashNameInput.value.trim() : "";
+            if (accountNameValue) {
+                formData.append("gcash_account_name", accountNameValue);
+            }
             formData.append("reference_number", refNumInput.value.trim());
             formData.append("amount", amountInput.value.trim());
             formData.append("receipt", receiptFileInput.files[0]);
@@ -560,3 +564,283 @@ function getValidImageUrl(imagePath, fallbackUrl) {
     }
     return imagePath;
 }
+
+const receiptInput = document.getElementById("receiptInput");
+    if (receiptInput) {
+        receiptInput.addEventListener("change", handleReceiptUpload);
+    }
+    // ==========================================
+// RECEIPT OCR — Auto-fill Ref No., Amount, Name
+// ==========================================
+async function handleReceiptUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // Show filename
+    const fileNameEl = document.getElementById("receiptFileName");
+    if (fileNameEl) fileNameEl.textContent = file.name;
+
+    // 1) Show preview of uploaded receipt
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        const preview = document.getElementById("receiptPreview");
+        const wrap    = document.getElementById("receiptPreviewWrap");
+        if (preview && wrap) {
+            preview.src = e.target.result;
+            wrap.classList.remove("hidden");
+        }
+    };
+    reader.readAsDataURL(file);
+
+    // 2) Run OCR
+    await runReceiptOCR(file);
+}
+
+async function runReceiptOCR(file) {
+    const statusBox  = document.getElementById("ocrStatus");
+    const statusText = document.getElementById("ocrStatusText");
+
+    if (statusBox) {
+        statusBox.classList.remove("hidden");
+        statusBox.classList.add("flex");
+    }
+    if (statusText) statusText.textContent = "Scanning receipt...";
+
+    try {
+        if (!window.Tesseract) throw new Error("Tesseract.js not loaded");
+
+        // --- Upscale first (GCash screenshots are tiny) ---
+        const enhanced = await upscaleImageForOcr(file, 1600);
+
+        const result = await Tesseract.recognize(enhanced, "eng", {
+            tessedit_pageseg_mode: "6",
+            preserve_interword_spaces: "1",
+            logger: (m) => {
+                if (m.status === "recognizing text" && statusText) {
+                    statusText.textContent =
+                        `Scanning receipt... ${Math.round((m.progress || 0) * 100)}%`;
+                }
+            }
+        });
+
+        const text = result?.data?.text || "";
+        console.log("[OCR raw text]\n---\n" + text + "\n---");
+
+        const parsed  = parseReceiptText(text);
+        const result2 = fillReceiptFields(parsed);   // { filled, corrected }
+
+        if (statusText) {
+            if (result2.corrected > 0) {
+                statusText.textContent =
+                    `Receipt scanned ✓ Corrected ${result2.corrected} field${result2.corrected > 1 ? "s" : ""} to match the receipt. Please double-check.`;
+            } else if (result2.filled > 0) {
+                statusText.textContent =
+                    `Receipt scanned ✓ Auto-filled ${result2.filled} field${result2.filled > 1 ? "s" : ""}. Please double-check.`;
+            } else {
+                statusText.textContent =
+                    "Receipt scanned — no matching details found. Please fill in manually.";
+            }
+        }
+    } catch (err) {
+        console.error("OCR error:", err);
+        if (statusText) statusText.textContent =
+            "Could not read the receipt. Please fill in the details manually.";
+    } finally {
+        setTimeout(() => {
+            if (statusBox) {
+                statusBox.classList.add("hidden");
+                statusBox.classList.remove("flex");
+            }
+        }, 4000);
+    }
+}
+
+function parseReceiptText(text) {
+    const out = { reference: "", amount: "", name: "" };
+
+    const raw   = String(text).replace(/\r/g, "").trim();
+    const flat  = raw.replace(/[ \t]+/g, " ");
+    const lines = raw.split("\n").map(l => l.trim()).filter(Boolean);
+
+    const fixDigits = (s) => s.replace(/[Oo]/g, "0").replace(/[Il|]/g, "1");
+
+    const looksLikePhone = (numStr) => {
+        const n = String(numStr).replace(/\D/g, "");
+        if (/^09\d{9}$/.test(n))   return true;
+        if (/^639\d{9}$/.test(n))  return true;
+        if (/^63\d{10}$/.test(n))  return true;
+        return false;
+    };
+
+    // STEP 1: Ref No. label
+    const refLabelRx = /ref(?:erence)?\.?\s*(?:no\.?|number|num\.?|#)?/gi;
+    let m;
+    while ((m = refLabelRx.exec(flat)) !== null) {
+        const after = flat.substring(m.index + m[0].length, m.index + m[0].length + 40);
+        const normalized = fixDigits(after).replace(/[\s\-]/g, "");
+        const dm = normalized.match(/^(\d{10,16})/);
+        if (dm && !looksLikePhone(dm[1])) {
+            out.reference = dm[1];
+            break;
+        }
+    }
+
+    // STEP 2: Spaced 3-3-3-3 / 3-3-3-4
+    if (!out.reference) {
+        const spaced = [...flat.matchAll(/\b(\d{3}[\s\-]\d{3}[\s\-]\d{3}[\s\-]\d{3,4})\b/g)];
+        for (let i = spaced.length - 1; i >= 0; i--) {
+            const cleaned = fixDigits(spaced[i][1]).replace(/[\s\-]/g, "");
+            if (!looksLikePhone(cleaned)) {
+                out.reference = cleaned;
+                break;
+            }
+        }
+    }
+
+    // STEP 3: Solid 12–15 digits, last match
+    if (!out.reference) {
+        const solid = [...flat.matchAll(/\b(\d{12,15})\b/g)];
+        for (let i = solid.length - 1; i >= 0; i--) {
+            if (!looksLikePhone(solid[i][1])) {
+                out.reference = solid[i][1];
+                break;
+            }
+        }
+    }
+
+    // STEP 4: Scan lines from bottom
+    if (!out.reference) {
+        for (let i = lines.length - 1; i >= 0; i--) {
+            const cleaned = fixDigits(lines[i]).replace(/[\s\-]/g, "");
+            const dm = cleaned.match(/(\d{10,16})/);
+            if (dm && !looksLikePhone(dm[1])) {
+                out.reference = dm[1];
+                break;
+            }
+        }
+    }
+
+    // Amount
+    const amountPatterns = [
+        /(?:total\s+amount\s+sent|amount\s+sent|total\s+amount|amount|total)\s*[:\-]?\s*(?:php|₱|p)?\s*([\d,]+\.\d{2})/i,
+        /(?:php|₱)\s*([\d,]+\.?\d{0,2})/i,
+        /\bp\s*([\d,]+\.\d{2})\b/i,
+        /([\d,]+\.\d{2})/
+    ];
+    for (const rx of amountPatterns) {
+        const mt = flat.match(rx);
+        if (mt && mt[1]) {
+            out.amount = mt[1].replace(/,/g, "").trim();
+            break;
+        }
+    }
+
+    console.log("[OCR parsed]", out);
+    return out;
+}
+
+function fillReceiptFields(parsed) {
+    // ⭐ Adapted para sa cash-donation.html field IDs
+    const refInput    = document.getElementById("refNumInput");
+    const amountInput = document.getElementById("customAmount");
+    const donorInput  = document.getElementById("donorName");
+
+    let filled = 0;
+    let corrected = 0;
+
+    // Reference Number
+    if (parsed.reference && refInput) {
+        const typed = (refInput.value || "").replace(/\s/g, "").trim();
+        const ocr   = parsed.reference.replace(/\s/g, "").trim();
+
+        if (!typed) {
+            refInput.value = ocr;
+            highlightOcrField(refInput, "blue");
+            filled++;
+        } else if (typed !== ocr) {
+            refInput.value = ocr;
+            highlightOcrField(refInput, "orange");
+            corrected++;
+            console.warn(`[OCR] Ref mismatch: "${typed}" → "${ocr}"`);
+        }
+    }
+
+    // Amount
+    if (parsed.amount && amountInput) {
+        const typed    = String(amountInput.value || "").trim();
+        const ocr      = String(parsed.amount).trim();
+        const typedNum = typed ? parseFloat(typed) : NaN;
+        const ocrNum   = parseFloat(ocr);
+
+        if (!typed) {
+            amountInput.value = ocr;
+            highlightOcrField(amountInput, "blue");
+            filled++;
+        } else if (!isNaN(ocrNum) && typedNum !== ocrNum) {
+            amountInput.value = ocr;
+            highlightOcrField(amountInput, "orange");
+            corrected++;
+            console.warn(`[OCR] Amount mismatch: "${typed}" → "${ocr}"`);
+        }
+    }
+
+    // Your Name (fill only if blank — hindi kino-correct, at readonly kasi)
+    if (parsed.name && donorInput && !donorInput.value) {
+        donorInput.value = parsed.name;
+        highlightOcrField(donorInput, "blue");
+        filled++;
+    }
+
+    return { filled, corrected };
+}
+
+function highlightOcrField(el, color = "blue") {
+    if (!el) return;
+
+    const palette = {
+        blue:   { bg: "#eef7ff", border: "#0151ff" },
+        orange: { bg: "#fff7ed", border: "#f97316" }
+    };
+    const c = palette[color] || palette.blue;
+
+    el.style.transition = "background-color .3s, border-color .3s";
+    el.style.backgroundColor = c.bg;
+    el.style.borderColor = c.border;
+    setTimeout(() => {
+        el.style.backgroundColor = "";
+        el.style.borderColor = "";
+    }, 2600);
+}
+
+function upscaleImageForOcr(file, maxWidth = 1600) {
+    return new Promise((resolve) => {
+        const img = new Image();
+        const url = URL.createObjectURL(file);
+        img.onload = () => {
+            const scale = Math.max(1, Math.min(3, maxWidth / img.width));
+            const canvas = document.createElement("canvas");
+            canvas.width  = Math.round(img.width  * scale);
+            canvas.height = Math.round(img.height * scale);
+            const ctx = canvas.getContext("2d");
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = "high";
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            URL.revokeObjectURL(url);
+            canvas.toBlob(b => resolve(b || file), "image/png");
+        };
+        img.onerror = () => { URL.revokeObjectURL(url); resolve(file); };
+        img.src = url;
+    });
+}
+// Reset receipt preview + OCR status after successful submission
+const previewWrap = document.getElementById("receiptPreviewWrap");
+if (previewWrap) previewWrap.classList.add("hidden");
+const preview = document.getElementById("receiptPreview");
+if (preview) preview.src = "";
+const statusBox = document.getElementById("ocrStatus");
+if (statusBox) {
+    statusBox.classList.add("hidden");
+    statusBox.classList.remove("flex");
+}
+const fileNameEl = document.getElementById("receiptFileName");
+if (fileNameEl) fileNameEl.textContent = "Accepted file type: jpg, png, webp";
