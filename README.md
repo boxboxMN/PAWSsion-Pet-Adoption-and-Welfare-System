@@ -421,6 +421,10 @@ HOW TO RUN WITH WORKING MATCHMAKING FEATURE
 
 - apply security
 
+- sa admin kapag nasa partner requests nagiging active na sa user management kahit hindi pa naman inaaproved ng admin
+
+- lagyan ng parang lipatan sa baba ng feedback and contact in admin
+
 # Optional fixed (user & org side):
 - kapag ban or suspended may days limit??
 
