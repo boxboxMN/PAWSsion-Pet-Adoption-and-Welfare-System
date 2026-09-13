@@ -145,7 +145,7 @@ function setupLogout() {
 
             if (response.ok && data.success) {
                 console.log("Logout successful.");
-                window.location.replace("/auth/login.html");
+                window.location.replace("/auth/login");
                 return;
             }
 

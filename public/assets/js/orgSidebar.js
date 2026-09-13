@@ -214,7 +214,7 @@ function setupLogoutControl() {
                     const data = await response.json();
 
                     if (response.ok && data.success) {
-                        window.location.href = "/auth/login.html";
+                        window.location.href = "/auth/login";
                     } else {
                         confirmLogoutBtn.disabled = false;
                         confirmLogoutBtn.textContent = "Yes, Logout";

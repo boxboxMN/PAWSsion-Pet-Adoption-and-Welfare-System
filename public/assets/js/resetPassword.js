@@ -84,7 +84,7 @@ document.addEventListener("DOMContentLoaded", () => {
             form.classList.add("hidden");
 
             setTimeout(() => {
-                window.location.href = "/auth/login.html";
+                window.location.href = "/auth/login";
             }, 2000);
 
         } catch (error) {

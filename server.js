@@ -8,6 +8,7 @@ const multer = require('multer');
 const pool = require('./config/database');
 const { uploadOrgPic } = require('./config/upload');
 const { logActivity } = require("./controllers/adminController");
+const { checkAccountStatus } = require("./controllers/adminController");
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -21,6 +22,10 @@ app.use(session({
   saveUninitialized: false,
   cookie: { secure: false }
 }));
+
+// Blocks any request from a suspended/banned/disabled account.
+// Must run before ANY route handler that relies on req.session.accountId.
+app.use(checkAccountStatus);
 
 // ROUTES
 app.use(express.static(path.join(__dirname, "public")));
@@ -783,6 +788,7 @@ app.post('/api/user/applications/:id/reschedule-request', async (req, res) => {
 });
 
 app.get("/api/contact-info", adminController.getContactInfo);
+app.post("/api/contact-messages", adminController.submitContactMessage);
 
 app.get("/api/guide", adminController.getGuideSections);
 
@@ -974,6 +980,21 @@ app.post('/api/donations/cash', async (req, res) => {
         return res.status(500).json({ success: false, error: "Database error while processing donation: " + error.message });
     }
 });
+// Legal pages
+app.get("/privacy-policy", (req, res) => {
+    res.sendFile(path.join(__dirname, "public/legal1.html"));
+});
+app.get("/terms", (req, res) => {
+    res.sendFile(path.join(__dirname, "public/legal2.html"));
+});
+app.get("/contact", (req, res) => {
+    res.sendFile(path.join(__dirname, "public/legal3.html"));
+});
+app.get("/faqs", (req, res) => {
+    res.sendFile(path.join(__dirname, "public/legal4.html"));
+});
+
+app.get("/api/session-status", adminController.getSessionStatus);
 const PORT = 3000;
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);

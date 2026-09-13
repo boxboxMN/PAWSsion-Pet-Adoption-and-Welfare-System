@@ -171,7 +171,7 @@
             class="max-w-[1220px] mx-auto px-[30px] py-[18px] flex items-center justify-between">
 
             <!-- BRAND -->
-            <a href="index.html" class="flex items-center gap-2.5 no-underline">
+            <a href="/" class="flex items-center gap-2.5 no-underline">
                 <img
                     src="assets/images/Pawpon.png"
                     alt="Pawpon Logo"
@@ -218,7 +218,7 @@
 
             <!-- ACCOUNT -->
             <a
-                href="auth/login.html"
+                href="auth/login"
                 class="flex items-center gap-2 px-[17px] py-2 border border-[#d8dee9] rounded-full no-underline text-[#111827] font-semibold transition-all duration-200 hover:bg-[#f4f7ff] hover:border-[#b9c7ed] max-[600px]:px-[11px] max-[600px]:py-1.5 max-[600px]:text-[13px]">
 
                 Account
@@ -271,7 +271,7 @@
                     class="flex items-center gap-[14px] max-[900px]:justify-center max-[600px]:flex-col">
 
                     <a
-                        href="auth/login.html"
+                        href="auth/login"
                         class="bg-[#ffa500] text-white no-underline px-7 py-3.5 rounded-full font-bold shadow-[0_8px_22px_rgba(255,165,0,0.25)] transition-all duration-200 hover:bg-[#e89500] hover:-translate-y-[3px] max-[600px]:w-full max-[600px]:max-w-[240px]">
                         Find a Pet
                     </a>
@@ -995,7 +995,7 @@
                 </p>
 
                 <a
-                    href="auth/login.html"
+                    href="auth/login"
                     class="inline-block bg-[#ffa500] text-white no-underline px-[30px] py-3.5 rounded-full font-bold relative hover:bg-[#e89500] transition-colors duration-200">
 
                     Explore Pawpon
@@ -1234,7 +1234,7 @@
                 <div class="max-w-[400px]">
 
                     <a
-                        href="index.html"
+                        href="/"
                         class="flex items-center gap-2.5 no-underline mb-[18px]">
 
                         <img
@@ -1321,25 +1321,25 @@
                     <div class="flex flex-col gap-[13px]">
 
                         <a
-                            href="legal2.html"
+                            href="/terms"
                             class="text-[#596579] no-underline text-sm hover:text-[#0151ff]">
                             Terms & Use
                         </a>
 
                         <a
-                            href="legal1.html"
+                            href="/privacy-policy"
                             class="text-[#596579] no-underline text-sm hover:text-[#0151ff]">
                             Privacy Policy
                         </a>
 
                         <a
-                            href="legal4.html"
+                            href="/faqs
                             class="text-[#596579] no-underline text-sm hover:text-[#0151ff]">
                             FAQs
                         </a>
 
                         <a
-                            href="legal3.html"
+                            href="/contact"
                             class="text-[#596579] no-underline text-sm hover:text-[#0151ff]">
                             Contact Us
                         </a>
@@ -1366,7 +1366,7 @@
                             class="w-5 h-5 object-contain"
                             alt="Email">
 
-                        <span>
+                         <span id="contactEmail">
                             pawpon@gmail.com
                         </span>
 
@@ -1381,7 +1381,7 @@
                             class="w-5 h-5 object-contain"
                             alt="Phone">
 
-                        <span>
+                        <span id="contactPhone">
                             (+63) 992 487 4712
                         </span>
 
@@ -1406,6 +1406,22 @@
 
     </footer>
 
+    <script>
+        (async function loadContactInfo() {
+            try {
+                const res = await fetch("/api/contact-info");
+                const data = await res.json();
+                if (data.success && data.contactInfo) {
+                    document.getElementById("contactEmail").textContent = data.contactInfo.support_email || "pawpon@gmail.com";
+                    document.getElementById("contactPhone").textContent = data.contactInfo.support_phone || "(+63) 992 487 4712";
+                }
+            } catch (err) {
+                console.error("Failed to load contact info:", err);
+                // Panatilihin na lang ang static fallback na laman ng span kung nabigo ang fetch
+            }
+        })();
+    </script>
+    
     <!-- SCRIPT PARA GUMANA ANG FETCH LOGIC MULA SA DATABASE -->
     <script src="assets/js/index.js"></script>
 

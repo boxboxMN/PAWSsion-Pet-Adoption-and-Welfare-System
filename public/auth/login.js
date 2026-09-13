@@ -6,6 +6,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (!form || !emailInput || !passwordInput || !errorBox) return;
 
+  // Show a message if the user was redirected here due to a mid-session
+  // status change (suspended/banned/disabled while still logged in).
+  const params = new URLSearchParams(window.location.search);
+  const reason = params.get('reason');
+
+  if (reason) {
+    const reasonMessages = {
+      suspended: 'Your account was suspended while you were logged in. Please contact support for details.',
+      banned: 'Your account was permanently banned while you were logged in.',
+      disabled: 'Your account was deactivated while you were logged in.'
+    };
+
+    errorBox.textContent = reasonMessages[reason] || 'Your session was ended by an administrator.';
+    errorBox.classList.remove('hidden');
+  }
+  
   form.addEventListener('submit', (event) => {
     event.preventDefault();
 
