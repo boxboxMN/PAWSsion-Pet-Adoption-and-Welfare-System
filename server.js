@@ -98,7 +98,7 @@ app.post(
 
 //  PUBLIC ROUTE — para sa organizations list sa landing page
 app.get('/api/organizations', IndexController.getOrganizations);
-
+app.get('/api/public/stats', IndexController.getPublicStats);
 app.use("/auth", authRoutes);
 app.use(userRoutes);
 app.use("/admin", adminRoutes);
