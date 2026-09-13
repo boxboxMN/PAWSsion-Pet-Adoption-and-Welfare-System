@@ -10,7 +10,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
-
+    <!-- Tesseract.js (OCR for auto-filling receipt details) -->
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet" />
@@ -186,9 +187,11 @@
                             </select>
                         </div>
                         <div>
-                            <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Account Name</label>
-                            <input type="text" id="gcashNameInput" placeholder="Account Name" class="w-full border rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500" />
-                        </div>
+                        <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">
+                            Account Name <span class="text-gray-400 normal-case font-normal">(Optional)</span>
+                        </label>
+                        <input type="text" id="gcashNameInput" placeholder="Account Name (optional)" class="w-full border rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500" />
+                    </div>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-1 gap-4 mb-4">
@@ -200,21 +203,36 @@
                     </div>
 
                     <div class="mb-6">
-                        <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Upload Receipt</label>
-                        <label class="border-2 border-dashed border-blue-300 rounded-xl p-4 flex items-center justify-between cursor-pointer hover:bg-blue-50/50 transition">
-                            <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center flex-shrink-0">
-                                    <i class="fa-solid fa-cloud-arrow-up text-lg"></i>
-                                </div>
-                                <div>
-                                    <span class="text-blue-700 font-medium text-sm block">Choose file to upload</span>
-                                    <span id="receiptFileName" class="text-xs text-gray-500">Accepted file type: jpg, png, pdf</span>
-                                </div>
-                            </div>
-                            <span class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-4 py-2 rounded-lg font-medium transition">Browse</span>
-                            <input type="file" class="hidden" accept=".jpg,.jpeg,.png,.pdf" />
-                        </label>
-                    </div>
+    <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Upload Receipt (Proof of Payment)</label>
+    <label class="border-2 border-dashed border-blue-300 rounded-xl p-4 flex items-center justify-between cursor-pointer hover:bg-blue-50/50 transition">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center flex-shrink-0">
+                <i class="fa-solid fa-cloud-arrow-up text-lg"></i>
+            </div>
+            <div>
+                <span class="text-blue-700 font-medium text-sm block">Choose file to upload</span>
+                <span id="receiptFileName" class="text-xs text-gray-500">Accepted file type: jpg, png, webp</span>
+            </div>
+        </div>
+        <span class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-4 py-2 rounded-lg font-medium transition">Browse</span>
+        <input type="file" id="receiptInput" name="receipt" class="hidden" accept="image/*" required />
+    </label>
+
+    <!-- OCR Status -->
+    <div id="ocrStatus" class="hidden mt-3 text-xs font-semibold text-blue-700 items-center gap-2">
+        <i class="fa-solid fa-spinner fa-spin"></i>
+        <span id="ocrStatusText">Scanning receipt...</span>
+    </div>
+
+    <!-- Receipt Preview -->
+    <div id="receiptPreviewWrap" class="hidden mt-3">
+        <img id="receiptPreview" class="max-h-52 rounded-xl border border-blue-200 shadow-sm" alt="Receipt preview">
+        <p class="text-[11px] text-gray-500 mt-1">
+            <i class="fa-solid fa-circle-check text-green-600"></i>
+            This is the receipt that will be submitted.
+        </p>
+    </div>
+</div>
 
                     <div class="flex items-start gap-2 mb-6">
                         <input type="checkbox" class="mt-1" />

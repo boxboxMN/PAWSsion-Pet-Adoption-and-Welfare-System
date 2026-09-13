@@ -1,6 +1,3 @@
-// ==========================================
-// PAWPON LANDING PAGE SCRIPT (index.js)
-// ==========================================
 
 let organizationsData = [];
 let currentQrSrc = "";        
@@ -10,16 +7,41 @@ let currentQrMethod = "";
 document.addEventListener("DOMContentLoaded", () => {
     fetchOrganizationsData();
 
-    const donationForm = document.getElementById("donationForm");
+      const donationForm = document.getElementById("donationForm");
     if (donationForm) {
         donationForm.addEventListener("submit", handlePublicDonationSubmit);
     }
-    const receiptInput = document.getElementById("receiptInput");
-if (receiptInput) {
-    receiptInput.addEventListener("change", handleReceiptUpload);
-}
-});
 
+    const receiptInput = document.getElementById("receiptInput");
+    if (receiptInput) {
+        receiptInput.addEventListener("change", handleReceiptUpload);
+    }
+    // ⭐ Amount — whole numbers only (no decimals, no negatives)
+    const amountInput = document.getElementById("donationAmountInput")
+        || document.querySelector('#donationForm input[name="amount"]');
+
+    if (amountInput) {
+        amountInput.addEventListener("input", function () {
+            // Strip anything that isn't a digit
+            this.value = this.value.replace(/[^0-9]/g, "");
+            // Block 0
+            if (this.value === "0") this.value = "";
+        });
+        amountInput.addEventListener("keydown", function (e) {
+            const blockedKeys = ["-", ".", "e", "E", "+", "Subtract", "Decimal"];
+            if (blockedKeys.includes(e.key)) {
+                e.preventDefault();
+            }
+        });
+        amountInput.addEventListener("paste", function (e) {
+            const pasted = (e.clipboardData || window.clipboardData).getData("text");
+            // Reject if pasted content contains anything other than whole digits
+            if (!/^\d+$/.test(pasted.trim())) {
+                e.preventDefault();
+            }
+        });
+    }
+       });
 async function fetchOrganizationsData() {
     try {
         const response = await fetch('/api/organizations');
@@ -223,6 +245,20 @@ async function handlePublicDonationSubmit(event) {
         alert("Please select an organization first.");
         return;
     }
+        // ⭐ Amount validation — block zero at negative
+    const amountField = document.getElementById("donationAmountInput")
+        || document.querySelector('#donationForm input[name="amount"]');
+    const amountValue = amountField ? parseFloat(amountField.value) : NaN;
+
+    if (!amountField || amountField.value.trim() === "" || isNaN(amountValue)) {
+        alert("Please enter a donation amount.");
+        return;
+    }
+    if (amountValue <= 0) {
+        alert("Donation amount must be greater than zero. Negative amounts are not allowed.");
+        if (amountField) amountField.value = "";
+        return;
+    }
 
     formData.append('organization_id', orgId);
     formData.append('payment_method', paymentMethod);
@@ -272,8 +308,15 @@ async function handlePublicDonationSubmit(event) {
             return;
         }
 
-        if (result.success) {
-            alert(result.message || 'Thank you! Your donation receipt has been submitted successfully.');
+                if (result.success) {
+            // ⭐ Capture values BEFORE reset, para maipasok sa modal summary
+            const summaryRows = [
+                { label: "Donor", value: isAnonymous ? "Anonymous Donor" : formData.get('donor_name') },
+                { label: "Amount", value: `₱${Number(formData.get('amount')).toLocaleString()}` },
+                { label: "Payment Method", value: paymentMethod },
+                { label: "Reference No.", value: formData.get('reference_number') }
+            ];
+
             event.target.reset();
 
             const previewWrap = document.getElementById("receiptPreviewWrap");
@@ -287,8 +330,19 @@ async function handlePublicDonationSubmit(event) {
                 statusBox.classList.remove("flex");
             }
 
+            const fileNameEl = document.getElementById("receiptFileName");
+            if (fileNameEl) fileNameEl.textContent = "Accepted file type: jpg, png, webp";
+
             document.getElementById('anonymousCheck').checked = false;
             toggleDonorFields();
+
+            // ⭐ Show success modal
+            showDonateSuccessModal({
+                type: "cash",
+                title: "Thank You for Your Donation!",
+                message: "Your cash donation receipt has been submitted successfully and is pending verification by the organization.",
+                rows: summaryRows
+            });
         } else {
             alert('Error: ' + (result.error || 'Failed to submit donation.'));
         }
@@ -386,12 +440,26 @@ async function handleInKindSubmit(event) {
             return;
         }
 
-        if (result.success) {
-            alert(result.message || 'Thank you! Your in-kind donation pledge has been submitted successfully.');
+                if (result.success) {
+           
+            const summaryRows = [
+                { label: "Donor", value: isAnonymous ? "Anonymous Donor" : formData.get('donor_name') },
+                { label: "Item", value: formData.get('item_name') },
+                { label: "Quantity", value: `${formData.get('quantity')} ${formData.get('unit') || ''}`.trim() }
+            ];
+
             event.target.reset();
             const anonCheck = document.getElementById('inkindAnonymousCheck');
             if (anonCheck) anonCheck.checked = false;
             toggleInKindDonorFields();
+
+            // ⭐ Show success modal
+            showDonateSuccessModal({
+                type: "inkind",
+                title: "Thank You for Your Pledge!",
+                message: "Your in-kind donation pledge has been submitted successfully. The organization will contact you for drop-off details.",
+                rows: summaryRows
+            });
         } else {
             alert('Error: ' + (result.error || 'Failed to submit in-kind donation.'));
         }
@@ -733,3 +801,76 @@ function toggleInKindDonorFields() {
         if (contactInput) contactInput.required = true;
     }
 }
+// ==========================================
+// DONATION SUCCESS MODAL
+// ==========================================
+function showDonateSuccessModal(options = {}) {
+    const {
+        type = "cash",                 // "cash" | "inkind"
+        title = "Thank You!",
+        message = "Your donation has been submitted successfully.",
+        rows = []                      // [{ label, value }, ...]
+    } = options;
+
+    const modal       = document.getElementById("donateSuccessModal");
+    const icon        = document.getElementById("donateSuccessIcon");
+    const iconInner   = document.getElementById("donateSuccessIconInner");
+    const titleEl     = document.getElementById("donateSuccessTitle");
+    const textEl      = document.getElementById("donateSuccessText");
+    const summaryEl   = document.getElementById("donateSuccessSummary");
+    const btn         = document.getElementById("donateSuccessBtn");
+
+    if (!modal) return;
+
+    // Icon color + symbol
+    if (type === "inkind") {
+        if (icon) icon.classList.add("inkind");
+        if (iconInner) iconInner.className = "fa-solid fa-box-archive";
+        if (btn) btn.classList.add("inkind");
+    } else {
+        if (icon) icon.classList.remove("inkind");
+        if (iconInner) iconInner.className = "fa-solid fa-check";
+        if (btn) btn.classList.remove("inkind");
+    }
+
+    if (titleEl) titleEl.textContent = title;
+    if (textEl)  textEl.textContent  = message;
+
+    // Summary rows
+    if (summaryEl) {
+        const cleanRows = (rows || []).filter(r => r && r.value !== undefined && r.value !== null && String(r.value).trim() !== "");
+        if (cleanRows.length > 0) {
+            summaryEl.innerHTML = cleanRows.map(r => `
+                <div class="donate-success-summary-row">
+                    <span class="donate-success-summary-label">${r.label}</span>
+                    <span class="donate-success-summary-value">${r.value}</span>
+                </div>
+            `).join("");
+            summaryEl.style.display = "block";
+        } else {
+            summaryEl.innerHTML = "";
+            summaryEl.style.display = "none";
+        }
+    }
+
+    modal.classList.add("is-open");
+    modal.setAttribute("aria-hidden", "false");
+    document.body.style.overflow = "hidden";
+}
+
+function closeDonateSuccessModal() {
+    const modal = document.getElementById("donateSuccessModal");
+    if (!modal) return;
+    modal.classList.remove("is-open");
+    modal.setAttribute("aria-hidden", "true");
+    document.body.style.overflow = "";
+}
+
+// Close on overlay click + Escape
+document.addEventListener("click", (e) => {
+    const modal = document.getElementById("donateSuccessModal");
+    if (modal && e.target === modal) closeDonateSuccessModal();
+});
+document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closeDonateSuccessModal();
+});
