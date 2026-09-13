@@ -39,6 +39,10 @@ const upload = multer({
         }
     }
 });
+router.get("/login", (req, res) => {
+    res.sendFile(path.join(__dirname, "../public/auth/login.html"));
+});
+
 router.post("/register", authController.register);
 router.post("/login", authController.login);
 router.post("/logout", authController.logout);

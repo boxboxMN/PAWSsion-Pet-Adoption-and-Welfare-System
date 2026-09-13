@@ -1114,7 +1114,7 @@ document.getElementById("organizationSignupForm").addEventListener("submit", asy
 
         if (response.ok) {
             showCustomAlert("Application submitted successfully!", "success", () => {
-                window.location.href = "/auth/login.html";
+                window.location.href = "/auth/login";
             });
         } else {
             showCustomAlert(result);

@@ -40,7 +40,7 @@ const router = express.Router();
 // 1. UNANG ROUTE: /pending
 router.get("/pending", (req, res) => {
     if (!req.session.accountId) {
-        return res.redirect("/auth/login.html");
+        return res.redirect("/auth/login");
     }
     res.sendFile(
         path.join(__dirname, "../public/organization/orgPending.html")
@@ -50,7 +50,7 @@ router.get("/pending", (req, res) => {
 // 2. MIDDLEWARE FOR APPROVAL
 async function checkOrganizationApproval(req, res, next) {
     if (!req.session.accountId) {
-        return res.redirect("/auth/login.html");
+        return res.redirect("/auth/login");
     }
     try {
         const [rows] = await pool.query(
@@ -59,7 +59,7 @@ async function checkOrganizationApproval(req, res, next) {
         );
 
         if (!rows.length) {
-            return res.redirect("/auth/login.html");
+            return res.redirect("/auth/login");
         }
 
         if (rows[0].status === "pending") {

@@ -6,6 +6,7 @@ const path = require('path');
 const pool = require('./config/database');
 const { uploadOrgPic } = require('./config/upload'); //for org profile pic upload
 const { logActivity } = require("./controllers/adminController");
+const { checkAccountStatus } = require("./controllers/adminController");
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -19,6 +20,10 @@ app.use(session({
   saveUninitialized: false,
   cookie: { secure: false }
 }));
+
+// Blocks any request from a suspended/banned/disabled account.
+// Must run before ANY route handler that relies on req.session.accountId.
+app.use(checkAccountStatus);
 
 // ROUTES
 app.use(express.static(path.join(__dirname, "public")));
@@ -739,6 +744,13 @@ app.put("/api/notifications/:id/read", adminController.markNotificationRead);
 app.put("/api/notifications/read-all", adminController.markAllNotificationsRead);
 app.delete("/api/notifications/:id", adminController.deleteNotification);
 
+// for checking account status before accessing certain routes
+// app.use("/org", checkAccountStatus);
+// app.use("/user", checkAccountStatus);
+// app.use("/api/organization", checkAccountStatus);
+// app.use("/api/user", checkAccountStatus);
+
+app.get("/api/session-status", adminController.getSessionStatus);
 const PORT = 3000;
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);

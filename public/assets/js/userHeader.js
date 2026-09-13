@@ -150,5 +150,37 @@ function initUserNotifications() {
     if (!window.__userNotifPolling) {
         window.__userNotifPolling = true;
         setInterval(loadUserNotifications, 30000);
+        setInterval(checkUserSessionStatus, 30000);
     }
+}
+
+async function checkUserSessionStatus() {
+    try {
+        const res = await fetch("/api/session-status");
+        const data = await res.json();
+
+        if (!data.active) {
+            lockUserSidebarAndRedirect(data.status);
+        }
+    } catch (err) {
+        console.error("Failed to check session status:", err);
+    }
+}
+
+function lockUserSidebarAndRedirect(reason) {
+    document.querySelectorAll(".nav-link").forEach(link => {
+        if (link.id !== "logoutLink") {
+            link.classList.add("opacity-40", "cursor-not-allowed");
+            link.addEventListener("click", (e) => e.preventDefault());
+        }
+    });
+
+    const banner = document.createElement("div");
+    banner.className = "fixed top-0 left-0 right-0 bg-red-600 text-white text-center py-3 z-[9999] text-sm font-semibold";
+    banner.textContent = "Your account status has changed. Redirecting to login...";
+    document.body.prepend(banner);
+
+    setTimeout(() => {
+        window.location.href = `/auth/login?reason=${reason || "suspended"}`;
+    }, 2500);
 }

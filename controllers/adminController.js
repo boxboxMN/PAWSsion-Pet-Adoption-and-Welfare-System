@@ -1089,3 +1089,65 @@ exports.getActivityLogs = async (req, res) => {
         res.status(500).json({ success: false, message: "Database Error" });
     }
 };
+
+/**
+ * Blocks any request from an account that is currently suspended/banned/disabled.
+ * Destroys the session immediately if found, and responds appropriately for
+ * page loads vs API/AJAX calls.
+ */
+exports.checkAccountStatus = async (req, res, next) => {
+    const accountId = req.session?.accountId;
+    if (!accountId) return next(); // not logged in — let normal auth checks handle it
+
+    try {
+        const [[account]] = await pool.query(
+            `SELECT status FROM accounts WHERE account_id = ?`,
+            [accountId]
+        );
+
+        const blockedStatuses = ["suspended", "banned", "disabled"];
+
+        if (account && blockedStatuses.includes(account.status)) {
+            const reason = account.status;
+
+            req.session.destroy(() => {
+                const wantsJson = req.xhr || req.headers.accept?.includes("application/json");
+
+                if (wantsJson) {
+                    return res.status(403).json({
+                        success: false,
+                        blocked: true,
+                        reason,
+                        message: `Your account has been ${reason}.`
+                    });
+                }
+
+                return res.redirect(`/auth/login?reason=${reason}`);
+            });
+            return; // don't call next() — request stops here
+        }
+
+        next();
+    } catch (err) {
+        console.error("Check Account Status Error:", err);
+        next(); // fail open rather than locking everyone out on a DB hiccup
+    }
+};
+
+/**
+ * GET /api/session-status
+ * Lightweight check: is the current session's account still active?
+ */
+exports.getSessionStatus = async (req, res) => {
+    const accountId = req.session?.accountId;
+    if (!accountId) return res.json({ active: false });
+
+    try {
+        const [[account]] = await pool.query(`SELECT status FROM accounts WHERE account_id = ?`, [accountId]);
+        const blocked = account && ["suspended", "banned", "disabled"].includes(account.status);
+        res.json({ active: !blocked, status: account?.status });
+    } catch (err) {
+        console.error("Get Session Status Error:", err);
+        res.json({ active: true }); // fail open, same policy as the middleware
+    }
+};

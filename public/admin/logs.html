@@ -58,6 +58,7 @@
             logout: "Logged out",
             suspicious_login_input: "Suspicious login input detected",
             login_blocked: "Blocked login attempt",
+            login_locked: "Login temporarily locked (too many attempts)",
             login_pending_org: "Org logged in (pending verification)",
             admin_profile_verification_failed: "Failed profile verification attempt",
             admin_profile_verify_locked: "Profile verification locked (too many attempts)",
@@ -157,7 +158,7 @@
             const container = document.getElementById("logsList");
 
             try {
-                const res = await fetch("/admin/logs");
+                const res = await fetch("/admin/api/logs");
                 const data = await res.json();
 
                 if (!data.success || !data.logs || data.logs.length === 0) {
