@@ -421,9 +421,7 @@ HOW TO RUN WITH WORKING MATCHMAKING FEATURE
 
 - apply security
 
-- sa admin kapag nasa partner requests nagiging active na sa user management kahit hindi pa naman inaaproved ng admin
-
-- lagyan ng parang lipatan sa baba ng feedback and contact in admin
+- notifications sa sidebar
 
 # Optional fixed (user & org side):
 - kapag ban or suspended may days limit??
@@ -436,6 +434,9 @@ and if kaya is dapat may message sa gmail ng user na yung account nya has violat
 - (user & org side) much better if may parang pagpipilian ang org at user na ilalagay na message ara hindi makasubmit ng nonsense na text
 
 # done na ayusin: 
+- lagyan ng parang lipatan sa baba ng feedback and contact in admin ✓
+
+- sa admin kapag nasa partner requests nagiging active na sa user management kahit hindi pa naman inaaproved ng admin ✓
 
 - contact us (landing page footer gawing dynamic) with email sender ✓ 
 

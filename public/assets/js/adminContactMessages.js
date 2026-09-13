@@ -77,11 +77,57 @@ async function loadFeedback() {
             return;
         }
 
-        renderFeedback(getFilteredFeedback(""));
+        messagesFullList = getFilteredFeedback("");
+        renderMessagesPage(1);
     } catch (err) {
         console.error("Failed to load contact messages:", err);
         renderEmptyState("Unable to load messages. Please try refreshing the page.");
     }
+}
+
+const MESSAGES_PAGE_SIZE = 10;
+let messagesCurrentPage = 1;
+let messagesFullList = [];
+
+function renderMessagesPage(page) {
+    const totalPages = Math.max(1, Math.ceil(messagesFullList.length / MESSAGES_PAGE_SIZE));
+    messagesCurrentPage = Math.min(Math.max(1, page), totalPages);
+
+    const start = (messagesCurrentPage - 1) * MESSAGES_PAGE_SIZE;
+    const pageItems = messagesFullList.slice(start, start + MESSAGES_PAGE_SIZE);
+
+    renderFeedback(pageItems);
+
+    const paginationBox = document.getElementById("messagesPagination");
+    const paginationText = document.getElementById("messagesPaginationText");
+    const paginationButtons = document.getElementById("messagesPaginationButtons");
+
+    if (messagesFullList.length === 0) {
+        paginationBox.classList.add("hidden");
+        return;
+    }
+
+    paginationBox.classList.remove("hidden");
+    paginationText.textContent = `Showing ${start + 1}-${Math.min(start + MESSAGES_PAGE_SIZE, messagesFullList.length)} of ${messagesFullList.length} results`;
+
+    const btnBase = "w-8 h-8 flex items-center justify-center rounded-lg text-xs font-semibold transition";
+    const disabledBtn = `${btnBase} text-slate-300 cursor-not-allowed`;
+    const enabledBtn = `${btnBase} text-slate-500 hover:bg-slate-100`;
+    const activeBtn = `${btnBase} bg-indigo-600 text-white`;
+
+    let buttonsHtml = `<button type="button" data-page="${messagesCurrentPage - 1}" class="messages-page-btn ${messagesCurrentPage === 1 ? disabledBtn : enabledBtn}" ${messagesCurrentPage === 1 ? "disabled" : ""}><i class="fa-solid fa-chevron-left text-[10px]"></i></button>`;
+
+    for (let i = 1; i <= totalPages; i++) {
+        buttonsHtml += `<button type="button" data-page="${i}" class="messages-page-btn ${i === messagesCurrentPage ? activeBtn : enabledBtn}">${i}</button>`;
+    }
+
+    buttonsHtml += `<button type="button" data-page="${messagesCurrentPage + 1}" class="messages-page-btn ${messagesCurrentPage === totalPages ? disabledBtn : enabledBtn}" ${messagesCurrentPage === totalPages ? "disabled" : ""}><i class="fa-solid fa-chevron-right text-[10px]"></i></button>`;
+
+    paginationButtons.innerHTML = buttonsHtml;
+
+    paginationButtons.querySelectorAll(".messages-page-btn:not(:disabled)").forEach(btn => {
+        btn.addEventListener("click", () => renderMessagesPage(Number(btn.dataset.page)));
+    });
 }
 
 function renderFeedback(feedback) {
@@ -292,7 +338,8 @@ function closePanel() {
 }
 
 function filterFeedback(query) {
-    renderFeedback(getFilteredFeedback(query));
+    messagesFullList = getFilteredFeedback(query);
+    renderMessagesPage(1);
 }
 
 async function performAction(action, id) {
@@ -320,7 +367,8 @@ async function performAction(action, id) {
         }
 
         const currentQuery = document.getElementById("searchInput").value.trim().toLowerCase();
-        renderFeedback(getFilteredFeedback(currentQuery));
+        messagesFullList = getFilteredFeedback(currentQuery);
+        renderMessagesPage(messagesCurrentPage);
         closePanel();
 
     } catch (err) {
