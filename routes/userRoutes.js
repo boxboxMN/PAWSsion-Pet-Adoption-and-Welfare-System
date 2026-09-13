@@ -165,7 +165,6 @@ router.post("/api/user/profile/password", userController.updatePassword);
 router.post("/api/user/profile/verify-password", userController.verifyPassword);
 router.post("/api/user/profile/avatar", upload.single("avatar"), userController.updateAvatar);
 router.get("/api/organizations", userController.getOrganizations);
-router.get('/api/public/stats', userController.getPublicStats);
 router.post( "/api/user/donation/cash", uploadReceipt.single("receipt"), userController.submitCashDonation);
 router.post('/api/user/donation/in-kind', userController.submitInKindDonation);
 router.get("/api/user/approved-pets", userController.getApprovedAdoptedPets);
