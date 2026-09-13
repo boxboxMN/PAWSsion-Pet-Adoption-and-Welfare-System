@@ -6,6 +6,7 @@ let currentQrMethod = "";
 
 document.addEventListener("DOMContentLoaded", () => {
     fetchOrganizationsData();
+     startStatsPolling();
 
       const donationForm = document.getElementById("donationForm");
     if (donationForm) {
@@ -873,4 +874,113 @@ document.addEventListener("click", (e) => {
 });
 document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") closeDonateSuccessModal();
+});
+// ==========================================
+// LIVE IMPACT COUNTERS (public landing page)
+// ==========================================
+let statsPollingInterval = null;
+const STATS_POLL_INTERVAL_MS = 8000;   // refresh every 8 seconds
+
+async function fetchPublicStats() {
+    try {
+        const res = await fetch('/api/public/stats', { cache: 'no-store' });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        if (data.success && data.stats) {
+            updateStatsDisplay(data.stats);
+        }
+    } catch (err) {
+        console.warn("[Stats] Failed to fetch public stats:", err.message);
+    }
+}
+
+function updateStatsDisplay(stats) {
+    const amountEl   = document.getElementById('totalDonatedAmount');
+    const countEl    = document.getElementById('totalDonationsCount');
+    const petsEl     = document.getElementById('totalAdoptedPets');
+    const pluralEl   = document.getElementById('donationPlural');
+
+    // ---------- Total donated amount ----------
+    if (amountEl) {
+        const newVal = Math.round(Number(stats.totalDonatedAmount) || 0);
+        const oldVal = parseInt(amountEl.dataset.value || '0', 10);
+        if (newVal !== oldVal) {
+            animateCount(amountEl, oldVal, newVal, 900);
+            amountEl.dataset.value = newVal;
+        } else if (!amountEl.textContent || amountEl.textContent === '0') {
+            amountEl.textContent = newVal.toLocaleString();
+        }
+    }
+
+    // ---------- Total approved donation count (cash + in-kind) ----------
+    if (countEl) {
+        const newCount = (Number(stats.totalCashDonations) || 0)
+                       + (Number(stats.totalInKindDonations) || 0);
+        const oldCount = parseInt(countEl.dataset.value || '0', 10);
+        if (newCount !== oldCount) {
+            animateCount(countEl, oldCount, newCount, 900);
+            countEl.dataset.value = newCount;
+        } else if (!countEl.textContent || countEl.textContent === '0') {
+            countEl.textContent = newCount.toLocaleString();
+        }
+        if (pluralEl) pluralEl.textContent = newCount === 1 ? '' : 's';
+    }
+
+    // ---------- Total adopted pets ----------
+    if (petsEl) {
+        const newPets = Number(stats.totalAdoptedPets) || 0;
+        const oldPets = parseInt(petsEl.dataset.value || '0', 10);
+        if (newPets !== oldPets) {
+            animateCount(petsEl, oldPets, newPets, 900);
+            petsEl.dataset.value = newPets;
+        } else if (!petsEl.textContent || petsEl.textContent === '0') {
+            petsEl.textContent = newPets.toLocaleString();
+        }
+    }
+}
+
+/**
+ * Smooth count-up animation (easeOutCubic).
+ * @param {HTMLElement} el
+ * @param {number} from
+ * @param {number} to
+ * @param {number} duration ms
+ */
+function animateCount(el, from, to, duration = 900) {
+    if (!el) return;
+    const start = performance.now();
+    const diff  = to - from;
+
+    function step(now) {
+        const t = Math.min((now - start) / duration, 1);
+        const eased = 1 - Math.pow(1 - t, 3);   // easeOutCubic
+        el.textContent = Math.round(from + diff * eased).toLocaleString();
+        if (t < 1) requestAnimationFrame(step);
+        else el.textContent = to.toLocaleString();
+    }
+    requestAnimationFrame(step);
+}
+
+function startStatsPolling() {
+    if (!document.getElementById('totalDonatedAmount')) return; // section wala sa page
+
+    fetchPublicStats();     // immediate first fetch
+    if (statsPollingInterval) clearInterval(statsPollingInterval);
+    statsPollingInterval = setInterval(fetchPublicStats, STATS_POLL_INTERVAL_MS);
+}
+
+function stopStatsPolling() {
+    if (statsPollingInterval) {
+        clearInterval(statsPollingInterval);
+        statsPollingInterval = null;
+    }
+}
+
+// Pause polling kapag nakatago ang tab (resource-saving)
+document.addEventListener("visibilitychange", () => {
+    if (document.hidden) {
+        stopStatsPolling();
+    } else {
+        startStatsPolling();
+    }
 });

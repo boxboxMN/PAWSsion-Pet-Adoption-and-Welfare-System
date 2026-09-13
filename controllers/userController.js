@@ -1903,3 +1903,46 @@ exports.getKamustahanDue = async (req, res) => {
         res.status(500).json({ success: false, message: "Database Error" });
     }
 };
+// ==========================================
+// PUBLIC STATS — for landing page live counters
+// Only APPROVED records are counted.
+// ==========================================
+exports.getPublicStats = async (req, res) => {
+    try {
+        // 1. Approved cash donations: count + total amount
+        const [[cashStats]] = await pool.query(`
+            SELECT 
+                COUNT(*) AS total_count,
+                COALESCE(SUM(amount), 0) AS total_amount
+            FROM cash_donations
+            WHERE status = 'Approved'
+        `);
+
+        // 2. Approved in-kind donations: count only
+        const [[inkindStats]] = await pool.query(`
+            SELECT COUNT(*) AS total_count
+            FROM inkind_donations
+            WHERE status = 'Approved'
+        `);
+
+        // 3. Adopted pets — count DISTINCT animals from approved applications
+        const [[adoptionStats]] = await pool.query(`
+            SELECT COUNT(DISTINCT animal_id) AS total_count
+            FROM user_adoption_applications
+            WHERE status = 'Approved'
+        `);
+
+        res.json({
+            success: true,
+            stats: {
+                totalCashDonations: Number(cashStats.total_count) || 0,
+                totalInKindDonations: Number(inkindStats.total_count) || 0,
+                totalDonatedAmount: Number(cashStats.total_amount) || 0,
+                totalAdoptedPets: Number(adoptionStats.total_count) || 0
+            }
+        });
+    } catch (err) {
+        console.error("Get Public Stats Error:", err);
+        res.status(500).json({ success: false, message: "Failed to load stats." });
+    }
+};

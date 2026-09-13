@@ -340,6 +340,82 @@
             </p>
 
         </section>
+                <!-- =========================
+             LIVE IMPACT COUNTERS
+        ========================== -->
+        <section id="impact" class="bg-white py-[90px] px-[30px] border-y border-[#edf0f5]">
+            <div class="max-w-[1220px] mx-auto">
+
+                <div class="text-center mb-[50px]">
+                    <div class="inline-flex items-center gap-2 px-[15px] py-2 bg-[#f0f4ff] text-[#0151ff] rounded-full text-sm font-bold mb-[15px]">
+                        <i class="fa-solid fa-chart-line"></i> Live Impact
+                    </div>
+                    <h2 class="text-[40px] font-bold mb-3 max-[600px]:text-[32px]">
+                        By the Numbers
+                    </h2>
+                    <p class="text-[#697386] text-base max-w-[640px] mx-auto">
+                        Real-time impact from our community. Updates automatically as donations and adoptions are approved.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-2 gap-[25px] max-[700px]:grid-cols-1">
+
+                    <!-- ===== TOTAL DONATIONS ===== -->
+                    <div class="p-[40px_30px] rounded-[24px] bg-gradient-to-br from-[#f0f4ff] to-[#e4ecff] border border-[#dbe5ff] text-center relative overflow-hidden">
+                        <div class="absolute text-[140px] opacity-[0.05] right-[-10px] bottom-[-50px] font-bold select-none">₱</div>
+
+                        <div class="w-[70px] h-[70px] mx-auto mb-[20px] rounded-[20px] bg-white flex items-center justify-center shadow-sm">
+                            <i class="fa-solid fa-hand-holding-heart text-[30px] text-[#0151ff]"></i>
+                        </div>
+
+                        <div class="flex items-center justify-center gap-2 mb-3">
+                            <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                            <span class="text-[11px] font-bold uppercase tracking-widest text-green-600">Live</span>
+                        </div>
+
+                        <div class="text-[44px] font-extrabold text-[#013199] leading-none mb-2 max-[600px]:text-[36px]">
+                            ₱<span id="totalDonatedAmount" data-value="0">0</span>
+                        </div>
+
+                        <p class="text-[#374151] text-[15px] font-bold">Total Donations Raised</p>
+                        <p class="text-[#94a3b8] text-xs mt-1">
+                            from <span id="totalDonationsCount" data-value="0">0</span>
+                            approved donation<span id="donationPlural">s</span>
+                        </p>
+                    </div>
+
+                    <!-- ===== TOTAL ADOPTED PETS ===== -->
+                    <div class="p-[40px_30px] rounded-[24px] bg-gradient-to-br from-[#fff8ec] to-[#ffefd4] border border-[#ffe0a8] text-center relative overflow-hidden">
+                        <div class="absolute text-[140px] opacity-[0.06] right-[-10px] bottom-[-40px] select-none">🐾</div>
+
+                        <div class="w-[70px] h-[70px] mx-auto mb-[20px] rounded-[20px] bg-white flex items-center justify-center shadow-sm">
+                            <i class="fa-solid fa-paw text-[30px] text-[#ffa500]"></i>
+                        </div>
+
+                        <div class="flex items-center justify-center gap-2 mb-3">
+                            <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                            <span class="text-[11px] font-bold uppercase tracking-widest text-green-600">Live</span>
+                        </div>
+
+                        <div class="text-[44px] font-extrabold text-[#a05a00] leading-none mb-2 max-[600px]:text-[36px]">
+                            <span id="totalAdoptedPets" data-value="0">0</span>
+                        </div>
+
+                        <p class="text-[#374151] text-[15px] font-bold">Pets Adopted</p>
+                        <p class="text-[#94a3b8] text-xs mt-1">
+                            thank you for giving them a home ❤
+                        </p>
+                    </div>
+
+                </div>
+
+                <p class="text-center text-[#94a3b8] text-xs mt-6">
+                    <i class="fa-solid fa-circle-info mr-1"></i>
+                    Only verified and approved donations & adoptions are counted.
+                </p>
+
+            </div>
+        </section>
 
 
         <!-- =========================
