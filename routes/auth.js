@@ -39,8 +39,17 @@ const upload = multer({
         }
     }
 });
+
 router.get("/login", (req, res) => {
     res.sendFile(path.join(__dirname, "../public/auth/login.html"));
+});
+
+router.get("/create-account", (req, res) => {
+    res.sendFile(path.join(__dirname, "../public/auth/create_account.html"));
+});
+
+router.get("/organization-signup", (req, res) => {
+    res.sendFile(path.join(__dirname, "../public/auth/organization_signup.html"));
 });
 
 router.post("/register", authController.register);

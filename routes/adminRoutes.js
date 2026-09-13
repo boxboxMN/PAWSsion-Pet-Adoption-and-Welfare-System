@@ -743,6 +743,12 @@ router.get("/dashboard/top-organizations", async (req, res) => {
 
 router.get("/feedback/list", adminController.getFeedback);
 router.put("/feedback/:id/status", adminController.updateFeedbackStatus);
+//con tact mesage routes
+router.get("/contact-messages", (req, res) => {
+    res.sendFile(path.join(__dirname, "../public/admin/contact-messages.html"));
+});
+router.get("/contact-messages/list", adminController.getContactMessages);
+router.put("/contact-messages/:id/status", adminController.updateContactMessageStatus);
 
 //settings route
 router.get("/settings", (req, res) => {

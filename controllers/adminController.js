@@ -2,6 +2,9 @@
 
 const pool = require("../config/database");
 const bcrypt = require("bcrypt");
+const transporter = require("../config/email");
+//for email validation
+const validator = require('validator');
 
 /**
  * Records an admin activity log entry. Never throws — logging failures
@@ -711,6 +714,189 @@ exports.updateFeedbackStatus = async (req, res) => {
 };
 
 /**
+ * GET ALL CONTACT MESSAGES (from the public Contact Us form)
+ * GET /admin/contact-messages/list
+ */
+exports.getContactMessages = async (req, res) => {
+    try {
+        const [rows] = await pool.query(`
+            SELECT
+                cm.message_id AS id,
+                cm.account_id,
+                cm.full_name AS sender_name,
+                cm.email AS sender_email,
+                'Website Visitor' AS sender_role,
+                NULL AS sender_profile_picture,
+                cm.subject_category,
+                cm.message,
+                cm.status,
+                cm.previous_status,
+                cm.created_at AS date
+            FROM contact_messages cm
+            ORDER BY cm.created_at DESC
+        `);
+
+        res.json(rows);
+    } catch (err) {
+        console.error("Get Contact Messages Error:", err);
+        res.status(500).json({ message: "Database Error" });
+    }
+};
+
+/**
+ * UPDATE CONTACT MESSAGE STATUS (resolve / archive)
+ * PUT /admin/contact-messages/:id/status
+ */
+exports.updateContactMessageStatus = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const accountId = req.session?.accountId;
+        const { action } = req.body;
+
+        const validActions = ["resolve", "unresolve", "archive", "unarchive"];
+        if (!validActions.includes(action)) {
+            return res.status(400).json({ success: false, message: "Invalid action provided." });
+        }
+
+        if (action === "archive") {
+            const [[current]] = await pool.query(
+                `SELECT status FROM contact_messages WHERE message_id = ?`,
+                [id]
+            );
+
+            if (!current) {
+                return res.status(404).json({ success: false, message: "Message not found." });
+            }
+
+            await pool.query(
+                `UPDATE contact_messages SET previous_status = ?, status = 'archived' WHERE message_id = ?`,
+                [current.status, id]
+            );
+
+            await logActivity(accountId, "contact_message_archived", "contact_message", id, `Was: ${current.status}`);
+
+            return res.json({ success: true, status: "archived", previous_status: current.status });
+        }
+
+        if (action === "unarchive") {
+            const [[current]] = await pool.query(
+                `SELECT previous_status FROM contact_messages WHERE message_id = ?`,
+                [id]
+            );
+
+            if (!current) {
+                return res.status(404).json({ success: false, message: "Message not found." });
+            }
+
+            const restoredStatus = current.previous_status || "pending";
+
+            await pool.query(
+                `UPDATE contact_messages SET status = ?, previous_status = NULL WHERE message_id = ?`,
+                [restoredStatus, id]
+            );
+
+            await logActivity(accountId, "contact_message_unarchived", "contact_message", id, `Restored to: ${restoredStatus}`);
+
+            return res.json({ success: true, status: restoredStatus, previous_status: null });
+        }
+
+        // action === "resolve" or "unresolve"
+        const newStatus = action === "resolve" ? "resolved" : "pending";
+
+        const [[messageRow]] = await pool.query(
+            `SELECT account_id, full_name, email FROM contact_messages WHERE message_id = ?`,
+            [id]
+        );
+
+        if (!messageRow) {
+            return res.status(404).json({ success: false, message: "Message not found." });
+        }
+
+        const [result] = await pool.query(
+            `UPDATE contact_messages SET status = ?, previous_status = NULL WHERE message_id = ?`,
+            [newStatus, id]
+        );
+
+        await logActivity(accountId, action === "resolve" ? "contact_message_resolved" : "contact_message_unresolved", "contact_message", id);
+
+        // I-notify lang kung may account_id talaga (baka anonymous ang nag-submit, walang account na aabisuhan)
+        if (messageRow.account_id) {
+            if (action === "resolve") {
+                await createNotification(
+                    messageRow.account_id,
+                    "Your Message Has Been Resolved",
+                    `Your contact message has been marked as resolved by our team.`,
+                    "contact_message_resolved",
+                    null
+                );
+            } else {
+                await createNotification(
+                    messageRow.account_id,
+                    "Your Message Has Been Reopened",
+                    `Your contact message has been reopened for further review.`,
+                    "contact_message_reopened",
+                    null
+                );
+            }
+        }
+
+        // Palaging mag-send ng email — gumagana ito kahit walang account_id,
+        // dahil ang email address ay direktang galing sa contact form mismo
+        if (action === "resolve" && messageRow.email) {
+            try {
+                await transporter.sendMail({
+                    from: `"Pawpon Support" <${process.env.EMAIL_USER}>`,
+                    to: messageRow.email,
+                    subject: "Your Pawpon Message Has Been Resolved",
+                    html: `
+                        <div style="
+                            font-family: Arial, sans-serif;
+                            max-width: 600px;
+                            margin: auto;
+                            padding: 30px;
+                            color: #334155;
+                        ">
+                            <h2 style="color:#1656ff;">
+                                Your Message Has Been Resolved
+                            </h2>
+
+                            <p>Hi ${messageRow.full_name || "there"},</p>
+
+                            <p>
+                                Thanks for reaching out to Pawpon. Our team has reviewed
+                                your message and marked it as resolved.
+                            </p>
+
+                            <p>
+                                If you have any further questions or your concern wasn't
+                                fully addressed, feel free to send us another message
+                                through our Contact page.
+                            </p>
+
+                            <p style="margin-top: 30px;">
+                                — The Pawpon Team
+                            </p>
+                        </div>
+                    `
+                });
+            } catch (mailErr) {
+                // Hindi natin dapat ipa-fail ang buong request kung nabigo lang ang email
+                console.error("Failed to send resolution email:", mailErr);
+            }
+        }
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ success: false, message: "Message not found." });
+        }
+
+        res.json({ success: true, status: newStatus, previous_status: null });
+    } catch (err) {
+        console.error("Update Contact Message Status Error:", err);
+        res.status(500).json({ success: false, message: "Database Error" });
+    }
+};
+
+/**
  * GET SITE CONTACT INFO (public — used by org & user support pages)
  * GET /api/contact-info
  */
@@ -1149,5 +1335,54 @@ exports.getSessionStatus = async (req, res) => {
     } catch (err) {
         console.error("Get Session Status Error:", err);
         res.json({ active: true }); // fail open, same policy as the middleware
+    }
+};
+
+// ==========================================
+// SUBMIT CONTACT MESSAGE (Public — walang kailangang login)
+// POST /api/contact-messages
+// ==========================================
+exports.submitContactMessage = async (req, res) => {
+    try {
+        const { name, email, subject, message } = req.body;
+
+        const cleanName = (name || "").trim();
+        const cleanEmail = (email || "").trim();
+        const cleanMessage = (message || "").trim();
+        const validSubjects = ["adoption", "donation", "account", "technical", "feedback", "other"];
+
+        if (!cleanName) {
+            return res.status(400).json({ success: false, message: "Full name is required." });
+        }
+        if (!cleanEmail || !validator.isEmail(cleanEmail)) {
+            return res.status(400).json({ success: false, message: "Please enter a valid email address." });
+        }
+        if (!subject || !validSubjects.includes(subject)) {
+            return res.status(400).json({ success: false, message: "Please select a subject." });
+        }
+        if (!cleanMessage || cleanMessage.length < 10) {
+            return res.status(400).json({ success: false, message: "Message must be at least 10 characters." });
+        }
+
+        // Kunin ang account_id kung naka-login (opsyonal lang, hindi required)
+        const accountId = req.session?.accountId || null;
+
+        const [result] = await pool.query(
+            `INSERT INTO contact_messages (account_id, full_name, email, subject_category, message, status)
+             VALUES (?, ?, ?, ?, ?, 'pending')`,
+            [accountId, cleanName, cleanEmail, subject, cleanMessage]
+        );
+
+        await notifyAllAdmins(
+            "New Contact Message",
+            `${cleanName} sent a message about "${subject}": "${cleanMessage.substring(0, 80)}${cleanMessage.length > 80 ? '...' : ''}"`,
+            "contact_message_new",
+            "/admin/contact-messages"
+        );
+
+        res.json({ success: true, message: "Thanks for reaching out! We'll get back to you soon." });
+    } catch (err) {
+        console.error("Submit Contact Message Error:", err);
+        res.status(500).json({ success: false, message: "Something went wrong. Please try again later." });
     }
 };

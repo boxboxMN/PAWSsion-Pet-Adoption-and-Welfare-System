@@ -735,6 +735,7 @@ app.post('/api/user/applications/:id/reschedule-request', async (req, res) => {
 });
 
 app.get("/api/contact-info", adminController.getContactInfo);
+app.post("/api/contact-messages", adminController.submitContactMessage);
 
 app.get("/api/guide", adminController.getGuideSections);
 
@@ -744,11 +745,19 @@ app.put("/api/notifications/:id/read", adminController.markNotificationRead);
 app.put("/api/notifications/read-all", adminController.markAllNotificationsRead);
 app.delete("/api/notifications/:id", adminController.deleteNotification);
 
-// for checking account status before accessing certain routes
-// app.use("/org", checkAccountStatus);
-// app.use("/user", checkAccountStatus);
-// app.use("/api/organization", checkAccountStatus);
-// app.use("/api/user", checkAccountStatus);
+// Legal pages
+app.get("/privacy-policy", (req, res) => {
+    res.sendFile(path.join(__dirname, "public/legal1.html"));
+});
+app.get("/terms", (req, res) => {
+    res.sendFile(path.join(__dirname, "public/legal2.html"));
+});
+app.get("/contact", (req, res) => {
+    res.sendFile(path.join(__dirname, "public/legal3.html"));
+});
+app.get("/faqs", (req, res) => {
+    res.sendFile(path.join(__dirname, "public/legal4.html"));
+});
 
 app.get("/api/session-status", adminController.getSessionStatus);
 const PORT = 3000;

@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-100">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href="../assets/images/Pawpon_logo.png">
+    <title>PAWPON ADMIN – Contact Messages</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+
+    <link rel="stylesheet" href="../assets/css/adminFeedback.css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="../assets/js/adminSidebar.js"></script>
+    <script src="../assets/js/adminTopbar.js"></script>
+    <script src="../assets/js/adminContactMessages.js"></script>
+</head>
+
+<body class="h-full text-slate-800 antialiased font-sans flex overflow-hidden">
+
+    <div id="sidebar" class="flex-shrink-0"></div>
+
+    <main class="flex-1 flex flex-col min-w-0 bg-slate-50/50 h-full overflow-hidden">
+
+        <div id="topbar" class="flex-shrink-0 border-b border-slate-200 bg-white"></div>
+
+        <div class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-6">
+
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 fade-in">
+                <div class="relative flex-1 max-w-md">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                    <input
+                        type="text"
+                        id="searchInput"
+                        class="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-700 placeholder-slate-400 focus:outline-none focus:border-brand-600 focus:ring-4 focus:ring-brand-500/10 transition-all shadow-sm"
+                        placeholder="Search by name, email, or message content..."
+                        autocomplete="off"
+                    />
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <div class="relative">
+                        <select
+                            id="statusFilter"
+                            class="appearance-none pl-4 pr-9 py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none focus:border-brand-600 focus:ring-4 focus:ring-brand-500/10 transition-all shadow-sm cursor-pointer"
+                        >
+                            <option value="all">All Status</option>
+                            <option value="pending">Pending</option>
+                            <option value="resolved">Resolved</option>
+                        </select>
+                        <i class="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-[10px] pointer-events-none"></i>
+                    </div>
+
+                    <div class="relative">
+                        <select
+                            id="subjectFilter"
+                            class="appearance-none pl-4 pr-9 py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none focus:border-brand-600 focus:ring-4 focus:ring-brand-500/10 transition-all shadow-sm cursor-pointer"
+                        >
+                            <option value="all">All Subjects</option>
+                            <option value="adoption">Adoption Inquiry</option>
+                            <option value="donation">Donation Inquiry</option>
+                            <option value="account">Account Concern</option>
+                            <option value="technical">Technical Concern</option>
+                            <option value="feedback">Feedback / Suggestion</option>
+                            <option value="other">Other</option>
+                        </select>
+                        <i class="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-[10px] pointer-events-none"></i>
+                    </div>
+
+                    <div class="inline-flex items-center gap-2 self-start sm:self-auto px-3.5 py-2 bg-white border border-slate-200 rounded-xl shadow-sm text-xs font-semibold text-slate-600">
+                        <span class="w-2 h-2 rounded-full bg-indigo-500"></span>
+                        <span id="feedbackCount">0 Messages</span>
+                    </div>
+                </div>
+            </div>
+
+             <div class="flex items-center gap-2 fade-in">
+                <button type="button" id="tabActive" class="view-tab-btn px-4 py-2 rounded-xl text-xs font-semibold bg-indigo-600 text-white shadow-sm transition">
+                    <i class="fa-regular fa-envelope mr-1.5"></i> Messages
+                </button>
+                <button type="button" id="tabArchived" class="view-tab-btn px-4 py-2 rounded-xl text-xs font-semibold bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 transition">
+                    <i class="fa-regular fa-box-archive mr-1.5"></i> Archived
+                </button>
+            </div>
+
+            <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden fade-in">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-50/75 border-b border-slate-200 text-[11px] font-bold tracking-wider text-slate-500 uppercase">
+                                <th class="py-3.5 px-5">Sender</th>
+                                <th class="py-3.5 px-5">Subject</th>
+                                <th class="py-3.5 px-5 hidden md:table-cell">Date Submitted</th>
+                                <th class="py-3.5 px-5">Status</th>
+                                <th class="py-3.5 px-5 text-center">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="feedbackTableBody" class="divide-y divide-slate-100 text-sm text-slate-700">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <div id="panelOverlay" class="panel-overlay fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40 opacity-0 pointer-events-none transition-opacity"></div>
+
+    <aside id="detailPanel" class="detail-panel fixed top-0 right-0 w-full max-w-md h-full bg-white shadow-2xl z-50 transform translate-x-full flex flex-col border-l border-slate-200">
+        <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-slate-50/50">
+            <h3 class="font-bold text-slate-800 text-base flex items-center gap-2.5">
+                <i class="fa-regular fa-envelope-open text-brand-600"></i> Message Details
+            </h3>
+            <button id="panelClose" class="w-8 h-8 rounded-lg bg-slate-200/60 hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition">
+                <i class="fas fa-xmark"></i>
+            </button>
+        </div>
+        <div id="panelBody" class="flex-1 overflow-y-auto p-6 space-y-6"></div>
+    </aside>
+
+    <div id="customConfirmModal" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm hidden">
+        <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-sm mx-4 transform transition-all scale-95 opacity-0 duration-200" id="modalContentBox">
+            <div class="flex items-center gap-3 mb-4">
+                <div id="modalIconContainer" class="w-10 h-10 rounded-full flex items-center justify-center bg-amber-100 text-amber-600">
+                    <i id="modalIcon" class="fa-solid fa-triangle-exclamation text-lg"></i>
+                </div>
+                <div>
+                    <h3 id="modalTitle" class="font-bold text-slate-800 text-base">Confirm Action</h3>
+                    <p id="modalDesc" class="text-xs text-slate-500">Are you sure you want to proceed?</p>
+                </div>
+            </div>
+            <div class="flex justify-end gap-2 mt-6">
+                <button id="modalCancelBtn" class="px-4 py-2 text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors">
+                    Cancel
+                </button>
+                <button id="modalConfirmBtn" class="px-4 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors shadow-sm">
+                    Confirm
+                </button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

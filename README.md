@@ -419,10 +419,6 @@ HOW TO RUN WITH WORKING MATCHMAKING FEATURE
 
 # mga need pa ayusin
 
-- ayusin ang nasa url dapat walang .html na makikita doon (login) 
-
-- contact us (landing page footer gawing dynamic)
-
 - apply security
 
 # Optional fixed (user & org side):
@@ -436,6 +432,13 @@ and if kaya is dapat may message sa gmail ng user na yung account nya has violat
 - (user & org side) much better if may parang pagpipilian ang org at user na ilalagay na message ara hindi makasubmit ng nonsense na text
 
 # done na ayusin: 
+
+- contact us (landing page footer gawing dynamic) with email sender ✓ 
+
+- ayusin ang nasa url dapat walang .html na makikita doon (create accounts) ✓
+
+- ayusin ang nasa url dapat walang .html na makikita doon (login) ✓
+
 - yung receipt sa donation try to naiscan na sya  ✓
 
 - login lockout too  many attempts (15 mins.) ✓
@@ -714,4 +717,17 @@ CREATE TABLE notifications (
     link             VARCHAR(255) NULL,
     created_at       TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (account_id) REFERENCES accounts(account_id) ON DELETE CASCADE
+);
+
+For the contact messages in landing page
+# CREATE TABLE contact_messages (
+    message_id INT AUTO_INCREMENT PRIMARY KEY,
+    account_id INT NULL,
+    full_name VARCHAR(150) NOT NULL,
+    email VARCHAR(150) NOT NULL,
+    subject_category VARCHAR(50) NOT NULL,
+    message TEXT NOT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'pending',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (account_id) REFERENCES accounts(account_id) ON DELETE SET NULL
 );

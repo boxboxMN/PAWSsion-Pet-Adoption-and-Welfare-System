@@ -55,7 +55,8 @@ async function loadTopbar(options = {}) {
 function adminNotifIcon(type) {
     const icons = {
         org_pending: "fa-building",
-        feedback_new: "fa-comment-dots"
+        feedback_new: "fa-comment-dots",
+        contact_message_new: "fa-envelope"
     };
     return icons[type] || "fa-bell";
 }
