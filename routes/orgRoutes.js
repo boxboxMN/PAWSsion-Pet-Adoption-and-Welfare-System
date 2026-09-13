@@ -37,16 +37,6 @@ const {
 
 const router = express.Router();
 
-// 1. UNANG ROUTE: /pending
-router.get("/pending", (req, res) => {
-    if (!req.session.accountId) {
-        return res.redirect("/auth/login");
-    }
-    res.sendFile(
-        path.join(__dirname, "../public/organization/orgPending.html")
-    );
-});
-
 // 2. MIDDLEWARE FOR APPROVAL
 async function checkOrganizationApproval(req, res, next) {
     if (!req.session.accountId) {
@@ -54,11 +44,11 @@ async function checkOrganizationApproval(req, res, next) {
     }
     try {
         const [rows] = await pool.query(
-            `SELECT status FROM accounts WHERE account_id=?`,
+            `SELECT status, role FROM accounts WHERE account_id=?`,
             [req.session.accountId]
         );
 
-        if (!rows.length) {
+        if (!rows.length || rows[0].role !== "organization") {
             return res.redirect("/auth/login");
         }
 
@@ -75,6 +65,17 @@ async function checkOrganizationApproval(req, res, next) {
 }
 
 router.use(checkOrganizationApproval);
+
+// 1. UNANG ROUTE: /pending
+router.get("/pending", (req, res) => {
+    if (!req.session.accountId) {
+        return res.redirect("/auth/login");
+    }
+    res.sendFile(
+        path.join(__dirname, "../public/organization/orgPending.html")
+    );
+});
+
 router.get("/dashboard/stats", getDashboardStats);
 router.get("/dashboard/recent-applications", getRecentApplications);
 router.get("/pets/newest", getNewestPets);

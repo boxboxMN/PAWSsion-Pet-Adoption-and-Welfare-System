@@ -7,6 +7,27 @@ const { logActivity, createNotification, notifyAllAdmins } = require("../control
 
 const router = express.Router();
 
+// Pinipigilan ang access kapag walang valid session, at siguraduhing 'admin' talaga ang role
+async function checkAdminSession(req, res, next) {
+    if (!req.session.accountId) {
+        return res.redirect("/auth/login");
+    }
+    try {
+        const [rows] = await pool.query(
+            `SELECT role FROM accounts WHERE account_id = ?`,
+            [req.session.accountId]
+        );
+        if (!rows.length || rows[0].role !== "admin") {
+            return res.redirect("/auth/login");
+        }
+        next();
+    } catch (error) {
+        console.error("Admin session check error:", error);
+        return res.redirect("/auth/login");
+    }
+}
+router.use(checkAdminSession);
+
 router.get("/dashboard", (req, res) => {
     res.sendFile(path.join(__dirname, "../public/admin/dashboard.html"));
 });
@@ -64,10 +85,11 @@ router.get("/users", async (req, res) => {
                 o.city,
                 o.province,
                 o.profile_pic AS organization_profile_picture
-            FROM accounts a
+              FROM accounts a
             LEFT JOIN adopters ad ON a.account_id = ad.account_id
             LEFT JOIN organizations o ON a.account_id = o.account_id
             WHERE a.role != 'admin'
+                AND NOT (a.role = 'organization' AND o.verification_status = 'Pending')
             ORDER BY a.created_at DESC
         `);
 
