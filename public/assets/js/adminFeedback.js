@@ -92,11 +92,57 @@ document.addEventListener("DOMContentLoaded", () => {
                     return;
                 }
         
-                renderFeedback(getFilteredFeedback(""));
+                feedbackFullList = getFilteredFeedback("");
+                renderFeedbackPage(1);
             } catch (err) {
                 console.error("Failed to load feedback:", err);
                 renderEmptyState("Unable to load feedback. Please try refreshing the page.");
             }
+        }
+
+        const FEEDBACK_PAGE_SIZE = 10;
+        let feedbackCurrentPage = 1;
+        let feedbackFullList = [];
+
+        function renderFeedbackPage(page) {
+            const totalPages = Math.max(1, Math.ceil(feedbackFullList.length / FEEDBACK_PAGE_SIZE));
+            feedbackCurrentPage = Math.min(Math.max(1, page), totalPages);
+        
+            const start = (feedbackCurrentPage - 1) * FEEDBACK_PAGE_SIZE;
+            const pageItems = feedbackFullList.slice(start, start + FEEDBACK_PAGE_SIZE);
+        
+            renderFeedback(pageItems);
+        
+            const paginationBox = document.getElementById("feedbackPagination");
+            const paginationText = document.getElementById("feedbackPaginationText");
+            const paginationButtons = document.getElementById("feedbackPaginationButtons");
+        
+            if (feedbackFullList.length === 0) {
+                paginationBox.classList.add("hidden");
+                return;
+            }
+        
+            paginationBox.classList.remove("hidden");
+            paginationText.textContent = `Showing ${start + 1}-${Math.min(start + FEEDBACK_PAGE_SIZE, feedbackFullList.length)} of ${feedbackFullList.length} results`;
+        
+            const btnBase = "w-8 h-8 flex items-center justify-center rounded-lg text-xs font-semibold transition";
+            const disabledBtn = `${btnBase} text-slate-300 cursor-not-allowed`;
+            const enabledBtn = `${btnBase} text-slate-500 hover:bg-slate-100`;
+            const activeBtn = `${btnBase} bg-indigo-600 text-white`;
+        
+            let buttonsHtml = `<button type="button" data-page="${feedbackCurrentPage - 1}" class="feedback-page-btn ${feedbackCurrentPage === 1 ? disabledBtn : enabledBtn}" ${feedbackCurrentPage === 1 ? "disabled" : ""}><i class="fa-solid fa-chevron-left text-[10px]"></i></button>`;
+        
+            for (let i = 1; i <= totalPages; i++) {
+                buttonsHtml += `<button type="button" data-page="${i}" class="feedback-page-btn ${i === feedbackCurrentPage ? activeBtn : enabledBtn}">${i}</button>`;
+            }
+        
+            buttonsHtml += `<button type="button" data-page="${feedbackCurrentPage + 1}" class="feedback-page-btn ${feedbackCurrentPage === totalPages ? disabledBtn : enabledBtn}" ${feedbackCurrentPage === totalPages ? "disabled" : ""}><i class="fa-solid fa-chevron-right text-[10px]"></i></button>`;
+        
+            paginationButtons.innerHTML = buttonsHtml;
+        
+            paginationButtons.querySelectorAll(".feedback-page-btn:not(:disabled)").forEach(btn => {
+                btn.addEventListener("click", () => renderFeedbackPage(Number(btn.dataset.page)));
+            });
         }
 
         function renderFeedback(feedback) {
@@ -319,7 +365,8 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         function filterFeedback(query) {
-            renderFeedback(getFilteredFeedback(query));
+            feedbackFullList = getFilteredFeedback(query);
+            renderFeedbackPage(1);
         }
 
         async function performAction(action, id) {
@@ -350,7 +397,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
         
                 const currentQuery = document.getElementById("searchInput").value.trim().toLowerCase();
-                renderFeedback(getFilteredFeedback(currentQuery));
+                feedbackFullList = getFilteredFeedback(currentQuery);
+                renderFeedbackPage(feedbackCurrentPage);
                 closePanel();
         
             } catch (err) {

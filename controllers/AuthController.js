@@ -8,6 +8,7 @@ const crypto = require("crypto");
 const transporter = require("../config/email");
 // const { logActivity } = require("./adminController");
 const { logActivity, createNotification, notifyAllAdmins } = require("./adminController");
+const loginAttempts = new Map(); // Map<accountId, { attempts: number, lockedUntil: number|null }>
 
 exports.register = async (req, res) => {
   console.log("=== REGISTER START ===");
@@ -110,7 +111,7 @@ exports.register = async (req, res) => {
 
       await logActivity(accountResult.insertId, "account_registered", "user", accountResult.insertId, `Adopter: ${firstName} ${lastName}`);
 
-      return res.redirect('/auth/login.html?success=1');
+      return res.redirect('/auth/login?success=1');
     } catch (error) {
       await connection.rollback();
       throw error;
@@ -150,6 +151,15 @@ exports.login = async (req, res) => {
     }
 
     const account = rows[0];
+
+    // --- LOGIN LOCKOUT CHECK ---
+    const loginRecord = loginAttempts.get(account.account_id) || { attempts: 5, lockedUntil: null };
+
+    if (loginRecord.lockedUntil && Date.now() < loginRecord.lockedUntil) {
+      const remainingTime = Math.ceil((loginRecord.lockedUntil - Date.now()) / 60000);
+      await logActivity(account.account_id, "login_locked", "auth", account.account_id, `${remainingTime} min remaining`);
+      return res.status(429).send(`Too many failed login attempts. Please try again in ${remainingTime} minute(s).`);
+    }
 
     if (account.role === "organization" && account.status === "pending") {
         req.session.accountId = account.account_id;
@@ -193,9 +203,26 @@ exports.login = async (req, res) => {
     // Password check
     const isValidPassword = await bcrypt.compare(password, account.password_hash);
         if (!isValidPassword) {
-            await logActivity(account.account_id, "login_failed", "auth", account.account_id, "Wrong password");
+            loginRecord.attempts -= 1;
+
+            if (loginRecord.attempts <= 0) {
+                loginRecord.lockedUntil = Date.now() + 15 * 60 * 1000;
+                loginRecord.attempts = 5;
+                loginAttempts.set(account.account_id, loginRecord);
+
+                await logActivity(account.account_id, "login_locked", "auth", account.account_id, "Locked after 5 failed attempts");
+
+                return res.status(429).send("Too many failed login attempts. Your account is temporarily locked for 15 minutes.");
+            }
+
+            loginAttempts.set(account.account_id, loginRecord);
+
+            await logActivity(account.account_id, "login_failed", "auth", account.account_id, `Wrong password, attempts remaining: ${loginRecord.attempts}`);
             return res.status(401).send(genericAuthError);
         }
+
+          // Reset on successful password match
+          loginAttempts.delete(account.account_id);
 
     // ✅ Update last login
     await pool.query(

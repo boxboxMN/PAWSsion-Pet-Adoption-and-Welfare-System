@@ -587,7 +587,9 @@ exports.submitCashDonation = async (req, res) => {
                 organization_id,
                 donor_name,
                 donor_email,
-                gcash_account_name || donor_name,
+                gcash_account_name && gcash_account_name.trim() !== ""
+                ? gcash_account_name.trim()
+                : null,         
                 cleanRefNum,
                 parsedAmount,
                 receipt_path,
@@ -1843,17 +1845,27 @@ exports.submitFeedback = async (req, res) => {
             cleanRating = parsedRating;
         }
 
+         // Alamin kung org ba o adopter ang nag-submit, para tama ang submitted_by/organization_id
+         const [orgRows] = await pool.query(
+            `SELECT organization_id FROM organizations WHERE account_id = ? LIMIT 1`,
+            [accountId]
+        );
+
+        const isOrganization = orgRows.length > 0;
+        const submittedBy = isOrganization ? "organization" : "user";
+        const organizationId = isOrganization ? orgRows[0].organization_id : null;
+
         const [result] = await pool.query(
             `INSERT INTO feedback (account_id, submitted_by, organization_id, feedback_type, subject, message, rating, status)
-             VALUES (?, 'user', NULL, ?, ?, ?, ?, 'pending')`,
-            [accountId, feedback_type, cleanSubject, cleanMessage, cleanRating]
+             VALUES (?, ?, ?, ?, ?, ?, ?, 'pending')`,
+            [accountId, submittedBy, organizationId, feedback_type, cleanSubject, cleanMessage, cleanRating]
         );
 
         await logActivity(accountId, "feedback_submitted", "feedback", result.insertId, feedback_type);
 
         await notifyAllAdmins(
             "New Feedback Received",
-            `A new "${feedback_type}" feedback was submitted: "${cleanSubject}"`,
+            `A new "${feedback_type}" feedback was submitted by ${isOrganization ? "an organization" : "an adopter"}: "${cleanSubject}"`,
             "feedback_new",
             "/admin/feedback"
         );
@@ -1862,5 +1874,32 @@ exports.submitFeedback = async (req, res) => {
     } catch (err) {
         console.error("Submit Feedback Error:", err);
         res.status(500).json({ success: false, message: "Something went wrong while sending your feedback." });
+    }
+};
+
+/**
+ * GET /api/user/kamustahan-due
+ * Returns Kamustahan updates that are due today or overdue for the logged-in adopter.
+ */
+exports.getKamustahanDue = async (req, res) => {
+    const accountId = req.session?.accountId;
+    if (!accountId) return res.status(401).json({ success: false, message: "Unauthorized" });
+
+    try {
+        const [dueUpdates] = await pool.query(`
+            SELECT ku.update_id, ku.animal_id, ku.scheduled_date, a.name AS pet_name
+            FROM kamustahan_updates ku
+            JOIN animals a ON a.animal_id = ku.animal_id
+            WHERE ku.adopter_id = (SELECT adopter_id FROM adopters WHERE account_id = ?)
+              AND ku.status = 'For Update'
+              AND ku.scheduled_date IS NOT NULL
+              AND ku.scheduled_date <= CURDATE()
+            ORDER BY ku.scheduled_date ASC
+        `, [accountId]);
+
+        res.json({ success: true, dueUpdates });
+    } catch (err) {
+        console.error("Get Kamustahan Due Error:", err);
+        res.status(500).json({ success: false, message: "Database Error" });
     }
 };

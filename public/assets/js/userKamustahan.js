@@ -39,6 +39,37 @@
             console.error("Error loading approved pets:", err);
         }
 
+        // --- Kamustahan Due Banner ---
+        try {
+            const dueRes = await fetch('/api/user/kamustahan-due');
+            const dueData = await dueRes.json();
+
+            if (dueData.success && dueData.dueUpdates.length > 0) {
+                const banner = document.getElementById('kamustahanDueBanner');
+                const bannerText = document.getElementById('kamustahanDueText');
+
+                const names = dueData.dueUpdates.map(u => u.pet_name).join(", ");
+                bannerText.textContent = dueData.dueUpdates.length === 1
+                    ? `An update for ${names} was due on ${new Date(dueData.dueUpdates[0].scheduled_date).toLocaleDateString("en-US", { month: "long", day: "numeric" })}. Please share how they're doing!`
+                    : `Updates are due for: ${names}. Please share how they're doing!`;
+
+                banner.classList.remove('hidden');
+
+                banner.addEventListener('click', () => {
+                    const firstDue = dueData.dueUpdates[0];
+                    const petSelect = document.getElementById('petSelect');
+                    if (petSelect) {
+                        petSelect.value = firstDue.animal_id;
+                        petSelect.dispatchEvent(new Event('change'));
+                        petSelect.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                });
+                banner.classList.add('cursor-pointer', 'hover:bg-amber-100', 'transition');
+            }
+        } catch (err) {
+            console.error("Error loading due Kamustahan updates:", err);
+        }
+
         const photoInput = document.getElementById('photoInput');
         photoInput.addEventListener('change', (e) => {
             const files = e.target.files;

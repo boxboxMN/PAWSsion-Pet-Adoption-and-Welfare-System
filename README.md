@@ -387,7 +387,6 @@ kapag nainterview sched at nadecline then nag re apply ulit, nakikita sa dashboa
 
 sa org naman kahit under review after ng decline, hindi naerase ang dating interview sched ✓
 
-
 # important notes:
 
 pagsamahin ang sa adoptionHub.html & yung sa vcalude ai na nasa cspc acc ✓
@@ -419,26 +418,53 @@ HOW TO RUN WITH WORKING MATCHMAKING FEATURE
     *terminal: node server.js (this should be in new terminal)
 
 # mga need pa ayusin
-- notification (user, org, & admin side)
 
-- sa notification dapat nakikita na yung feedback is naresolved na (pets org)
+- apply security
 
-- login lockout too  many attempts
+- notifications sa sidebar
+
+# Optional fixed (user & org side):
+- kapag ban or suspended may days limit??
+
+- sa mga description dapat hindi nalalagyan ng nonsense na text sa mga reason especially sa application 
 
 - when banning/disabled an account it should have a warning first from the user
 and if kaya is dapat may message sa gmail ng user na yung account nya has violated the policy or something
 
-- ayusin ang nasa url dapat walang .html na makikita doon
-
-- when the org deactivate the account, the account can still login pero dapat hindi na eh ✓
-
-
-# Optional fixed (user & org side):
-- sa mga description dapat hindi nalalagyan ng nonsense na text sa mga reason especially sa application 
-
 - (user & org side) much better if may parang pagpipilian ang org at user na ilalagay na message ara hindi makasubmit ng nonsense na text
 
 # done na ayusin: 
+- lagyan ng parang lipatan sa baba ng feedback and contact in admin ✓
+
+- sa admin kapag nasa partner requests nagiging active na sa user management kahit hindi pa naman inaaproved ng admin ✓
+
+- contact us (landing page footer gawing dynamic) with email sender ✓ 
+
+- ayusin ang nasa url dapat walang .html na makikita doon (create accounts) ✓
+
+- ayusin ang nasa url dapat walang .html na makikita doon (login) ✓
+
+- yung receipt sa donation try to naiscan na sya  ✓
+
+- login lockout too  many attempts (15 mins.) ✓
+
+- notification (user, org, & admin side) ✓
+
+- ayusin ang nasa url dapat walang .html na makikita doon (admin) ✓
+
+- fix the user management in admin whehn suspending or banning the user or org, send the adminRoutes.js ✓
+
+- Delete notification button ✓
+
+- when the org deactivate the account, the account can still login pero dapat hindi na eh ✓
+
+- sa notification dapat nakikita na yung feedback is naresolved na (pets org)  ✓
+
+ - yung feedback ng admin to org gawing non clickable (notification) ✓
+
+- add admin logout modal ✓
+
+- when the org deactivate the account, the account can still login pero dapat hindi na eh ✓
 
 # donation info (org)
 sa complete address under inkind it should be auto filled based on the org's profile ✓
@@ -696,4 +722,17 @@ CREATE TABLE notifications (
     link             VARCHAR(255) NULL,
     created_at       TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (account_id) REFERENCES accounts(account_id) ON DELETE CASCADE
+);
+
+For the contact messages in landing page
+# CREATE TABLE contact_messages (
+    message_id INT AUTO_INCREMENT PRIMARY KEY,
+    account_id INT NULL,
+    full_name VARCHAR(150) NOT NULL,
+    email VARCHAR(150) NOT NULL,
+    subject_category VARCHAR(50) NOT NULL,
+    message TEXT NOT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'pending',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (account_id) REFERENCES accounts(account_id) ON DELETE SET NULL
 );

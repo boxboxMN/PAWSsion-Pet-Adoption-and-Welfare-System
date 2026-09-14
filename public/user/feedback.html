@@ -233,8 +233,6 @@
                             </div>
                         </div>
 
-                        <div id="feedbackStatus" class="hidden rounded-xl px-4 py-3 text-sm font-medium"></div>
-
                         <!-- Submit Button -->
                         <div class="flex items-center justify-end pt-1">
                             <button
@@ -254,6 +252,34 @@
 
         </div>
     </main>
+
+     <!-- Feedback Error Modal -->
+     <div id="feedbackErrorModal" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm hidden">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-sm mx-4 text-center transform transition-all scale-95 opacity-0 duration-200" id="feedbackErrorBox">
+            <div class="mx-auto w-16 h-16 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mb-4">
+                <i class="fa-solid fa-triangle-exclamation text-2xl"></i>
+            </div>
+            <h3 class="text-lg font-bold text-gray-900 mb-2">Something Went Wrong</h3>
+            <p id="feedbackErrorText" class="text-sm text-gray-500 mb-6"></p>
+            <button id="feedbackErrorCloseBtn" class="w-full px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-semibold text-sm rounded-xl transition">
+                Close
+            </button>
+        </div>
+    </div>
+
+    <!-- Feedback Success Modal -->
+    <div id="feedbackSuccessModal" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm hidden">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-sm mx-4 text-center transform transition-all scale-95 opacity-0 duration-200" id="feedbackSuccessBox">
+            <div class="mx-auto w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mb-4">
+                <i class="fa-solid fa-check text-2xl"></i>
+            </div>
+            <h3 class="text-lg font-bold text-gray-900 mb-2">Feedback Sent!</h3>
+            <p class="text-sm text-gray-500 mb-6">Thanks for helping us improve Pawpon. Our team will review your feedback soon.</p>
+            <button id="feedbackSuccessCloseBtn" class="w-full px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm rounded-xl transition">
+                Close
+            </button>
+        </div>
+    </div>
 
     <script>
         document.addEventListener("DOMContentLoaded", async () => {
@@ -277,7 +303,6 @@
 
             const messageField = document.getElementById("feedbackMessage");
             const charCount = document.getElementById("feedbackCharCount");
-            const statusBox = document.getElementById("feedbackStatus");
             const submitBtn = document.getElementById("feedbackSubmitBtn");
             const ratingButtons = document.querySelectorAll(".rating-star");
             const ratingValueInput = document.getElementById("feedbackRatingValue");
@@ -319,27 +344,63 @@
                 paintStars(selectedRating);
             });
 
-            function showStatus(type, text) {
-                statusBox.classList.remove(
-                    "hidden", "bg-green-50", "text-green-700", "border", "border-green-100",
-                    "bg-red-50", "text-red-700", "border-red-100"
-                );
+            function showFeedbackErrorModal(text) {
+                const modal = document.getElementById("feedbackErrorModal");
+                const box = document.getElementById("feedbackErrorBox");
+                const textEl = document.getElementById("feedbackErrorText");
 
-                if (type === "success") {
-                    statusBox.classList.add("bg-green-50", "text-green-700", "border", "border-green-100");
-                } else {
-                    statusBox.classList.add("bg-red-50", "text-red-700", "border", "border-red-100");
-                }
-
-                statusBox.textContent = text;
+                textEl.textContent = text;
+                modal.classList.remove("hidden");
+                requestAnimationFrame(() => {
+                    box.classList.remove("scale-95", "opacity-0");
+                    box.classList.add("scale-100", "opacity-100");
+                });
             }
+
+            function closeFeedbackErrorModal() {
+                const modal = document.getElementById("feedbackErrorModal");
+                const box = document.getElementById("feedbackErrorBox");
+
+                box.classList.remove("scale-100", "opacity-100");
+                box.classList.add("scale-95", "opacity-0");
+                setTimeout(() => modal.classList.add("hidden"), 150);
+            }
+
+            document.getElementById("feedbackErrorCloseBtn").addEventListener("click", closeFeedbackErrorModal);
+            document.getElementById("feedbackErrorModal").addEventListener("click", (e) => {
+                if (e.target.id === "feedbackErrorModal") closeFeedbackErrorModal();
+            });
+
+            function showFeedbackSuccessModal() {
+                const modal = document.getElementById("feedbackSuccessModal");
+                const box = document.getElementById("feedbackSuccessBox");
+
+                modal.classList.remove("hidden");
+                requestAnimationFrame(() => {
+                    box.classList.remove("scale-95", "opacity-0");
+                    box.classList.add("scale-100", "opacity-100");
+                });
+            }
+
+            function closeFeedbackSuccessModal() {
+                const modal = document.getElementById("feedbackSuccessModal");
+                const box = document.getElementById("feedbackSuccessBox");
+
+                box.classList.remove("scale-100", "opacity-100");
+                box.classList.add("scale-95", "opacity-0");
+                setTimeout(() => modal.classList.add("hidden"), 150);
+            }
+
+            document.getElementById("feedbackSuccessCloseBtn").addEventListener("click", closeFeedbackSuccessModal);
+            document.getElementById("feedbackSuccessModal").addEventListener("click", (e) => {
+                if (e.target.id === "feedbackSuccessModal") closeFeedbackSuccessModal();
+            });
 
             form.addEventListener("submit", async (event) => {
                 event.preventDefault();
-                statusBox.classList.add("hidden");
 
                 if (!form.checkValidity()) {
-                    showStatus("error", "Please fill in the required fields before submitting.");
+                    showFeedbackErrorModal("Please fill in the required fields before submitting.");
                     form.reportValidity();
                     return;
                 }
@@ -366,15 +427,15 @@
                         throw new Error(`Request failed with status ${response.status}`);
                     }
 
-                    showStatus("success", "Thanks! Your feedback has been sent to the Pawpon team.");
                     form.reset();
                     selectedRating = 0;
                     ratingValueInput.value = "";
                     paintStars(0);
                     charCount.textContent = "0 / 2000";
+                    showFeedbackSuccessModal();
                 } catch (error) {
                     console.error("Unable to submit feedback:", error);
-                    showStatus("error", "Something went wrong sending your feedback. Please try again or email us directly.");
+                    showFeedbackErrorModal("Something went wrong sending your feedback. Please try again or email us directly.");
                 } finally {
                     submitBtn.disabled = false;
                     submitBtn.innerHTML = originalBtnHTML;

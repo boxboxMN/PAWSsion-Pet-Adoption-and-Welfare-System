@@ -3,9 +3,30 @@ const path = require("path");
 
 const pool = require("../config/database");
 const adminController = require("../controllers/adminController"); // <--- Idagdag ito
-const { logActivity } = require("../controllers/adminController");
+const { logActivity, createNotification, notifyAllAdmins } = require("../controllers/adminController");
 
 const router = express.Router();
+
+// Pinipigilan ang access kapag walang valid session, at siguraduhing 'admin' talaga ang role
+async function checkAdminSession(req, res, next) {
+    if (!req.session.accountId) {
+        return res.redirect("/auth/login");
+    }
+    try {
+        const [rows] = await pool.query(
+            `SELECT role FROM accounts WHERE account_id = ?`,
+            [req.session.accountId]
+        );
+        if (!rows.length || rows[0].role !== "admin") {
+            return res.redirect("/auth/login");
+        }
+        next();
+    } catch (error) {
+        console.error("Admin session check error:", error);
+        return res.redirect("/auth/login");
+    }
+}
+router.use(checkAdminSession);
 
 router.get("/dashboard", (req, res) => {
     res.sendFile(path.join(__dirname, "../public/admin/dashboard.html"));
@@ -35,7 +56,7 @@ router.get("/notifications", (req, res) => {
 // Logout
 router.get("/logout", (req, res) => {
     req.session.destroy(() => {
-        res.redirect("/auth/login.html");
+        res.redirect("/auth/login");
     });
 });
 /*
@@ -64,10 +85,11 @@ router.get("/users", async (req, res) => {
                 o.city,
                 o.province,
                 o.profile_pic AS organization_profile_picture
-            FROM accounts a
+              FROM accounts a
             LEFT JOIN adopters ad ON a.account_id = ad.account_id
             LEFT JOIN organizations o ON a.account_id = o.account_id
             WHERE a.role != 'admin'
+                AND NOT (a.role = 'organization' AND o.verification_status = 'Pending')
             ORDER BY a.created_at DESC
         `);
 
@@ -461,10 +483,33 @@ router.get("/users/:id", async (req, res) => {
     }
 
 });
+
 router.put("/users/:id/status", async (req, res) => {
     try {
         const id = req.params.id;
         const { status } = req.body; // Dito tatanggapin kung suspended, banned, active, o disabled
+
+        // if (status === "disabled") {
+        //     const warned = await adminController.hasBeenWarned(id);
+        //     if (!warned) {
+        //         return res.status(400).json({
+        //             message: "This account must be sent a warning before it can be disabled."
+        //         });
+        //     }
+        // }
+
+        if (status === "disabled") {
+            const [[targetAccount]] = await pool.query(`SELECT role FROM accounts WHERE account_id = ?`, [id]);
+            const profileLink = targetAccount?.role === "organization" ? "/org/profile" : "/profile";
+
+            await createNotification(
+                id,
+                "Account Deactivated",
+                "Your account has been deactivated by an administrator.",
+                "account_disabled",
+                profileLink
+            );
+        }
 
         // I-validate kung valid status ang ipinasa
         const validStatuses = ['active', 'disabled', 'suspended', 'banned', 'pending', 'rejected'];
@@ -535,6 +580,17 @@ router.put("/users/:id/suspend", async(req,res)=>{
 
             [id]
 
+        );
+
+        const [[targetAccount]] = await pool.query(`SELECT role FROM accounts WHERE account_id = ?`, [id]);
+        const profileLink = targetAccount?.role === "organization" ? "/org/profile" : "/profile";
+
+        await createNotification(
+            id,
+            "Account Suspended",
+            "Your account has been suspended by an administrator. Please contact support if you believe this is a mistake.",
+            "account_suspended",
+            profileLink
         );
 
         await logActivity(req.session?.accountId, "user_suspended", "user", id);
@@ -634,6 +690,17 @@ router.put("/users/:id/ban", async (req, res) => {
             [id]
         );
 
+        const [[targetAccount]] = await pool.query(`SELECT role FROM accounts WHERE account_id = ?`, [id]);
+        const profileLink = targetAccount?.role === "organization" ? "/org/profile" : "/profile";
+
+        await createNotification(
+            id,
+            "Account Banned",
+            "Your account has been permanently banned for violating platform policies.",
+            "account_banned",
+            profileLink
+        );
+
         await logActivity(req.session?.accountId, "user_banned", "user", id);
 
         res.json({
@@ -698,6 +765,12 @@ router.get("/dashboard/top-organizations", async (req, res) => {
 
 router.get("/feedback/list", adminController.getFeedback);
 router.put("/feedback/:id/status", adminController.updateFeedbackStatus);
+//con tact mesage routes
+router.get("/contact-messages", (req, res) => {
+    res.sendFile(path.join(__dirname, "../public/admin/contact-messages.html"));
+});
+router.get("/contact-messages/list", adminController.getContactMessages);
+router.put("/contact-messages/:id/status", adminController.updateContactMessageStatus);
 
 //settings route
 router.get("/settings", (req, res) => {
@@ -717,10 +790,10 @@ router.put("/guide/sections/:id/restore", adminController.restoreGuideSection);
 router.delete("/guide/sections/:id/permanent", adminController.permanentlyDeleteGuideSection);
 
 //activity logs route
-router.get("/logs", adminController.getActivityLogs);
 router.get("/logs", (req, res) => {
     res.sendFile(path.join(__dirname, "../public/admin/logs.html"));
 });
+router.get("/api/logs", adminController.getActivityLogs);
 
 //admin password verification route
 router.post("/profile/verify-password", adminController.verifyAdminPassword);

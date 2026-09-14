@@ -107,6 +107,15 @@ const kamustahanStorage = multer.diskStorage({
 
 const uploadKamustahan = multer({ storage: kamustahanStorage });
 
+// Pinipigilan ang access kapag walang valid session (halimbawa: namatay ang session dahil nag-restart ang server)
+function checkUserSession(req, res, next) {
+  if (!req.session.accountId) {
+      return res.redirect("/auth/login");
+  }
+  next();
+}
+router.use(checkUserSession);
+
 router.get("/api/pets", userController.getAvailablePets);
 router.get("/api/pets/:id", userController.getPetById);
 router.post( "/api/matchmaking", matchmakerController.matchPets);
@@ -217,5 +226,6 @@ router.put('/api/user/kamustahan/:id', uploadKamustahan.single('photos'), async 
     }
 });
 
+router.get("/api/user/kamustahan-due", userController.getKamustahanDue);
 
 module.exports = router;

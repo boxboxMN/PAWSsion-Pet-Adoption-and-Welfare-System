@@ -606,47 +606,6 @@ function renderDonationsTable(donations) {
     updatePaginationInfo(donations.length);
 }
 
-// ==========================
-// LOGOUT MODAL LOGIC
-// ==========================
-const logoutModal = document.getElementById("logoutModal");
-const cancelLogoutBtn = document.getElementById("cancelLogoutBtn");
-const confirmLogoutBtn = document.getElementById("confirmLogoutBtn");
-
-function openLogoutModal() {
-    if (logoutModal) {
-        logoutModal.classList.remove("opacity-0", "pointer-events-none");
-        logoutModal.querySelector("div > div").classList.remove("scale-95");
-        logoutModal.querySelector("div > div").classList.add("scale-100");
-    }
-}
-
-function closeLogoutModal() {
-    if (logoutModal) {
-        logoutModal.classList.add("opacity-0", "pointer-events-none");
-        logoutModal.querySelector("div > div").classList.remove("scale-100");
-        logoutModal.querySelector("div > div").classList.add("scale-95");
-    }
-}
-
-if (cancelLogoutBtn) {
-    cancelLogoutBtn.addEventListener("click", closeLogoutModal);
-}
-
-if (logoutModal) {
-    logoutModal.addEventListener("click", (e) => {
-        if (e.target === logoutModal) {
-            closeLogoutModal();
-        }
-    });
-}
-
-if (confirmLogoutBtn) {
-    confirmLogoutBtn.addEventListener("click", () => {
-        window.location.href = "/logout"; 
-    });
-}
-
 /**
  * Retrieves all in-kind donations from the server
  * and updates the donation summary[cite: 5].

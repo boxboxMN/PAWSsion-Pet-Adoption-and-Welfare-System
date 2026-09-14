@@ -2,6 +2,9 @@
 
 const pool = require("../config/database");
 const bcrypt = require("bcrypt");
+const transporter = require("../config/email");
+//for email validation
+const validator = require('validator');
 
 /**
  * Records an admin activity log entry. Never throws — logging failures
@@ -55,6 +58,11 @@ exports.getNotifications = async (req, res) => {
     try {
         const accountId = req.session?.accountId;
         if (!accountId) return res.status(401).json({ success: false, message: "Unauthorized" });
+
+        if (req.session.role === "adopter") {
+            const { checkKamustahanRemindersDue } = require("./userController");
+            await checkKamustahanRemindersDue(accountId);
+        }
 
         const [rows] = await pool.query(
             `SELECT notification_id, title, message, type, is_read, link, created_at
@@ -113,6 +121,30 @@ exports.markAllNotificationsRead = async (req, res) => {
         res.json({ success: true });
     } catch (err) {
         console.error("Mark All Notifications Read Error:", err);
+        res.status(500).json({ success: false, message: "Database Error" });
+    }
+};
+
+/**
+ * DELETE /api/notifications/:id
+ */
+exports.deleteNotification = async (req, res) => {
+    try {
+        const accountId = req.session?.accountId;
+        if (!accountId) return res.status(401).json({ success: false, message: "Unauthorized" });
+
+        const [result] = await pool.query(
+            `DELETE FROM notifications WHERE notification_id = ? AND account_id = ?`,
+            [req.params.id, accountId]
+        );
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ success: false, message: "Notification not found." });
+        }
+
+        res.json({ success: true });
+    } catch (err) {
+        console.error("Delete Notification Error:", err);
         res.status(500).json({ success: false, message: "Database Error" });
     }
 };
@@ -222,74 +254,6 @@ exports.getOrganizations = async (req, res) => {
 
 };
 
-exports.getUsers = async (req, res) => {
-
-    try {
-
-        const [rows] = await pool.query(`
-            SELECT
-
-                a.account_id,
-                a.email,
-                a.role,
-                a.status,
-                a.created_at,
-                a.last_login,
-
-                CASE
-                    WHEN a.role='adopter'
-                        THEN CONCAT(ad.first_name,' ',ad.last_name)
-
-                    WHEN a.role='organization'
-                        THEN o.organization_name
-
-                    ELSE 'Administrator'
-                END AS name,
-
-                CASE
-                    WHEN a.role='adopter'
-                        THEN ad.phone_number
-
-                    WHEN a.role='organization'
-                        THEN o.contact_number
-
-                    ELSE NULL
-                END AS phone,
-
-                CASE
-                    WHEN a.role='adopter'
-                        THEN ad.profile_picture
-
-                    WHEN a.role='organization'
-                        THEN o.profile_pic
-
-                    ELSE NULL
-                END AS profile
-
-            FROM accounts a
-
-            LEFT JOIN adopters ad
-                ON a.account_id = ad.account_id
-
-            LEFT JOIN organizations o
-                ON a.account_id = o.account_id
-
-            ORDER BY a.created_at DESC
-        `);
-
-        res.json(rows);
-
-    } catch(err){
-
-        console.error(err);
-
-        res.status(500).json({
-            message:"Unable to load users."
-        });
-
-    }
-
-};
 exports.updateUserStatus = async (req, res) => {
     try {
         const { id } = req.params;
@@ -630,6 +594,16 @@ exports.updateFeedbackStatus = async (req, res) => {
             // action === "resolve" or "unresolve"
             const newStatus = action === "resolve" ? "resolved" : "pending";
 
+            // Kunin muna ang orihinal na nagsumite bago i-update, para malaman kung sino ang aabisuhan
+            const [[feedbackRow]] = await pool.query(
+                `SELECT account_id, subject FROM feedback WHERE feedback_id = ?`,
+                [id]
+            );
+
+            if (!feedbackRow) {
+                return res.status(404).json({ success: false, message: "Feedback not found." });
+            }
+
             const [result] = await pool.query(
                    `UPDATE feedback SET status = ?, previous_status = NULL WHERE feedback_id = ?`,
                    [newStatus, id]
@@ -638,14 +612,218 @@ exports.updateFeedbackStatus = async (req, res) => {
             //for logging the resolve/unresolve action
             await logActivity(accountId, action === "resolve" ? "feedback_resolved" : "feedback_unresolved", "feedback", id);
        
-            if (result.affectedRows === 0) {
-                   return res.status(404).json({ success: false, message: "Feedback not found." });
+            // if (result.affectedRows === 0) {
+            //        return res.status(404).json({ success: false, message: "Feedback not found." });
+            // }
+
+              // Abisuhan ang orihinal na nagsumite (user o org) tungkol sa update ng status
+              if (feedbackRow.account_id) {
+                if (action === "resolve") {
+                    await createNotification(
+                        feedbackRow.account_id,
+                        "Your Feedback Has Been Resolved",
+                        `Your feedback "${feedbackRow.subject}" has been marked as resolved by our team. Thank you for helping us improve Pawpon!`,
+                        "feedback_resolved",
+                        null
+                    );
+                } else {
+                    await createNotification(
+                        feedbackRow.account_id,
+                        "Your Feedback Has Been Reopened",
+                        `Your feedback "${feedbackRow.subject}" has been reopened for further review.`,
+                        "feedback_reopened",
+                        null
+                    );
+                }
             }
 
                res.json({ success: true, status: newStatus, previous_status: null });
 
     } catch (err) {
         console.error("Update Feedback Status Error:", err);
+        res.status(500).json({ success: false, message: "Database Error" });
+    }
+};
+
+/**
+ * GET ALL CONTACT MESSAGES (from the public Contact Us form)
+ * GET /admin/contact-messages/list
+ */
+exports.getContactMessages = async (req, res) => {
+    try {
+        const [rows] = await pool.query(`
+            SELECT
+                cm.message_id AS id,
+                cm.account_id,
+                cm.full_name AS sender_name,
+                cm.email AS sender_email,
+                'Website Visitor' AS sender_role,
+                NULL AS sender_profile_picture,
+                cm.subject_category,
+                cm.message,
+                cm.status,
+                cm.previous_status,
+                cm.created_at AS date
+            FROM contact_messages cm
+            ORDER BY cm.created_at DESC
+        `);
+
+        res.json(rows);
+    } catch (err) {
+        console.error("Get Contact Messages Error:", err);
+        res.status(500).json({ message: "Database Error" });
+    }
+};
+
+/**
+ * UPDATE CONTACT MESSAGE STATUS (resolve / archive)
+ * PUT /admin/contact-messages/:id/status
+ */
+exports.updateContactMessageStatus = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const accountId = req.session?.accountId;
+        const { action } = req.body;
+
+        const validActions = ["resolve", "unresolve", "archive", "unarchive"];
+        if (!validActions.includes(action)) {
+            return res.status(400).json({ success: false, message: "Invalid action provided." });
+        }
+
+        if (action === "archive") {
+            const [[current]] = await pool.query(
+                `SELECT status FROM contact_messages WHERE message_id = ?`,
+                [id]
+            );
+
+            if (!current) {
+                return res.status(404).json({ success: false, message: "Message not found." });
+            }
+
+            await pool.query(
+                `UPDATE contact_messages SET previous_status = ?, status = 'archived' WHERE message_id = ?`,
+                [current.status, id]
+            );
+
+            await logActivity(accountId, "contact_message_archived", "contact_message", id, `Was: ${current.status}`);
+
+            return res.json({ success: true, status: "archived", previous_status: current.status });
+        }
+
+        if (action === "unarchive") {
+            const [[current]] = await pool.query(
+                `SELECT previous_status FROM contact_messages WHERE message_id = ?`,
+                [id]
+            );
+
+            if (!current) {
+                return res.status(404).json({ success: false, message: "Message not found." });
+            }
+
+            const restoredStatus = current.previous_status || "pending";
+
+            await pool.query(
+                `UPDATE contact_messages SET status = ?, previous_status = NULL WHERE message_id = ?`,
+                [restoredStatus, id]
+            );
+
+            await logActivity(accountId, "contact_message_unarchived", "contact_message", id, `Restored to: ${restoredStatus}`);
+
+            return res.json({ success: true, status: restoredStatus, previous_status: null });
+        }
+
+        // action === "resolve" or "unresolve"
+        const newStatus = action === "resolve" ? "resolved" : "pending";
+
+        const [[messageRow]] = await pool.query(
+            `SELECT account_id, full_name, email FROM contact_messages WHERE message_id = ?`,
+            [id]
+        );
+
+        if (!messageRow) {
+            return res.status(404).json({ success: false, message: "Message not found." });
+        }
+
+        const [result] = await pool.query(
+            `UPDATE contact_messages SET status = ?, previous_status = NULL WHERE message_id = ?`,
+            [newStatus, id]
+        );
+
+        await logActivity(accountId, action === "resolve" ? "contact_message_resolved" : "contact_message_unresolved", "contact_message", id);
+
+        // I-notify lang kung may account_id talaga (baka anonymous ang nag-submit, walang account na aabisuhan)
+        if (messageRow.account_id) {
+            if (action === "resolve") {
+                await createNotification(
+                    messageRow.account_id,
+                    "Your Message Has Been Resolved",
+                    `Your contact message has been marked as resolved by our team.`,
+                    "contact_message_resolved",
+                    null
+                );
+            } else {
+                await createNotification(
+                    messageRow.account_id,
+                    "Your Message Has Been Reopened",
+                    `Your contact message has been reopened for further review.`,
+                    "contact_message_reopened",
+                    null
+                );
+            }
+        }
+
+        // Palaging mag-send ng email — gumagana ito kahit walang account_id,
+        // dahil ang email address ay direktang galing sa contact form mismo
+        if (action === "resolve" && messageRow.email) {
+            try {
+                await transporter.sendMail({
+                    from: `"Pawpon Support" <${process.env.EMAIL_USER}>`,
+                    to: messageRow.email,
+                    subject: "Your Pawpon Message Has Been Resolved",
+                    html: `
+                        <div style="
+                            font-family: Arial, sans-serif;
+                            max-width: 600px;
+                            margin: auto;
+                            padding: 30px;
+                            color: #334155;
+                        ">
+                            <h2 style="color:#1656ff;">
+                                Your Message Has Been Resolved
+                            </h2>
+
+                            <p>Hi ${messageRow.full_name || "there"},</p>
+
+                            <p>
+                                Thanks for reaching out to Pawpon. Our team has reviewed
+                                your message and marked it as resolved.
+                            </p>
+
+                            <p>
+                                If you have any further questions or your concern wasn't
+                                fully addressed, feel free to send us another message
+                                through our Contact page.
+                            </p>
+
+                            <p style="margin-top: 30px;">
+                                — The Pawpon Team
+                            </p>
+                        </div>
+                    `
+                });
+            } catch (mailErr) {
+                // Hindi natin dapat ipa-fail ang buong request kung nabigo lang ang email
+                console.error("Failed to send resolution email:", mailErr);
+            }
+        }
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ success: false, message: "Message not found." });
+        }
+
+        res.json({ success: true, status: newStatus, previous_status: null });
+    } catch (err) {
+        console.error("Update Contact Message Status Error:", err);
         res.status(500).json({ success: false, message: "Database Error" });
     }
 };
@@ -1027,5 +1205,116 @@ exports.getActivityLogs = async (req, res) => {
     } catch (err) {
         console.error("Get Activity Logs Error:", err);
         res.status(500).json({ success: false, message: "Database Error" });
+    }
+};
+
+/**
+ * Blocks any request from an account that is currently suspended/banned/disabled.
+ * Destroys the session immediately if found, and responds appropriately for
+ * page loads vs API/AJAX calls.
+ */
+exports.checkAccountStatus = async (req, res, next) => {
+    const accountId = req.session?.accountId;
+    if (!accountId) return next(); // not logged in — let normal auth checks handle it
+
+    try {
+        const [[account]] = await pool.query(
+            `SELECT status FROM accounts WHERE account_id = ?`,
+            [accountId]
+        );
+
+        const blockedStatuses = ["suspended", "banned", "disabled"];
+
+        if (account && blockedStatuses.includes(account.status)) {
+            const reason = account.status;
+
+            req.session.destroy(() => {
+                const wantsJson = req.xhr || req.headers.accept?.includes("application/json");
+
+                if (wantsJson) {
+                    return res.status(403).json({
+                        success: false,
+                        blocked: true,
+                        reason,
+                        message: `Your account has been ${reason}.`
+                    });
+                }
+
+                return res.redirect(`/auth/login?reason=${reason}`);
+            });
+            return; // don't call next() — request stops here
+        }
+
+        next();
+    } catch (err) {
+        console.error("Check Account Status Error:", err);
+        next(); // fail open rather than locking everyone out on a DB hiccup
+    }
+};
+
+/**
+ * GET /api/session-status
+ * Lightweight check: is the current session's account still active?
+ */
+exports.getSessionStatus = async (req, res) => {
+    const accountId = req.session?.accountId;
+    if (!accountId) return res.json({ active: false });
+
+    try {
+        const [[account]] = await pool.query(`SELECT status FROM accounts WHERE account_id = ?`, [accountId]);
+        const blocked = account && ["suspended", "banned", "disabled"].includes(account.status);
+        res.json({ active: !blocked, status: account?.status });
+    } catch (err) {
+        console.error("Get Session Status Error:", err);
+        res.json({ active: true }); // fail open, same policy as the middleware
+    }
+};
+
+// ==========================================
+// SUBMIT CONTACT MESSAGE (Public — walang kailangang login)
+// POST /api/contact-messages
+// ==========================================
+exports.submitContactMessage = async (req, res) => {
+    try {
+        const { name, email, subject, message } = req.body;
+
+        const cleanName = (name || "").trim();
+        const cleanEmail = (email || "").trim();
+        const cleanMessage = (message || "").trim();
+        const validSubjects = ["adoption", "donation", "account", "technical", "feedback", "other"];
+
+        if (!cleanName) {
+            return res.status(400).json({ success: false, message: "Full name is required." });
+        }
+        if (!cleanEmail || !validator.isEmail(cleanEmail)) {
+            return res.status(400).json({ success: false, message: "Please enter a valid email address." });
+        }
+        if (!subject || !validSubjects.includes(subject)) {
+            return res.status(400).json({ success: false, message: "Please select a subject." });
+        }
+        if (!cleanMessage || cleanMessage.length < 10) {
+            return res.status(400).json({ success: false, message: "Message must be at least 10 characters." });
+        }
+
+        // Kunin ang account_id kung naka-login (opsyonal lang, hindi required)
+        const accountId = req.session?.accountId || null;
+
+        const [result] = await pool.query(
+            `INSERT INTO contact_messages (account_id, full_name, email, subject_category, message, status)
+             VALUES (?, ?, ?, ?, ?, 'pending')`,
+            [accountId, cleanName, cleanEmail, subject, cleanMessage]
+        );
+
+        await notifyAllAdmins(
+            "New Contact Message",
+            `${cleanName} sent a message about "${subject}": "${cleanMessage.substring(0, 80)}${cleanMessage.length > 80 ? '...' : ''}"`,
+            "contact_message_new",
+            "/admin/contact-messages"
+        );
+
+        res.json({ success: true, message: "Thanks for reaching out! We'll get back to you soon." });
+    } catch (err) {
+        console.error("Submit Contact Message Error:", err);
+        res.status(500).json({ success: false, message: "Something went wrong. Please try again later." });
     }
 };

@@ -45,7 +45,8 @@ function userNotifIcon(type) {
         interview_scheduled: "📅",
         interview_rescheduled: "📅",
         donation_status: "💰",
-        kamustahan_due: "🐾"
+        kamustahan_due: "🐾",
+        account_warning: "⚠️"
     };
     return icons[type] || "🔔";
 }
@@ -68,17 +69,47 @@ async function loadUserNotifications() {
             return;
         }
 
-        list.innerHTML = data.notifications.map(n => `
-            <li data-id="${n.notification_id}" data-link="${n.link || ''}" class="user-notif-item border-b pb-2 cursor-pointer ${n.is_read ? 'opacity-50' : ''}">
-                ${userNotifIcon(n.type)} <span class="font-medium">${n.title}</span><br>
-                <span class="text-xs text-gray-500">${n.message}</span>
+        // Mga notification type na pang-impormasyon lang, hindi dapat i-click/i-navigate
+        const NON_CLICKABLE_TYPES = ["feedback_resolved", "feedback_reopened"];
+
+        list.innerHTML = data.notifications.map(n => {
+            const isInfoOnly = NON_CLICKABLE_TYPES.includes(n.type);
+            const clickableClass = isInfoOnly ? "" : "cursor-pointer";
+            return `
+            <li data-id="${n.notification_id}" data-link="${n.link || ''}" data-info-only="${isInfoOnly}" class="user-notif-item flex items-start justify-between gap-2 border-b pb-2 ${n.is_read ? 'opacity-50' : ''}">
+                <div class="user-notif-content flex-1 min-w-0 ${clickableClass}">
+                    ${userNotifIcon(n.type)} <span class="font-medium">${n.title}</span><br>
+                    <span class="text-xs text-gray-500">${n.message}</span>
+                </div>
+                <button class="user-notif-delete-btn text-gray-300 hover:text-red-500 transition shrink-0 px-1" title="Delete">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
             </li>
-        `).join("");
+        `}).join("");
 
         list.querySelectorAll(".user-notif-item").forEach(item => {
-            item.addEventListener("click", async () => {
-                await fetch(`/api/notifications/${item.dataset.id}/read`, { method: "PUT" });
-                if (item.dataset.link) window.location.href = item.dataset.link;
+            if (item.dataset.infoOnly !== "true") {
+                item.querySelector(".user-notif-content").addEventListener("click", async () => {
+                    await fetch(`/api/notifications/${item.dataset.id}/read`, { method: "PUT" });
+                    if (item.dataset.link) window.location.href = item.dataset.link;
+                });
+            }
+        });
+
+        list.querySelectorAll(".user-notif-delete-btn").forEach(btn => {
+            btn.addEventListener("click", async (e) => {
+                e.stopPropagation();
+                const row = btn.closest(".user-notif-item");
+                const id = row.dataset.id;
+                try {
+                    await fetch(`/api/notifications/${id}`, { method: "DELETE" });
+                    row.remove();
+                    if (!list.querySelector(".user-notif-item")) {
+                        loadUserNotifications();
+                    }
+                } catch (err) {
+                    console.error("Failed to delete notification:", err);
+                }
             });
         });
 
@@ -119,5 +150,37 @@ function initUserNotifications() {
     if (!window.__userNotifPolling) {
         window.__userNotifPolling = true;
         setInterval(loadUserNotifications, 30000);
+        setInterval(checkUserSessionStatus, 30000);
     }
+}
+
+async function checkUserSessionStatus() {
+    try {
+        const res = await fetch("/api/session-status");
+        const data = await res.json();
+
+        if (!data.active) {
+            lockUserSidebarAndRedirect(data.status);
+        }
+    } catch (err) {
+        console.error("Failed to check session status:", err);
+    }
+}
+
+function lockUserSidebarAndRedirect(reason) {
+    document.querySelectorAll(".nav-link").forEach(link => {
+        if (link.id !== "logoutLink") {
+            link.classList.add("opacity-40", "cursor-not-allowed");
+            link.addEventListener("click", (e) => e.preventDefault());
+        }
+    });
+
+    const banner = document.createElement("div");
+    banner.className = "fixed top-0 left-0 right-0 bg-red-600 text-white text-center py-3 z-[9999] text-sm font-semibold";
+    banner.textContent = "Your account status has changed. Redirecting to login...";
+    document.body.prepend(banner);
+
+    setTimeout(() => {
+        window.location.href = `/auth/login?reason=${reason || "suspended"}`;
+    }, 2500);
 }
