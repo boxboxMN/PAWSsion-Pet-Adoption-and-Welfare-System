@@ -746,3 +746,4 @@ For the contact messages in landing page
 - Sub Resource Integrity Attribute Missing - Myn
 - Missing Anti-clickjacking Header -Myn
 - Content Security Policy (CSP) Header Not Set - Irene
+- CSP:Wildcard Directive - Irene
