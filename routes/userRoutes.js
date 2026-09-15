@@ -114,64 +114,62 @@ function checkUserSession(req, res, next) {
   }
   next();
 }
-router.use(checkUserSession);
-
-router.get("/api/pets", userController.getAvailablePets);
-router.get("/api/pets/:id", userController.getPetById);
-router.post( "/api/matchmaking", matchmakerController.matchPets);
-router.get("/dashboard", (req, res) => {
+router.get("/api/pets", checkUserSession, userController.getAvailablePets);
+router.get("/api/pets/:id", checkUserSession, userController.getPetById);
+router.post( "/api/matchmaking", checkUserSession, matchmakerController.matchPets);
+router.get("/dashboard", checkUserSession, (req, res) => {
   res.sendFile(path.join(__dirname, "../public/user/userDashboard.html"));
 });
-router.get("/sidebar", (req, res) => {
+router.get("/sidebar", checkUserSession, (req, res) => {
   res.sendFile(path.join(__dirname, "../public/user/userSidebar.html"));
 }); 
-router.get("/header", (req, res) => {
+router.get("/header", checkUserSession, (req, res) => {
   res.sendFile(path.join(__dirname, "../public/user/userHeader.html"));
 });
-router.get("/adoption-hub", (req, res) => {
+router.get("/adoption-hub", checkUserSession, (req, res) => {
   res.sendFile(path.join(__dirname, "../public/user/adoptionHub.html"));
 });
-router.get("/matchmaker", (req, res) => {
+router.get("/matchmaker", checkUserSession, (req, res) => {
   res.sendFile(path.join(__dirname, "../public/user/matchmaker.html"));
 });
-router.get("/application", (req, res) => {
+router.get("/application", checkUserSession, (req, res) => {
   res.sendFile(path.join(__dirname, "../public/user/application.html"));
 });
-router.get("/donation", (req, res) => {
+router.get("/donation", checkUserSession, (req, res) => {
   res.sendFile(path.join(__dirname, "../public/user/donation.html"));
 });
-router.get("/cash-donation", (req, res) => {
+router.get("/cash-donation", checkUserSession, (req, res) => {
   res.sendFile(path.join(__dirname, "../public/user/cash-donation.html"));
 });
-router.get("/inkind-donation", (req, res) => {
+router.get("/inkind-donation", checkUserSession, (req, res) => {
   res.sendFile(path.join(__dirname, "../public/user/inkind-donation.html"));
 });
-router.get("/kamustahan", (req, res) => {
+router.get("/kamustahan", checkUserSession, (req, res) => {
   res.sendFile(path.join(__dirname, "../public/user/kamustahan.html"));
 });
-router.get("/feedback", (req, res) => {
+router.get("/feedback", checkUserSession, (req, res) => {
   res.sendFile(path.join(__dirname, "../public/user/feedback.html"));
 });
-router.post("/api/feedback", userController.submitFeedback);
-router.get("/profile", (req, res) => {
+router.post("/api/feedback", checkUserSession, userController.submitFeedback);
+router.get("/profile", checkUserSession, (req, res) => {
   res.sendFile(path.join(__dirname, "../public/user/userProfile.html"));
 }); 
 
-router.get("/api/user/applications", userController.getUserApplications);
-router.get("/api/user/donations", userController.getUserDonations);
-router.get("/api/user/profile", userController.getProfile);
-router.post("/api/user/profile/update", userController.updateProfile);
-router.post("/api/user/profile/password", userController.updatePassword);
-router.post("/api/user/profile/verify-password", userController.verifyPassword);
-router.post("/api/user/profile/avatar", upload.single("avatar"), userController.updateAvatar);
-router.get("/api/organizations", userController.getOrganizations);
-router.post( "/api/user/donation/cash", uploadReceipt.single("receipt"), userController.submitCashDonation);
-router.post('/api/user/donation/in-kind', userController.submitInKindDonation);
-router.get("/api/user/approved-pets", userController.getApprovedAdoptedPets);
-router.get("/api/user/kamustahan-history", userController.getKamustahanHistory);
-router.post("/api/user/kamustahan", uploadKamustahan.single("photos"), userController.submitKamustahanUpdate);
+router.get("/api/user/applications", checkUserSession, userController.getUserApplications);
+router.get("/api/user/donations", checkUserSession, userController.getUserDonations);
+router.get("/api/user/profile", checkUserSession, userController.getProfile);
+router.post("/api/user/profile/update", checkUserSession, userController.updateProfile);
+router.post("/api/user/profile/password", checkUserSession, userController.updatePassword);
+router.post("/api/user/profile/verify-password", checkUserSession, userController.verifyPassword);
+router.post("/api/user/profile/avatar", checkUserSession, upload.single("avatar"), userController.updateAvatar);
+router.get("/api/organizations", checkUserSession, userController.getOrganizations);
+router.post( "/api/user/donation/cash", checkUserSession, uploadReceipt.single("receipt"), userController.submitCashDonation);
+router.post('/api/user/donation/in-kind', checkUserSession, userController.submitInKindDonation);
+router.get("/api/user/approved-pets", checkUserSession, userController.getApprovedAdoptedPets);
+router.get("/api/user/kamustahan-history", checkUserSession, userController.getKamustahanHistory);
+router.post("/api/user/kamustahan", checkUserSession, uploadKamustahan.single("photos"), userController.submitKamustahanUpdate);
 router.post(
-  '/api/adoptions/submit-application', 
+  '/api/adoptions/submit-application', checkUserSession,
   (req, res, next) => {
     uploadDoc.single('document')(req, res, (err) => {
       if (err) {
@@ -187,20 +185,20 @@ router.post(
   userController.submitAdoptionApplication
 );
 // Check if the user has already applied for a specific pet
-router.get('/check-applied/:petId', userController.checkAppliedStatus);
+router.get('/check-applied/:petId', checkUserSession, userController.checkAppliedStatus);
 
 // When the user cancel the adoption application
-router.patch('/api/user/applications/:id/cancel', userController.cancelAdoptionApplication);
+router.patch('/api/user/applications/:id/cancel', checkUserSession, userController.cancelAdoptionApplication);
 
 // Get the recent activities of the user
-router.get("/api/user/recent-activities", userController.getUserRecentActivities);
+router.get("/api/user/recent-activities", checkUserSession, userController.getUserRecentActivities);
 
 // Get the upcoming interview schedules of the user
-router.get("/api/user/upcoming-schedules", userController.getUserUpcomingSchedules);
+router.get("/api/user/upcoming-schedules", checkUserSession, userController.getUserUpcomingSchedules);
 // Kunin ang detalye ng isang partikular na organisasyon para sa modal profile
-router.get("/api/organizations/:id", userController.getOrganizationById);
+router.get("/api/organizations/:id", checkUserSession,  userController.getOrganizationById);
 // Siguraduhin na gamit ang uploadKamustahan middleware
-router.put('/api/user/kamustahan/:id', uploadKamustahan.single('photos'), async (req, res) => {
+router.put('/api/user/kamustahan/:id', checkUserSession, uploadKamustahan.single('photos'), async (req, res) => {
     try {
         const updateId = req.params.id;
         const { update_text } = req.body;
@@ -226,6 +224,6 @@ router.put('/api/user/kamustahan/:id', uploadKamustahan.single('photos'), async 
     }
 });
 
-router.get("/api/user/kamustahan-due", userController.getKamustahanDue);
+router.get("/api/user/kamustahan-due", checkUserSession, userController.getKamustahanDue);
 
 module.exports = router;
