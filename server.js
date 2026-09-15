@@ -1,10 +1,12 @@
 require("dotenv").config();
 const express = require('express');
 const session = require('express-session');
+
 const app = express();
 const path = require('path');
 const fs = require('fs');
 const multer = require('multer');
+
 const pool = require('./config/database');
 const { uploadOrgPic } = require('./config/upload');
 const { logActivity } = require("./controllers/adminController");
@@ -12,16 +14,32 @@ const { checkAccountStatus } = require("./controllers/adminController");
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
 app.use((req, res, next) => {
     console.log("Incoming:", req.method, req.url);
     next();
 });
+
 app.use(session({
   secret: process.env.SESSION_SECRET || 'pawpon-secret',
   resave: false,
   saveUninitialized: false,
   cookie: { secure: false }
 }));
+
+// ==========================================
+// CSRF PROTECTION
+// ==========================================
+const {
+    csrfSynchronisedProtection,
+    generateToken
+} = require("./middleware/csrf");
+
+app.get("/auth/csrf-token", (req, res) => {
+    res.json({
+        token: generateToken(req)
+    });
+});
 
 // Blocks any request from a suspended/banned/disabled account.
 // Must run before ANY route handler that relies on req.session.accountId.
@@ -35,7 +53,7 @@ const userRoutes = require("./routes/userRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 const orgRoutes = require("./routes/orgRoutes");
 const authRoutes = require("./routes/auth");
-const IndexController = require("./controllers/IndexController");   // ⭐ IDAGDAG
+const IndexController = require("./controllers/IndexController");   
 
 const bcrypt = require('bcrypt');
 const Organization = require('./models/organizationModel');
