@@ -6,7 +6,6 @@ const helmet = require('helmet');
 const app = express();
 app.disable("x-powered-by");
 
-app.disable("x-powered-by");
 
 // Anti-clickjacking security headers
 app.use((req, res, next) => {
