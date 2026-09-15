@@ -4,6 +4,20 @@ const session = require('express-session');
 const helmet = require('helmet');
 
 const app = express();
+app.disable("x-powered-by");
+
+app.disable("x-powered-by");
+
+// Anti-clickjacking security headers
+app.use((req, res, next) => {
+  res.setHeader("X-Frame-Options", "DENY");
+  res.setHeader(
+    "Content-Security-Policy",
+    "frame-ancestors 'none';"
+  );
+  next();
+});
+
 const path = require('path');
 const fs = require('fs');
 const multer = require('multer');
@@ -72,10 +86,15 @@ app.use((req, res, next) => {
 });
 
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'pawpon-secret',
+  secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
-  cookie: { secure: false }
+  cookie: {
+    secure: false,       // For local HTTP development
+    httpOnly: true,
+    sameSite: 'lax',
+    maxAge: 1000 * 60 * 60 // 1 hour
+  }
 }));
 
 // ==========================================

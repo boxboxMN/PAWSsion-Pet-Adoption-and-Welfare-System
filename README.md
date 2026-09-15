@@ -740,4 +740,9 @@ For the contact messages in landing page
 
 # RESOLVED OWASP ZAP:
 - Absence Anti-CSRF tokens - Jhy
+- CROSS-DOMAIN JS SOURCE FILE INCLUSION - Myn
+- Server Leaks Information via "X-Powered-By - Myn
+- Cookie without Same Site Attribute - Myn
+- Sub Resource Integrity Attribute Missing - Myn
+- Missing Anti-clickjacking Header -Myn
 - Content Security Policy (CSP) Header Not Set - Irene

@@ -555,7 +555,7 @@ function renderPetCards(matches) {
                 <!-- Score -->
                 <div class="absolute top-3 right-3 bg-gradient-to-r ${badgeStyle} rounded-xl px-3 py-1 shadow-md text-xs font-bold flex items-center gap-1">
                     <i class="fa-solid fa-sparkles text-xs"></i>
-                    <span>${score.toFixed(0)}% Match</span>
+                    <span>${Math.floor(score)}% Match</span>
                 </div>
 
                 <!-- Pet Name -->
@@ -595,7 +595,7 @@ function renderPetCards(matches) {
                         <span class="text-slate-500 font-semibold flex items-center gap-1.5">
                             <i class="fa-solid fa-medal text-blue-600 text-xs"></i> Match Score
                         </span>
-                        <span class="font-extrabold text-blue-700">${score.toFixed(0)}%</span>
+                        <span class="font-extrabold text-blue-700">${Math.floor(score)}%</span>
                     </div>
 
                     <!-- SCORE BAR -->
