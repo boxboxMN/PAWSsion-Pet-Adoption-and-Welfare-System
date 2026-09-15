@@ -1,11 +1,62 @@
 require("dotenv").config();
 const express = require('express');
 const session = require('express-session');
+const helmet = require('helmet');
 
 const app = express();
 const path = require('path');
 const fs = require('fs');
 const multer = require('multer');
+
+// ==========================================
+// SECURITY HEADERS (OWASP ZAP FIX)
+// ==========================================
+app.use(
+  helmet({
+    // Disable HSTS locally so it doesn't force http:// to https://
+    hsts: false,
+  })
+);
+
+app.use(
+  helmet.contentSecurityPolicy({
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: [
+        "'self'", 
+        "'unsafe-inline'",
+        "https://cdn.tailwindcss.com",
+        "https://cdn.jsdelivr.net"
+     ],
+      // 1. Payagan ang inline event handlers tulad ng onclick="..."
+      scriptSrcAttr: ["'unsafe-inline'"],
+      styleSrc: [
+        "'self'", 
+        "'unsafe-inline'", 
+        "https://fonts.googleapis.com",
+        "https://cdnjs.cloudflare.com"
+     ],
+      fontSrc: [
+        "'self'", 
+        "https://fonts.gstatic.com",
+        "https://cdnjs.cloudflare.com"
+      ],
+      imgSrc: ["'self'", "data:", "blob:", "https:"],
+      // 1. Payagan ang network connections/fetches sa jsDelivr (para sa Tesseract.js data & maps)
+      connectSrc: ["'self'", "https://cdn.jsdelivr.net"],
+      // 2. Payagan ang Web Workers at Blob URLs na ginagamit ng Tesseract.js
+      workerSrc: ["'self'", "blob:", "https://cdn.jsdelivr.net"],
+
+      // Siguraduhing pinapayagan din ang upgrade requests na naka-off muna sa localhost
+      upgradeInsecureRequests: null,
+    },
+  })
+);
+
+// Apply other standard security headers automatically (Anti-clickjacking, X-Content-Type-Options, etc.)
+app.use(helmet.xssFilter());
+app.use(helmet.noSniff());
+app.use(helmet.frameguard({ action: 'deny' }));
 
 const pool = require('./config/database');
 const { uploadOrgPic } = require('./config/upload');

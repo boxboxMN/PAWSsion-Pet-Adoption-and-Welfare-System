@@ -740,3 +740,4 @@ For the contact messages in landing page
 
 # RESOLVED OWASP ZAP:
 - Absence Anti-CSRF tokens - Jhy
+- Content Security Policy (CSP) Header Not Set - Irene
