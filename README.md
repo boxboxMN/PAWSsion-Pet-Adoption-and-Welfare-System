@@ -736,3 +736,8 @@ For the contact messages in landing page
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (account_id) REFERENCES accounts(account_id) ON DELETE SET NULL
 );
+
+
+# RESOLVED OWASP ZAP:
+- Absence Anti-CSRF tokens - Jhy
+- CROSS-DOMAIN JS SOURCE FILE INCLUSION - Myn
