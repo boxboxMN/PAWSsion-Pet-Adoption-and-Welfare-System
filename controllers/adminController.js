@@ -1214,6 +1214,7 @@ exports.getActivityLogs = async (req, res) => {
  * page loads vs API/AJAX calls.
  */
 exports.checkAccountStatus = async (req, res, next) => {
+    console.log(`🔍 checkAccountStatus hit for: ${req.method} ${req.path} | session accountId: ${req.session?.accountId}`);
     const accountId = req.session?.accountId;
     if (!accountId) return next(); // not logged in — let normal auth checks handle it
 
