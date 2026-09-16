@@ -75,9 +75,7 @@ try {
         const data = await response.json();
         currentOrgData = data;
 
-        // ----------------------------------------------------
-        // Name & PROFILE PIC/ICON LOGIC
-        // ----------------------------------------------------
+        
         const profileOrgName = document.getElementById("profileOrgName");
         if (profileOrgName && data.organization_name) {
             profileOrgName.textContent = data.organization_name;
@@ -268,7 +266,7 @@ verifyPasswordBtn?.addEventListener("click", async () => {
     verifyPasswordBtn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> Verifying...`;
 
     try {
-        // TATAWAGAN NITO ANG BACKEND API ROUTE MO PARA I-VERIFY ANG CURRENT PASSWORD
+        
         const response = await fetch("/api/organization/verify-password", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -329,12 +327,12 @@ changePasswordForm?.addEventListener("submit", async (e) => {
     submitBtn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> Updating...`;
 
     try {
-        // TATAWAGAN NITO ANG BACKEND API ROUTE MO PARA I-UPDATE ANG PASSWORD
+        
         const response = await fetch("/api/organization/update-password", {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ 
-                currentPassword, // Ipadala pa rin para secure sa backend comparison
+                currentPassword, 
                 newPassword 
             })
         });
@@ -538,7 +536,7 @@ editProfileForm?.addEventListener("submit", async (e) => {
     }
 
     try {
-        // 2. I-fetch papuntang Backend API Route
+       
         const response = await fetch("/api/organization/update-profile", {
             method: "PUT",
             body: formData 
@@ -549,11 +547,6 @@ editProfileForm?.addEventListener("submit", async (e) => {
         if (response.ok) {
             editModalMessage.textContent = "Profile updated successfully!";
             editModalMessage.className = "text-xs font-semibold text-green-500 mt-2 block";
-            
-            // 🔥 1. I-save lang sa localStorage ang bagong image path na galing sa backend
-            // if (result.profile_pic) {
-            //     localStorage.setItem('userProfilePic', result.profile_pic);
-            // }
 
             // I-refresh ang page para makita ang mga bagong pagbabago pagkatapos ng 1 segundo
             setTimeout(() => {

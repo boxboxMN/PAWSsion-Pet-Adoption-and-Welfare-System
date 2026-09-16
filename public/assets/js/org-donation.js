@@ -1698,11 +1698,6 @@ async function savePaymentDetails(e) {
             );
         }
 
-
-        // =====================================================
-        // SEND TO BACKEND
-        // =====================================================
-
         const response =
             await fetch(
                 "/org/payment-info",
@@ -2348,13 +2343,7 @@ async function loadInKindSettings() {
                 data.dropoff_image;
 
 
-            /*
-             * If backend returns only filename,
-             * build the upload URL.
-             *
-             * If backend already returns /uploads/...
-             * or http..., keep it unchanged.
-             */
+        
 
             if (
                 !imageUrl.startsWith("/") &&

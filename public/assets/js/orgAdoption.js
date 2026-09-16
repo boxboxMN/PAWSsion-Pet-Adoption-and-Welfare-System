@@ -15,7 +15,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         await loadSidebar("dashboard");
     }
 
-    // 2. Fetch Applications Data from Backend
     await fetchAdoptionApplications();
 
     // 3. Search & Filter Event Listeners
@@ -106,7 +105,7 @@ function filterAndRenderTable() {
             (app.applicant_email || '').toLowerCase().includes(searchVal) ||
             (app.pet_name || '').toLowerCase().includes(searchVal);
 
-        // 2. Normalization ng App Status mula Backend
+        
         let rawStatus = (app.status || '').toLowerCase().replace(/_/g, ' ').trim();
         
         // Pag-set ng fallback kung walang status o PENDING

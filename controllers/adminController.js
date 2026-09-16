@@ -1,4 +1,3 @@
-//logic para sa lahat ng Admin modules.
 
 const pool = require("../config/database");
 const bcrypt = require("bcrypt");
@@ -258,8 +257,7 @@ exports.updateUserStatus = async (req, res) => {
     try {
         const { id } = req.params;
         const accountId = req.session?.accountId;
-        const { status } = req.body; // or set specific logic per route endpoint
-        
+        const { status } = req.body; 
         await pool.query("UPDATE accounts SET status = ? WHERE account_id = ?", [status, id]);
         await logActivity(accountId, "user_status_changed", "user", id, `New status: ${status}`);
         

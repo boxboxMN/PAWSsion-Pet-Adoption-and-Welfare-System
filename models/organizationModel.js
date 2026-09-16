@@ -30,7 +30,7 @@ const Organization = {
     getPasswordById: async (accountId) => {
         const query = `SELECT password_hash FROM accounts WHERE account_id = ? LIMIT 1`;
         const [rows] = await pool.query(query, [accountId]);
-        console.log("Query result for accountId:", accountId, rows); // Debug log
+        console.log("Query result for accountId:", accountId, rows); 
         return rows[0] ? rows[0].password_hash : null;
     },
 

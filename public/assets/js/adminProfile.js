@@ -173,7 +173,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     });
 
-    // Password Toggle Logic (New Password)
+   
     const togglePassword = document.getElementById("togglePassword");
     const passwordInput = document.getElementById("adminPassword");
     const eyeIcon = document.getElementById("eyeIcon");
@@ -184,7 +184,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         eyeIcon.className = isPassword ? "fa-solid fa-eye-slash text-sm" : "fa-solid fa-eye text-sm";
     });
 
-    // Password Toggle Logic (Current Password)
     const toggleCurrentPassword = document.getElementById("toggleCurrentPassword");
     const currentPasswordInput = document.getElementById("adminCurrentPassword");
     const eyeIconCurrent = document.getElementById("eyeIconCurrent");

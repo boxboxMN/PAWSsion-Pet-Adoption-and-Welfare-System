@@ -5,153 +5,11 @@
     <link rel="icon" type="image/png" href="../assets/images/Pawpon_logo.png">
     <title>PAWPON ORG – Signup </title>
 
-    <link rel="stylesheet" href="/assets/css/organization_signup.css">
- <!-- Local Font Awesome -->
+<link rel="stylesheet" href="/css/tailwind.css">
+<link rel="stylesheet" href="/assets/css/organization_signup.css">
+<!-- Local Font Awesome -->
 <link rel="stylesheet" href="/css/fontawesome/all.min.css">
-    <style>
-        .custom-alert-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.4);
-            backdrop-filter: blur(4px);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 9999;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.25s ease;
-        }
-
-        .custom-alert-overlay.active {
-            opacity: 1;
-            pointer-events: auto;
-        }
-
-        .custom-alert-box {
-            background-color: #ffffff;
-            padding: 24px 32px;
-            border-radius: 12px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-            max-width: 420px;
-            width: 90%;
-            text-align: center;
-            transform: scale(0.85);
-            transition: transform 0.25s ease;
-        }
-
-        .custom-alert-overlay.active .custom-alert-box {
-            transform: scale(1);
-        }
-
-        .custom-alert-icon {
-            font-size: 40px;
-            color: #e74c3c;
-            margin-bottom: 16px;
-        }
-
-        .custom-alert-icon.success-icon {
-            color: #2ecc71;
-        }
-
-        .custom-alert-message {
-            color: #2c3e50;
-            font-size: 16px;
-            line-height: 1.5;
-            margin-bottom: 24px;
-            white-space: pre-line;
-            text-align: left;
-        }
-
-        .custom-alert-btn {
-            background-color: #3498db;
-            color: #ffffff;
-            border: none;
-            padding: 10px 24px;
-            font-size: 15px;
-            font-weight: 600;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: background-color 0.2s ease;
-            width: 100%;
-        }
-
-        .custom-alert-btn:hover {
-            background-color: #2980b9;
-        }
-        .password-requirements {
-            display: none;
-            margin-top: 8px;
-            padding: 10px 12px;
-            background-color: #f9f9f9;
-            border-radius: 6px;
-            border: 1px solid #e0e0e0;
-        }
-
-        .requirement-item {
-            font-size: 13px;
-            margin: 4px 0;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            transition: color 0.2s ease;
-        }
-
-        .requirement-item.invalid {
-            color: #e74c3c;
-        }
-
-        .requirement-item.invalid .status-icon {
-            color: #e74c3c;
-        }
-
-        .requirement-item.valid {
-            color: #2ecc71;
-        }
-
-        .requirement-item.valid .status-icon {
-            color: #2ecc71;
-        }
-        .input-helper-text {
-            font-size: 12px;
-            margin-top: 4px;
-            color: #7f8c8d;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .input-helper-text.error {
-            color: #e74c3c;
-        }
-
-        .input-helper-text.success {
-            color: #2ecc71;
-        }
-        select.dropdown-select {
-            width: 100%;
-            padding: 10px 12px;
-            border-radius: 6px;
-            border: 1px solid #ccc;
-            font-size: 14px;
-            background-color: #fff;
-            outline: none;
-            transition: border-color 0.2s;
-        }
-
-        select.dropdown-select:focus {
-            border-color: #3498db;
-        }
-
-        /* Hide browser default password reveal icon */
-        input::-ms-reveal,
-        input::-ms-clear {
-            display: none;
-        }
-    </style>
+    
 </head>
 
 <body>
@@ -245,7 +103,7 @@
                             <i class="fa-solid fa-eye"></i>
                         </button>
                     </div>
-                    <div class="requirement-item invalid" id="reqMatch" style="margin-top: 6px; font-size: 13px; display: none;">
+                    <div class="requirement-item invalid" id="reqMatch">
                         <i class="fa-solid fa-circle-xmark status-icon"></i> Passwords do not match
                     </div>
                 </div>
@@ -322,15 +180,15 @@
                         </select>
                     </div>
 
-                    <div class="field full-width">
-                        <label>Zip Code <span class="required">*</span>
-                            <a href="https://www.google.com/search?q=zip+code+philippines" target="_blank" style="font-size: 11px; margin-left: 5px; color: #3498db;">
-                                (Find my Zip Code?)
-                            </a>
-                        </label>
-                        <input type="text" id="zipCode" name="zipCode" placeholder="e.g. 4434" maxlength="4" required>
-                        <div id="zipHelper" class="input-helper-text"></div>
-                    </div>
+                   <div class="field full-width">
+                    <label>Zip Code <span class="required">*</span>
+                        <a href="https://www.google.com/search?q=zip+code+philippines" target="_blank" class="text-[11px] ml-[5px] text-[#3498db]">
+                            (Find my Zip Code?)
+                        </a>
+                    </label>
+                    <input type="text" id="zipCode" name="zipCode" placeholder="e.g. 4434" maxlength="4" required>
+                    <div id="zipHelper" class="input-helper-text"></div>
+                </div>
 
                     <div class="field full-width">
                         <label>Description</label>

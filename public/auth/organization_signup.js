@@ -200,7 +200,6 @@ alertBtn.addEventListener("click", () => {
 });
 
 
-
 // ================================
 // LIVE VALIDATIONS (EMAIL, PHONE & NAME)
 // ================================
@@ -319,7 +318,6 @@ orgNameInput.addEventListener("blur", verifyOrgNameUniqueness);
 orgNameInput.addEventListener("input", () => {
     isOrgNameAvailable = false; 
     
-    // Dynamic styling check habang nagta-type bago mag blur check
     const val = orgNameInput.value.trim();
     if(val.length >= 3) {
         orgNameHelper.className = "input-helper-text";
@@ -422,7 +420,6 @@ document.querySelectorAll(".toggle-password").forEach(button => {
         const isHidden = input.type === "password";
         input.type = isHidden ? "text" : "password";
 
-        // Replaces class directly to preserve FontAwesome styling
         icon.className = isHidden ? "fa-solid fa-eye-slash" : "fa-solid fa-eye";
     });
 });
@@ -457,7 +454,7 @@ showStep(step1);
 
 
 // ================================
-// NEXT STEP 1 VALIDATION
+// NEXT STEP 1 VALIDATION (FIXED)
 // ================================
 const next1Btn = document.getElementById("next1");
 
@@ -470,8 +467,9 @@ function validateStep1() {
     const isPassValid = passwordRegex.test(passVal);
     const isConfirmMatch = (passVal === confirmVal && passVal !== "");
 
-    // Dapat available/valid ang email format, pasado sa password complexity, at tugma ang confirm password
-    const isValid = isEmailValidAndAvailable && isPassValid && isConfirmMatch;
+    // I-enable ang button base sa format at local validation.
+    // Ang async email uniqueness check ay gagawin sa pag-click ng Next.
+    const isValid = isEmailFormatValid && isPassValid && isConfirmMatch;
     next1Btn.disabled = !isValid;
 }
 
@@ -555,7 +553,6 @@ function validateStep2() {
     next2Btn.disabled = !isValid;
 }
 
-// Event listeners para mag-recalculate ang Step 2 button
 [orgNameInput, orgTypeSelect, contactPersonInput, phoneInput, streetAddressInput, zipCodeInput].forEach(el => {
     el.addEventListener("input", validateStep2);
     el.addEventListener("change", validateStep2);
@@ -575,7 +572,6 @@ document.getElementById("next2").addEventListener("click", async () => {
         return;
     }
 
-    // Safety guard step blocker for duplicate org names
     if (!isOrgNameAvailable) {
         await verifyOrgNameUniqueness();
         if (!isOrgNameAvailable) {
@@ -597,8 +593,8 @@ document.getElementById("next2").addEventListener("click", async () => {
         return;
     }
     if (streetAddressInput.value.trim() === "") {
-    showCustomAlert("Street address / House number is required.");
-    return;
+        showCustomAlert("Street address / House number is required.");
+        return;
     }
     if (regionSelect.value === "") {
         showCustomAlert("Please select your region.");

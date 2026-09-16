@@ -333,7 +333,7 @@ function handleReviewDecision() {
         handleDecline();
     }
 
-// ================= DECLINE LOGIC =================
+
 function handleDecline() {
     if (!currentAppId) {
         return Swal.fire({ icon: 'warning', title: 'Attention', text: 'No application selected.', confirmButtonColor: '#2563EB' });
@@ -425,7 +425,6 @@ function closeViewDeclineModal() {
     }
 }
 
-// ================= APPROVE & FINALIZE LOGIC =================
 async function handleApprove() {
     if (!currentAppId) {
         return Swal.fire({ icon: 'warning', title: 'Attention', text: 'No application selected.', confirmButtonColor: '#2563EB' });
@@ -548,7 +547,7 @@ async function updateStatus(appId, status, reason = null, meetupLocation = null)
     }
 }
 
-// ================= INTERVIEW SCHEDULE LOGIC =================
+
 function handleScheduleInterview() {
     if (!currentAppId) {
         return Swal.fire({ 
@@ -628,7 +627,6 @@ function closeScheduleModal() {
     document.getElementById("interviewTimeDisplay").value = "";
 }
 
-//================= RESCHEDULE LIMIT MODAL LOGIC =================
 function openRescheduleLimitModal(count) {
     document.getElementById("rescheduleLimitMessage").textContent =
         `This application has already been rescheduled ${count} times. Please tell us why you need to reschedule again.`;
@@ -899,7 +897,7 @@ function renderApplicationStatusDetails(app, isPastInterview = false) {
     }
 
     // FIX: hasSchedule alone isn't enough. If a re-applied application comes back
-    // from the backend with an interview_date/time still attached from its PREVIOUS
+   
     // (declined) cycle, this card would show that stale schedule even though the
     // current status is a fresh "Under Review" with no interview of its own yet.
     // Only show the card when the status actually reflects an active interview
@@ -909,7 +907,7 @@ function renderApplicationStatusDetails(app, isPastInterview = false) {
     // keyword means this cycle hasn't reached the interview stage, so any
     // interview_date present belongs to an earlier cycle and shouldn't be shown.
     // NOTE: this only hides the stale data in the UI - the real fix is to make sure
-    // the backend clears interview_date/interview_time/interview_method/
+   
     // interview_location_link (and any resched_* fields) when an application is
     // re-opened/re-applied for, so the record itself doesn't carry old data forward.
     let statusForCardCheck = app.status;

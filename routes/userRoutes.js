@@ -184,20 +184,20 @@ router.post(
   }, 
   userController.submitAdoptionApplication
 );
-// Check if the user has already applied for a specific pet
+
 router.get('/check-applied/:petId', checkUserSession, userController.checkAppliedStatus);
 
-// When the user cancel the adoption application
+
 router.patch('/api/user/applications/:id/cancel', checkUserSession, userController.cancelAdoptionApplication);
 
-// Get the recent activities of the user
+
 router.get("/api/user/recent-activities", checkUserSession, userController.getUserRecentActivities);
 
-// Get the upcoming interview schedules of the user
+
 router.get("/api/user/upcoming-schedules", checkUserSession, userController.getUserUpcomingSchedules);
-// Kunin ang detalye ng isang partikular na organisasyon para sa modal profile
+
 router.get("/api/organizations/:id", checkUserSession,  userController.getOrganizationById);
-// Siguraduhin na gamit ang uploadKamustahan middleware
+
 router.put('/api/user/kamustahan/:id', checkUserSession, uploadKamustahan.single('photos'), async (req, res) => {
     try {
         const updateId = req.params.id;

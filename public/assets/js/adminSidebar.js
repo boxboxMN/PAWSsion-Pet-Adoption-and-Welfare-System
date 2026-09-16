@@ -24,7 +24,6 @@ async function loadSidebar(activePage) {
             toggle?.classList.add("text-slate-100", "bg-slate-800/50");
         }
 
-        // Toggle click logic
         if (toggle && submenu && arrow) {
             toggle.addEventListener("click", (e) => {
                 e.preventDefault();

@@ -1,4 +1,4 @@
-//logic para sa lahat ng User modules.
+
 const pool = require("../config/database"); 
 const bcrypt = require("bcrypt");
 const validator = require('validator');
@@ -950,7 +950,7 @@ exports.submitAdoptionApplication = async (req, res) => {
         // Gawing lowercase para iwas case-sensitivity issues (hal. 'declined' vs 'Declined')
         const currentStatus = existingApp.length > 0 ? (existingApp[0].status || '').trim().toLowerCase() : '';
         
-        // KUNG MAY LALABAS AT STATUS AY DECLINED/REJECTED/CANCELLED -> UPDATE (RE-APPLY LOGIC)
+
         if (existingApp.length > 0 && ['declined', 'rejected', 'cancelled'].includes(currentStatus)) {
             
             // Kunin ang lumang document_path ng application kung walang bagong file na na-upload

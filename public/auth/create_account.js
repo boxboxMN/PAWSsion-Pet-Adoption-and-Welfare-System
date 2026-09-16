@@ -64,13 +64,12 @@ let isEmailValidAndAvailable = false;
 
 let isBirthdayValid = false;
 
-// Caching Variables (Safety Precaution para hindi paulit-ulit mag-download)
 let regionsData = [];
 let provincesData = [];
 let citiesData = [];
 let barangaysData = [];
 
-// Birthday validation & age calculation helper
+
 function validateAgeAndBirthday() {
     const value = birthdayInput.value;
     if (!value) {
@@ -118,13 +117,12 @@ function validateAgeAndBirthday() {
     }
 }
 
-// STEP VALIDATION
+
 function validateStep1() {
     const hasNames = firstName.value.trim().length > 0 && lastName.value.trim().length > 0;
     nextToStep2.disabled = !(hasNames && isBirthdayValid);
 }
 
-// Event listeners para sa validateStep 1
 birthdayInput.addEventListener('input', () => {
     validateAgeAndBirthday();
     validateStep1();
@@ -152,7 +150,7 @@ function validateStep2() {
 [streetAddress, zipCode].forEach(el => el.addEventListener('input', validateStep2));
 [regionSelect, provinceSelect, citySelect, barangaySelect].forEach(el => el.addEventListener('change', validateStep2));
 
-// STEP NAVIGATION
+
 document.getElementById('nextToStep2').addEventListener('click', () => {
     step1.classList.remove('active');
     step2.classList.add('active');
@@ -177,9 +175,7 @@ document.getElementById('prevToStep2').addEventListener('click', () => {
     ind3.classList.remove('active');
 });
 
-// ===================================
-// CUSTOM ALERT ENGINE FUNCTION
-// ===================================
+
 function showCustomAlert(message, type = "error", callback = null) {
     alertMessage.textContent = message;
     currentAlertCallback = callback;
@@ -206,9 +202,7 @@ alertBtn.addEventListener("click", () => {
     }
 });
 
-// ===================================
-// PASSWORD VISIBILITY TOGGLE HANDLER
-// ===================================
+
 const setupToggle = (button, input) => {
     if (!button || !input) return;
     button.addEventListener('click', () => {
@@ -417,7 +411,6 @@ form.addEventListener("submit", async function(e) {
 // LOCAL PHILIPPINE ADDRESS CASCADING
 // ===================================
 
-// 1. I-load ang Provinces sa pag-open ng page
 async function loadRegions() {
     try {
         regionSelect.innerHTML = '<option value="">Loading regions...</option>';
@@ -439,7 +432,7 @@ async function loadRegions() {
     }
 }
 
-// 2. Region Change -> Filter Provinces
+
 regionSelect.addEventListener('change', async function() {
     const selectedOption = this.options[this.selectedIndex];
     const regCode = selectedOption ? selectedOption.dataset.code : null;
@@ -488,7 +481,7 @@ regionSelect.addEventListener('change', async function() {
     }
 });
 
-// 3. Province Change -> Filter Cities
+
 provinceSelect.addEventListener('change', async function() {
     const selectedOption = this.options[this.selectedIndex];
     const provCode = selectedOption ? selectedOption.dataset.code : null;
@@ -531,7 +524,7 @@ provinceSelect.addEventListener('change', async function() {
     }
 });
 
-// 4. City Change -> Filter Barangays
+
 citySelect.addEventListener('change', async function() {
     const selectedOption = this.options[this.selectedIndex];
     const cityCode = selectedOption ? selectedOption.dataset.code : null;
@@ -572,12 +565,12 @@ citySelect.addEventListener('change', async function() {
 
 barangaySelect.addEventListener('change', validateStep2);
 
-// Initial load
+
 loadRegions();
 
-//add event listener for zip code
+
 zipCode.addEventListener('input', function() {
-    // remove any non-digit characters from the input
+
     this.value = this.value.replace(/\D/g, '');
 
     if (this.value === '') {
@@ -602,7 +595,7 @@ const termsLink = document.getElementById("termsLink");
 const privacyLink = document.getElementById("privacyLink");
 const closeLegalModal = document.getElementById("closeLegalModal");
 
-// TERMS OF SERVICE
+
 const termsContent = `
     <p><strong>Last Updated:</strong> August 25, 2026</p>
 
@@ -833,7 +826,7 @@ const privacyContent = `
     <p>If you have questions, concerns, or requests regarding this Privacy Policy, you may contact the Pawpon system administrator through the contact information provided within the System.</p>
 `;
 
-// Open Terms
+
 termsLink.addEventListener("click", function (e) {
     e.preventDefault();
 
@@ -842,7 +835,7 @@ termsLink.addEventListener("click", function (e) {
     legalModal.classList.add("active");
 });
 
-// Open Privacy Policy
+
 privacyLink.addEventListener("click", function (e) {
     e.preventDefault();
 
@@ -851,12 +844,12 @@ privacyLink.addEventListener("click", function (e) {
     legalModal.classList.add("active");
 });
 
-// Close modal using X
+
 closeLegalModal.addEventListener("click", function () {
     legalModal.classList.remove("active");
 });
 
-// Close when clicking outside modal
+
 legalModal.addEventListener("click", function (e) {
     if (e.target === legalModal) {
         legalModal.classList.remove("active");
