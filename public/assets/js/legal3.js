@@ -19,9 +19,17 @@ document.addEventListener("DOMContentLoaded", () => {
             submitBtn.textContent = "Sending...";
 
             try {
+                
+                const tokenRes = await fetch("/auth/csrf-token");
+                const tokenData = await tokenRes.json();
+                const csrfToken = tokenData.token;
+
                 const res = await fetch("/api/contact-messages", {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
+                    headers: { 
+                        "Content-Type": "application/json",
+                        "X-CSRF-Token": csrfToken  
+                    },
                     body: JSON.stringify(payload)
                 });
 
@@ -51,7 +59,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
-// ✅ Helper Function para harangin ang HTML injection / XSS
 function escapeHtml(value) {
     if (value === null || value === undefined) return "";
     return String(value)
@@ -63,24 +70,24 @@ function escapeHtml(value) {
 }
 
 function showContactResultModal(isSuccess, title, message) {
-            const modal = document.getElementById("contactResultModal");
-            const iconWrap = document.getElementById("contactResultIconWrap");
-            const icon = document.getElementById("contactResultIcon");
-            const titleEl = document.getElementById("contactResultTitle");
-            const messageEl = document.getElementById("contactResultMessage");
+    const modal = document.getElementById("contactResultModal");
+    const iconWrap = document.getElementById("contactResultIconWrap");
+    const icon = document.getElementById("contactResultIcon");
+    const titleEl = document.getElementById("contactResultTitle");
+    const messageEl = document.getElementById("contactResultMessage");
 
-            if (!modal) return;
+    if (!modal) return;
 
-            if (titleEl) titleEl.textContent = title;
-            if (messageEl) messageEl.textContent = message;
+    if (titleEl) titleEl.textContent = title;
+    if (messageEl) messageEl.textContent = message;
 
-             if (isSuccess) {
-                if (iconWrap) iconWrap.className = "mx-auto flex items-center justify-center h-14 w-14 rounded-full mb-4 bg-emerald-50";
-                if (icon) icon.className = "fa-solid fa-circle-check text-2xl text-emerald-600";
-            } else {
-                if (iconWrap) iconWrap.className = "mx-auto flex items-center justify-center h-14 w-14 rounded-full mb-4 bg-rose-50";
-                if (icon) icon.className = "fa-solid fa-circle-exclamation text-2xl text-rose-600";
-            }
+    if (isSuccess) {
+        if (iconWrap) iconWrap.className = "mx-auto flex items-center justify-center h-14 w-14 rounded-full mb-4 bg-emerald-50";
+        if (icon) icon.className = "fa-solid fa-circle-check text-2xl text-emerald-600";
+    } else {
+        if (iconWrap) iconWrap.className = "mx-auto flex items-center justify-center h-14 w-14 rounded-full mb-4 bg-rose-50";
+        if (icon) icon.className = "fa-solid fa-circle-exclamation text-2xl text-rose-600";
+    }
 
-            modal.classList.remove("hidden");
+    modal.classList.remove("hidden");
 }

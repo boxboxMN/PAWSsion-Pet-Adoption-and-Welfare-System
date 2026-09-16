@@ -502,7 +502,7 @@ router.post('/applications/:id/schedule', async (req, res) => {
             return res.status(400).json({ success: false, error: "Interview date and time are required." });
         }
 
-        // BACKEND SANITIZATION: Siguraduhing hindi past date/time ang isinumite
+      
         const selectedDateTime = new Date(`${interview_date}T${interview_time}:00`);
         const now = new Date();
 
@@ -517,7 +517,7 @@ router.post('/applications/:id/schedule', async (req, res) => {
         const cleanMethod = (interview_method && interview_method.toLowerCase() === 'onsite') ? 'onsite' : 'virtual';
         const urlCheckRegex = /https?:\/\/|www\./i;
         
-        // BACKEND METHOD & LINK VALIDATION
+       
         if (cleanMethod === 'onsite') {
             if (urlCheckRegex.test(interview_location_link)) {
                 return res.status(400).json({

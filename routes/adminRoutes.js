@@ -214,7 +214,7 @@ router.get("/organization/:id", async (req, res) => {
     try {
         const { id } = req.params;
 
-        // Fetch organization basic information
+    
         const [[organization]] = await pool.query(`
             SELECT
                 o.organization_id,
@@ -241,7 +241,7 @@ router.get("/organization/:id", async (req, res) => {
             return res.status(404).json({ message: "Organization not found" });
         }
 
-        // Fetch stats and documents in parallel
+       
         const [
             [[animalStats]],
             [[donationStats]],

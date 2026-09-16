@@ -36,18 +36,21 @@ app.use(
   helmet.contentSecurityPolicy({
     directives: {
       defaultSrc: ["'self'"],
+      
+      // DAGDAG DITO: Harangan ang kahit anong site na i-frame ang app mo (Clickjacking Protection)
+      frameAncestors: ["'none'"], 
+
       scriptSrc: [
         "'self'", 
         "'wasm-unsafe-eval'",
         "https://cdn.tailwindcss.com",
         "https://cdn.jsdelivr.net",
         "https://cdnjs.cloudflare.com"
-     ],
+      ],
       // 1. Payagan ang inline event handlers tulad ng onclick="..."
       scriptSrcAttr: ["'unsafe-inline'"],
       styleSrc: [
         "'self'", 
-        "'unsafe-inline'", 
         "https://fonts.googleapis.com",
         "https://cdnjs.cloudflare.com"
      ],
@@ -745,7 +748,6 @@ app.get("/api/organization/session-data", async (req, res) => {
   }
 });
 
-// Fetching adoption applications FOR LOGGED-IN ORGANIZATION ONLY
 app.get('/api/organization/applications', async (req, res) => {
     try {
         const accountId = req.session?.accountId;
@@ -877,8 +879,8 @@ app.post('/api/user/applications/:id/reschedule-request', async (req, res) => {
 });
 
 app.get("/api/contact-info", adminController.getContactInfo);
-app.post("/api/contact-messages", adminController.submitContactMessage);
-
+// GANITO DAPAT:
+app.post("/api/contact-messages", csrfSynchronisedProtection, adminController.submitContactMessage);
 app.get("/api/guide", adminController.getGuideSections);
 
 // Notification routes
