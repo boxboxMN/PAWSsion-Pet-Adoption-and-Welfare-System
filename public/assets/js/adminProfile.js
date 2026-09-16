@@ -5,7 +5,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const form = document.getElementById("adminProfileForm");
     const alertBox = document.getElementById("alertBox");
 
-    // Fetch current profile data
+
     try {
         const res = await fetch('/admin/current-user');
         const data = await res.json();

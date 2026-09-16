@@ -461,9 +461,7 @@ initialPaymentFormState = {
     dropoff_notes:
         data.dropoff_notes || ""
 };
-        // =====================================================
-        // DEBUG
-        // =====================================================
+        
 
         console.log(
             "Payment details loaded:",

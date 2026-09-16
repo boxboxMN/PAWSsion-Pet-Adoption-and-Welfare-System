@@ -470,7 +470,9 @@
                 <div>
                     <label for="orgSelect" class="block text-sm font-bold text-gray-700 mb-2">Select Organization:</label>
                     <select id="orgSelect" onchange="updateOrgDetails()" class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:border-[#0151ff]">
-                        <!-- Dynamically loaded from database via index.js -->
+                        <option value="">-- Select Organization --</option>
+                        <option value="org1">Organization 1</option>
+                        <option value="org2">Organization 2</option>
                     </select>
                 </div>
 
@@ -1341,7 +1343,7 @@
 
     </footer>
     
-    <!-- SCRIPT PARA GUMANA ANG FETCH LOGIC MULA SA DATABASE -->
+       <!-- Main Application Script -->
     <script src="assets/js/index.js" defer></script>
     <script src="assets/js/contact-info.js"></script>
 

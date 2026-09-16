@@ -30,7 +30,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 });
 
-// Fetch applications from REST API
+
 async function fetchAdoptionApplications() {
     const tableBody = document.getElementById("applicationsTableBody");
 
