@@ -1,57 +1,15 @@
-async function loadComponent(id, file) {
-    try {
-        const response = await fetch(file);
-        if (!response.ok) {
-            throw new Error(`Cannot load ${file}`);
-        }
-        document.getElementById(id).innerHTML = await response.text();
-    } catch (error) {
-        console.error(error);
-    }
-}
+document.addEventListener("DOMContentLoaded", async () => {
+    await loadSidebar();
+    
+    requestAnimationFrame(() => {
+        loadTopbar({
+            title: "Donation",
+            subtitle: "Support our shelter safely and securely through direct cash donations."
+        });
 
-Promise.all([
-    loadComponent("sidebar", "/user/userSidebar.html"),
-    loadComponent("header", "/user/userHeader.html")
-])
-.then(() => {
-    const sidebar = document.getElementById("sidebar");
-    const header = document.getElementById("header");
-    if (sidebar) sidebar.style.visibility = "visible";
-    if (header) header.style.visibility = "visible";
-
-    const currentPath = window.location.pathname;
-    const pageTitle = document.getElementById("pageTitle");
-
-    const customTitles = {
-        "/profile": "Profile",
-        "/cash-donation": "Donation",
-        "/inkind-donation": "Donation"
-    };
-
-    if (pageTitle && customTitles[currentPath]) {
-        pageTitle.textContent = customTitles[currentPath];
-    }
-
-    const links = document.querySelectorAll("#sidebar .nav-link");
-
-    links.forEach(link => {
-        const href = link.getAttribute("href");
-        const isActive = href === currentPath || (href !== "/dashboard" && currentPath.startsWith(href));
-        if (isActive) {
-            link.className = "nav-link flex items-center gap-4 px-5 py-4 rounded-2xl bg-blue-600 text-white shadow";
-            if (pageTitle && !customTitles[currentPath]) {
-                pageTitle.textContent = link.dataset.title;
-            }
-        } else {
-            link.className = "nav-link flex items-center gap-4 px-5 py-4 rounded-2xl text-gray-800 hover:bg-blue-50 hover:text-blue-600 transition";
-        }
+        document.body.style.visibility = "visible";
     });
-    document.body.style.visibility = "visible";
-})
-.catch(error => console.error("Component loading error:", error));
 
-document.addEventListener("DOMContentLoaded", async function () {
     let organizations = [];
     let selectedOrganization = null;
     
@@ -65,7 +23,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     const orgEmail = document.getElementById("modalOrgEmail");
     const orgMission = document.getElementById("modalOrgMission");
 
-    const donorNameInput = document.querySelector('input[placeholder="Name"]');
+    const donorNameInput = document.querySelector('input[placeholder="Name"]') || document.getElementById("donorName");
     const donorEmailInput = document.querySelector('input[placeholder="Email Address"]');
     
     const paymentMethodSelect = document.getElementById("paymentMethod");
@@ -89,35 +47,35 @@ document.addEventListener("DOMContentLoaded", async function () {
         });
     }
     
-const viewQrBtn = document.getElementById("viewQrBtn");
-const qrModal = document.getElementById("qrModal");
-const qrModalClose = document.getElementById("qrModalClose");
-const qrModalCloseBtn = document.getElementById("qrModalCloseBtn");
-const modalQrImage = document.getElementById("modalQrImage");
-const qrModalAccountName = document.getElementById("qrModalAccountName");
-const qrModalAccountNumber = document.getElementById("qrModalAccountNumber");
+    const viewQrBtn = document.getElementById("viewQrBtn");
+    const qrModal = document.getElementById("qrModal");
+    const qrModalClose = document.getElementById("qrModalClose");
+    const qrModalCloseBtn = document.getElementById("qrModalCloseBtn");
+    const modalQrImage = document.getElementById("modalQrImage");
+    const qrModalAccountName = document.getElementById("qrModalAccountName");
+    const qrModalAccountNumber = document.getElementById("qrModalAccountNumber");
 
-if (viewQrBtn) {
-    viewQrBtn.addEventListener("click", function() {
-        const qrImageSrc = document.getElementById("qrImage").src;
-        const gcashNameText = document.getElementById("gcashName").textContent;
-        const gcashNumberText = document.getElementById("gcashNumber").textContent;
-        const accountNameLabelText = document.getElementById("accountNameLabel").textContent;
+    if (viewQrBtn) {
+        viewQrBtn.addEventListener("click", function() {
+            const qrImageSrc = document.getElementById("qrImage").src;
+            const gcashNameText = document.getElementById("gcashName").textContent;
+            const gcashNumberText = document.getElementById("gcashNumber").textContent;
+            const accountNameLabelText = document.getElementById("accountNameLabel").textContent;
 
-        if (modalQrImage) modalQrImage.src = qrImageSrc;
-        if (qrModalAccountName) qrModalAccountName.textContent = `${accountNameLabelText} ${gcashNameText}`;
-        if (qrModalAccountNumber) qrModalAccountNumber.textContent = gcashNumberText;
+            if (modalQrImage) modalQrImage.src = qrImageSrc;
+            if (qrModalAccountName) qrModalAccountName.textContent = `${accountNameLabelText} ${gcashNameText}`;
+            if (qrModalAccountNumber) qrModalAccountNumber.textContent = gcashNumberText;
 
-        if (qrModal) qrModal.classList.add("active");
-    });
-}
+            if (qrModal) qrModal.classList.add("active");
+        });
+    }
 
-function closeQrModal() {
-    if (qrModal) qrModal.classList.remove("active");
-}
+    function closeQrModal() {
+        if (qrModal) qrModal.classList.remove("active");
+    }
 
-if (qrModalClose) qrModalClose.addEventListener("click", closeQrModal);
-if (qrModalCloseBtn) qrModalCloseBtn.addEventListener("click", closeQrModal);
+    if (qrModalClose) qrModalClose.addEventListener("click", closeQrModal);
+    if (qrModalCloseBtn) qrModalCloseBtn.addEventListener("click", closeQrModal);
 
     const privacyCheckbox = document.querySelector('input[type="checkbox"]');
     const receiptFileInput = document.querySelector('input[type="file"]');
@@ -508,6 +466,10 @@ if (qrModalCloseBtn) qrModalCloseBtn.addEventListener("click", closeQrModal);
         });
     }
 
+    if (receiptFileInput) {
+        receiptFileInput.addEventListener("change", handleReceiptUpload);
+    }
+    
     await fetchUserProfile();
     await loadOrganizations();
 
@@ -743,7 +705,7 @@ function fillReceiptFields(parsed) {
     // ⭐ Adapted para sa cash-donation.html field IDs
     const refInput    = document.getElementById("refNumInput");
     const amountInput = document.getElementById("customAmount");
-    const donorInput  = document.getElementById("donorName");
+    const donorInput  = document.querySelector('input[placeholder="Name"]') || document.getElementById("donorName");
 
     let filled = 0;
     let corrected = 0;

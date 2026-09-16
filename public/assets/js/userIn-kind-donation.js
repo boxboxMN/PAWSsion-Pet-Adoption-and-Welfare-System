@@ -1,4 +1,15 @@
 document.addEventListener('DOMContentLoaded', async function() {
+    await loadSidebar();
+
+    requestAnimationFrame(() => {
+        loadTopbar({
+            title: "In-Kind Donation",
+            subtitle: "Support our shelter by donating items and supplies needed for animal care."
+        });
+
+        document.body.style.visibility = "visible";
+    });
+
     let organizations = [];
     let selectedOrganization = null;
 

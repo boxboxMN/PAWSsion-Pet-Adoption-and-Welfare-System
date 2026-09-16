@@ -2,6 +2,8 @@
  * org-donation.js
  * Handles interactivity for the organization donation dashboard
  */
+// Reliable & Offline Placeholder Image
+const NO_QR_PLACEHOLDER = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="150" height="150" viewBox="0 0 150 150"><rect width="100%" height="100%" fill="%23f3f4f6"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="14" font-weight="bold" fill="%239ca3af">No QR Code</text></svg>';
 
 // Global state
 let activeTab = 'cash'; // 'cash' or 'inkind'
@@ -912,7 +914,7 @@ function updatePaginationInfo(count) {
  * in a lightbox modal[cite: 5].
  */
 function viewReceiptDirect(receiptPathRaw) {
-    let fullPath = "https://via.placeholder.com/400x600?text=No+Receipt+Uploaded";
+    let fullPath = NO_QR_PLACEHOLDER;
     
     if (receiptPathRaw) {
         fullPath = (receiptPathRaw.startsWith('/') || receiptPathRaw.startsWith('http')) 
@@ -986,7 +988,7 @@ function openReviewModal(id) {
             ? donation.receipt_path 
             : `/uploads/receipts/${donation.receipt_path}`;
     } else {
-        receiptPath = "https://via.placeholder.com/400x600?text=No+Receipt+Uploaded";
+        receiptPath = NO_QR_PLACEHOLDER;
     }
 
     currentReceiptPath = receiptPath;
@@ -1414,7 +1416,7 @@ async function savePaymentDetails(e) {
 
         const hasLocationPhoto =
             (locationImgInputEl && locationImgInputEl.files && locationImgInputEl.files.length > 0) ||
-            (locationPreviewEl && locationPreviewEl.src && !locationPreviewEl.src.includes("placeholder.com"));
+    (locationPreviewEl && locationPreviewEl.src && !locationPreviewEl.src.startsWith("data:image/svg+xml"));
 
         const inkindValues = {
             locationName: current.dropoff_location_name,

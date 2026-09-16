@@ -7,8 +7,6 @@
     <title>PAWPON ORG – Kamustahan </title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-    <script src="../assets/js/orgSidebar.js"></script>
-    <script src="../assets/js/orgTopbar.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.14.0/html2pdf.bundle.min.js"></script>
     <style>
     @media print {
@@ -374,23 +372,9 @@
             </div>
         </div>
     </main>
-
-    <script>
-        function toggleExportMenu() {
-            const menu = document.getElementById('exportDropdownMenu');
-            menu.classList.toggle('hidden');
-        }
-
-        window.addEventListener('click', function(e) {
-            const menu = document.getElementById('exportDropdownMenu');
-            const button = e.target.closest('button');
-            if (!e.target.closest('#exportDropdownMenu') && (!button || !button.getAttribute('onclick')?.includes('toggleExportMenu'))) {
-                menu.classList.add('hidden');
-            }
-        });
-    </script>
-
-    <script src="/assets/js/orgProfile.js"></script> 
-    <script src="/assets/js/orgKamustahan.js"></script>
+<script src="../assets/js/orgSidebar.js"></script>
+<script src="../assets/js/orgTopbar.js"></script>
+<script src="/assets/js/orgProfile.js"></script> 
+<script src="/assets/js/orgKamustahan.js"></script>
 </body>
 </html>

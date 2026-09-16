@@ -1,0 +1,871 @@
+// ===================================
+// REGEX VALIDATORS
+// ===================================
+const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#]).{8,}$/;
+const phoneRegex = /^09\d{9}$/;
+const emailValidatorRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+// ===================================
+// DOM ELEMENTS
+// ===================================
+// Steps
+const step1 = document.getElementById('step1');
+const step2 = document.getElementById('step2');
+const step3 = document.getElementById('step3');
+const ind1 = document.getElementById('stepIndicator1');
+const ind2 = document.getElementById('stepIndicator2');
+const ind3 = document.getElementById('stepIndicator3');
+
+// Inputs Step 1
+const firstName = document.getElementById('firstName');
+const lastName = document.getElementById('lastName');
+const birthdayInput = document.getElementById('birthday');
+const birthdayHelper = document.getElementById('birthdayHelper');
+const nextToStep2 = document.getElementById('nextToStep2');
+
+// Inputs Step 2
+const streetAddress = document.getElementById('streetAddress');
+const regionSelect = document.getElementById('region');
+const provinceSelect = document.getElementById('province');
+const citySelect = document.getElementById('city');
+const barangaySelect = document.getElementById('barangay');
+const zipCode = document.getElementById('zipCode');
+const zipRegex = /^\d{4}$/;
+const zipHelper = document.getElementById('zipHelper');
+const nextToStep3 = document.getElementById('nextToStep3');
+
+// Inputs Step 3
+const form = document.getElementById('createAccountForm');
+const emailInput = document.getElementById('email');
+const emailHelper = document.getElementById('emailHelper');
+const phoneInput = document.getElementById('phoneNumber');
+const phoneHelper = document.getElementById('phoneHelper');
+const passwordInput = document.getElementById('password');
+const confirmPasswordInput = document.getElementById('confirmPassword');
+const termsAgreement = document.getElementById('termsAgreement');
+
+
+const passwordRequirements = document.getElementById('passwordRequirements');
+const reqLength = document.getElementById('reqLength');
+const reqUppercase = document.getElementById('reqUppercase');
+const reqLowercase = document.getElementById('reqLowercase');
+const reqNumber = document.getElementById('reqNumber');
+const reqSpecial = document.getElementById('reqSpecial');
+const reqMatch = document.getElementById('reqMatch');
+
+// Custom Modal Engine Elements
+const alertOverlay = document.getElementById("customAlertOverlay");
+const alertIcon = document.getElementById("customAlertIcon");
+const alertMessage = document.getElementById("customAlertMessage");
+const alertBtn = document.getElementById("customAlertBtn");
+let currentAlertCallback = null;
+
+let isEmailValidAndAvailable = false;
+
+let isBirthdayValid = false;
+
+// Caching Variables (Safety Precaution para hindi paulit-ulit mag-download)
+let regionsData = [];
+let provincesData = [];
+let citiesData = [];
+let barangaysData = [];
+
+// Birthday validation & age calculation helper
+function validateAgeAndBirthday() {
+    const value = birthdayInput.value;
+    if (!value) {
+        birthdayHelper.innerHTML = "";
+        isBirthdayValid = false;
+        return false;
+    }
+
+    const birthDate = new Date(value);
+    const today = new Date();
+
+    if (isNaN(birthDate.getTime())) {
+        birthdayHelper.className = "input-helper-text error";
+        birthdayHelper.innerHTML = "<i class='fa-solid fa-circle-xmark'></i> Please enter a valid date.";
+        isBirthdayValid = false;
+        return false;
+    }
+
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+    }
+
+    if (birthDate > today) {
+        birthdayHelper.className = "input-helper-text error";
+        birthdayHelper.innerHTML = "<i class='fa-solid fa-circle-xmark'></i> Birthday cannot be in the future.";
+        isBirthdayValid = false;
+        return false;
+    } else if (age < 18) {
+        birthdayHelper.className = "input-helper-text error";
+        birthdayHelper.innerHTML = "<i class='fa-solid fa-circle-xmark'></i> You must be at least 18 years old to register.";
+        isBirthdayValid = false;
+        return false;
+    } else if (age > 120) {
+        birthdayHelper.className = "input-helper-text error";
+        birthdayHelper.innerHTML = "<i class='fa-solid fa-circle-xmark'></i> Please enter a valid birth date.";
+        isBirthdayValid = false;
+        return false;
+    } else {
+        birthdayHelper.className = "input-helper-text success";
+        birthdayHelper.innerHTML = "<i class='fa-solid fa-circle-check'></i> Age verified (" + age + " years old).";
+        isBirthdayValid = true;
+        return true;
+    }
+}
+
+// STEP VALIDATION
+function validateStep1() {
+    const hasNames = firstName.value.trim().length > 0 && lastName.value.trim().length > 0;
+    nextToStep2.disabled = !(hasNames && isBirthdayValid);
+}
+
+// Event listeners para sa validateStep 1
+birthdayInput.addEventListener('input', () => {
+    validateAgeAndBirthday();
+    validateStep1();
+});
+birthdayInput.addEventListener('change', () => {
+    validateAgeAndBirthday();
+    validateStep1();
+});
+
+[firstName, lastName].forEach(el => el.addEventListener('input', validateStep1));
+
+function validateStep2() {
+    const isZipValid = zipRegex.test(zipCode.value.trim());
+    const isComplete = 
+        streetAddress.value.trim().length > 0 &&
+        regionSelect.value.trim().length > 0 &&
+        provinceSelect.value.trim().length > 0 &&
+        citySelect.value.trim().length > 0 &&
+        barangaySelect.value.trim().length > 0 &&
+        isZipValid;
+
+    nextToStep3.disabled = !isComplete;
+}
+
+[streetAddress, zipCode].forEach(el => el.addEventListener('input', validateStep2));
+[regionSelect, provinceSelect, citySelect, barangaySelect].forEach(el => el.addEventListener('change', validateStep2));
+
+// STEP NAVIGATION
+document.getElementById('nextToStep2').addEventListener('click', () => {
+    step1.classList.remove('active');
+    step2.classList.add('active');
+    ind2.classList.add('active');
+});
+
+document.getElementById('prevToStep1').addEventListener('click', () => {
+    step2.classList.remove('active');
+    step1.classList.add('active');
+    ind2.classList.remove('active');
+});
+
+document.getElementById('nextToStep3').addEventListener('click', () => {
+    step2.classList.remove('active');
+    step3.classList.add('active');
+    ind3.classList.add('active');
+});
+
+document.getElementById('prevToStep2').addEventListener('click', () => {
+    step3.classList.remove('active');
+    step2.classList.add('active');
+    ind3.classList.remove('active');
+});
+
+// ===================================
+// CUSTOM ALERT ENGINE FUNCTION
+// ===================================
+function showCustomAlert(message, type = "error", callback = null) {
+    alertMessage.textContent = message;
+    currentAlertCallback = callback;
+
+    if (type === "success") {
+        alertIcon.className = "custom-alert-icon success-icon";
+        alertIcon.innerHTML = '<i class="fa-solid fa-circle-check"></i>';
+        alertBtn.style.background = "#2ecc71";
+    } else {
+        alertIcon.className = "custom-alert-icon";
+        alertIcon.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i>';
+        alertBtn.style.background = "#3498db";
+    }
+
+    alertOverlay.classList.add("active");
+    alertBtn.focus();
+}
+
+alertBtn.addEventListener("click", () => {
+    alertOverlay.classList.remove("active");
+    if (currentAlertCallback) {
+        currentAlertCallback();
+        currentAlertCallback = null;
+    }
+});
+
+// ===================================
+// PASSWORD VISIBILITY TOGGLE HANDLER
+// ===================================
+const setupToggle = (button, input) => {
+    if (!button || !input) return;
+    button.addEventListener('click', () => {
+        const isHidden = input.type === 'password';
+        input.type = isHidden ? 'text' : 'password';
+        const icon = button.querySelector('i');
+        if (icon) {
+            icon.className = isHidden ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye';
+        }
+        button.setAttribute('aria-label', isHidden ? 'Hide password' : 'Show password');
+    });
+};
+
+setupToggle(document.getElementById('togglePassword'), passwordInput);
+setupToggle(document.getElementById('toggleConfirmPassword'), confirmPasswordInput);
+
+// ===================================
+// LIVE EMAIL AVAILABILITY VERIFICATION
+// ===================================
+async function verifyEmailUniqueness() {
+    const emailValue = emailInput.value.trim().toLowerCase();
+
+    if (emailValue === "") {
+        emailHelper.innerHTML = "";
+        isEmailValidAndAvailable = false;
+        return;
+    }
+
+    if (!emailValidatorRegex.test(emailValue)) {
+        emailHelper.className = "input-helper-text error";
+        emailHelper.innerHTML = "<i class='fa-solid fa-circle-xmark'></i> Please enter a valid email format.";
+        isEmailValidAndAvailable = false;
+        return;
+    }
+
+    emailHelper.className = "input-helper-text";
+    emailHelper.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> Checking availability...";
+
+    try {
+        const response = await fetch(`/auth/check-email?email=${encodeURIComponent(emailValue)}`);
+        
+        if (response.status === 409 || !response.ok) {
+            emailHelper.className = "input-helper-text error";
+            emailHelper.innerHTML = "<i class='fa-solid fa-circle-xmark'></i> Email address is already registered.";
+            isEmailValidAndAvailable = false;
+        } else {
+            emailHelper.className = "input-helper-text success";
+            emailHelper.innerHTML = "<i class='fa-solid fa-circle-check'></i> Email is available.";
+            isEmailValidAndAvailable = true;
+        }
+    } catch (err) {
+        emailHelper.innerHTML = "";
+        isEmailValidAndAvailable = true; 
+    }
+}
+
+emailInput.addEventListener("blur", verifyEmailUniqueness);
+emailInput.addEventListener("input", () => {
+    isEmailValidAndAvailable = false; 
+});
+
+// ===================================
+// LIVE MOBILE NUMBER MASK AND FORMAT
+// ===================================
+phoneInput.addEventListener("input", function() {
+    this.value = this.value.replace(/\D/g, ""); 
+    if (this.value === "") {
+        phoneHelper.innerHTML = "";
+    } else if (phoneRegex.test(this.value)) {
+        phoneHelper.className = "input-helper-text success";
+        phoneHelper.innerHTML = "<i class='fa-solid fa-circle-check'></i> Valid Philippine mobile number.";
+    } else {
+        phoneHelper.className = "input-helper-text error";
+        phoneHelper.innerHTML = "<i class='fa-solid fa-circle-xmark'></i> Must be exactly 11 digits starting with 09.";
+    }
+});
+
+// ===================================
+// LIVE PASSWORD COMPLEXITY TRACKER
+// ===================================
+function updateRequirementStatus(element, isValid) {
+    const icon = element.querySelector(".status-icon");
+    if (isValid) {
+        element.classList.remove("invalid");
+        element.classList.add("valid");
+        icon.className = "fa-solid fa-circle-check status-icon";
+    } else {
+        element.classList.remove("valid");
+        element.classList.add("invalid");
+        icon.className = "fa-solid fa-circle-xmark status-icon";
+    }
+}
+
+passwordInput.addEventListener("focus", () => { passwordRequirements.style.display = "block"; });
+passwordInput.addEventListener("blur", () => { passwordRequirements.style.display = "none"; });
+
+passwordInput.addEventListener("input", () => {
+    const value = passwordInput.value;
+    updateRequirementStatus(reqLength, value.length >= 8);
+    updateRequirementStatus(reqUppercase, /[A-Z]/.test(value));
+    updateRequirementStatus(reqLowercase, /[a-z]/.test(value));
+    updateRequirementStatus(reqNumber, /\d/.test(value));
+    updateRequirementStatus(reqSpecial, /[@$!%*?&#]/.test(value));
+    checkMatch();
+});
+
+confirmPasswordInput.addEventListener("input", checkMatch);
+
+function checkMatch() {
+    if (confirmPasswordInput.value === "") {
+        reqMatch.style.display = "none";
+        return;
+    }
+    reqMatch.style.display = "flex";
+    const valuesMatch = (passwordInput.value === confirmPasswordInput.value && passwordInput.value !== "");
+    updateRequirementStatus(reqMatch, valuesMatch);
+    if(valuesMatch) {
+        reqMatch.querySelector(".status-icon").nextSibling.textContent = " Passwords match";
+    } else {
+        reqMatch.querySelector(".status-icon").nextSibling.textContent = " Passwords do not match";
+    }
+}
+
+// ===================================
+// SECURE SUBMIT HANDLER WITH AJAX POST
+// ===================================
+form.addEventListener("submit", async function(e) {
+    e.preventDefault();
+
+    if (!termsAgreement.checked) {
+        showCustomAlert("Please accept the Terms of Service and Privacy Policy.", "error");
+        return;
+    }
+
+    const email = emailInput.value.trim();
+    const password = passwordInput.value;
+    const confirmPassword = confirmPasswordInput.value;
+    const phoneNumber = phoneInput.value.trim();
+
+    if (!isEmailValidAndAvailable) {
+        await verifyEmailUniqueness();
+        if (!isEmailValidAndAvailable) {
+            showCustomAlert("The email address provided is invalid or already taken.", "error");
+            return;
+        }
+    }
+
+    if (!phoneRegex.test(phoneNumber)) {
+        showCustomAlert("Please enter a valid 11-digit Philippine mobile number starting with 09.", "error");
+        return;
+    }
+
+    if (!passwordRegex.test(password)) {
+        showCustomAlert("Password does not meet the security complexity requirements.", "error");
+        return;
+    }
+
+    if (password !== confirmPassword) {
+        showCustomAlert("Passwords do not match.", "error");
+        return;
+    }
+
+    const payload = {
+        firstName: document.getElementById("firstName").value.trim(),
+        lastName: document.getElementById("lastName").value.trim(),
+        birthday: birthdayInput.value.trim(),
+        civilStatus: document.getElementById("civilStatus").value.trim(),
+        occupation: document.getElementById("occupation").value.trim(),
+        streetAddress: streetAddress.value.trim(),
+        region: regionSelect.value.trim(),
+        barangay: barangay.value.trim(),
+        city: city.value.trim(),
+        province: province.value.trim(),
+        zipCode: zipCode.value.trim(),
+        phoneNumber: phoneNumber,
+        email: email,
+        password: password,
+        confirmPassword: confirmPassword
+    };
+
+    try {
+        const response = await fetch("/auth/register", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(payload)
+        });
+
+        const result = await response.text();
+
+        if (response.ok) {
+            showCustomAlert("Account created successfully! Welcome to Pawpon.", "success", () => {
+                window.location.href = "/auth/login";
+            });
+        } else {
+            showCustomAlert(result, "error");
+        }
+    } catch (err) {
+        console.error(err);
+        showCustomAlert("Unable to process your registration request. Please try again later.", "error");
+    }
+});
+
+// ===================================
+// LOCAL PHILIPPINE ADDRESS CASCADING
+// ===================================
+
+// 1. I-load ang Provinces sa pag-open ng page
+async function loadRegions() {
+    try {
+        regionSelect.innerHTML = '<option value="">Loading regions...</option>';
+        const res = await fetch('/data/regions.json');
+        if (!res.ok) throw new Error("Local file not found");
+        regionsData = await res.json();
+
+        regionSelect.innerHTML = '<option value="">Select Region</option>';
+        regionsData.forEach(reg => {
+            const opt = document.createElement('option');
+            opt.value = reg.region_name;
+            opt.textContent = reg.region_name;
+            opt.dataset.code = reg.region_code;
+            regionSelect.appendChild(opt);
+        });
+    } catch (err) {
+        console.error("Error loading regions:", err);
+        regionSelect.innerHTML = '<option value="">System error: Missing data</option>';
+    }
+}
+
+// 2. Region Change -> Filter Provinces
+regionSelect.addEventListener('change', async function() {
+    const selectedOption = this.options[this.selectedIndex];
+    const regCode = selectedOption ? selectedOption.dataset.code : null;
+
+    provinceSelect.innerHTML = '<option value="">Loading provinces...</option>';
+    provinceSelect.disabled = true;
+    citySelect.innerHTML = '<option value="">Select City / Municipality</option>';
+    citySelect.disabled = true;
+    barangaySelect.innerHTML = '<option value="">Select Barangay</option>';
+    barangaySelect.disabled = true;
+
+    validateStep2();
+
+    if (!regCode) {
+        provinceSelect.innerHTML = '<option value="">Select Province</option>';
+        return;
+    }
+
+    try {
+        if (provincesData.length === 0) {
+            const res = await fetch('/data/provinces.json');
+            if (!res.ok) throw new Error("Local file not found");
+            provincesData = await res.json();
+        }
+
+        let filteredProvinces = provincesData.filter(p => p.region_code === regCode);
+        filteredProvinces.sort((a, b) => a.province_name.localeCompare(b.province_name));
+
+        // Para sa NCR o mga lugar na walang hiwalay na province list
+        if (filteredProvinces.length === 0) {
+            filteredProvinces = [{ province_code: regCode, province_name: selectedOption.value }];
+        }
+
+        provinceSelect.innerHTML = '<option value="">Select Province</option>';
+        filteredProvinces.forEach(p => {
+            const opt = document.createElement('option');
+            opt.value = p.province_name;
+            opt.textContent = p.province_name;
+            opt.dataset.code = p.province_code;
+            provinceSelect.appendChild(opt);
+        });
+        provinceSelect.disabled = false;
+    } catch (err) {
+        console.error("Error loading provinces:", err);
+        provinceSelect.innerHTML = '<option value="">System error: Missing data</option>';
+    }
+});
+
+// 3. Province Change -> Filter Cities
+provinceSelect.addEventListener('change', async function() {
+    const selectedOption = this.options[this.selectedIndex];
+    const provCode = selectedOption ? selectedOption.dataset.code : null;
+    const regCode = regionSelect.options[regionSelect.selectedIndex]?.dataset.code;
+
+    citySelect.innerHTML = '<option value="">Loading cities...</option>';
+    citySelect.disabled = true;
+    barangaySelect.innerHTML = '<option value="">Select Barangay</option>';
+    barangaySelect.disabled = true;
+
+    validateStep2();
+
+    if (!provCode) {
+        citySelect.innerHTML = '<option value="">Select City / Municipality</option>';
+        return;
+    }
+
+    try {
+        if (citiesData.length === 0) {
+            const res = await fetch('/data/cities.json');
+            if (!res.ok) throw new Error("Local file not found");
+            citiesData = await res.json();
+        }
+
+        const filteredCities = citiesData.filter(c => c.province_code === provCode || c.region_desc === regCode);
+        filteredCities.sort((a, b) => a.city_name.localeCompare(b.city_name));
+
+        citySelect.innerHTML = '<option value="">Select City / Municipality</option>';
+        filteredCities.forEach(c => {
+            const opt = document.createElement('option');
+            opt.value = c.city_name;
+            opt.textContent = c.city_name;
+            opt.dataset.code = c.city_code;
+            citySelect.appendChild(opt);
+        });
+        citySelect.disabled = false;
+    } catch (err) {
+        console.error("Error loading cities:", err);
+        citySelect.innerHTML = '<option value="">System error: Missing data</option>';
+    }
+});
+
+// 4. City Change -> Filter Barangays
+citySelect.addEventListener('change', async function() {
+    const selectedOption = this.options[this.selectedIndex];
+    const cityCode = selectedOption ? selectedOption.dataset.code : null;
+
+    barangaySelect.innerHTML = '<option value="">Loading barangays...</option>';
+    barangaySelect.disabled = true;
+
+    validateStep2();
+
+    if (!cityCode) {
+        barangaySelect.innerHTML = '<option value="">Select Barangay</option>';
+        return;
+    }
+
+    try {
+        if (barangaysData.length === 0) {
+            const res = await fetch('/data/barangays.json');
+            if (!res.ok) throw new Error("Local file not found");
+            barangaysData = await res.json();
+        }
+
+        const filteredBarangays = barangaysData.filter(b => b.city_code === cityCode);
+        filteredBarangays.sort((a, b) => a.brgy_name.localeCompare(b.brgy_name));
+
+        barangaySelect.innerHTML = '<option value="">Select Barangay</option>';
+        filteredBarangays.forEach(b => {
+            const opt = document.createElement('option');
+            opt.value = b.brgy_name;
+            opt.textContent = b.brgy_name;
+            barangaySelect.appendChild(opt);
+        });
+        barangaySelect.disabled = false;
+    } catch (err) {
+        console.error("Error loading barangays:", err);
+        barangaySelect.innerHTML = '<option value="">System error: Missing data</option>';
+    }
+});
+
+barangaySelect.addEventListener('change', validateStep2);
+
+// Initial load
+loadRegions();
+
+//add event listener for zip code
+zipCode.addEventListener('input', function() {
+    // remove any non-digit characters from the input
+    this.value = this.value.replace(/\D/g, '');
+
+    if (this.value === '') {
+        zipHelper.innerHTML = '';
+    } else if (zipRegex.test(this.value)) {
+        zipHelper.className = 'input-helper-text success';
+        zipHelper.innerHTML = "<i class='fa-solid fa-circle-check'></i> Valid ZIP code.";
+    } else {
+        zipHelper.className = 'input-helper-text error';
+        zipHelper.innerHTML = "<i class='fa-solid fa-circle-xmark'></i> Must be exactly 4 digits.";
+    }
+
+    validateStep2();
+});
+
+
+    const legalModal = document.getElementById("legalModal");
+const legalModalTitle = document.getElementById("legalModalTitle");
+const legalModalBody = document.getElementById("legalModalBody");
+
+const termsLink = document.getElementById("termsLink");
+const privacyLink = document.getElementById("privacyLink");
+const closeLegalModal = document.getElementById("closeLegalModal");
+
+// TERMS OF SERVICE
+const termsContent = `
+    <p><strong>Last Updated:</strong> August 25, 2026</p>
+
+    <p>Welcome to Pawpon, a web-based Pet Adoption and Welfare System. These Terms of Service govern your access to and use of the Pawpon website, including its pet listings, adoption applications, welfare reporting features, donation-related features, pet matching features, and other services provided through the System.</p>
+
+    <p>By accessing or using Pawpon, you acknowledge that you have read, understood, and agreed to comply with these Terms of Service. If you do not agree with any part of these terms, please do not use the System.</p>
+
+    <h2>1. Definitions</h2>
+
+    <p>For purposes of these Terms of Service:</p>
+
+    <ul>
+        <li><strong>"Pawpon"</strong> refers to the Pet Adoption and Welfare System.</li>
+        <li><strong>"System"</strong> refers to the Pawpon website, its features, pages, databases, and related services.</li>
+        <li><strong>"User"</strong> refers to any individual who accesses or uses the System.</li>
+        <li><strong>"Account"</strong> refers to a registered user's account within the System.</li>
+        <li><strong>"Pet Listing"</strong> refers to information about a pet made available through the System for adoption or welfare-related purposes.</li>
+        <li><strong>"Adoption Application"</strong> refers to information submitted by a user to express their intent to adopt a pet.</li>
+        <li><strong>"Welfare Report"</strong> refers to a report submitted by a user concerning an animal welfare-related concern or situation.</li>
+    </ul>
+
+    <h2>2. Acceptance of Terms</h2>
+
+    <p>By creating an account, submitting an adoption application, browsing pet listings, submitting a welfare report, or otherwise using Pawpon, you agree to comply with these Terms of Service and all applicable laws and regulations of the Republic of the Philippines.</p>
+
+    <h2>3. User Accounts</h2>
+
+    <p>Users are responsible for providing accurate information and maintaining the confidentiality of their account credentials.</p>
+
+    <ul>
+        <li>You must provide truthful and accurate information.</li>
+        <li>You are responsible for activities performed through your account.</li>
+        <li>You must not impersonate another person or organization.</li>
+        <li>You must not create an account using false or misleading information.</li>
+    </ul>
+
+    <h2>4. Pet Listings</h2>
+
+    <p>Pawpon may display information about pets available for adoption or requiring welfare assistance. Pet information may include the pet's name, species, breed, age, sex, health information, behavior, photographs, and adoption status.</p>
+
+    <p>Pet information and availability may change over time. Pawpon may update, modify, hide, or remove pet listings when necessary.</p>
+
+    <h2>5. Adoption Applications</h2>
+
+    <p>Pawpon provides users with a platform to express their interest in adopting pets and to submit adoption applications. Submission of an adoption application does not guarantee approval or successful adoption.</p>
+
+    <p>Users must provide truthful and complete information when submitting an adoption application.</p>
+
+    <h2>6. Pet Matching and Recommendations</h2>
+
+    <p>Pawpon may provide pet matching or recommendation features based on information supplied by users and information contained in pet profiles.</p>
+
+    <p>Any match score or recommendation generated by the System is intended only as a decision-support feature. It does not guarantee compatibility or adoption approval.</p>
+
+    <h2>7. Animal Welfare Reports</h2>
+
+    <p>Users may submit reports concerning animal welfare situations. Users are expected to provide truthful, relevant, and accurate information.</p>
+
+    <p>Intentionally false, fabricated, malicious, or misleading reports are prohibited.</p>
+
+    <h2>8. Donations</h2>
+
+    <p>Where donation-related features are available, users may use the System to support pet adoption and animal welfare activities.</p>
+
+    <p>Donation and transaction records may be maintained by the System for administrative, monitoring, and reporting purposes.</p>
+
+    <h2>9. Prohibited Activities</h2>
+
+    <ul>
+        <li>Using false or fraudulent information;</li>
+        <li>Impersonating another person or organization;</li>
+        <li>Submitting fraudulent adoption applications;</li>
+        <li>Submitting intentionally false welfare reports;</li>
+        <li>Attempting unauthorized access to the System;</li>
+        <li>Uploading malicious files or harmful content;</li>
+        <li>Harassing or threatening other users;</li>
+        <li>Disrupting the operation or security of the System; or</li>
+        <li>Using the System for unlawful purposes.</li>
+    </ul>
+
+    <h2>10. Privacy</h2>
+
+    <p>Your use of Pawpon is also subject to the System's Privacy Policy, which explains how personal information is collected, used, stored, and protected.</p>
+
+    <h2>11. Account Suspension or Termination</h2>
+
+    <p>Pawpon administrators may suspend, restrict, or terminate an account when a user violates these Terms of Service, misuses the System, provides fraudulent information, or compromises the safety or security of the System.</p>
+
+    <h2>12. Governing Law</h2>
+
+    <p>These Terms of Service shall be governed by and interpreted in accordance with the laws of the Republic of the Philippines.</p>
+
+    <h2>13. Changes to These Terms</h2>
+
+    <p>Pawpon may update these Terms of Service when necessary. Updated terms will be posted on the System with the corresponding revision date.</p>
+
+    <h2>14. Contact Us</h2>
+
+    <p>If you have questions or concerns regarding these Terms of Service, you may contact the Pawpon system administrator through the contact information provided within the System.</p>
+`;
+
+// PRIVACY POLICY
+const privacyContent = `
+    <p><strong>Last Updated:</strong> August 25, 2026</p>
+
+    <p>Pawpon is committed to protecting the privacy and security of information provided by its users. This Privacy Policy explains what information may be collected through the Pawpon Pet Adoption and Welfare System, how the information may be used, and how it may be protected.</p>
+
+    <h2>1. Information We Collect</h2>
+
+    <p>Pawpon may collect information necessary to provide and manage its features and services.</p>
+
+    <h3>1.1 Account Information</h3>
+
+    <ul>
+        <li>Full name;</li>
+        <li>Email address;</li>
+        <li>Contact number;</li>
+        <li>Username or account credentials;</li>
+        <li>Address or location information; and</li>
+        <li>Other information required for account registration.</li>
+    </ul>
+
+    <h3>1.2 Adoption Application Information</h3>
+
+    <ul>
+        <li>Personal and contact information;</li>
+        <li>Living situation and household information;</li>
+        <li>Pet preferences;</li>
+        <li>Lifestyle and pet-care information;</li>
+        <li>Adoption intentions;</li>
+        <li>Emergency contact information; and</li>
+        <li>Other information required by the adoption process.</li>
+    </ul>
+
+    <h3>1.3 Pet Information</h3>
+
+    <p>The System may store pet information such as name, species, breed, age, sex, health information, behavior, photographs, and adoption status.</p>
+
+    <h3>1.4 Welfare Reports</h3>
+
+    <p>Users may provide information when submitting an animal welfare report, including descriptions, photographs, and other relevant details.</p>
+
+    <h3>1.5 Donation and Transaction Information</h3>
+
+    <p>Where donation features are available, the System may record information associated with donations or transactions, such as transaction references, amounts, dates, and transaction status.</p>
+
+    <h2>2. How We Use Information</h2>
+
+    <ul>
+        <li>Creating and managing user accounts;</li>
+        <li>Processing adoption applications;</li>
+        <li>Providing pet matching and recommendation features;</li>
+        <li>Managing pet profiles and adoption statuses;</li>
+        <li>Managing animal welfare reports;</li>
+        <li>Processing and recording donations or transactions;</li>
+        <li>Communicating with users;</li>
+        <li>Improving System performance;</li>
+        <li>Maintaining System security;</li>
+        <li>Generating administrative reports and analytics; and</li>
+        <li>Complying with applicable laws and regulations.</li>
+    </ul>
+
+    <h2>3. Pet Matching and Recommendations</h2>
+
+    <p>Pawpon may use information provided by users and information contained in pet profiles to generate pet matching scores or recommendations.</p>
+
+    <p>These recommendations are intended to assist users in identifying potentially suitable pets. A match score does not automatically determine an adoption decision.</p>
+
+    <h2>4. Sharing and Disclosure of Information</h2>
+
+    <p>Pawpon does not intend to sell or commercially trade users' personal information.</p>
+
+    <p>Information may be accessed or disclosed when reasonably necessary for System operations, including by authorized system administrators, service providers, payment providers where applicable, or government authorities when required or permitted by law.</p>
+
+    <h2>5. Publicly Displayed Information</h2>
+
+    <p>Pet profile information such as pet names, photographs, descriptions, characteristics, and adoption status may be displayed publicly when necessary for the System's intended functions.</p>
+
+    <p>Personal information submitted through adoption applications, account registration, welfare reports, or other private features should not be publicly displayed unless necessary and authorized for a legitimate purpose.</p>
+
+    <h2>6. Data Retention</h2>
+
+    <p>Pawpon may retain personal information for as long as reasonably necessary to provide System services, maintain records, process applications, manage reports and transactions, improve System operations, or comply with applicable requirements.</p>
+
+    <h2>7. Data Security</h2>
+
+    <p>Pawpon implements reasonable administrative, technical, and organizational measures intended to protect personal information against unauthorized access, alteration, disclosure, loss, misuse, or destruction.</p>
+
+    <p>However, no electronic system can guarantee absolute security. Users are also responsible for maintaining the confidentiality of their account credentials.</p>
+
+    <h2>8. Cookies</h2>
+
+    <p>Pawpon may use cookies or similar technologies when necessary to support account sessions, authentication, preferences, security, and System functionality.</p>
+
+    <h2>9. Third-Party Services</h2>
+
+    <p>Pawpon may integrate with third-party services when necessary to provide certain functionality, such as payment processing, authentication, analytics, hosting, or external links.</p>
+
+    <p>Third-party services may process information according to their own privacy policies.</p>
+
+    <h2>10. Children's Privacy</h2>
+
+    <p>Pawpon is not specifically designed to collect personal information from children. Users should not provide personal information belonging to a child without appropriate authorization from a parent, guardian, or legally authorized person.</p>
+
+    <h2>11. User Rights</h2>
+
+    <p>Subject to applicable laws and regulations, users may have rights concerning their personal information, including the right to:</p>
+
+    <ul>
+        <li>Be informed about how their personal information is processed;</li>
+        <li>Access their personal information;</li>
+        <li>Request correction of inaccurate or incomplete information;</li>
+        <li>Request deletion when legally applicable;</li>
+        <li>Object to certain forms of processing when permitted by law; and</li>
+        <li>Withdraw consent where processing is based on consent and withdrawal is legally applicable.</li>
+    </ul>
+
+    <h2>12. Data Privacy Act of 2012</h2>
+
+    <p>Pawpon recognizes the importance of protecting personal information and aims to handle personal data in accordance with applicable Philippine data privacy requirements, including Republic Act No. 10173, also known as the Data Privacy Act of 2012.</p>
+
+    <h2>13. Changes to This Privacy Policy</h2>
+
+    <p>Pawpon may update this Privacy Policy when necessary to reflect changes to the System, its features, data processing practices, security measures, or applicable requirements.</p>
+
+    <h2>14. Contact Us</h2>
+
+    <p>If you have questions, concerns, or requests regarding this Privacy Policy, you may contact the Pawpon system administrator through the contact information provided within the System.</p>
+`;
+
+// Open Terms
+termsLink.addEventListener("click", function (e) {
+    e.preventDefault();
+
+    legalModalTitle.textContent = "Terms of Service";
+    legalModalBody.innerHTML = termsContent;
+    legalModal.classList.add("active");
+});
+
+// Open Privacy Policy
+privacyLink.addEventListener("click", function (e) {
+    e.preventDefault();
+
+    legalModalTitle.textContent = "Privacy Policy";
+    legalModalBody.innerHTML = privacyContent;
+    legalModal.classList.add("active");
+});
+
+// Close modal using X
+closeLegalModal.addEventListener("click", function () {
+    legalModal.classList.remove("active");
+});
+
+// Close when clicking outside modal
+legalModal.addEventListener("click", function (e) {
+    if (e.target === legalModal) {
+        legalModal.classList.remove("active");
+    }
+});
+
+// Close modal using ESC key
+document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") {
+        legalModal.classList.remove("active");
+    }
+});

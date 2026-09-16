@@ -65,7 +65,11 @@ async function loadSidebar(activePage = "") {
         setupLogoutControl();
 
     } catch (error) {
-        console.error("Error loading sidebar:", error);
+        if (error.name === 'AbortError') {
+            console.warn("Sidebar fetch request aborted.");
+        } else {
+            console.error("Error loading sidebar:", error);
+        }
     }
 }
 

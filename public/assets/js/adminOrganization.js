@@ -1,3 +1,14 @@
+// ✅ 1. Helper Function para sa XSS Protection
+function escapeHtml(value) {
+    if (value === null || value === undefined) return "";
+    return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
 let selectedOrganizationId = null;
 let organizations = [];
 
@@ -5,7 +16,7 @@ let organizations = [];
 // INITIALIZE
 // ============================================
 document.addEventListener("DOMContentLoaded", () => {
-    loadSidebar("organization-masterlist");
+    loadSidebar("organization");
     loadTopbar({
         title: "Organization Masterlist",
         subtitle: "View and manage all approved organizations."
@@ -66,7 +77,7 @@ function renderOrganizations(data) {
                 <!-- Top Accent Header -->
                 <div class="h-20 bg-gradient-to-r from-slate-900 via-slate-800 to-sky-900 relative p-4 flex justify-between items-start">
                     <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider bg-white/10 text-sky-200 backdrop-blur-md border border-white/10">
-                        ${org.organization_type || 'NGO'}
+                        ${escapeHtml(org.organization_type || 'NGO')}
                     </span>
                 </div>
 
@@ -76,22 +87,22 @@ function renderOrganizations(data) {
                         <i class="fa-solid fa-building"></i>
                     </div>
 
-                    <h2 class="text-base font-bold text-slate-900 mt-3 line-clamp-1">${org.organization_name}</h2>
-                    <p class="text-xs text-slate-500 line-clamp-2 mt-1.5 leading-relaxed">${org.description || "No description provided."}</p>
+                    <h2 class="text-base font-bold text-slate-900 mt-3 line-clamp-1">${escapeHtml(org.organization_name)}</h2>
+                    <p class="text-xs text-slate-500 line-clamp-2 mt-1.5 leading-relaxed">${escapeHtml(org.description || "No description provided.")}</p>
 
                     <!-- Contact Details -->
                     <div class="mt-4 pt-4 border-t border-slate-100 space-y-2 text-xs text-slate-600">
                         <div class="flex items-center gap-2.5 truncate">
                             <i class="fa-regular fa-envelope text-slate-400 w-4 text-center"></i>
-                            <span class="truncate">${org.email || '—'}</span>
+                            <span class="truncate">${escapeHtml(org.email || '—')}</span>
                         </div>
                         <div class="flex items-center gap-2.5">
                             <i class="fa-solid fa-phone text-slate-400 w-4 text-center"></i>
-                            <span>${org.contact_number || '—'}</span>
+                            <span>${escapeHtml(org.contact_number || '—')}</span>
                         </div>
                         <div class="flex items-center gap-2.5 truncate">
                             <i class="fa-solid fa-location-dot text-slate-400 w-4 text-center"></i>
-                            <span class="truncate">${org.address || '—'}</span>
+                            <span class="truncate">${escapeHtml(org.address || '—')}</span>
                         </div>
                     </div>
                 </div>
@@ -156,9 +167,9 @@ async function openDetails(id) {
 
         document.getElementById("detailPhone").textContent = data.contact_number || "N/A";
         document.getElementById("detailAddress").innerHTML = `
-            ${data.address || ""}<br>
+            ${escapeHtml(data.address || "")}<br>
             <span class="text-slate-500">
-                ${data.city || ""}, ${data.province || ""}
+               ${escapeHtml(data.city || "")}${data.city && data.province ? ", " : ""}${escapeHtml(data.province || "")}
             </span>
         `;
         document.getElementById("detailDescription").textContent = data.description || "No description provided.";
@@ -247,7 +258,7 @@ function loadDocuments(data) {
                     <i class="fa-solid fa-file-pdf text-base"></i>
                 </div>
                 <div class="truncate">
-                    <p class="font-semibold text-xs text-slate-800 truncate">${doc.document_name || 'Verification Document'}</p>
+                    <p class="font-semibold text-xs text-slate-800 truncate">${escapeHtml(doc.document_name || 'Verification Document')}</p>
                     <p class="text-[10px] text-slate-400 mt-0.5">
                         Uploaded ${doc.uploaded_at
                             ? new Date(doc.uploaded_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
@@ -257,13 +268,13 @@ function loadDocuments(data) {
             </div>
             <div class="flex items-center gap-1.5 shrink-0">
                 <!-- View Document Link -->
-                <a href="/admin/document/view/${doc.document_id}" target="_blank" rel="noopener noreferrer"
+                <a href="/admin/document/view/${Number(doc.document_id)}" target="_blank" rel="noopener noreferrer"
                     title="View Document"
                     class="w-8 h-8 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-600 flex items-center justify-center text-xs transition">
                     <i class="fa-solid fa-eye"></i>
                 </a>
                 <!-- Download Document Link -->
-                <a href="/admin/document/download/${doc.document_id}" target="_blank" rel="noopener noreferrer"
+                <a href="/admin/document/download/${Number(doc.document_id)}" target="_blank" rel="noopener noreferrer"
                     title="Download Document"
                     class="w-8 h-8 rounded-lg bg-sky-600 hover:bg-sky-700 text-white flex items-center justify-center text-xs transition shadow-sm">
                     <i class="fa-solid fa-download"></i>

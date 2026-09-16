@@ -37,9 +37,10 @@ app.use(
       defaultSrc: ["'self'"],
       scriptSrc: [
         "'self'", 
-        "'unsafe-inline'",
+        "'wasm-unsafe-eval'",
         "https://cdn.tailwindcss.com",
-        "https://cdn.jsdelivr.net"
+        "https://cdn.jsdelivr.net",
+        "https://cdnjs.cloudflare.com"
      ],
       // 1. Payagan ang inline event handlers tulad ng onclick="..."
       scriptSrcAttr: ["'unsafe-inline'"],
@@ -54,9 +55,9 @@ app.use(
         "https://fonts.gstatic.com",
         "https://cdnjs.cloudflare.com"
       ],
-      imgSrc: ["'self'", "data:", "blob:", "https://cdnjs.cloudflare.com"],
+      imgSrc: ["'self'", "data:", "blob:", "https://cdnjs.cloudflare.com", "https://via.placeholder.com"],
       // 1. Payagan ang network connections/fetches sa jsDelivr (para sa Tesseract.js data & maps)
-      connectSrc: ["'self'", "https://cdn.jsdelivr.net"],
+      connectSrc: ["'self'", "data:", "blob:", "https://cdn.jsdelivr.net",  "https://cdnjs.cloudflare.com"],
       // 2. Payagan ang Web Workers at Blob URLs na ginagamit ng Tesseract.js
       workerSrc: ["'self'", "blob:", "https://cdn.jsdelivr.net"],
 
