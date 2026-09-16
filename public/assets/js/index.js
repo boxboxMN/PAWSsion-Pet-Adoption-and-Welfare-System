@@ -376,6 +376,9 @@ function switchDonationType(type) {
     const cashPanel     = document.getElementById("cashQrPanel");
     const inkindPanel   = document.getElementById("inkindDropoffPanel");
 
+    // ⭐ NEW: Payment method wrapper (para mahide sa In-Kind tab)
+    const paymentWrapper = document.getElementById("paymentMethodWrapper");
+
     if (type === 'cash') {
         cashForm.classList.remove('hidden');
         inkindForm.classList.add('hidden');
@@ -386,6 +389,10 @@ function switchDonationType(type) {
         // ⭐ Ipakita ang QR panel, itago ang drop-off panel
         if (cashPanel)   cashPanel.classList.remove('hidden');
         if (inkindPanel) inkindPanel.classList.add('hidden');
+
+        // ⭐ Ipakita ang Payment Method kapag Cash
+        if (paymentWrapper) paymentWrapper.classList.remove('hidden');
+
     } else {
         cashForm.classList.add('hidden');
         inkindForm.classList.remove('hidden');
@@ -396,6 +403,9 @@ function switchDonationType(type) {
         // ⭐ Ipakita ang drop-off panel, itago ang QR panel
         if (cashPanel)   cashPanel.classList.add('hidden');
         if (inkindPanel) inkindPanel.classList.remove('hidden');
+
+        // ⭐ ITAGO ang Payment Method kapag In-Kind (hindi na kailangan)
+        if (paymentWrapper) paymentWrapper.classList.add('hidden');
     }
 }
 async function handleInKindSubmit(event) {
