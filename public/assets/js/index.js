@@ -17,15 +17,15 @@ document.addEventListener("DOMContentLoaded", () => {
     if (receiptInput) {
         receiptInput.addEventListener("change", handleReceiptUpload);
     }
-   
+    // ⭐ Amount — whole numbers only (no decimals, no negatives)
     const amountInput = document.getElementById("donationAmountInput")
         || document.querySelector('#donationForm input[name="amount"]');
 
     if (amountInput) {
         amountInput.addEventListener("input", function () {
-           
+            // Strip anything that isn't a digit
             this.value = this.value.replace(/[^0-9]/g, "");
-          
+            // Block 0
             if (this.value === "0") this.value = "";
         });
         amountInput.addEventListener("keydown", function (e) {
@@ -36,7 +36,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
         amountInput.addEventListener("paste", function (e) {
             const pasted = (e.clipboardData || window.clipboardData).getData("text");
-           
+            // Reject if pasted content contains anything other than whole digits
             if (!/^\d+$/.test(pasted.trim())) {
                 e.preventDefault();
             }
@@ -53,7 +53,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         } catch (err) {
             console.error("Failed to load contact info:", err);
-            // Fallback content
+            // Panatilihin na lang ang static fallback na laman ng span kung nabigo ang fetch
         }
     })();
 });
@@ -107,7 +107,7 @@ function populateOrgDropdown() {
         option.setAttribute('data-gcashqr', org.qr_code || '');
         option.setAttribute('data-mayaqr', org.maya_qr_code || '');
         
-       
+        //  Drop-off details — kuhanin lahat ng kailangan mula sa database
 const dropoffAddr = (org.dropoff_address && String(org.dropoff_address).trim())
     || [org.city, org.province].filter(Boolean).join(', ')
     || 'Address not specified';
@@ -137,7 +137,7 @@ function updateOrgDetails() {
     document.getElementById('displayOrgNumber').textContent = orgNumber;
     document.getElementById('orgDescriptionBox').textContent = orgDesc;
 
-    //  Drop-off details 
+    //  Drop-off details (mula sa DB)
     const dropoffLoc   = selectedOption.getAttribute('data-dropoff-location') || 'Address not specified';
     const dropoffHours = selectedOption.getAttribute('data-dropoff-hours')    || 'Standard shelter hours apply';
     const dropoffName  = selectedOption.getAttribute('data-dropoff-name')     || 'Partner Shelter';
@@ -215,7 +215,7 @@ function updatePaymentDetails() {
     if (qrContainer) {
         if (activeQR) {
             qrContainer.innerHTML = `<img src="${activeQR}" alt="Payment QR Code" class="w-full h-full object-contain rounded-[12px]">`;
-            
+            //  Ipakita ang button gamit ang style.display
             if (viewQrBtn) viewQrBtn.style.display = 'inline-flex';
         } else {
             qrContainer.innerHTML = `
@@ -223,7 +223,7 @@ function updatePaymentDetails() {
                     <i class="fa-solid fa-qrcode text-[50px] text-[#94a3b8] mb-1"></i>
                     <span class="text-[11px] text-[#64748b] block font-semibold">[ No QR Available ]</span>
                 </div>`;
-            
+            //  Itago ang button
             if (viewQrBtn) viewQrBtn.style.display = 'none';
         }
     }
@@ -255,12 +255,12 @@ async function handlePublicDonationSubmit(event) {
     const paymentMethod = document.getElementById('paymentMethodSelect').value;
     const isAnonymous = document.getElementById('anonymousCheck').checked;
 
-
+    // ⭐ Pre-check bago pa mag-fetch
     if (!orgId) {
         alert("Please select an organization first.");
         return;
     }
-        
+        // ⭐ Amount validation — block zero at negative
     const amountField = document.getElementById("donationAmountInput")
         || document.querySelector('#donationForm input[name="amount"]');
     const amountValue = amountField ? parseFloat(amountField.value) : NaN;
@@ -295,7 +295,7 @@ async function handlePublicDonationSubmit(event) {
 
     formData.set('donor_email', '');
 
-    
+    //  DEBUG — tingnan sa console kung ano talaga ang pinapadala
     console.log("[Donation] payload:", {
         organization_id: orgId,
         payment_method: paymentMethod,
@@ -324,7 +324,7 @@ async function handlePublicDonationSubmit(event) {
         }
 
                 if (result.success) {
-           
+            // ⭐ Capture values BEFORE reset, para maipasok sa modal summary
             const summaryRows = [
                 { label: "Donor", value: isAnonymous ? "Anonymous Donor" : formData.get('donor_name') },
                 { label: "Amount", value: `₱${Number(formData.get('amount')).toLocaleString()}` },
@@ -372,9 +372,11 @@ function switchDonationType(type) {
     const cashBtn       = document.getElementById("cashTabBtn");
     const inkindBtn     = document.getElementById("inkindTabBtn");
 
+    // ⭐ Side panels
     const cashPanel     = document.getElementById("cashQrPanel");
     const inkindPanel   = document.getElementById("inkindDropoffPanel");
 
+    // ⭐ NEW: Payment method wrapper (para mahide sa In-Kind tab)
     const paymentWrapper = document.getElementById("paymentMethodWrapper");
 
     if (type === 'cash') {
@@ -384,11 +386,11 @@ function switchDonationType(type) {
         cashBtn.className   = "flex-1 py-2.5 px-4 rounded-xl font-bold text-sm bg-[#0151ff] text-white transition-all shadow-sm";
         inkindBtn.className = "flex-1 py-2.5 px-4 rounded-xl font-bold text-sm bg-gray-100 text-gray-700 hover:bg-gray-200 transition-all";
 
-   
+        // ⭐ Ipakita ang QR panel, itago ang drop-off panel
         if (cashPanel)   cashPanel.classList.remove('hidden');
         if (inkindPanel) inkindPanel.classList.add('hidden');
 
- 
+        // ⭐ Ipakita ang Payment Method kapag Cash
         if (paymentWrapper) paymentWrapper.classList.remove('hidden');
 
     } else {
@@ -398,10 +400,11 @@ function switchDonationType(type) {
         inkindBtn.className = "flex-1 py-2.5 px-4 rounded-xl font-bold text-sm bg-[#ffa500] text-white transition-all shadow-sm";
         cashBtn.className   = "flex-1 py-2.5 px-4 rounded-xl font-bold text-sm bg-gray-100 text-gray-700 hover:bg-gray-200 transition-all";
 
+        // ⭐ Ipakita ang drop-off panel, itago ang QR panel
         if (cashPanel)   cashPanel.classList.add('hidden');
         if (inkindPanel) inkindPanel.classList.remove('hidden');
 
-        
+        // ⭐ ITAGO ang Payment Method kapag In-Kind (hindi na kailangan)
         if (paymentWrapper) paymentWrapper.classList.add('hidden');
     }
 }
@@ -434,7 +437,17 @@ async function handleInKindSubmit(event) {
         formData.set('donor_name', typedName);
     }
 
-    
+    // DEBUG
+    console.log("[In-Kind] payload:", {
+        organization_id: orgId,
+        is_anonymous: isAnonymous,
+        donor_name: formData.get('donor_name'),
+        item_name: formData.get('item_name'),
+        quantity: formData.get('quantity'),
+        unit: formData.get('unit'),
+        contact_info: formData.get('contact_info')
+    });
+
     try {
         const response = await fetch('/api/donations/inkind', {
             method: 'POST',
@@ -481,7 +494,9 @@ async function handleInKindSubmit(event) {
     }
 }
 
-
+// ==========================================
+// QR MODAL — View Full Size QR Code
+// ==========================================
 function openQrModal() {
     if (!currentQrSrc) return;
 
@@ -511,10 +526,13 @@ function closeQrModal() {
     document.body.style.overflow = '';
 }
 
+// Close modal on Escape key
 document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') closeQrModal();
 });
-
+// ==========================================
+// RECEIPT OCR — Auto-fill Ref No., Name, Amount
+// ==========================================
 async function handleReceiptUpload(event) {
     const file = event.target.files[0];
     if (!file) return;
@@ -602,15 +620,18 @@ function parseReceiptText(text) {
 
     const fixDigits = (s) => s.replace(/[Oo]/g, "0").replace(/[Il|]/g, "1");
 
-   
+    // ⭐ Check kung mukhang PHONE NUMBER (para hindi ito maging Ref No.)
     const looksLikePhone = (numStr) => {
         const n = String(numStr).replace(/\D/g, "");
-        if (/^09\d{9}$/.test(n))   return true;   
-        if (/^639\d{9}$/.test(n))  return true;   
-        if (/^63\d{10}$/.test(n))  return true;   
+        if (/^09\d{9}$/.test(n))   return true;   // 09171234567 (11 digits)
+        if (/^639\d{9}$/.test(n))  return true;   // 639171234567 (12 digits)
+        if (/^63\d{10}$/.test(n))  return true;   // 63XXXXXXXXXX
+        return false;
     };
 
-   
+    // ============================================================
+    // STEP 1: Hanapin ang "Ref No." label (PINAKA-PRIORITY)
+    // ============================================================
     const refLabelRx = /ref(?:erence)?\.?\s*(?:no\.?|number|num\.?|#)?/gi;
     let m;
     while ((m = refLabelRx.exec(flat)) !== null) {
@@ -626,6 +647,10 @@ function parseReceiptText(text) {
         }
     }
 
+    // ============================================================
+    // STEP 2: Fallback — spaced pattern (3-3-3-3 / 3-3-3-4),
+    // kunin ang HULING match (nasa ilalim ng receipt ang ref)
+    // ============================================================
     if (!out.reference) {
         const spaced = [...flat.matchAll(/\b(\d{3}[\s\-]\d{3}[\s\-]\d{3}[\s\-]\d{3,4})\b/g)];
         for (let i = spaced.length - 1; i >= 0; i--) {
@@ -637,7 +662,10 @@ function parseReceiptText(text) {
         }
     }
 
-    
+    // ============================================================
+    // STEP 3: Fallback — solid 12–15 digits, HULING match,
+    // i-exclude ang phone numbers
+    // ============================================================
     if (!out.reference) {
         const solid = [...flat.matchAll(/\b(\d{12,15})\b/g)];
         for (let i = solid.length - 1; i >= 0; i--) {
@@ -648,7 +676,9 @@ function parseReceiptText(text) {
         }
     }
 
-    
+    // ============================================================
+    // STEP 4: Fallback — scan lines from BOTTOM upward
+    // ============================================================
     if (!out.reference) {
         for (let i = lines.length - 1; i >= 0; i--) {
             const cleaned = fixDigits(lines[i]).replace(/[\s\-]/g, "");
@@ -660,7 +690,7 @@ function parseReceiptText(text) {
         }
     }
 
-   
+    // ---------- Amount ----------
     const amountPatterns = [
         /(?:total\s+amount\s+sent|amount\s+sent|total\s+amount|amount|total)\s*[:\-]?\s*(?:php|₱|p)?\s*([\d,]+\.\d{2})/i,
         /(?:php|₱)\s*([\d,]+\.?\d{0,2})/i,
@@ -686,7 +716,7 @@ function fillReceiptFields(parsed) {
     let filled = 0;
     let corrected = 0;
 
-    
+    // Reference Number
     if (parsed.reference && refInput) {
         const typed = (refInput.value || "").replace(/\s/g, "").trim();
         const ocr   = parsed.reference.replace(/\s/g, "").trim();
@@ -722,7 +752,7 @@ function fillReceiptFields(parsed) {
         }
     }
 
-    
+    // Your Name (fill lang kung blangko — hindi ito kino-correct)
     if (parsed.name && donorInput && !donorInput.value) {
         const anon = document.getElementById('anonymousCheck');
         if (!anon || !anon.checked) {
@@ -734,12 +764,17 @@ function fillReceiptFields(parsed) {
 
     return { filled, corrected };
 }
+/**
+ * Brief visual flash para makita ng user ang auto-filled / corrected values.
+ * @param {HTMLElement} el
+ * @param {"blue"|"orange"} color - blue = bagong fill, orange = correction
+ */
 function highlightOcrField(el, color = "blue") {
     if (!el) return;
 
     const palette = {
         blue:   { bg: "#eef7ff", border: "#0151ff" },
-        orange: { bg: "#fff7ed", border: "#f97316" }  
+        orange: { bg: "#fff7ed", border: "#f97316" }  // 🟠 correction
     };
     const c = palette[color] || palette.blue;
 
@@ -751,7 +786,7 @@ function highlightOcrField(el, color = "blue") {
         el.style.borderColor = "";
     }, 2600);
 }
-
+/** Scale the image up to a max width for better OCR on small GCash fonts. */
 function upscaleImageForOcr(file, maxWidth = 1600) {
     return new Promise((resolve) => {
         const img = new Image();
@@ -797,10 +832,10 @@ function toggleInKindDonorFields() {
 // ==========================================
 function showDonateSuccessModal(options = {}) {
     const {
-        type = "cash",                 
+        type = "cash",                 // "cash" | "inkind"
         title = "Thank You!",
         message = "Your donation has been submitted successfully.",
-        rows = []                      
+        rows = []                      // [{ label, value }, ...]
     } = options;
 
     const modal       = document.getElementById("donateSuccessModal");
@@ -813,7 +848,7 @@ function showDonateSuccessModal(options = {}) {
 
     if (!modal) return;
 
-  
+    // Icon color + symbol
     if (type === "inkind") {
         if (icon) icon.classList.add("inkind");
         if (iconInner) iconInner.className = "fa-solid fa-box-archive";
@@ -827,7 +862,7 @@ function showDonateSuccessModal(options = {}) {
     if (titleEl) titleEl.textContent = title;
     if (textEl)  textEl.textContent  = message;
 
- 
+    // Summary rows
     if (summaryEl) {
         const cleanRows = (rows || []).filter(r => r && r.value !== undefined && r.value !== null && String(r.value).trim() !== "");
         if (cleanRows.length > 0) {
@@ -865,9 +900,11 @@ document.addEventListener("click", (e) => {
 document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") closeDonateSuccessModal();
 });
-
+// ==========================================
+// LIVE IMPACT COUNTERS (public landing page)
+// ==========================================
 let statsPollingInterval = null;
-const STATS_POLL_INTERVAL_MS = 8000;   
+const STATS_POLL_INTERVAL_MS = 8000;   // refresh every 8 seconds
 
 async function fetchPublicStats() {
     try {
@@ -927,7 +964,13 @@ function updateStatsDisplay(stats) {
     }
 }
 
-
+/**
+ * Smooth count-up animation (easeOutCubic).
+ * @param {HTMLElement} el
+ * @param {number} from
+ * @param {number} to
+ * @param {number} duration ms
+ */
 function animateCount(el, from, to, duration = 900) {
     if (!el) return;
     const start = performance.now();
@@ -935,7 +978,7 @@ function animateCount(el, from, to, duration = 900) {
 
     function step(now) {
         const t = Math.min((now - start) / duration, 1);
-        const eased = 1 - Math.pow(1 - t, 3);  
+        const eased = 1 - Math.pow(1 - t, 3);   // easeOutCubic
         el.textContent = Math.round(from + diff * eased).toLocaleString();
         if (t < 1) requestAnimationFrame(step);
         else el.textContent = to.toLocaleString();
@@ -946,7 +989,7 @@ function animateCount(el, from, to, duration = 900) {
 function startStatsPolling() {
     if (!document.getElementById('totalDonatedAmount')) return; // section wala sa page
 
-    fetchPublicStats();     
+    fetchPublicStats();     // immediate first fetch
     if (statsPollingInterval) clearInterval(statsPollingInterval);
     statsPollingInterval = setInterval(fetchPublicStats, STATS_POLL_INTERVAL_MS);
 }
@@ -958,7 +1001,7 @@ function stopStatsPolling() {
     }
 }
 
-
+// Pause polling kapag nakatago ang tab (resource-saving)
 document.addEventListener("visibilitychange", () => {
     if (document.hidden) {
         stopStatsPolling();

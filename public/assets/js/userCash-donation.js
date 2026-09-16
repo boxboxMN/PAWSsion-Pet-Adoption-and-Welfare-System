@@ -47,35 +47,74 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
     }
     
-    const viewQrBtn = document.getElementById("viewQrBtn");
-    const qrModal = document.getElementById("qrModal");
-    const qrModalClose = document.getElementById("qrModalClose");
-    const qrModalCloseBtn = document.getElementById("qrModalCloseBtn");
-    const modalQrImage = document.getElementById("modalQrImage");
-    const qrModalAccountName = document.getElementById("qrModalAccountName");
+    /* =========================================================
+       QR MODAL — ROBUST HANDLING
+       ========================================================= */
+    const qrModal              = document.getElementById("qrModal");
+    const qrModalClose         = document.getElementById("qrModalClose");
+    const qrModalCloseBtn      = document.getElementById("qrModalCloseBtn");
+    const modalQrImage         = document.getElementById("modalQrImage");
+    const qrModalAccountName   = document.getElementById("qrModalAccountName");
     const qrModalAccountNumber = document.getElementById("qrModalAccountNumber");
 
-    if (viewQrBtn) {
-        viewQrBtn.addEventListener("click", function() {
-            const qrImageSrc = document.getElementById("qrImage").src;
-            const gcashNameText = document.getElementById("gcashName").textContent;
-            const gcashNumberText = document.getElementById("gcashNumber").textContent;
-            const accountNameLabelText = document.getElementById("accountNameLabel").textContent;
+    function openQrModal() {
+        const qrImageEl   = document.getElementById("qrImage");
+        const gcashNameEl = document.getElementById("gcashName");
+        const gcashNumEl  = document.getElementById("gcashNumber");
 
-            if (modalQrImage) modalQrImage.src = qrImageSrc;
-            if (qrModalAccountName) qrModalAccountName.textContent = `${accountNameLabelText} ${gcashNameText}`;
-            if (qrModalAccountNumber) qrModalAccountNumber.textContent = gcashNumberText;
+        const qrImageSrc  = qrImageEl   ? (qrImageEl.src || "") : "";
+        const nameText    = gcashNameEl ? gcashNameEl.textContent.trim() : "";
+        const numberText  = gcashNumEl  ? gcashNumEl.textContent.trim()  : "";
 
-            if (qrModal) qrModal.classList.add("active");
-        });
+        if (!qrImageSrc || qrImageSrc === "" || qrImageSrc.endsWith("#")) {
+            showToast("No QR code available for this organization.", "error");
+            return;
+        }
+
+        if (modalQrImage)         modalQrImage.src                 = qrImageSrc;
+        if (qrModalAccountName)   qrModalAccountName.textContent   = nameText   || "N/A";
+        if (qrModalAccountNumber) qrModalAccountNumber.textContent = numberText || "N/A";
+
+        if (qrModal) {
+            qrModal.classList.add("active");
+            qrModal.style.display = "flex";     // ← guarantees it shows
+            document.body.style.overflow = "hidden";
+        }
     }
 
     function closeQrModal() {
-        if (qrModal) qrModal.classList.remove("active");
+        if (qrModal) {
+            qrModal.classList.remove("active");
+            qrModal.style.display = "";          // ← reset inline style
+            document.body.style.overflow = "";
+        }
     }
 
-    if (qrModalClose) qrModalClose.addEventListener("click", closeQrModal);
+    /* ✅ Event delegation — works even if button is re-rendered */
+    document.addEventListener("click", function (e) {
+        if (e.target.closest("#viewQrBtn")) {
+            e.preventDefault();
+            e.stopPropagation();
+            openQrModal();
+        }
+    });
+
+    if (qrModalClose)    qrModalClose.addEventListener("click", closeQrModal);
     if (qrModalCloseBtn) qrModalCloseBtn.addEventListener("click", closeQrModal);
+
+    /* Click outside to close */
+    if (qrModal) {
+        qrModal.addEventListener("click", function (e) {
+            if (e.target === qrModal) closeQrModal();
+        });
+    }
+
+    /* Esc key closes QR modal */
+    document.addEventListener("keydown", function (e) {
+        if (e.key === "Escape" && qrModal && qrModal.classList.contains("active")) {
+            closeQrModal();
+        }
+    });
 
     const privacyCheckbox = document.querySelector('input[type="checkbox"]');
     const receiptFileInput = document.querySelector('input[type="file"]');
@@ -340,9 +379,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     function closeModal() {
-        if (!modal) return;
-        modal.classList.remove("active");
-        document.body.style.overflow = "";
+         if (modal) {
+            modal.classList.remove("active");
+            document.body.style.overflow = "";
+        }
     }
 
     if (closeBtn) closeBtn.addEventListener("click", closeModal);
@@ -806,3 +846,102 @@ if (statusBox) {
 }
 const fileNameEl = document.getElementById("receiptFileName");
 if (fileNameEl) fileNameEl.textContent = "Accepted file type: jpg, png, webp";
+
+
+/* =========================================================
+   GLOBAL QR MODAL — BULLETPROOF (works even if DOMContentLoaded fails)
+   ========================================================= */
+(function () {
+    function initQrHandlers() {
+        console.log("[QR] Initializing global handlers...");
+
+        // Global open function — callable via onclick="openQRCodeModal(event)"
+        window.openQRCodeModal = function (e) {
+            if (e) { e.preventDefault(); e.stopPropagation(); }
+
+            console.log("[QR] openQRCodeModal CALLED ✓");
+
+            const modal    = document.getElementById("qrModal");
+            const mainImg  = document.getElementById("qrImage");
+            const nameEl   = document.getElementById("gcashName");
+            const numEl    = document.getElementById("gcashNumber");
+            const modalImg = document.getElementById("modalQrImage");
+            const modalNm  = document.getElementById("qrModalAccountName");
+            const modalNo  = document.getElementById("qrModalAccountNumber");
+
+            if (!modal) {
+                console.error("[QR] ❌ #qrModal NOT FOUND");
+                return;
+            }
+
+            const src = mainImg ? String(mainImg.src || "").trim() : "";
+            console.log("[QR] src =", src);
+
+            if (!src || src === "" || src.endsWith("#")) {
+                if (typeof window.showToast === "function") {
+                    window.showToast("No QR code available for this organization.", "error");
+                } else {
+                    alert("No QR code available.");
+                }
+                return;
+            }
+
+            if (modalImg) modalImg.src = src;
+            if (modalNm)  modalNm.textContent = (nameEl && nameEl.textContent.trim()) || "N/A";
+            if (modalNo)  modalNo.textContent = (numEl  && numEl.textContent.trim())  || "N/A";
+
+            modal.classList.add("active");
+            modal.style.cssText = `
+                display: flex !important;
+                position: fixed !important;
+                inset: 0 !important;
+                background: rgba(0,0,0,0.5) !important;
+                z-index: 99999 !important;
+                align-items: center !important;
+                justify-content: center !important;
+                padding: 1rem !important;
+            `;
+            document.body.style.overflow = "hidden";
+            console.log("[QR] ✅ MODAL SHOWN");
+        };
+
+        window.closeQRCodeModal = function () {
+            const modal = document.getElementById("qrModal");
+            if (!modal) return;
+            modal.classList.remove("active");
+            modal.style.cssText = "";
+            document.body.style.overflow = "";
+            console.log("[QR] Modal closed");
+        };
+
+        // Delegated click — works even if button is re-rendered
+        document.addEventListener("click", function (e) {
+            if (e.target.closest("#viewQrBtn")) {
+                e.preventDefault();
+                e.stopPropagation();
+                window.openQRCodeModal(e);
+                return;
+            }
+            if (e.target.closest("#qrModalClose") || e.target.closest("#qrModalCloseBtn")) {
+                window.closeQRCodeModal();
+                return;
+            }
+            const modal = document.getElementById("qrModal");
+            if (modal && e.target === modal) {
+                window.closeQRCodeModal();
+            }
+        });
+
+        document.addEventListener("keydown", function (e) {
+            if (e.key === "Escape") window.closeQRCodeModal();
+        });
+
+        console.log("[QR] ✅ Global handlers installed");
+    }
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", initQrHandlers);
+    } else {
+        initQrHandlers();
+    }
+})();

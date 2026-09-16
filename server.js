@@ -42,6 +42,7 @@ app.use(
 
       scriptSrc: [
         "'self'", 
+        "'wasm-unsafe-eval'",
         "https://cdn.tailwindcss.com",
         "https://cdn.jsdelivr.net",
         "https://cdnjs.cloudflare.com"
@@ -133,7 +134,7 @@ const Organization = require('./models/organizationModel');
 
 const adminController = require("./controllers/adminController");
 
-
+//logic for password attempts and lockout
 const orgPasswordAttempts = new Map();
 
 function getOrgAttemptRecord(accountId) {
@@ -418,7 +419,7 @@ app.post("/api/feedback", async (req, res) => {
     }
 });
 
-
+//FOR CHANGE PASSWORD
 
 // MODAL CURRENT PASSWORD VERIFICATION: 
 app.post("/api/organization/verify-password", async (req, res) => {
@@ -426,7 +427,7 @@ app.post("/api/organization/verify-password", async (req, res) => {
       return res.status(401).json({ message: "Unauthorized" });
   }
 
- 
+  //logic for password attempts and lockout
   const orgVerifyRecord = getOrgAttemptRecord(req.session.accountId);
 
   if (orgVerifyRecord.lockedUntil && Date.now() < orgVerifyRecord.lockedUntil) {
@@ -542,13 +543,14 @@ app.put("/api/organization/update-password", async (req, res) => {
          // Reset on success
          orgPasswordAttempts.delete(accountId);
 
-        
+        // 4. SECURE BACKEND CHECK: I-verify kung ang New Password ay kapareho ng Current Password
         const isSameAsOld = await bcrypt.compare(newPassword, currentHash);
         if (isSameAsOld) {
             return res.status(400).json({ message: "New password cannot be the same as your old password." });
         }
 
-        
+        // 5. SECURE BACKEND CHECK: I-verify ang password strength criteria sa backend
+      // Minimum 8 characters, kahit anong haba, kahit walang special characters
         const passwordRegex = /^.{8,}$/;
         if (!passwordRegex.test(newPassword)) {
             return res.status(400).json({ 
@@ -753,7 +755,7 @@ app.get('/api/organization/applications', async (req, res) => {
             return res.status(401).json({ error: "Unauthorized access." });
         }
 
-        
+        // 1. Kunin ang organization_id gamit ang account_id ng session
         const [orgRows] = await pool.query(
             `SELECT organization_id FROM organizations WHERE account_id = ?`,
             [accountId]
@@ -765,7 +767,7 @@ app.get('/api/organization/applications', async (req, res) => {
 
         const orgId = orgRows[0].organization_id;
 
-      
+        // 2. Query na may WHERE clause para sa naka-login na Organization lang
         const query = `
            SELECT 
                 app.application_id AS id,
@@ -790,6 +792,7 @@ app.get('/api/organization/applications', async (req, res) => {
 
         const [rows] = await pool.query(query, [orgId]);
 
+        // 3. MAP FUNCTION: I-parse ang JSON snapshot para sa bawat application record
         const formattedApplications = rows.map(app => {
             let snapshot = {};
             try {
@@ -828,11 +831,11 @@ app.get('/api/organization/applications', async (req, res) => {
     }
 });
 
-
+// Adoption routes
 app.use('/api/userAdoptions', userRoutes);
 
 // =====================================================
-// USER INTERVIEW 
+// USER INTERVIEW RESCHEDULE REQUEST ENDPOINT
 // =====================================================
 app.post('/api/user/applications/:id/reschedule-request', async (req, res) => {
     if (!req.session?.accountId) {
@@ -876,15 +879,17 @@ app.post('/api/user/applications/:id/reschedule-request', async (req, res) => {
 });
 
 app.get("/api/contact-info", adminController.getContactInfo);
-
+// GANITO DAPAT:
 app.post("/api/contact-messages", csrfSynchronisedProtection, adminController.submitContactMessage);
 app.get("/api/guide", adminController.getGuideSections);
 
-
+// Notification routes
 app.get("/api/notifications", adminController.getNotifications);
 app.put("/api/notifications/:id/read", adminController.markNotificationRead);
 app.put("/api/notifications/read-all", adminController.markAllNotificationsRead);
-
+/**
+ * Kunin ang listahan ng mga approved organizations para sa public landing page / donation selector
+ */
 app.get('/api/organizations', async (req, res) => {
     try {
         const [organizations] = await pool.query(`
@@ -949,7 +954,10 @@ app.delete("/api/notifications/:id", adminController.deleteNotification);
     }
 });
 
-
+/**
+ * Pag-submit ng Cash Donation mula sa Landing Page (Public / Guest / Logged-in)
+ * Tandaan: Gumagamit ito ng Multer upload para sa resibo (receipt). Siguraduhing naisama mo ang angkop na upload middleware kung kinakailangan.
+ */
 app.post('/api/donations/cash', async (req, res) => {
     const accountId = req.session?.accountId || null;
 
@@ -1063,7 +1071,7 @@ app.post('/api/donations/cash', async (req, res) => {
         return res.status(500).json({ success: false, error: "Database error while processing donation: " + error.message });
     }
 });
-
+// Legal pages
 app.get("/privacy-policy", (req, res) => {
     res.sendFile(path.join(__dirname, "public/legal1.html"));
 });
