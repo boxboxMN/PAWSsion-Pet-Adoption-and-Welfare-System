@@ -12,7 +12,8 @@ app.use((req, res, next) => {
   res.setHeader("X-Frame-Options", "DENY");
   res.setHeader(
     "Content-Security-Policy",
-    "frame-ancestors 'none';"
+    "frame-ancestors 'none'",
+     "font-src 'self'"
   );
   next();
 });

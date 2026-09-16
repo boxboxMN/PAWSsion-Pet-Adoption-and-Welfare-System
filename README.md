@@ -743,7 +743,9 @@ For the contact messages in landing page
 - CROSS-DOMAIN JS SOURCE FILE INCLUSION - Myn
 - Server Leaks Information via "X-Powered-By - Myn
 - Cookie without Same Site Attribute - Myn
-- Sub Resource Integrity Attribute Missing - Myn
 - Missing Anti-clickjacking Header -Myn
 - Content Security Policy (CSP) Header Not Set - Irene
+- CSP: Wildcard Directive -Myn
+- Sub Resource Integrity Attribute Missing -Myn
 - CSP:Wildcard Directive - Irene
+- CSP: Failure to Define Directive with No Fallback -Myn

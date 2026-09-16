@@ -9,63 +9,15 @@
 
     <link rel="stylesheet" href="/assets/css/tailwind.css" />
     <link rel="stylesheet" href="/css/tailwind.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+      <link rel="stylesheet" href="../assets/css/userDashboard.css" />
+    <!-- Local Font Awesome -->
+    <link rel="stylesheet" href="/css/fontawesome/all.min.css">
+    <link rel="stylesheet" href="/css/inter.css">
 
     <script src="../assets/js/userSidebar.js"></script>
     <script src="../assets/js/userHeader.js"></script>
     <script src="../assets/js/userDashboard.js" defer></script>
 
-    <style>
-        * {
-            box-sizing: border-box;
-            scrollbar-width: none;
-        }
-
-        html {
-            scroll-behavior: smooth;
-        }
-
-        body {
-            margin: 0;
-            overscroll-behavior: none;
-            visibility: hidden;
-        }
-
-        #sidebar,
-        #header {
-            visibility: hidden;
-        }
-
-        .activity-timeline::before {
-            content: '';
-            position: absolute;
-            left: 20px;
-            top: 8px;
-            bottom: 8px;
-            width: 2px;
-            background: #e5e7eb;
-            border-radius: 4px;
-        }
-
-        .activity-item:last-child .activity-dot::after {
-            display: none;
-        }
-
-        /* Hide scrollbar but keep scrolling */
-        .hide-scrollbar {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-        }
-
-        .hide-scrollbar::-webkit-scrollbar {
-            display: none;
-        }
-
-        *::-webkit-scrollbar {
-            display: none;
-        }
-    </style>
 </head>
 
 <body class="bg-gray-100 h-full overflow-hidden">

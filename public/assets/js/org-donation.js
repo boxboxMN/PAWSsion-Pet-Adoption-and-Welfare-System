@@ -2117,45 +2117,88 @@ function refreshData() {
 
 
 async function exportFile(format) {
-    const filterType = document.getElementById("filterType")?.value || "";
-    const dateValue = document.getElementById("datePicker")?.value || "";
+    const filterType =
+        document.getElementById("filterType")?.value || "";
 
-    // Paki-siguro na ang activeTab ay may value na 'cash' o 'inkind'
-    const currentTab = typeof activeTab !== 'undefined' ? activeTab : 'cash';
+    const dateValue =
+        document.getElementById("datePicker")?.value || "";
 
-    // I-pasa ang 'tab' parameter sa backend URL
-    const url = `/org/donations/export?format=${encodeURIComponent(format)}&tab=${encodeURIComponent(currentTab)}&type=${encodeURIComponent(filterType)}&date=${encodeURIComponent(dateValue)}`;
+    const currentTab =
+        typeof activeTab !== "undefined" ? activeTab : "cash";
+
+    const url =
+        `/org/donations/export?format=${encodeURIComponent(format)}` +
+        `&tab=${encodeURIComponent(currentTab)}` +
+        `&type=${encodeURIComponent(filterType)}` +
+        `&date=${encodeURIComponent(dateValue)}`;
 
     try {
         const response = await fetch(url, {
             method: "GET",
             headers: {
-                Authorization: "Bearer " + (localStorage.getItem("token") || "")
+                Authorization:
+                    "Bearer " + (localStorage.getItem("token") || "")
             }
         });
 
         if (!response.ok) {
-            throw new Error("May problema sa pag-download ng file mula sa server.");
+            const serverError = await response.json().catch(() => null);
+
+            if (
+                response.status === 404 &&
+                serverError?.message?.includes("No verified/approved")
+            ) {
+                let noRecordMessage = "No records found for the selected period.";
+
+                if (filterType === "month") {
+                    noRecordMessage = "No records found for this month.";
+                } else if (filterType === "year") {
+                    noRecordMessage = "No records found for this year.";
+                }
+
+                showToast(noRecordMessage, "warning");
+                return;
+            }
+
+            throw new Error(
+                serverError?.message ||
+                `Server error ${response.status}: ${response.statusText}`
+            );
         }
 
         const blob = await response.blob();
+
+        if (blob.size === 0) {
+            throw new Error("The server returned an empty file.");
+        }
+
         const downloadUrl = window.URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = downloadUrl;
+        const link = document.createElement("a");
 
-        const fileExtension = format === "excel" ? "xlsx" : "pdf";
-        a.download = `${currentTab}_donations_report_${dateValue || 'all'}.${fileExtension}`;
+        link.href = downloadUrl;
 
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
+        const fileExtension =
+            format === "excel" ? "xlsx" : "pdf";
+
+        link.download =
+            `${currentTab}_donations_report_${dateValue || "all"}.${fileExtension}`;
+
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+
         window.URL.revokeObjectURL(downloadUrl);
 
-        showToast(`${currentTab.toUpperCase()} report successfully downloaded!`, "success");
-
+        showToast(
+            `${currentTab.toUpperCase()} report successfully downloaded!`,
+            "success"
+        );
     } catch (error) {
         console.error("Export error:", error);
-        showToast("Failed to download file: " + error.message, "error");
+        showToast(
+            "Failed to download file: " + error.message,
+            "error"
+        );
     }
 }
 // =====================================================
