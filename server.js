@@ -54,7 +54,7 @@ app.use(
         "https://fonts.gstatic.com",
         "https://cdnjs.cloudflare.com"
       ],
-      imgSrc: ["'self'", "data:", "blob:", "https:"],
+      imgSrc: ["'self'", "data:", "blob:"],
       // 1. Payagan ang network connections/fetches sa jsDelivr (para sa Tesseract.js data & maps)
       connectSrc: ["'self'", "https://cdn.jsdelivr.net"],
       // 2. Payagan ang Web Workers at Blob URLs na ginagamit ng Tesseract.js
