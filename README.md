@@ -747,3 +747,4 @@ For the contact messages in landing page
 - Content Security Policy (CSP) Header Not Set - Irene
 - CSP: Wildcard Directive -Myn
 - Sub Resource Integrity Attribute Missing -Myn
+- CSP:Wildcard Directive - Irene
