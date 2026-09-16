@@ -748,3 +748,4 @@ For the contact messages in landing page
 - CSP: Wildcard Directive -Myn
 - Sub Resource Integrity Attribute Missing -Myn
 - CSP:Wildcard Directive - Irene
+- CSP: Failure to Define Directive with No Fallback -Myn
