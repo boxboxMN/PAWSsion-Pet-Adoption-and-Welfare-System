@@ -257,20 +257,5 @@
             </div>
         </div>
     </div>
-
-    <script>
-    document.addEventListener("DOMContentLoaded", async () => {
-        await loadSidebar();
-        // Wait one tick so the header HTML exists
-        requestAnimationFrame(() => {
-            // Set page title
-            loadTopbar({
-                title: "Donation",
-                subtitle: "Make a difference by supporting rescue organizations and the pets in their care."
-            });
-            document.body.style.visibility = "visible";
-        });
-    });
-    </script>
 </body>
 </html>

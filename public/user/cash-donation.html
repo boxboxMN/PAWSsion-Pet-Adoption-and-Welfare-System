@@ -367,20 +367,5 @@
 
         <div id="toastContainer" class="fixed bottom-5 right-5 z-[10000] flex flex-col gap-3 pointer-events-none"></div>
     </main>
-
-    <script>
-    document.addEventListener("DOMContentLoaded", async () => {
-        await loadSidebar();
-       
-        requestAnimationFrame(() => {
-            loadTopbar({
-                title: "Donation",
-                subtitle: "Support our shelter safely and securely through direct cash donations."
-            });
-
-            document.body.style.visibility = "visible";
-        });
-    });
-    </script>
 </body>
 </html>

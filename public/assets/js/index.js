@@ -42,7 +42,21 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
     }
-       });
+
+    (async function loadContactInfo() {
+        try {
+            const res = await fetch("/api/contact-info");
+            const data = await res.json();
+            if (data.success && data.contactInfo) {
+                document.getElementById("contactEmail").textContent = data.contactInfo.support_email || "pawpon@gmail.com";
+                document.getElementById("contactPhone").textContent = data.contactInfo.support_phone || "(+63) 992 487 4712";
+            }
+        } catch (err) {
+            console.error("Failed to load contact info:", err);
+            // Panatilihin na lang ang static fallback na laman ng span kung nabigo ang fetch
+        }
+    })();
+});
 async function fetchOrganizationsData() {
     try {
         const response = await fetch('/api/organizations');
@@ -488,16 +502,17 @@ function openQrModal() {
     sub.textContent   = `[ ${currentQrMethod} QR Code ]`;
     org.textContent   = currentQrOrgName;
 
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
-    document.body.style.overflow = 'hidden';   
+    modal.classList.add('is-open');
+    modal.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
 }
 
 function closeQrModal() {
     const modal = document.getElementById('qrModal');
     if (!modal) return;
-    modal.classList.add('hidden');
-    modal.classList.remove('flex');
+    
+    modal.classList.remove('is-open');
+    modal.setAttribute('aria-hidden', 'true');
     document.body.style.overflow = '';
 }
 

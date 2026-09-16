@@ -375,23 +375,9 @@
             </div>
         </div>
     </main>
-
-    <script>
-        function toggleExportMenu() {
-            const menu = document.getElementById('exportDropdownMenu');
-            menu.classList.toggle('hidden');
-        }
-
-        window.addEventListener('click', function(e) {
-            const menu = document.getElementById('exportDropdownMenu');
-            const button = e.target.closest('button');
-            if (!e.target.closest('#exportDropdownMenu') && (!button || !button.getAttribute('onclick')?.includes('toggleExportMenu'))) {
-                menu.classList.add('hidden');
-            }
-        });
-    </script>
-
-    <script src="/assets/js/orgProfile.js"></script> 
-    <script src="/assets/js/orgKamustahan.js"></script>
+<script src="../assets/js/orgSidebar.js"></script>
+<script src="../assets/js/orgTopbar.js"></script>
+<script src="/assets/js/orgProfile.js"></script> 
+<script src="/assets/js/orgKamustahan.js"></script>
 </body>
 </html>

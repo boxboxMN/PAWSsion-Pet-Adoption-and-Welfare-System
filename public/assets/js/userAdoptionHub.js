@@ -1,6 +1,7 @@
 // <!-- ===== ADOPTION HUB SCRIPT ===== -->
 let petsData = [];
 let filteredPets = [];
+
 async function loadPets() {
     try {
 
@@ -664,4 +665,634 @@ async function autoFillUserProfile() {
     } catch (err) {
         console.error("Error auto-filling user profile:", err);
     }
+}
+
+document.addEventListener("DOMContentLoaded", async () => {
+    // Wait until sidebar + header are loaded
+    if (typeof loadSidebar === 'function') {
+        await loadSidebar();
+    }
+    // ==========================================================
+    // PHILIPPINE ADDRESS CASCADING (Region -> Province -> City -> Barangay)
+    // ==========================================================
+    const streetInput = document.getElementById('app-street');
+    const regionSelect = document.getElementById('app-region');
+    const provinceSelect = document.getElementById('app-province');
+    const citySelect = document.getElementById('app-city');
+    const barangaySelect = document.getElementById('app-barangay');
+    const zipInput = document.getElementById('app-zip');
+    const zipHelper = document.getElementById('app-zip-helper');
+    const zipRegex = /^\d{4}$/;
+    const fullAddressHidden = document.getElementById('app-address');
+
+    let appRegionsData = [];
+    let appProvincesData = [];
+    let appCitiesData = [];
+    let appBarangaysData = [];
+
+    async function loadAppRegions() {
+        try {
+            regionSelect.innerHTML = '<option value="">Loading regions...</option>';
+            const res = await fetch('/data/regions.json');
+            appRegionsData = await res.json();
+
+            regionSelect.innerHTML = '<option value="">Select Region</option>';
+            appRegionsData.forEach(reg => {
+                const opt = document.createElement('option');
+                opt.value = reg.region_name;
+                opt.textContent = reg.region_name;
+                opt.dataset.code = reg.region_code;
+                regionSelect.appendChild(opt);
+            });
+        } catch (err) {
+            console.error("Error loading regions:", err);
+            regionSelect.innerHTML = '<option value="">System error: Missing data</option>';
+        }
+    }
+
+    async function loadProvincesForRegion(regCode, fallbackName) {
+        if (!provinceSelect) return;
+        provinceSelect.innerHTML = '<option value="">Loading provinces...</option>';
+        provinceSelect.disabled = true;
+        if (citySelect) { citySelect.innerHTML = '<option value="">Select City / Municipality</option>'; citySelect.disabled = true; }
+        if (barangaySelect) { barangaySelect.innerHTML = '<option value="">Select Barangay</option>'; barangaySelect.disabled = true; }
+
+        if (!regCode) {
+            provinceSelect.innerHTML = '<option value="">Select Province</option>';
+            return;
+        }
+
+        try {
+            if (appProvincesData.length === 0) {
+                const res = await fetch('/data/provinces.json');
+                appProvincesData = await res.json();
+            }
+
+            let filteredProvinces = appProvincesData.filter(p => p.region_code === regCode);
+            filteredProvinces.sort((a, b) => a.province_name.localeCompare(b.province_name));
+
+            if (filteredProvinces.length === 0 && fallbackName) {
+                filteredProvinces = [{ province_code: regCode, province_name: fallbackName }];
+            }
+
+            provinceSelect.innerHTML = '<option value="">Select Province</option>';
+            filteredProvinces.forEach(p => {
+                const opt = document.createElement('option');
+                opt.value = p.province_name;
+                opt.textContent = p.province_name;
+                opt.dataset.code = p.province_code;
+                provinceSelect.appendChild(opt);
+            });
+            provinceSelect.disabled = false;
+        } catch (err) {
+            console.error("Error loading provinces:", err);
+            provinceSelect.innerHTML = '<option value="">System error: Missing data</option>';
+        }
+    }
+
+    async function loadCitiesForProvince(provCode, regCode) {
+        if (!citySelect) return;
+        citySelect.innerHTML = '<option value="">Loading cities...</option>';
+        citySelect.disabled = true;
+        if (barangaySelect) { 
+            barangaySelect.innerHTML = '<option value="">Select Barangay</option>';
+            barangaySelect.disabled = true;
+        }
+
+        if (!provCode) {
+            citySelect.innerHTML = '<option value="">Select City / Municipality</option>';
+            return;
+        }
+
+        try {
+            if (appCitiesData.length === 0) {
+                const res = await fetch('/data/cities.json');
+                appCitiesData = await res.json();
+            }
+
+            const filteredCities = appCitiesData.filter(c => c.province_code === provCode || c.region_desc === regCode);
+            filteredCities.sort((a, b) => a.city_name.localeCompare(b.city_name));
+
+            citySelect.innerHTML = '<option value="">Select City / Municipality</option>';
+            filteredCities.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c.city_name;
+                opt.textContent = c.city_name;
+                opt.dataset.code = c.city_code;
+                citySelect.appendChild(opt);
+            });
+            citySelect.disabled = false;
+        } catch (err) {
+            console.error("Error loading cities:", err);
+            citySelect.innerHTML = '<option value="">System error: Missing data</option>';
+        }
+    }
+
+    async function loadBarangaysForCity(cityCode) {
+        if (!barangaySelect) return;
+        barangaySelect.innerHTML = '<option value="">Loading barangays...</option>';
+        barangaySelect.disabled = true;
+
+        if (!cityCode) {
+            barangaySelect.innerHTML = '<option value="">Select Barangay</option>';
+            return;
+        }
+
+        try {
+            if (appBarangaysData.length === 0) {
+                const res = await fetch('/data/barangays.json');
+                appBarangaysData = await res.json();
+            }
+
+            const filteredBarangays = appBarangaysData.filter(b => b.city_code === cityCode);
+            filteredBarangays.sort((a, b) => a.brgy_name.localeCompare(b.brgy_name));
+
+            barangaySelect.innerHTML = '<option value="">Select Barangay</option>';
+            filteredBarangays.forEach(b => {
+                const opt = document.createElement('option');
+                opt.value = b.brgy_name;
+                opt.textContent = b.brgy_name;
+                barangaySelect.appendChild(opt);
+            });
+            barangaySelect.disabled = false;
+        } catch (err) {
+            console.error("Error loading barangays:", err);
+            barangaySelect.innerHTML = '<option value="">System error: Missing data</option>';
+        }
+    }
+
+    if (regionSelect) {
+        regionSelect.addEventListener('change', async function () {
+            const selectedOption = this.options[this.selectedIndex];
+            const regCode = selectedOption ? selectedOption.dataset.code : null;
+            await loadProvincesForRegion(regCode, selectedOption ? selectedOption.value : '');
+        });
+    }
+
+    if (provinceSelect) {
+        provinceSelect.addEventListener('change', async function () {
+            const selectedOption = this.options[this.selectedIndex];
+            const provCode = selectedOption ? selectedOption.dataset.code : null;
+            const regCode = regionSelect.options[regionSelect.selectedIndex]?.dataset.code;
+            await loadCitiesForProvince(provCode, regCode);
+        });
+    }
+
+    if (citySelect) {
+        citySelect.addEventListener('change', async function () {
+            const selectedOption = this.options[this.selectedIndex];
+            const cityCode = selectedOption ? selectedOption.dataset.code : null;
+            await loadBarangaysForCity(cityCode);
+        });
+    }
+
+    await loadAppRegions();
+
+    async function applyAddressCascade({ region, province, city, barangay } = {}) {
+        if (!regionSelect) return;
+        if (regionSelect.options.length <= 1) {
+            await loadAppRegions();
+        }
+
+        if (!region) return;
+        const regionOption = [...regionSelect.options].find(o => o.value === region);
+        if (!regionOption) {
+            console.warn("applyAddressCascade: region not found in list:", region);
+            return;
+        }
+        regionSelect.value = region;
+        await loadProvincesForRegion(regionOption.dataset.code, region);
+
+        if (!province || !provinceSelect) return;
+        const provinceOption = [...provinceSelect.options].find(o => o.value === province);
+        if (!provinceOption) {
+            console.warn("applyAddressCascade: province not found in list:", province);
+            return;
+        }
+        provinceSelect.value = province;
+        await loadCitiesForProvince(provinceOption.dataset.code, regionOption.dataset.code);
+
+        if (!city || !provinceSelect) return;
+        const cityOption = [...citySelect.options].find(o => o.value === city);
+        if (!cityOption) {
+            console.warn("applyAddressCascade: city not found in list:", city);
+            return;
+        }
+        citySelect.value = city;
+        await loadBarangaysForCity(cityOption.dataset.code);
+
+        if (!barangay || !barangaySelect) return;
+        const barangayOption = [...barangaySelect.options].find(o => o.value === barangay);
+        if (barangayOption) {
+            barangaySelect.value = barangay;
+        } else {
+            console.warn("applyAddressCascade: barangay not found in list:", barangay);
+        }
+    }
+    window.applyAddressCascade = applyAddressCascade;
+
+    // ==========================================================
+    // PET APPLICATION INITIALIZATION & NAVIGATION
+    // ==========================================================
+    const params = new URLSearchParams(window.location.search);
+    const urlPetId = params.get("petId");
+    const sessionPetId = sessionStorage.getItem("autoOpenPetId");
+
+    // Tanggalin ang session key agad para hindi paulit-ulit kapag ni-refresh ang page
+    if (sessionPetId) sessionStorage.removeItem("autoOpenPetId");
+
+    // Gamitin alinman sa dalawa ang may laman
+    const petId = urlPetId || sessionPetId;
+
+    let isFormOpened = false;
+    // let pendingReapplyApp = null; // holds previous application data until the address cascade is ready
+
+    if (petId) {
+        try {
+            // Check kung may existing application na
+            const res = await fetch(`/check-applied/${petId}`, { credentials: 'include' });
+            const data = await res.json();
+
+            const inactiveStatuses = ['DECLINED', 'REJECTED', 'CANCELLED'];
+            const isInactive = inactiveStatuses.includes((data.status || '').toUpperCase());
+
+            // Kapag galing sa Re-apply button (Declined status) O bago pa lang ang application
+            if (data.hasApplied && !isInactive) {
+                alert(`You have already submitted an application for this pet (Status: ${data.status}).`);
+                window.location.href = "/adoption-hub";
+                return; 
+            }
+
+            console.log("Opening form for pet:", petId);
+            // 2. Palaging buksan muna ang form view para hindi ito maipit sakaling magka-error ang auto-fill
+            const hiddenInput = document.getElementById("selectedPetId");
+            if (hiddenInput) hiddenInput.value = petId;
+
+            document.getElementById("list-view")?.classList.add("hidden");
+            document.getElementById("application-view")?.classList.remove("hidden");
+
+            if (typeof loadTopbar === "function") {
+                loadTopbar({
+                title: "Adoption Form",
+                subtitle: "Please fill out the form below to start your adoption journey."
+                });
+            }
+
+            isFormOpened = true;
+
+            // 3. I-load ang pet details at profile nang hiwalay para ligtas sa error
+            await loadSelectedPet(petId);
+            
+            try {
+                await autoFillUserProfile();
+            } catch (profileErr) {
+                console.warn("Warning: Could not auto-fill profile data:", profileErr);
+            }
+
+            // 4. Kung ito ay re-application, i-load ang dating data
+            if (sessionStorage.getItem("isReapply") === "true") {
+                sessionStorage.removeItem("isReapply");
+                const reapplyDataRaw = sessionStorage.getItem("reapplyData");
+                if (reapplyDataRaw) {
+                    sessionStorage.removeItem("reapplyData");
+                    let pendingReapplyApp = JSON.parse(reapplyDataRaw);
+                    autofillAdoptionForm(pendingReapplyApp);   
+                    
+                    // Update topbar header
+                    if (typeof loadTopbar === "function") {
+                        loadTopbar({
+                            title: "Adoption Form",
+                            subtitle: "Please fill out the form below to start your adoption journey."
+                        });
+                    }
+                }
+            }
+
+        } catch (err) {
+            console.error("Error opening adoption form:", err);
+            alert("Unable to open the adoption form. Please try again.");
+            window.location.href = "/adoption-hub";
+        }
+    }
+
+    // Topbar fallback at visibility setup
+    requestAnimationFrame(() => {
+        if (!isFormOpened && typeof loadTopbar === "function") {
+            loadTopbar({
+                title: "Adoption Hub",
+                subtitle: "Browse available pets, view their profiles, and begin your adoption journey."
+            });
+        }
+        document.body.style.visibility = "visible";
+    });
+
+    // Helper function to return to Pet List
+    function returnToPetList() {
+        // Automatically open the application form if a pet ID is in the URL
+        if (petId) {
+
+            // Save the pet ID
+            const hiddenInput = document.getElementById("selectedPetId");
+            if (hiddenInput) {
+                hiddenInput.value = petId;
+            }
+
+            sessionStorage.removeItem("selectedPetId");
+
+            // Panatilihin ang malinis na URL
+            window.history.replaceState({}, "", "/adoption-hub");
+
+            // Hide list
+            document.getElementById("list-view")?.classList.add("hidden");
+
+            // Show application form
+            document.getElementById("application-view")?.classList.remove("hidden");
+
+        //     // Update topbar
+        //     if (typeof loadTopbar === "function") {
+        //         loadTopbar({
+        //             title: "Adoption Form",
+        //             subtitle: "Please fill out the form below to start your adoption journey"
+        //         });
+        //     }
+        // }
+        return;
+    }
+        document.getElementById('application-view')?.classList.add('hidden');
+        document.getElementById('list-view')?.classList.remove('hidden');
+
+        if (typeof loadTopbar === 'function') {
+            loadTopbar({
+                title: "Adoption Hub",
+                subtitle: "Browse available pets, view their profiles, and begin your adoption journey."
+            });
+        }
+    }
+    async function loadSelectedPet(targetPetId) {
+        try {
+            const res = await fetch(`/api/pets/${targetPetId}`);
+            const pet = await res.json();
+
+            const hiddenPetId = document.getElementById("selectedPetId");
+            if (hiddenPetId) hiddenPetId.value = pet.animal_id;
+
+            // document.getElementById("selectedPetImage").src =
+            //     `/uploads/pets/${pet.image_path}`;
+
+            const petImg = document.getElementById("selectedPetImage");
+            if (petImg) {
+                petImg.src = pet.image_path ? `/uploads/pets/${pet.image_path}` : "/assets/images/no-image.png";
+            }
+
+            const petName = document.getElementById("selectedPetName");
+            if (petName) petName.textContent = pet.name;
+
+            const petInfo = document.getElementById("selectedPetInfo");
+            if (petInfo) petInfo.textContent = `${pet.gender} • ${pet.species} • ${pet.age}`;
+
+            const petOrg = document.getElementById("selectedPetOrg");
+            if (petOrg) petOrg.textContent = pet.organization_name;
+
+        } catch (err) {
+            console.error("Error fetching pet details:", err);
+        }
+    }
+    function autofillAdoptionForm(app) {
+        if (!app) return;
+        const e = app.emergency || {};
+
+        // Name, phone, email, address, civil status, age, and occupation are
+        // already filled from the live profile by autoFillUserProfile() (called
+        // just before this). Only fill what the profile has no equivalent for:
+        // this is specific to the previous application itself.
+        document.getElementById("app-intent").value = app.intent || "";
+        document.getElementById("app-emergency-name").value = e.name || "";
+        document.getElementById("app-emergency-phone").value = e.phone || "";
+        document.getElementById("app-emergency-relation").value = e.relation || "";
+    }
+    // 1. Kapag pinindot ang Apply Button sa Modal
+    const applyBtn = document.getElementById('applyModalBtn');
+    if (applyBtn) {
+        applyBtn.addEventListener("click", async function () {
+            // Kung may sariling onclick function (tulad ng view decline reason), huwag buksan ang form
+            if (this.onclick) return;
+            
+            const selectedPetId = window.currentPet?.animal_id;
+            if (!selectedPetId) return;
+
+            // I-save ang Pet ID sa JavaScript memory / Session Storage
+            sessionStorage.setItem("selectedPetId", selectedPetId);
+
+            // PANATILIHING MALINIS ANG URL (Ise-set sa /adoption-hub nang WALANG query parameters)
+            window.history.replaceState({}, "", "/adoption-hub");
+
+            await loadSelectedPet(selectedPetId);
+            await autoFillUserProfile();
+            closePetModal();
+
+            // Ipakita ang Application Form View
+            document.getElementById("list-view")?.classList.add("hidden");
+            document.getElementById("application-view")?.classList.remove("hidden");
+
+            if (typeof loadTopbar === "function") {
+                loadTopbar({
+                    title: "Adoption Form",
+                    subtitle: "Please fill out the form below to start your adoption journey."
+                });
+            }
+        });
+    }
+
+    // 2. Kapag pinindot ang Back Button mula sa Application Form
+    const backBtn = document.getElementById('appBackBtn');
+    if (backBtn) {
+        backBtn.addEventListener('click', returnToPetList);
+    }
+
+    // 3. Kapag pinindot ang Cancel Button sa Form
+    const cancelBtn = document.getElementById('appCancelBtn');
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', function() {
+            const form = document.getElementById('adoptionForm');
+            if (form) form.reset(); // I-clear ang mga na-type sa form
+            returnToPetList();
+        });
+    }
+
+    // 4. Input restriction para PH Phone Numbers lamang
+    document.querySelectorAll('.ph-phone-input').forEach(input => {
+        input.addEventListener('input', (e) => {
+            e.target.value = e.target.value.replace(/[^0-9]/g, '');
+        });
+    });
+
+    // 5. Input restriction para sa Age Field (Whole positive numbers lang, max 2 digits)
+    const ageInput = document.getElementById('app-age');
+    if (ageInput) {
+        ageInput.addEventListener('input', (e) => {
+            e.target.value = e.target.value.replace(/[^0-9]/g, '');
+            if (e.target.value.length > 2) {
+                e.target.value = e.target.value.slice(0, 2);
+            }
+        });
+    }
+
+    // 6. Submit Application Event Handler
+    if (zipInput) {
+        zipInput.addEventListener('input', function () {
+            this.value = this.value.replace(/[^0-9]/g, '').slice(0, 4);
+
+            if (!zipHelper) return;
+            if (this.value.length === 0) {
+                zipHelper.className = 'text-xs mt-1';
+                zipHelper.innerHTML = '';
+            } else if (zipRegex.test(this.value)) {
+                zipHelper.className = 'text-xs mt-1 text-green-600';
+                zipHelper.innerHTML = '<i class="fa-solid fa-circle-check"></i> Valid ZIP code.';
+            } else {
+                zipHelper.className = 'text-xs mt-1 text-red-500';
+                zipHelper.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> Must be exactly 4 digits.';
+            }
+        });
+    }
+
+    // 6b. Combine Street + Barangay + City + Province + Region + Zip into one full_address string
+    function buildFullAddress() {
+        const street = streetInput?.value.trim();
+        const barangay = barangaySelect?.value.trim();
+        const city = citySelect?.value.trim();
+        const province = provinceSelect?.value.trim();
+        const region = regionSelect?.value.trim();
+        const zip = zipInput?.value.trim();
+
+        if (!street || !barangay || !city || !province || !region || !zipRegex.test(zip)) {
+            if (zipHelper && !zipRegex.test(zip)) {
+                zipHelper.className = 'text-xs mt-1 text-red-500';
+                zipHelper.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> Must be exactly 4 digits.';
+            }
+            return '';
+        }
+
+        const parts = [
+            street,
+            `Barangay ${barangay}`,
+            city,
+            province,
+            region,
+            zip
+        ];
+
+        const fullAddr = parts.join(', ');
+        if (fullAddressHidden) fullAddressHidden.value = fullAddr;
+        return fullAddr;
+    }
+
+    const adoptionForm = document.getElementById('adoptionForm');
+    if (adoptionForm) {
+        adoptionForm.addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const petId = document.getElementById('selectedPetId').value;
+            if (!petId) {
+                alert("Please select a pet first!");
+                return;
+            }
+
+            // I-build muna ang full_address bago i-collect ang FormData
+            if (!buildFullAddress()) {
+                alert("Please complete your address (Street, Region, Province, City, Barangay, Zip Code).");
+                return;
+            }
+
+
+            // Kukuha ng lahat ng inputs pati na ang in-upload na file
+            const formData = new FormData(this);
+
+            const submitBtn = document.getElementById('appSubmitBtn');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerText = "Submitting...";
+            }
+
+            try {
+                const response = await fetch('/api/adoptions/submit-application', {
+                    method: 'POST',
+                    credentials: 'include',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showModal('Success!', result.message, true, () => {
+                        window.location.href = "/adoption-hub";
+                    });
+                } else {
+                    // Ipapakita na ngayon ang mismong error mula sa Multer o Database!
+                    showModal('Upload Error', result.message || result.error || 'Failed to submit application.', false);
+                }
+            } catch (error) {
+                console.error("Submission catch error:", error);
+                showModal('Connection Error', 'Unable to reach the server. Please check your network connection.', false);
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerText = "Submit Application";
+            }
+        });
+    }
+
+});
+
+let modalCallback = null;
+
+function showModal(title, message, isSuccess = true, callback = null) {
+    const modal = document.getElementById('customModal');
+    const container = document.getElementById('modalContainer');
+    const iconContainer = document.getElementById('modalIconContainer');
+    const icon = document.getElementById('modalIcon');
+    const titleEl = document.getElementById('modalTitle');
+    const messageEl = document.getElementById('modalMessage');
+    const btn = document.getElementById('modalBtn');
+
+    if (!modal || !container) return;
+
+    titleEl.textContent = title;
+    messageEl.textContent = message;
+    modalCallback = callback;
+
+    if (isSuccess) {
+        // Blue Theme para sa Success
+        if (iconContainer) iconContainer.className = "mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-blue-100 text-blue-600";
+        if (iconContainer) icon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>`;
+        if (btn) btn.className = "w-full rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-md transition-all hover:bg-blue-700 active:scale-95";
+    } else {
+        // Red Theme para sa Error
+        if (iconContainer) iconContainer.className = "mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-red-100 text-red-600";
+        if (icon) icon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>`;
+        if (icon) btn.className = "w-full rounded-xl bg-red-600 px-4 py-2.5 text-sm font-semibold text-white shadow-md transition-all hover:bg-red-700 active:scale-95";
+    }
+
+    // Isagawa ang Smooth Pop Animation
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    setTimeout(() => {
+        container.classList.remove('scale-95');
+        container.classList.add('scale-100');
+    }, 10);
+}
+
+function closeModal() {
+    const modal = document.getElementById('customModal');
+    const container = document.getElementById('modalContainer');
+
+    if (!modal || !container) return;
+
+    container.classList.remove('scale-100');
+    container.classList.add('scale-95');
+
+    setTimeout(() => {
+        modal.classList.remove('flex');
+        modal.classList.add('hidden');
+        if (modalCallback) modalCallback();
+    }, 150);
 }
