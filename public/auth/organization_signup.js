@@ -13,7 +13,9 @@ const citySelect = document.getElementById("city");
 const barangaySelect = document.getElementById("barangay");
 const zipCodeInput = document.getElementById("zipCode");
 const zipHelper = document.getElementById("zipHelper");
-
+// Organization description: letters, numbers, spaces, and common punctuation
+const descriptionRegex = /^[A-Za-zÀ-ÖØ-öø-ÿ0-9\s.,'"()&\-\/#]+$/;
+const MAX_DESCRIPTION_LENGTH = 100;
 
 // ================================
 // CUSTOM MODAL ALERT FUNCTION

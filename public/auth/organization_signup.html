@@ -120,8 +120,8 @@
 
                     <div class="field">
                         <label>Organization Name <span class="required">*</span></label>
-                        <input type="text" id="organizationName" name="organizationName" placeholder="e.g. Hope Rescue Sanctuary" required>
-                        <div id="orgNameHelper" class="input-helper-text">Must be at least 3 characters.</div>
+                        <input type="text" id="organizationName" name="organizationName" placeholder="e.g. Hope Rescue Sanctuary" maxlength="50" required>
+                        <div id="orgNameHelper" class="input-helper-text">Organization name must be at least 3 characters and no more than 50 characters.</div>
                     </div>
 
                     <div class="field">
@@ -138,7 +138,7 @@
 
                     <div class="field">
                         <label>Contact Person <span class="required">*</span></label>
-                        <input type="text" id="contactPerson" name="contactPerson" placeholder="Full Name" required>
+                        <input type="text" id="contactPerson" name="contactPerson" placeholder="Full Name" maxlength="25" required>
                     </div>
 
                     <div class="field">
@@ -149,7 +149,7 @@
 
                     <div class="field full-width">
                         <label>Street Address / House No. & Street <span class="required">*</span></label>
-                        <input type="text" id="streetAddress" name="streetAddress" placeholder="Unit / House No., Street, Subdivision" required>
+                        <input type="text" id="streetAddress" name="streetAddress" placeholder="Unit / House No., Street, Subdivision" maxlength="50"required>
                     </div>
 
                     <div class="field">
@@ -192,7 +192,8 @@
 
                     <div class="field full-width">
                         <label>Description</label>
-                        <textarea id="description" name="description" placeholder="Tell us briefly about your organization..."></textarea>
+                        <textarea id="description" name="description" placeholder="Tell us briefly about your organization..." maxlength="100"></textarea>
+                         <div id="descriptionHelper" class="input-helper-text"></div>
                     </div>
                 </div>
 

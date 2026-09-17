@@ -55,11 +55,19 @@
                 <div class="row">
                     <div class="field">
                         <label>First Name <span class="required">*</span></label>
-                        <input id="firstName" name="firstName" type="text" placeholder="Enter First Name" required>
+                        <input id="firstName" name="firstName" type="text"
+                            placeholder="Enter First Name"
+                            maxlength="25"
+                            required>
+                        <div id="firstNameHelper" class="input-helper-text"></div>
                     </div>
                     <div class="field">
                         <label>Last Name <span class="required">*</span></label>
-                        <input id="lastName" name="lastName" type="text" placeholder="Enter Last Name" required>
+                        <input id="lastName" name="lastName" type="text"
+                            placeholder="Enter Last Name"
+                            maxlength="25"
+                            required>
+                        <div id="lastNameHelper" class="input-helper-text"></div>
                     </div>
                 </div>
 
@@ -81,8 +89,13 @@
                         </select>
                     </div>
                     <div class="field">
-                        <label>Occupation / Income (Optional)</label>
-                        <input id="occupation" name="occupation" type="text" placeholder="e.g. Software Engineer">
+                        <label>Occupation (Optional)</label>
+                        <input id="occupation"
+                               name="occupation"
+                               type="text"
+                               placeholder="e.g. Software Engineer"
+                               maxlength="15">
+                        <div id="occupationHelper" class="input-helper-text"></div>
                     </div>
                 </div>
                 <div class="next-btn">
@@ -92,10 +105,13 @@
 
             <!-- STEP 2: HOME ADDRESS -->
             <div class="form-step" id="step2">
-                <div class="full">
-                    <label>Street Address / House No. & Street <span class="required">*</span></label>
-                    <input id="streetAddress" name="streetAddress" type="text" placeholder="House No. / Street" required>
-                </div>
+                <input id="streetAddress"
+                    name="streetAddress"
+                    type="text"
+                    placeholder="e.g., 255 Villanueva Street (House No. / Street)"
+                    maxlength="50"
+                    required>
+                <div id="streetAddressHelper" class="input-helper-text"></div>
 
                 <div class="row">
                     <div class="field">

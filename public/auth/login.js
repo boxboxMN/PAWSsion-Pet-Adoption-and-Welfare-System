@@ -106,7 +106,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     // ==========================================
 
     let csrfToken = null;
-
     try {
 
         const csrfResponse = await fetch("/auth/csrf-token", {
@@ -117,9 +116,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!csrfResponse.ok) {
             throw new Error("Unable to obtain CSRF token.");
         }
-
         const csrfData = await csrfResponse.json();
-
         csrfToken = csrfData.token;
 
     } catch (error) {
@@ -134,28 +131,20 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         return;
     }
-
-
     // ==========================================
     // SESSION STATUS MESSAGE
     // ==========================================
-
    const params = new URLSearchParams(window.location.search);
-
     if (params.get("success") === "1") {
         const successMessage = document.getElementById("successMessage");
         if (successMessage) {
             successMessage.classList.remove("hidden");
             successMessage.style.display = "block";
         }
-
         window.history.replaceState({}, document.title, window.location.pathname);
     }
-
     const reason = params.get('reason');
-
     if (reason && errorBox) {
-
         const reasonMessages = {
 
             suspended:

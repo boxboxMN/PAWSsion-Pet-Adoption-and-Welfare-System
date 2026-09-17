@@ -5,6 +5,14 @@ const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#]).{8,}$/;
 const phoneRegex = /^09\d{9}$/;
 const emailValidatorRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+// Names: letters and spaces only, 2–50 characters
+const nameRegex = /^[A-Za-zÀ-ÖØ-öø-ÿ ]{2,50}$/;
+
+// Occupation: letters, numbers, spaces, and common punctuation
+const occupationRegex = /^[A-Za-zÀ-ÖØ-öø-ÿ0-9'.,&()\/ -]{2,100}$/;
+
+// Street address: allows numbers, letters, spaces, and common address characters
+const streetAddressRegex = /^[A-Za-zÀ-ÖØ-öø-ÿ0-9 .,#\/-]{5,150}$/;
 // ===================================
 // DOM ELEMENTS
 // ===================================
@@ -58,12 +66,16 @@ const alertOverlay = document.getElementById("customAlertOverlay");
 const alertIcon = document.getElementById("customAlertIcon");
 const alertMessage = document.getElementById("customAlertMessage");
 const alertBtn = document.getElementById("customAlertBtn");
+
+const firstNameHelper = document.getElementById("firstNameHelper");
+const lastNameHelper = document.getElementById("lastNameHelper");
+const occupationInput = document.getElementById("occupation");
+const occupationHelper = document.getElementById("occupationHelper");
+const streetAddressHelper = document.getElementById("streetAddressHelper");
+
 let currentAlertCallback = null;
-
 let isEmailValidAndAvailable = false;
-
 let isBirthdayValid = false;
-
 let regionsData = [];
 let provincesData = [];
 let citiesData = [];
@@ -117,10 +129,147 @@ function validateAgeAndBirthday() {
     }
 }
 
+// ===================================
+// NAME VALIDATION
+// ===================================
+function validateName(input, helper, fieldName) {
+    const value = input.value.trim();
 
+    if (value === "") {
+        helper.textContent = `${fieldName} is required.`;
+        helper.className = "input-helper-text error";
+        return false;
+    }
+
+    if (value.length > 50) {
+        helper.textContent = `${fieldName} must not exceed 50 characters.`;
+        helper.className = "input-helper-text error";
+        return false;
+    }
+
+    if (!nameRegex.test(value)) {
+        helper.textContent =
+            `${fieldName} can only contain letters and spaces. Numbers and special characters are not allowed.`;
+        helper.className = "input-helper-text error";
+        return false;
+    }
+
+    helper.textContent = "";
+    helper.className = "input-helper-text success";
+    return true;
+}
+// ===================================
+// OCCUPATION VALIDATION
+// ===================================
+
+function validateOccupation() {
+
+    const value = occupationInput.value.trim();
+
+    // Optional field
+    if (value === "") {
+        occupationHelper.innerHTML = "";
+        return true;
+    }
+
+    if (value.length < 2) {
+        occupationHelper.className = "input-helper-text error";
+        occupationHelper.innerHTML =
+            "<i class='fa-solid fa-circle-xmark'></i> " +
+            "Occupation must be at least 2 characters.";
+
+        return false;
+    }
+
+    if (value.length > 100) {
+        occupationHelper.className = "input-helper-text error";
+        occupationHelper.innerHTML =
+            "<i class='fa-solid fa-circle-xmark'></i> " +
+            "Occupation must not exceed 100 characters.";
+
+        return false;
+    }
+
+    if (!occupationRegex.test(value)) {
+        occupationHelper.className = "input-helper-text error";
+        occupationHelper.innerHTML =
+            "<i class='fa-solid fa-circle-xmark'></i> " +
+            "Occupation contains invalid characters.";
+
+        return false;
+    }
+
+    occupationHelper.className = "input-helper-text success";
+    occupationHelper.innerHTML =
+        "<i class='fa-solid fa-circle-check'></i> Valid occupation.";
+
+    return true;
+}
+// ===================================
+// STREET ADDRESS VALIDATION
+// ===================================
+function validateStreetAddress() {
+
+    const value = streetAddress.value.trim();
+
+    if (value === "") {
+        streetAddressHelper.className = "input-helper-text error";
+        streetAddressHelper.innerHTML =
+            "<i class='fa-solid fa-circle-xmark'></i> " +
+            "Street address is required.";
+
+        return false;
+    }
+
+    if (value.length < 5) {
+        streetAddressHelper.className = "input-helper-text error";
+        streetAddressHelper.innerHTML =
+            "<i class='fa-solid fa-circle-xmark'></i> " +
+            "Please enter a complete street address.";
+
+        return false;
+    }
+
+    if (value.length > 150) {
+        streetAddressHelper.className = "input-helper-text error";
+        streetAddressHelper.innerHTML =
+            "<i class='fa-solid fa-circle-xmark'></i> " +
+            "Street address must not exceed 150 characters.";
+
+        return false;
+    }
+
+    if (!streetAddressRegex.test(value)) {
+        streetAddressHelper.className = "input-helper-text error";
+        streetAddressHelper.innerHTML =
+            "<i class='fa-solid fa-circle-xmark'></i> " +
+            "Street address can only contain letters, numbers, spaces, and common address characters such as . , # / and -.";
+
+        return false;
+    }
+
+    streetAddressHelper.className = "input-helper-text success";
+    streetAddressHelper.innerHTML =
+        "<i class='fa-solid fa-circle-check'></i> Valid street address.";
+
+    return true;
+}
 function validateStep1() {
-    const hasNames = firstName.value.trim().length > 0 && lastName.value.trim().length > 0;
-    nextToStep2.disabled = !(hasNames && isBirthdayValid);
+
+    const firstNameValid =
+        validateName(firstName, firstNameHelper, "First Name");
+
+    const lastNameValid =
+        validateName(lastName, lastNameHelper, "Last Name");
+
+    const occupationValid =
+        validateOccupation();
+
+    nextToStep2.disabled =
+        !(firstNameValid &&
+          lastNameValid &&
+          occupationValid &&
+          isBirthdayValid);
 }
 
 birthdayInput.addEventListener('input', () => {
@@ -132,12 +281,20 @@ birthdayInput.addEventListener('change', () => {
     validateStep1();
 });
 
-[firstName, lastName].forEach(el => el.addEventListener('input', validateStep1));
+[firstName, lastName, occupationInput].forEach(el => {
+    el.addEventListener("input", validateStep1);
+});
 
 function validateStep2() {
-    const isZipValid = zipRegex.test(zipCode.value.trim());
-    const isComplete = 
-        streetAddress.value.trim().length > 0 &&
+
+    const isStreetValid =
+        validateStreetAddress();
+
+    const isZipValid =
+        zipRegex.test(zipCode.value.trim());
+
+    const isComplete =
+        isStreetValid &&
         regionSelect.value.trim().length > 0 &&
         provinceSelect.value.trim().length > 0 &&
         citySelect.value.trim().length > 0 &&
@@ -147,7 +304,9 @@ function validateStep2() {
     nextToStep3.disabled = !isComplete;
 }
 
-[streetAddress, zipCode].forEach(el => el.addEventListener('input', validateStep2));
+[streetAddress, zipCode].forEach(el =>
+    el.addEventListener('input', validateStep2)
+);
 [regionSelect, provinceSelect, citySelect, barangaySelect].forEach(el => el.addEventListener('change', validateStep2));
 
 
@@ -364,7 +523,30 @@ form.addEventListener("submit", async function(e) {
         showCustomAlert("Passwords do not match.", "error");
         return;
     }
+    const firstNameValid =
+    validateName(firstName, firstNameHelper, "First Name");
 
+const lastNameValid =
+    validateName(lastName, lastNameHelper, "Last Name");
+
+const occupationValid =
+    validateOccupation();
+
+const streetAddressValid =
+    validateStreetAddress();
+
+if (
+    !firstNameValid ||
+    !lastNameValid ||
+    !occupationValid ||
+    !streetAddressValid
+) {
+    showCustomAlert(
+        "Please correct the highlighted fields before creating your account.",
+        "error"
+    );
+    return;
+}
     const payload = {
         firstName: document.getElementById("firstName").value.trim(),
         lastName: document.getElementById("lastName").value.trim(),
@@ -373,9 +555,9 @@ form.addEventListener("submit", async function(e) {
         occupation: document.getElementById("occupation").value.trim(),
         streetAddress: streetAddress.value.trim(),
         region: regionSelect.value.trim(),
-        barangay: barangay.value.trim(),
-        city: city.value.trim(),
-        province: province.value.trim(),
+        barangay: barangaySelect.value.trim(),
+        city: citySelect.value.trim(),
+        province: provinceSelect.value.trim(),
         zipCode: zipCode.value.trim(),
         phoneNumber: phoneNumber,
         email: email,
