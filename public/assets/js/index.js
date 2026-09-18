@@ -4,6 +4,155 @@ let currentQrSrc = "";
 let currentQrOrgName = "";    
 let currentQrMethod = "";     
 
+// ==========================================
+// CUSTOM MESSAGE BOX
+// ==========================================
+
+const messageBox = document.getElementById("messageBox");
+const messageIcon = document.getElementById("messageIcon");
+const messageTitle = document.getElementById("messageTitle");
+const messageText = document.getElementById("messageText");
+const messageCancelBtn = document.getElementById("messageCancelBtn");
+const messageConfirmBtn = document.getElementById("messageConfirmBtn");
+
+let messageResolver = null;
+
+const messageStyles = {
+    success: {
+        title: "Success",
+        icon: "fa-check",
+        iconBg: "bg-emerald-100",
+        iconText: "text-emerald-600"
+    },
+    error: {
+        title: "Error",
+        icon: "fa-xmark",
+        iconBg: "bg-red-100",
+        iconText: "text-red-600"
+    },
+    warning: {
+        title: "Warning",
+        icon: "fa-exclamation",
+        iconBg: "bg-amber-100",
+        iconText: "text-amber-600"
+    },
+    info: {
+        title: "Information",
+        icon: "fa-info",
+        iconBg: "bg-blue-100",
+        iconText: "text-blue-600"
+    }
+};
+
+function openMessageBox() {
+    if (!messageBox) return;
+
+    messageBox.classList.remove("hidden");
+    messageBox.classList.add("flex");
+    messageBox.setAttribute("aria-hidden", "false");
+    document.body.style.overflow = "hidden";
+}
+
+function closeMessageBox(result = false) {
+    if (!messageBox) return;
+
+    messageBox.classList.remove("flex");
+    messageBox.classList.add("hidden");
+    messageBox.setAttribute("aria-hidden", "true");
+    document.body.style.overflow = "";
+
+    if (messageResolver) {
+        messageResolver(result);
+        messageResolver = null;
+    }
+}
+
+function showMessage(message, type = "info") {
+    return new Promise((resolve) => {
+        if (!messageBox) {
+            resolve(false);
+            return;
+        }
+
+        messageResolver = resolve;
+
+        const style = messageStyles[type] || messageStyles.info;
+
+        messageTitle.textContent = style.title;
+        messageText.textContent = message;
+
+        messageIcon.className =
+            `mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full ${style.iconBg}`;
+
+        messageIcon.innerHTML =
+            `<i class="fa-solid ${style.icon} text-2xl ${style.iconText}"></i>`;
+
+        messageCancelBtn.classList.add("hidden");
+
+        messageConfirmBtn.textContent = "OK";
+        messageConfirmBtn.className =
+            "flex-1 rounded-xl bg-[#0151ff] px-5 py-3 font-semibold text-white transition hover:bg-[#003fe0]";
+
+        openMessageBox();
+    });
+}
+
+function showConfirm(message, options = {}) {
+    return new Promise((resolve) => {
+        if (!messageBox) {
+            resolve(false);
+            return;
+        }
+
+        messageResolver = resolve;
+
+        messageTitle.textContent = options.title || "Are you sure?";
+        messageText.textContent = message;
+
+        messageIcon.className =
+            "mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-amber-100";
+
+        messageIcon.innerHTML =
+            '<i class="fa-solid fa-question text-2xl text-amber-600"></i>';
+
+        messageCancelBtn.classList.remove("hidden");
+        messageCancelBtn.textContent = "Cancel";
+
+        messageConfirmBtn.textContent = options.confirmText || "Confirm";
+
+        messageConfirmBtn.className = options.danger
+            ? "flex-1 rounded-xl bg-red-600 px-5 py-3 font-semibold text-white transition hover:bg-red-700"
+            : "flex-1 rounded-xl bg-[#0151ff] px-5 py-3 font-semibold text-white transition hover:bg-[#003fe0]";
+
+        openMessageBox();
+    });
+}
+
+if (messageConfirmBtn) {
+    messageConfirmBtn.addEventListener("click", () => {
+        closeMessageBox(true);
+    });
+}
+
+if (messageCancelBtn) {
+    messageCancelBtn.addEventListener("click", () => {
+        closeMessageBox(false);
+    });
+}
+
+if (messageBox) {
+    messageBox.addEventListener("click", (event) => {
+        if (event.target === messageBox) {
+            closeMessageBox(false);
+        }
+    });
+}
+
+document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && messageBox?.classList.contains("flex")) {
+        closeMessageBox(false);
+    }
+});
 document.addEventListener("DOMContentLoaded", () => {
     fetchOrganizationsData();
      startStatsPolling();
@@ -257,7 +406,7 @@ async function handlePublicDonationSubmit(event) {
 
     // ⭐ Pre-check bago pa mag-fetch
     if (!orgId) {
-        alert("Please select an organization first.");
+        await showMessage("Please select an organization first.", "warning");
         return;
     }
         // ⭐ Amount validation — block zero at negative
@@ -266,11 +415,11 @@ async function handlePublicDonationSubmit(event) {
     const amountValue = amountField ? parseFloat(amountField.value) : NaN;
 
     if (!amountField || amountField.value.trim() === "" || isNaN(amountValue)) {
-        alert("Please enter a donation amount.");
+        await showMessage("Please enter a donation amount.", "warning");
         return;
     }
     if (amountValue <= 0) {
-        alert("Donation amount must be greater than zero. Negative amounts are not allowed.");
+        await showMessage("Donation amount must be greater than zero. Negative amounts are not allowed.","warning");
         if (amountField) amountField.value = "";
         return;
     }
@@ -286,7 +435,10 @@ async function handlePublicDonationSubmit(event) {
         const nameInput = document.getElementById('donorName');
         const typedName = (nameInput?.value || '').trim();
         if (!typedName) {
-            alert('Please enter your name or check "Donate Anonymously".');
+            await showMessage(
+                'Please enter your name or check "Donate Anonymously".',
+                "warning"
+            );
             return;
         }
         formData.set('donor_name', typedName);
@@ -319,7 +471,10 @@ async function handlePublicDonationSubmit(event) {
         try {
             result = JSON.parse(raw);
         } catch (parseErr) {
-            alert(`Server error (${response.status}). Please check console.`);
+            await showMessage(
+                `Server error (${response.status}). Please check the console.`,
+                "error"
+            );
             return;
         }
 
@@ -359,11 +514,17 @@ async function handlePublicDonationSubmit(event) {
                 rows: summaryRows
             });
         } else {
-            alert('Error: ' + (result.error || 'Failed to submit donation.'));
+            await showMessage(
+                result.error || "Failed to submit donation.",
+                "error"
+            );
         }
     } catch (err) {
         console.error("Donation submit error:", err);
-        alert('An unexpected error occurred. Please try again later.');
+        await showMessage(
+            "An unexpected error occurred. Please try again later.",
+            "error"
+        );
     }
 }
 function switchDonationType(type) {
@@ -416,7 +577,7 @@ async function handleInKindSubmit(event) {
     const isAnonymous = document.getElementById('inkindAnonymousCheck').checked;
 
     if (!orgId) {
-        alert("Please select an organization first.");
+        await showMessage("Please select an organization first.", "warning");
         return;
     }
 
