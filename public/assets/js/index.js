@@ -365,26 +365,26 @@ function updatePaymentDetails() {
     currentQrMethod  = selectedMethodText;
 
     if (qrContainer) {
-    if (activeQR) {
-        qrContainer.innerHTML = `<img id="qrInlineImg" src="" alt="Payment QR Code" class="w-full h-full object-contain rounded-[12px]">`;
-        const imgEl = document.getElementById("qrInlineImg");
-        // ⭐ I-crop ang QR bago i-display
-        cropQrToSquare(activeQR).then(croppedSrc => {
-            if (imgEl) imgEl.src = croppedSrc;
-        });
-        if (viewQrBtn) viewQrBtn.style.display = 'inline-flex';
-    } else {
+        if (activeQR) {
+            qrContainer.innerHTML = `<img id="qrInlineImg" src="" alt="Payment QR Code" class="w-full h-full object-contain rounded-[12px]">`;
+            const imgEl = document.getElementById("qrInlineImg");
+
+            // ⭐ IPASA ang method name sa crop function
+            cropQrToSquare(activeQR, selectedMethodText).then(croppedSrc => {
+                if (imgEl) imgEl.src = croppedSrc;
+            });
+
+            if (viewQrBtn) viewQrBtn.style.display = 'inline-flex';
+        } else {
             qrContainer.innerHTML = `
                 <div class="text-center">
                     <i class="fa-solid fa-qrcode text-[50px] text-[#94a3b8] mb-1"></i>
                     <span class="text-[11px] text-[#64748b] block font-semibold">[ No QR Available ]</span>
                 </div>`;
-            //  Itago ang button
             if (viewQrBtn) viewQrBtn.style.display = 'none';
         }
     }
 }
-
 function toggleDonorFields() {
     const isAnonymous = document.getElementById('anonymousCheck').checked;
     const fieldsContainer = document.getElementById('donorDetailsFields');
@@ -680,11 +680,12 @@ function openQrModal() {
     const org   = document.getElementById('qrModalOrg');
     if (!modal || !img) return;
 
-    // ⭐ I-crop din sa modal para QR box lang
-cropQrToSquare(currentQrSrc).then(croppedSrc => {
-    img.src = croppedSrc;
-});
-title.textContent = `Scan to Donate via ${currentQrMethod}`;
+    // ⭐ IPASA ang method name para tamang crop sa modal
+    cropQrToSquare(currentQrSrc, currentQrMethod).then(croppedSrc => {
+        img.src = croppedSrc;
+    });
+
+    title.textContent = `Scan to Donate via ${currentQrMethod}`;
     sub.textContent   = `[ ${currentQrMethod} QR Code ]`;
     org.textContent   = currentQrOrgName;
 
@@ -733,8 +734,13 @@ async function handleReceiptUpload(event) {
 
       lockReceiptFields();
 }
-function cropQrToSquare(src) {
+function cropQrToSquare(src, method = "gcash") {
     return new Promise((resolve) => {
+        if (!src) {
+            resolve(src);
+            return;
+        }
+
         const img = new Image();
         img.crossOrigin = "anonymous";
 
@@ -745,24 +751,29 @@ function cropQrToSquare(src) {
 
             let cropX = 0, cropY = 0, cropW = w, cropH = h;
 
-            // Kung portrait (GCash/Maya screenshot) → i-crop sa QR region lang
             if (ratio < 0.95) {
-                const widthPct  = 0.52;   // ⭐ narrower para di abutin ang text sa baba
-                const topPct    = 0.19;   // simula sa taas (lampas sa blue header)
-                const bottomPct = 0.46;   // ⭐ hangganan sa baba — bago mag-"Transfer fees may apply"
+                let widthPct, topPct, bottomPct;
+
+                if (String(method).toLowerCase().includes("maya")) {
+                    widthPct  = 0.55;
+                    topPct    = 0.31;
+                    bottomPct = 0.79;
+                } else {
+                    widthPct  = 0.52;
+                    topPct    = 0.19;
+                    bottomPct = 0.46;
+                }
 
                 cropW = w * widthPct;
                 cropX = (w - cropW) / 2;
                 cropY = h * topPct;
                 cropH = (h * bottomPct) - cropY;
 
-                // Fallback kung mali ang values
                 if (cropH <= 0 || cropH > h) cropH = cropW;
                 if (cropY + cropH > h) cropY = h - cropH;
                 if (cropY < 0) cropY = 0;
             }
 
-            // ⭐ Output sa natural aspect ratio (hindi stretched)
             const outWidth  = 600;
             const outHeight = Math.round(outWidth * (cropH / cropW));
 

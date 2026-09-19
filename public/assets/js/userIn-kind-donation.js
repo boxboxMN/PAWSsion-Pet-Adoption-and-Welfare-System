@@ -13,42 +13,98 @@ document.addEventListener('DOMContentLoaded', async function() {
     let organizations = [];
     let selectedOrganization = null;
 
-    // Removed itemSelect since it's now a direct text input in the HTML[cite: 1]
     const itemNameInput = document.getElementById('itemNameInput');
     const quantityInput = document.getElementById('quantityInput');
+    const unitInput     = document.getElementById('unitInput');       // ⭐ NEW
     const termsCheckbox = document.getElementById('termsCheckbox');
-    const submitBtn = document.getElementById('submitInKindBtn');
+    const submitBtn     = document.getElementById('submitInKindBtn');
 
-    // Pinipigilan ang pag-type ng symbols/emoji sa Quantity field
-    // Pinapayagan: digits, letters, at space lang (para sa mga tulad ng "5kg", "3 packs")
+    // ⭐ Quantity — numbers only, block negatives, decimals, at e/E
     if (quantityInput) {
-        quantityInput.setAttribute("maxlength", "5");
         quantityInput.addEventListener("input", function () {
-            const cleaned = this.value.replace(/\D/g, "");
-            if (this.value !== cleaned) {
-                this.value = cleaned;
+            // Alisin ang non-digits
+            this.value = this.value.replace(/[^0-9]/g, "");
+            // Block 0
+            if (this.value === "0") this.value = "";
+        });
+        quantityInput.addEventListener("keydown", function (e) {
+            const blockedKeys = ["-", ".", "e", "E", "+", "Subtract", "Decimal"];
+            if (blockedKeys.includes(e.key)) {
+                e.preventDefault();
+            }
+        });
+        quantityInput.addEventListener("paste", function (e) {
+            const pasted = (e.clipboardData || window.clipboardData).getData("text");
+            if (!/^\d+$/.test(pasted.trim())) {
+                e.preventDefault();
             }
         });
     }
 
-    const dropoffTitle = document.getElementById('dropoffTitle');
+    const dropoffTitle   = document.getElementById('dropoffTitle');
     const dropoffAddress = document.getElementById('dropoffAddress');
-    const dropoffHours = document.getElementById('dropoffHours');
-    const dropoffNotes = document.getElementById('dropoffNotes');
-    const dropoffImg = document.getElementById('dropoffImg');
-    const modal = document.getElementById("orgModal");
-    const closeBtn = document.getElementById("modalClose");
-    const closeBtn2 = document.getElementById("modalCloseBtn");
+    const dropoffHours   = document.getElementById('dropoffHours');
+    const dropoffNotes   = document.getElementById('dropoffNotes');
+    const dropoffImg     = document.getElementById('dropoffImg');
+    const modal          = document.getElementById("orgModal");
+    const closeBtn       = document.getElementById("modalClose");
+    const closeBtn2      = document.getElementById("modalCloseBtn");
 
-    const orgName = document.getElementById("modalOrgName");
+    const orgName    = document.getElementById("modalOrgName");
     const orgAddress = document.getElementById("modalOrgAddress");
-    const orgPhone = document.getElementById("modalOrgPhone");
-    const orgEmail = document.getElementById("modalOrgEmail");
+    const orgPhone   = document.getElementById("modalOrgPhone");
+    const orgEmail   = document.getElementById("modalOrgEmail");
     const orgMission = document.getElementById("modalOrgMission");
 
-    /**
-     * Returns a valid image URL.[cite: 2]
-     */
+    // ==========================================
+    // ITEM NAME VALIDATION (same sa index.js)
+    // ==========================================
+    function validateItemName(name) {
+        const value = (name || '').trim();
+
+        if (!value)
+            return { valid: false, reason: 'Please enter the item you wish to donate.' };
+
+        if (value.length < 3)
+            return { valid: false, reason: 'Item name is too short. Please enter a valid item name.' };
+
+        if (value.length > 100)
+            return { valid: false, reason: 'Item name is too long (max 100 characters).' };
+
+        if (!/^[a-zA-Z0-9\s\-',.()\/&+]+$/.test(value))
+            return { valid: false, reason: 'Item name contains invalid characters.' };
+
+        if (!/[a-zA-Z]/.test(value))
+            return { valid: false, reason: 'Item name must contain letters.' };
+
+        if (!/[aeiouAEIOU]/.test(value))
+            return { valid: false, reason: 'Please enter a valid item name.' };
+
+        // No character repeated 4+ times in a row
+        if (/(.)\1{3,}/i.test(value))
+            return { valid: false, reason: 'Please enter a valid item name.' };
+
+        // No 5+ consecutive consonants
+        if (/[bcdfghjklmnpqrstvwxyzBCDFGHJKLMNPQRSTVWXYZ]{5,}/.test(value))
+            return { valid: false, reason: 'Please enter a valid item name.' };
+
+        // Keyboard mash
+        if (/(asdf|sdfg|dfgh|fghj|ghjk|hjkl|qwer|wert|erty|rtyu|tyui|yuiop|zxcv|xcvb|cvbn|vbnm)/i
+                .test(value.replace(/\s+/g, '')))
+            return { valid: false, reason: 'Please enter a valid item name.' };
+
+        // Bawat word (3+ letters) dapat may vowel
+        const words = value.split(/[\s\-',.()\/&+]+/).filter(Boolean);
+        for (const w of words) {
+            const letters = w.replace(/[^a-zA-Z]/g, '');
+            if (letters.length >= 3 && !/[aeiouAEIOU]/.test(letters)) {
+                return { valid: false, reason: 'Please enter a valid item name.' };
+            }
+        }
+
+        return { valid: true };
+    }
+
     function getValidImageUrl(imagePath, fallbackUrl) {
         if (!imagePath || imagePath.trim() === "" || imagePath === "null" || imagePath === "undefined") {
             return fallbackUrl;
@@ -59,15 +115,11 @@ document.addEventListener('DOMContentLoaded', async function() {
         return imagePath;
     }
 
-    /**
-     * Retrieves all verified organizations from the server[cite: 2]
-     */
     async function loadOrganizations() {
         try {
             const response = await fetch("/api/organizations");
             const allOrganizations = await response.json();
 
-            // Ipakita lang ang mga org na may configured drop-off address para sa in-kind donations
             organizations = (Array.isArray(allOrganizations) ? allOrganizations : []).filter(org =>
                 org.dropoff_address && org.dropoff_address.trim() !== ""
             );
@@ -134,41 +186,26 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
 
     function updateDropoffInfo(id) {
-    const org = organizations.find(o => o.organization_id == id);
-    if (!org) return;
+        const org = organizations.find(o => o.organization_id == id);
+        if (!org) return;
 
-    if (dropoffTitle) {
-        dropoffTitle.textContent = org.dropoff_location_name || ""; 
-    }
+        if (dropoffTitle)   dropoffTitle.textContent = org.dropoff_location_name || "";
+        if (dropoffAddress) dropoffAddress.textContent = org.dropoff_address || "";
+        if (dropoffHours)   dropoffHours.textContent = org.dropoff_hours || "";
+        if (dropoffNotes)   dropoffNotes.textContent = org.dropoff_notes || "";
 
-    if (dropoffAddress) {
-        dropoffAddress.textContent = org.dropoff_address || "";
-    }
-
-    if (dropoffHours) {
-        dropoffHours.textContent = org.dropoff_hours || "";
-    }
-
-    if (dropoffNotes) {
-        dropoffNotes.textContent = org.dropoff_notes || "";
-    }
-
-    if (dropoffImg) {
-        if (org.dropoff_image) {
-            const dropoffImgUrl = getValidImageUrl(org.dropoff_image, "/assets/images/cspc.png");
-            dropoffImg.src = dropoffImgUrl;
-            dropoffImg.style.display = "block";
-        } else {
-            dropoffImg.src = ""; 
-            dropoffImg.style.display = "none"; 
+        if (dropoffImg) {
+            if (org.dropoff_image) {
+                const dropoffImgUrl = getValidImageUrl(org.dropoff_image, "/assets/images/cspc.png");
+                dropoffImg.src = dropoffImgUrl;
+                dropoffImg.style.display = "block";
+            } else {
+                dropoffImg.src = "";
+                dropoffImg.style.display = "none";
+            }
         }
     }
-}
 
-    /**
-     * Opens the organization profile modal
-     * and fetches its complete details and logo dynamically.
-     */
     async function openModal(id) {
         const org = organizations.find(o => o.organization_id == id);
         if (!org || !modal) return;
@@ -183,11 +220,11 @@ document.addEventListener('DOMContentLoaded', async function() {
             const response = await fetch(`/api/organizations/${id}`);
             if (response.ok) {
                 const fullOrg = await response.json();
-                
+
                 if (orgName) orgName.textContent = fullOrg.organization_name || org.organization_name;
                 if (orgAddress) {
-                    const addressText = fullOrg.city && fullOrg.province 
-                        ? `${fullOrg.city}, ${fullOrg.province}` 
+                    const addressText = fullOrg.city && fullOrg.province
+                        ? `${fullOrg.city}, ${fullOrg.province}`
                         : (fullOrg.address || `${org.city || ''}, ${org.province || ''}`);
                     orgAddress.innerHTML = `<i class="fa-solid fa-location-dot"></i> ${addressText}`;
                 }
@@ -219,7 +256,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         document.body.style.overflow = "";
     }
 
-    if (closeBtn) closeBtn.addEventListener("click", closeModal);
+    if (closeBtn)  closeBtn.addEventListener("click", closeModal);
     if (closeBtn2) closeBtn2.addEventListener("click", closeModal);
 
     if (modal) {
@@ -232,99 +269,112 @@ document.addEventListener('DOMContentLoaded', async function() {
         if (e.key === "Escape") closeModal();
     });
 
-    // Handle In-Kind Submission
-if (submitBtn) {
-    submitBtn.addEventListener("click", async function (e) {
-        e.preventDefault();
+    // ==========================================
+    // IN-KIND SUBMISSION
+    // ==========================================
+    if (submitBtn) {
+        submitBtn.addEventListener("click", async function (e) {
+            e.preventDefault();
 
-        if (!selectedOrganization) {
-            showToast("Please select an organization to donate to.", "error");
-            return;
-        }
-
-        const org = organizations.find(o => o.organization_id == selectedOrganization);
-        if (!org || !org.dropoff_address || org.dropoff_address.trim() === "") {
-            showToast("This organization hasn't provided drop-off location details yet. In-kind donation is temporarily unavailable.", "error");
-            return;
-        }
-
-        const finalItemName = itemNameInput ? itemNameInput.value.trim() : "";
-        const quantity = quantityInput ? quantityInput.value.trim() : "";
-
-        const gibberishPattern = /(.)\1{3,}/;
-        const validItemPattern = /^[a-zA-Z0-9\sñÑ-]{3,}$/;
-        const hasVowel = /[aeiouAEIOU]/.test(finalItemName);
-
-        if (!finalItemName || finalItemName.length < 3) {
-            showToast("Please enter a valid item name (at least 3 characters).", "error");
-            return;
-        }
-        if (/^[0-9]+$/.test(finalItemName)) {
-            showToast("Item name cannot consist of numbers only.", "error");
-            return;
-        }
-        if (!hasVowel || gibberishPattern.test(finalItemName) || !validItemPattern.test(finalItemName)) {
-            showToast("Invalid item name detected. Please enter a proper item description (e.g., Dry Dog Food, Canned Goods).", "error");
-            return;
-        }
-        const strictQuantityPattern = /^[1-9]\d*$/;
-
-        if (!quantity || !strictQuantityPattern.test(quantity)) {
-            showToast("Please enter a valid quantity (numbers only, greater than zero).", "error");
-            return;
-        }
-
-        if (termsCheckbox && !termsCheckbox.checked) {
-            showToast("You must agree to the in-kind donation guidelines before submitting.", "error");
-            return;
-        }
-
-        const payload = {
-            organization_id: selectedOrganization,
-            item_name: finalItemName,
-            quantity: quantity
-        };
-
-        const originalBtnText = submitBtn.textContent;
-
-        try {
-            submitBtn.disabled = true;
-            submitBtn.textContent = "Submitting...";
-
-            const res = await fetch("/api/user/donation/in-kind", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload)
-            });
-
-            const data = await res.json();
-
-            if (data.success) {
-                showToast(data.message || "Thank you! Your in-kind donation offer has been submitted.", "success");
-                setTimeout(() => window.location.reload(), 1500);
-            } else {
-                showToast(data.error || data.message || "Unable to process donation.", "error");
+            if (!selectedOrganization) {
+                showToast("Please select an organization to donate to.", "error");
+                return;
             }
-        } catch (err) {
-            console.error("Submission Error:", err);
-            showToast("An error occurred while connecting to the server.", "error");
-        } finally {
-            submitBtn.disabled = false;
-            submitBtn.textContent = originalBtnText;
-        }
-    });
-}
+
+            const org = organizations.find(o => o.organization_id == selectedOrganization);
+            if (!org || !org.dropoff_address || org.dropoff_address.trim() === "") {
+                showToast("This organization hasn't provided drop-off location details yet. In-kind donation is temporarily unavailable.", "error");
+                return;
+            }
+
+            const finalItemName = itemNameInput ? itemNameInput.value.trim() : "";
+            const quantity      = quantityInput ? quantityInput.value.trim() : "";
+            const unit          = unitInput     ? unitInput.value             : "pcs";
+
+            // ⭐ Item name validation (same sa index.js)
+            const itemCheck = validateItemName(finalItemName);
+            if (!itemCheck.valid) {
+                showToast(itemCheck.reason, "error");
+                return;
+            }
+
+            // ⭐ Quantity validation — positive whole number
+            const strictQuantityPattern = /^[1-9]\d*$/;
+            if (!quantity || !strictQuantityPattern.test(quantity)) {
+                showToast("Please enter a valid quantity (numbers only, greater than zero).", "error");
+                return;
+            }
+
+            // ⭐ Unit validation — dapat nasa allowed list
+            const allowedUnits = ["pcs", "kg", "packs", "boxes", "sacks", "bottles", "liters"];
+            if (!allowedUnits.includes(unit)) {
+                showToast("Please select a valid unit.", "error");
+                return;
+            }
+
+            if (termsCheckbox && !termsCheckbox.checked) {
+                showToast("You must agree to the in-kind donation guidelines before submitting.", "error");
+                return;
+            }
+
+            // ⭐ Payload with unit
+            const payload = {
+                organization_id: selectedOrganization,
+                item_name: finalItemName,
+                quantity: parseInt(quantity, 10),
+                unit: unit
+            };
+
+            console.log("[In-Kind] payload:", payload);
+
+            const originalBtnText = submitBtn.textContent;
+
+            try {
+                submitBtn.disabled = true;
+                submitBtn.textContent = "Submitting...";
+
+                const res = await fetch("/api/user/donation/in-kind", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await res.json();
+
+                if (data.success) {
+                    showToast(data.message || "Thank you! Your in-kind donation offer has been submitted.", "success");
+
+                    // Reset form
+                    if (itemNameInput) itemNameInput.value = "";
+                    if (quantityInput) quantityInput.value = "";
+                    if (unitInput)     unitInput.value = "pcs";
+                    if (termsCheckbox) termsCheckbox.checked = false;
+
+                    setTimeout(() => window.location.reload(), 1500);
+                } else {
+                    showToast(data.error || data.message || "Unable to process donation.", "error");
+                }
+            } catch (err) {
+                console.error("Submission Error:", err);
+                showToast("An error occurred while connecting to the server.", "error");
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalBtnText;
+            }
+        });
+    }
+
     function showToast(message, type = "error") {
         const container = document.getElementById("toastContainer");
         if (!container) return;
 
         const isSuccess = type === "success";
-        const bgColor = isSuccess ? "bg-emerald-600" : "bg-rose-600";
+        const bgColor   = isSuccess ? "bg-emerald-600" : "bg-rose-600";
         const iconClass = isSuccess ? "fa-circle-check" : "fa-circle-exclamation";
 
         const toast = document.createElement("div");
         toast.className = `${bgColor} text-white px-5 py-3.5 rounded-xl shadow-xl flex items-center gap-3 transition-all duration-300 transform translate-y-5 opacity-0 pointer-events-auto max-w-md`;
-        
+
         toast.innerHTML = `
             <i class="fa-solid ${iconClass} text-lg"></i>
             <span class="text-sm font-medium leading-snug">${message}</span>

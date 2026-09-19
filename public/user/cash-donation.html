@@ -139,12 +139,7 @@
 
         <div class="h-[calc(100vh-6rem)] overflow-y-auto p-8">
             
-            <!-- BACK BUTTON -->
-            <div class="mb-6">
-                <a href="javascript:history.back()" class="inline-flex items-center gap-2 text-sm font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 px-4 py-2 rounded-xl transition border border-blue-200">
-                    <i class="fa-solid fa-arrow-left"></i> Back
-                </a>
-            </div>
+    
 
             <div class="text-center mb-8">
                 <h1 class="text-4xl font-bold text-blue-700">
@@ -212,11 +207,20 @@
                                 </div>
                                 <div>
                                     <span class="text-blue-700 font-medium text-sm block">Choose file to upload</span>
-                                    <span id="receiptFileName" class="text-xs text-gray-500">Accepted file type: jpg, png, webp</span>
+                                   <span id="receiptFileName" class="text-xs text-gray-500">
+                                        Accepted file type: JPG, JPEG, PNG (max 5MB)
+                                    </span>
                                 </div>
                             </div>
                             <span class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-4 py-2 rounded-lg font-medium transition">Browse</span>
-                            <input type="file" id="receiptInput" name="receipt" class="hidden" accept="image/*" required />
+                            <input 
+                                type="file" 
+                                id="receiptInput" 
+                                name="receipt" 
+                                class="hidden" 
+                                accept="image/jpeg,image/jpg,image/png,.jpg,.jpeg,.png" 
+                                required 
+                            />
                         </label>
 
                         <!-- OCR Status -->

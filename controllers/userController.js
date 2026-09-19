@@ -708,27 +708,42 @@ exports.submitInKindDonation = async (req, res) => {
         return res.status(401).json({ success: false, error: "Unauthorized access. Please login." });
     }
 
-    const { organization_id, item_name, quantity } = req.body;
+    const { organization_id, item_name, quantity, unit } = req.body;
 
-    if (!organization_id || !item_name || !quantity) {
+    // ⭐ Required fields check
+    if (!organization_id || !item_name || quantity === undefined || quantity === null || quantity === "") {
         return res.status(400).json({ success: false, error: "Please fill in all required fields." });
     }
 
-    const cleanItemName = item_name.trim();
-    const cleanQuantity = quantity.trim();
+    // ⭐ SAFE conversion — tanggapin ang number OR string
+    const cleanItemName = String(item_name).trim();
+    const cleanQuantity = String(quantity).trim();
+    const cleanUnit     = (unit && String(unit).trim()) ? String(unit).trim() : "pcs";
 
-    // Strict Server-Side Validation
+    // Validation
     const gibberishPattern = /(.)\1{3,}/;
     const validItemPattern = /^[a-zA-Z0-9\sñÑ-]{3,}$/;
     const hasVowel = /[aeiouAEIOU]/.test(cleanItemName);
     const strictQuantityPattern = /^[1-9]\d*$/;
 
-    if (cleanItemName.length < 3 || /^[0-9]+$/.test(cleanItemName) || !hasVowel || gibberishPattern.test(cleanItemName) || !validItemPattern.test(cleanItemName)) {
+    if (
+        cleanItemName.length < 3 ||
+        /^[0-9]+$/.test(cleanItemName) ||
+        !hasVowel ||
+        gibberishPattern.test(cleanItemName) ||
+        !validItemPattern.test(cleanItemName)
+    ) {
         return res.status(400).json({ success: false, error: "Invalid item name format. Please enter a real item description." });
     }
 
     if (!strictQuantityPattern.test(cleanQuantity)) {
         return res.status(400).json({ success: false, error: "Invalid quantity. Please enter a whole number greater than zero (e.g., 5)." });
+    }
+
+    // ⭐ Unit validation
+    const allowedUnits = ["pcs", "kg", "packs", "boxes", "sacks", "bottles", "liters"];
+    if (!allowedUnits.includes(cleanUnit)) {
+        return res.status(400).json({ success: false, error: "Invalid unit. Please select a valid unit." });
     }
 
     try {
@@ -738,16 +753,16 @@ exports.submitInKindDonation = async (req, res) => {
         );
 
         if (!dropoffRows.length || !dropoffRows[0].dropoff_address) {
-            return res.status(400).json({ 
-                success: false, 
-                error: "This organization has not set up drop-off location details yet. In-kind donations are currently disabled for this organization." 
+            return res.status(400).json({
+                success: false,
+                error: "This organization has not set up drop-off location details yet. In-kind donations are currently disabled for this organization."
             });
         }
 
         const [adopterRows] = await pool.query(
-            `SELECT a.adopter_id, a.first_name, a.last_name, acc.email 
-             FROM adopters a 
-             JOIN accounts acc ON a.account_id = acc.account_id 
+            `SELECT a.adopter_id, a.first_name, a.last_name, acc.email
+             FROM adopters a
+             JOIN accounts acc ON a.account_id = acc.account_id
              WHERE a.account_id = ?`,
             [accountId]
         );
@@ -759,20 +774,23 @@ exports.submitInKindDonation = async (req, res) => {
         const adopter = adopterRows[0];
         const donorName = `${adopter.first_name} ${adopter.last_name}`.trim();
 
+        // ⭐ INSERT — kasama na ang `unit`
         const [result] = await pool.query(
-            `INSERT INTO inkind_donations 
-            (adopter_id, organization_id, donor_name, donor_email, item_name, quantity, status, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, 'Pending', NOW())`,
+            `INSERT INTO inkind_donations
+            (adopter_id, organization_id, donor_name, donor_email, item_name, quantity, unit, status, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, 'Pending', NOW())`,
             [
                 adopter.adopter_id,
                 organization_id,
                 donorName,
                 adopter.email,
                 cleanItemName,
-                cleanQuantity
+                cleanQuantity,
+                cleanUnit
             ]
         );
-        await logActivity(accountId, "donation_submitted", "inkind_donation", result.insertId, cleanItemName);
+
+        await logActivity(accountId, "donation_submitted", "inkind_donation", result.insertId, `${cleanQuantity} ${cleanUnit} ${cleanItemName}`);
 
         const [[orgAccountInkind]] = await pool.query(
             `SELECT account_id FROM organizations WHERE organization_id = ?`,
@@ -783,7 +801,7 @@ exports.submitInKindDonation = async (req, res) => {
             await createNotification(
                 orgAccountInkind.account_id,
                 "New In-Kind Donation",
-                `${donorName} wants to donate ${cleanQuantity}x ${cleanItemName}.`,
+                `${donorName} wants to donate ${cleanQuantity} ${cleanUnit} of ${cleanItemName}.`,
                 "donation_submitted",
                 "/org/donation"
             );
@@ -795,11 +813,12 @@ exports.submitInKindDonation = async (req, res) => {
             inkindDonationId: result.insertId
         });
 
-        await notifyOrgOfNewDonation(organization_id, "in-kind");
-
     } catch (error) {
         console.error("Submit In-Kind Donation Error:", error);
-        return res.status(500).json({ success: false, error: "Database error while submitting in-kind donation: " + error.message });
+        return res.status(500).json({
+            success: false,
+            error: "Database error while submitting in-kind donation: " + error.message
+        });
     }
 };
 // Idagdag ito sa userController.js kung wala pa:
