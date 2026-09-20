@@ -566,23 +566,81 @@ function getValidImageUrl(imagePath, fallbackUrl) {
     }
     return imagePath;
 }
-
-const receiptInput = document.getElementById("receiptInput");
     if (receiptInput) {
         receiptInput.addEventListener("change", handleReceiptUpload);
     }
-    // ==========================================
-// RECEIPT OCR — Auto-fill Ref No., Amount, Name
-// ==========================================
-async function handleReceiptUpload(event) {
+ async function handleReceiptUpload(event) {
     const file = event.target.files[0];
-    if (!file) return;
+
+    // Walang file na pinili → clear preview at wag magpatuloy
+    if (!file) {
+        const preview = document.getElementById("receiptPreview");
+        const wrap    = document.getElementById("receiptPreviewWrap");
+        if (preview) preview.src = "";
+        if (wrap) wrap.classList.add("hidden");
+        return;
+    }
+
+    // ⭐ STRICT VALIDATION — JPEG at PNG lang
+    const allowedMimeTypes = [
+        "image/jpeg",
+        "image/jpg",
+        "image/png"
+    ];
+    const allowedExtensions = /\.(jpe?g|png)$/i;
+    const MAX_SIZE_MB = 5;
+
+    const isMimeAllowed = allowedMimeTypes.includes((file.type || "").toLowerCase());
+    const isExtAllowed  = allowedExtensions.test(file.name);
+
+    if (!isMimeAllowed && !isExtAllowed) {
+        showToast(
+            "Invalid file type. Please upload a JPG, JPEG, or PNG image only.",
+            "error"
+        );
+        event.target.value = "";   // ⭐ reset input
+
+        // Reset preview at status
+        const preview = document.getElementById("receiptPreview");
+        const wrap    = document.getElementById("receiptPreviewWrap");
+        if (preview) preview.src = "";
+        if (wrap) wrap.classList.add("hidden");
+
+        const fileNameEl = document.getElementById("receiptFileName");
+        if (fileNameEl) {
+            fileNameEl.textContent = "Accepted file type: JPG, JPEG, PNG (max 5MB)";
+            fileNameEl.classList.remove("text-blue-600", "font-medium");
+            fileNameEl.classList.add("text-gray-500");
+        }
+        return;
+    }
+
+    // ⭐ Size check
+    if (file.size > MAX_SIZE_MB * 1024 * 1024) {
+        showToast(`File too large. Maximum size is ${MAX_SIZE_MB}MB.`, "error");
+        event.target.value = "";
+
+        const fileNameEl = document.getElementById("receiptFileName");
+        if (fileNameEl) {
+            fileNameEl.textContent = "Accepted file type: JPG, JPEG, PNG (max 5MB)";
+            fileNameEl.classList.remove("text-blue-600", "font-medium");
+            fileNameEl.classList.add("text-gray-500");
+        }
+        return;
+    }
+
+    // ⭐ UNLOCK muna — para ma-refill ng bagong OCR
+    unlockOcrFields();
 
     // Show filename
     const fileNameEl = document.getElementById("receiptFileName");
-    if (fileNameEl) fileNameEl.textContent = file.name;
+    if (fileNameEl) {
+        fileNameEl.textContent = `Selected: ${file.name}`;
+        fileNameEl.classList.add("text-blue-600", "font-medium");
+        fileNameEl.classList.remove("text-gray-500");
+    }
 
-    // 1) Show preview of uploaded receipt
+    // 1) Show preview
     const reader = new FileReader();
     reader.onload = (e) => {
         const preview = document.getElementById("receiptPreview");
@@ -594,7 +652,7 @@ async function handleReceiptUpload(event) {
     };
     reader.readAsDataURL(file);
 
-    // 2) Run OCR
+    // 2) Run OCR (naglo-lock ito pagkatapos)
     await runReceiptOCR(file);
 }
 
@@ -629,7 +687,12 @@ async function runReceiptOCR(file) {
         console.log("[OCR raw text]\n---\n" + text + "\n---");
 
         const parsed  = parseReceiptText(text);
-        const result2 = fillReceiptFields(parsed);   // { filled, corrected }
+        const result2 = fillReceiptFields(parsed);
+
+        // ⭐ I-LOCK ang mga na-auto-fill na fields
+        if (result2.filled > 0 || result2.corrected > 0) {
+            lockOcrFilledFields(parsed);
+        }
 
         if (statusText) {
             if (result2.corrected > 0) {
@@ -656,7 +719,42 @@ async function runReceiptOCR(file) {
         }, 4000);
     }
 }
+// ==========================================
+// OCR FIELD LOCKING (user side)
+// ==========================================
+function lockOcrFilledFields(parsed) {
+    const fields = [
+        { el: document.getElementById("refNumInput"),  has: !!parsed.reference },
+        { el: document.getElementById("customAmount"),  has: !!parsed.amount    }
+    ];
 
+    fields.forEach(({ el, has }) => {
+        if (!el || !has) return;
+        if (!el.value || el.value.trim() === '') return;
+
+        el.readOnly = true;
+        el.dataset.ocrLocked = 'true';
+        el.classList.add('bg-gray-100', 'cursor-not-allowed');
+        el.title = 'Auto-filled from your receipt — cannot be edited. Re-upload a receipt to change.';
+    });
+}
+
+function unlockOcrFields() {
+    const fields = [
+        document.getElementById("refNumInput"),
+        document.getElementById("customAmount")
+    ];
+
+    fields.forEach(el => {
+        if (!el) return;
+        if (el.dataset.ocrLocked === 'true') {
+            el.readOnly = false;
+            delete el.dataset.ocrLocked;
+            el.classList.remove('bg-gray-100', 'cursor-not-allowed');
+            el.removeAttribute('title');
+        }
+    });
+}
 function parseReceiptText(text) {
     const out = { reference: "", amount: "", name: "" };
 
@@ -795,7 +893,6 @@ function fillReceiptFields(parsed) {
 
     return { filled, corrected };
 }
-
 function highlightOcrField(el, color = "blue") {
     if (!el) return;
 
@@ -834,19 +931,25 @@ function upscaleImageForOcr(file, maxWidth = 1600) {
         img.src = url;
     });
 }
+
 // Reset receipt preview + OCR status after successful submission
 const previewWrap = document.getElementById("receiptPreviewWrap");
 if (previewWrap) previewWrap.classList.add("hidden");
+
 const preview = document.getElementById("receiptPreview");
 if (preview) preview.src = "";
+
 const statusBox = document.getElementById("ocrStatus");
 if (statusBox) {
     statusBox.classList.add("hidden");
     statusBox.classList.remove("flex");
 }
-const fileNameEl = document.getElementById("receiptFileName");
-if (fileNameEl) fileNameEl.textContent = "Accepted file type: jpg, png, webp";
 
+const fileNameEl = document.getElementById("receiptFileName");
+if (fileNameEl) {
+    // ⭐ UPDATED — JPG, JPEG, PNG lang
+    fileNameEl.textContent = "Accepted file type: JPG, JPEG, PNG (max 5MB)";
+}
 
 /* =========================================================
    GLOBAL QR MODAL — BULLETPROOF (works even if DOMContentLoaded fails)

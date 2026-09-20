@@ -296,7 +296,7 @@ exports.submitInKindDonation = async (req, res) => {
         }
     }
 
-    // ---------- Validation ----------
+       // ---------- Validation ----------
     if (!organization_id) {
         return res.status(400).json({
             success: false,
@@ -304,11 +304,38 @@ exports.submitInKindDonation = async (req, res) => {
         });
     }
 
+    // ⭐ STEP 1: Define & check cleanItemName FIRST
     const cleanItemName = (item_name || '').trim();
     if (!cleanItemName) {
         return res.status(400).json({
             success: false,
             error: "Please enter the item you wish to donate."
+        });
+    }
+
+    // ⭐ STEP 2: THEN validate its format
+    const itemNameLooksValid = (() => {
+        const v = cleanItemName;
+        if (v.length < 3) return false;
+        if (!/[a-zA-Z]/.test(v)) return false;
+        if (!/[aeiouAEIOU]/.test(v)) return false;
+        if (/(.)\1{3,}/i.test(v)) return false;
+        if (/[bcdfghjklmnpqrstvwxyzBCDFGHJKLMNPQRSTVWXYZ]{5,}/.test(v)) return false;
+        if (/(asdf|sdfg|dfgh|fghj|ghjk|hjkl|qwer|wert|erty|rtyu|tyui|yuiop|zxcv|xcvb|cvbn|vbnm)/i
+                .test(v.replace(/\s+/g, ''))) return false;
+
+        const words = v.split(/[\s\-',.()\/&+]+/).filter(Boolean);
+        for (const w of words) {
+            const letters = w.replace(/[^a-zA-Z]/g, '');
+            if (letters.length >= 3 && !/[aeiouAEIOU]/.test(letters)) return false;
+        }
+        return true;
+    })();
+
+    if (!itemNameLooksValid) {
+        return res.status(400).json({
+            success: false,
+            error: "Please enter a valid item name."
         });
     }
 

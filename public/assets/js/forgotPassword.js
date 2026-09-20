@@ -2,77 +2,143 @@ document.addEventListener("DOMContentLoaded", () => {
     const form = document.getElementById("forgotPasswordForm");
     const emailInput = document.getElementById("email");
     const messageBox = document.getElementById("message");
-    const submitBtn = form?.querySelector("button[type='submit']");
+    const submitBtn = document.getElementById("submitBtn") || form?.querySelector("button[type='submit']");
 
     if (!form || !emailInput || !messageBox) return;
 
-    // Helper function to handle status message display using Tailwind
-    const showMessage = (text, type = "error") => {
-        messageBox.textContent = text;
-        
-        // Reset base classes and unhide
-        messageBox.className = "mt-4 px-3.5 py-3 rounded-lg text-[13px] leading-relaxed border";
+  
+    let messageTimer = null;
 
-        if (type === "success") {
-            messageBox.classList.add("bg-emerald-50", "text-emerald-700", "border-emerald-200");
-        } else {
-            messageBox.classList.add("bg-red-50", "text-red-700", "border-red-200");
+
+    const ICONS = {
+        success: "fa-circle-check",
+        error:   "fa-circle-exclamation",
+        info:    "fa-circle-info"
+    };
+
+    const STYLES = {
+        success: "flex bg-emerald-50 border border-emerald-200 text-emerald-700",
+        error:   "flex bg-red-50 border border-red-200 text-red-700",
+        info:    "flex bg-blue-50 border border-blue-200 text-blue-700"
+    };
+
+    const showMessage = (text, type = "error", autoHideMs = 5000) => {
+     
+        if (messageTimer) {
+            clearTimeout(messageTimer);
+            messageTimer = null;
+        }
+
+        const icon = ICONS[type] || ICONS.info;
+        const style = STYLES[type] || STYLES.info;
+
+        // ⭐ Mas malaking gap (gap-3 = 12px) at mas magandang alignment
+        messageBox.className = `mt-4 px-4 py-3 rounded-xl text-[13px] leading-snug items-start gap-3 ${style}`;
+        messageBox.innerHTML = `
+            <i class="fa-solid ${icon} mt-[2px] text-[14px] flex-shrink-0"></i>
+            <span class="flex-1">${text}</span>
+        `;
+
+     
+        void messageBox.offsetWidth;
+
+        // ⭐ Auto-hide after 5 seconds (default)
+        if (autoHideMs > 0) {
+            messageTimer = setTimeout(() => {
+                clearMessage();
+            }, autoHideMs);
         }
     };
 
     const clearMessage = () => {
-        messageBox.textContent = "";
-        messageBox.className = "hidden mt-4 px-3.5 py-3 rounded-lg text-[13px] leading-relaxed";
+        if (messageTimer) {
+            clearTimeout(messageTimer);
+            messageTimer = null;
+        }
+        messageBox.className = "hidden mt-4 px-4 py-3 rounded-xl text-[13px] leading-snug items-start gap-3";
+        messageBox.innerHTML = "";
     };
 
+    // ==========================================
+    // FORM SUBMIT
+    // ==========================================
     form.addEventListener("submit", async (event) => {
         event.preventDefault();
 
         const email = emailInput.value.trim().toLowerCase();
         clearMessage();
 
+        // ---------- Email validation ----------
         if (!email) {
             showMessage("Please enter your email address.", "error");
+            emailInput.focus();
             return;
         }
 
-        // Set button loading state
-        const originalBtnText = submitBtn ? submitBtn.innerHTML : "";
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+        if (!emailRegex.test(email)) {
+            showMessage("Please enter a valid email address.", "error");
+            emailInput.focus();
+            return;
+        }
+
+        // ---------- Loading state ----------
+        const originalBtnHTML = submitBtn ? submitBtn.innerHTML : "";
         if (submitBtn) {
             submitBtn.disabled = true;
-            submitBtn.classList.add("opacity-70", "cursor-not-allowed");
-            submitBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Sending...`;
+            submitBtn.classList.add("opacity-60", "cursor-not-allowed");
+            submitBtn.innerHTML = `
+                <i class="fa-solid fa-spinner fa-spin text-[13px]"></i>
+                <span>Sending...</span>
+            `;
         }
 
         try {
             const response = await fetch("/auth/forgot-password", {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ email })
             });
 
-            const result = await response.text();
+            const raw = await response.text();
+            console.log("[Forgot Password] raw response:", response.status, raw);
+
+            let result = raw;
+            try {
+                const parsed = JSON.parse(raw);
+                result = parsed.message || parsed.error || raw;
+            } catch (_) { /* keep raw */ }
 
             if (!response.ok) {
                 showMessage(result || "Failed to send reset link.", "error");
                 return;
             }
 
-            showMessage(result || "A password reset link has been sent to your email.", "success");
+          
+            showMessage(
+                result || "A password reset link has been sent to your email.",
+                "success"
+            );
             form.reset();
 
         } catch (error) {
             console.error("Forgot Password Error:", error);
             showMessage("Unable to connect to the server. Please try again later.", "error");
         } finally {
-            // Restore button state
             if (submitBtn) {
                 submitBtn.disabled = false;
-                submitBtn.classList.remove("opacity-70", "cursor-not-allowed");
-                submitBtn.innerHTML = originalBtnText;
+                submitBtn.classList.remove("opacity-60", "cursor-not-allowed");
+                submitBtn.innerHTML = originalBtnHTML;
             }
+        }
+    });
+
+    // ==========================================
+    // CLEAR MESSAGE WHEN TYPING
+    // ==========================================
+    emailInput.addEventListener("input", () => {
+        if (messageBox.classList.contains("flex")) {
+            clearMessage();
         }
     });
 });

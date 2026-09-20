@@ -5,7 +5,86 @@ const validator = require('validator');
 const AdoptionModel = require('../models/userModel');
 const { logActivity } = require("./adminController");
 const { createNotification, notifyAllAdmins } = require("./adminController");
+// =====================================================
+// SEUSR-03: ADOPTION APPLICATION VALIDATION HELPERS
+// =====================================================
+const ADOPTION_NAME_REGEX       = /^[a-zA-ZñÑáéíóúÁÉÍÓÚàèìòùÀÈÌÒÙ\s.'-]{2,100}$/;
+const ADOPTION_PHONE_REGEX      = /^(09\d{9}|\+639\d{9})$/;
+const ADOPTION_ADDRESS_REGEX    = /^[a-zA-Z0-9ñÑáéíóúÁÉÍÓÚ\s.,#\-\/()]{5,255}$/;
+const ADOPTION_OCCUPATION_REGEX = /^[a-zA-Z0-9ñÑ\s.,\-()\/]{2,100}$/;
+const ADOPTION_RELATION_REGEX   = /^[a-zA-ZñÑ\s.\-]{2,50}$/;
+const ADOPTION_ALLOWED_CIVIL    = ['Single', 'Married', 'Widowed', 'Separated', 'Divorced', 'Annulled'];
 
+// 5+ sunod-sunod na parehong character (hal. "aaaaa", "!!!!!")
+const ADOPTION_GIBBERISH_REGEX  = /(.)\1{4,}/;
+
+// SQL injection / XSS / dangerous patterns
+const ADOPTION_DANGEROUS_REGEX  = /(<script|<\/script|javascript:|onerror\s*=|onload\s*=|onclick\s*=|onmouseover\s*=|onfocus\s*=|onblur\s*=|<iframe|<img\s|<\s*script|'\s*--|;\s*drop\s|;\s*delete\s|;\s*update\s|;\s*insert\s|union\s+select|or\s+1\s*=\s*1|or\s+'1'\s*=\s*'1'|\bexec\s*\(|\bxp_cmdshell\b|<svg|<object|<embed)/i;
+
+function validateAdoptionField(value, {
+    fieldName   = 'Field',
+    required    = true,
+    minLength   = 1,
+    maxLength   = 255,
+    regex       = null,
+    custom      = null
+} = {}) {
+
+    if (value === undefined || value === null || String(value).trim() === '') {
+        if (required) {
+            const err = new Error(`${fieldName} is required.`);
+            err.code = 'VALIDATION';
+            throw err;
+        }
+        return null;
+    }
+
+    const clean = String(value).trim();
+
+    if (clean.length < minLength) {
+        const err = new Error(`${fieldName} must be at least ${minLength} characters.`);
+        err.code = 'VALIDATION';
+        throw err;
+    }
+    if (clean.length > maxLength) {
+        const err = new Error(`${fieldName} is too long (maximum ${maxLength} characters).`);
+        err.code = 'VALIDATION';
+        throw err;
+    }
+
+    // Dangerous pattern check (XSS / SQLi)
+    if (ADOPTION_DANGEROUS_REGEX.test(clean)) {
+        const err = new Error(`${fieldName} contains invalid or dangerous characters.`);
+        err.code = 'VALIDATION';
+        throw err;
+    }
+
+    // Gibberish check
+    if (ADOPTION_GIBBERISH_REGEX.test(clean)) {
+        const err = new Error(`${fieldName} looks like gibberish. Please enter real information.`);
+        err.code = 'VALIDATION';
+        throw err;
+    }
+
+    // Format regex
+    if (regex && !regex.test(clean)) {
+        const err = new Error(`${fieldName} contains invalid characters.`);
+        err.code = 'VALIDATION';
+        throw err;
+    }
+
+    // Custom validation
+    if (typeof custom === 'function') {
+        const customMsg = custom(clean);
+        if (customMsg) {
+            const err = new Error(customMsg);
+            err.code = 'VALIDATION';
+            throw err;
+        }
+    }
+
+    return clean;
+}
 exports.getProfile = async (req, res) => {
     const accountId = req.session?.accountId;
     if (!accountId) return res.status(401).json({ error: "Unauthorized" });
@@ -708,27 +787,42 @@ exports.submitInKindDonation = async (req, res) => {
         return res.status(401).json({ success: false, error: "Unauthorized access. Please login." });
     }
 
-    const { organization_id, item_name, quantity } = req.body;
+    const { organization_id, item_name, quantity, unit } = req.body;
 
-    if (!organization_id || !item_name || !quantity) {
+    // ⭐ Required fields check
+    if (!organization_id || !item_name || quantity === undefined || quantity === null || quantity === "") {
         return res.status(400).json({ success: false, error: "Please fill in all required fields." });
     }
 
-    const cleanItemName = item_name.trim();
-    const cleanQuantity = quantity.trim();
+    // ⭐ SAFE conversion — tanggapin ang number OR string
+    const cleanItemName = String(item_name).trim();
+    const cleanQuantity = String(quantity).trim();
+    const cleanUnit     = (unit && String(unit).trim()) ? String(unit).trim() : "pcs";
 
-    // Strict Server-Side Validation
+    // Validation
     const gibberishPattern = /(.)\1{3,}/;
     const validItemPattern = /^[a-zA-Z0-9\sñÑ-]{3,}$/;
     const hasVowel = /[aeiouAEIOU]/.test(cleanItemName);
     const strictQuantityPattern = /^[1-9]\d*$/;
 
-    if (cleanItemName.length < 3 || /^[0-9]+$/.test(cleanItemName) || !hasVowel || gibberishPattern.test(cleanItemName) || !validItemPattern.test(cleanItemName)) {
+    if (
+        cleanItemName.length < 3 ||
+        /^[0-9]+$/.test(cleanItemName) ||
+        !hasVowel ||
+        gibberishPattern.test(cleanItemName) ||
+        !validItemPattern.test(cleanItemName)
+    ) {
         return res.status(400).json({ success: false, error: "Invalid item name format. Please enter a real item description." });
     }
 
     if (!strictQuantityPattern.test(cleanQuantity)) {
         return res.status(400).json({ success: false, error: "Invalid quantity. Please enter a whole number greater than zero (e.g., 5)." });
+    }
+
+    // ⭐ Unit validation
+    const allowedUnits = ["pcs", "kg", "packs", "boxes", "sacks", "bottles", "liters"];
+    if (!allowedUnits.includes(cleanUnit)) {
+        return res.status(400).json({ success: false, error: "Invalid unit. Please select a valid unit." });
     }
 
     try {
@@ -738,16 +832,16 @@ exports.submitInKindDonation = async (req, res) => {
         );
 
         if (!dropoffRows.length || !dropoffRows[0].dropoff_address) {
-            return res.status(400).json({ 
-                success: false, 
-                error: "This organization has not set up drop-off location details yet. In-kind donations are currently disabled for this organization." 
+            return res.status(400).json({
+                success: false,
+                error: "This organization has not set up drop-off location details yet. In-kind donations are currently disabled for this organization."
             });
         }
 
         const [adopterRows] = await pool.query(
-            `SELECT a.adopter_id, a.first_name, a.last_name, acc.email 
-             FROM adopters a 
-             JOIN accounts acc ON a.account_id = acc.account_id 
+            `SELECT a.adopter_id, a.first_name, a.last_name, acc.email
+             FROM adopters a
+             JOIN accounts acc ON a.account_id = acc.account_id
              WHERE a.account_id = ?`,
             [accountId]
         );
@@ -759,20 +853,23 @@ exports.submitInKindDonation = async (req, res) => {
         const adopter = adopterRows[0];
         const donorName = `${adopter.first_name} ${adopter.last_name}`.trim();
 
+        // ⭐ INSERT — kasama na ang `unit`
         const [result] = await pool.query(
-            `INSERT INTO inkind_donations 
-            (adopter_id, organization_id, donor_name, donor_email, item_name, quantity, status, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, 'Pending', NOW())`,
+            `INSERT INTO inkind_donations
+            (adopter_id, organization_id, donor_name, donor_email, item_name, quantity, unit, status, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, 'Pending', NOW())`,
             [
                 adopter.adopter_id,
                 organization_id,
                 donorName,
                 adopter.email,
                 cleanItemName,
-                cleanQuantity
+                cleanQuantity,
+                cleanUnit
             ]
         );
-        await logActivity(accountId, "donation_submitted", "inkind_donation", result.insertId, cleanItemName);
+
+        await logActivity(accountId, "donation_submitted", "inkind_donation", result.insertId, `${cleanQuantity} ${cleanUnit} ${cleanItemName}`);
 
         const [[orgAccountInkind]] = await pool.query(
             `SELECT account_id FROM organizations WHERE organization_id = ?`,
@@ -783,7 +880,7 @@ exports.submitInKindDonation = async (req, res) => {
             await createNotification(
                 orgAccountInkind.account_id,
                 "New In-Kind Donation",
-                `${donorName} wants to donate ${cleanQuantity}x ${cleanItemName}.`,
+                `${donorName} wants to donate ${cleanQuantity} ${cleanUnit} of ${cleanItemName}.`,
                 "donation_submitted",
                 "/org/donation"
             );
@@ -795,11 +892,12 @@ exports.submitInKindDonation = async (req, res) => {
             inkindDonationId: result.insertId
         });
 
-        await notifyOrgOfNewDonation(organization_id, "in-kind");
-
     } catch (error) {
         console.error("Submit In-Kind Donation Error:", error);
-        return res.status(500).json({ success: false, error: "Database error while submitting in-kind donation: " + error.message });
+        return res.status(500).json({
+            success: false,
+            error: "Database error while submitting in-kind donation: " + error.message
+        });
     }
 };
 // Idagdag ito sa userController.js kung wala pa:
@@ -867,7 +965,9 @@ exports.getPetById = async (req, res) => {
 //for user adoption application submission
 exports.submitAdoptionApplication = async (req, res) => {
     try {
-        // 1. Tama na: req.session.accountId ang gamitin
+        // =====================================================
+        // 1. SESSION CHECK
+        // =====================================================
         const accountId = req.session?.accountId;
 
         if (!accountId) {
@@ -877,7 +977,9 @@ exports.submitAdoptionApplication = async (req, res) => {
             });
         }
 
-        // 2. Kunin ang totoong adopter_id mula sa adopters table
+        // =====================================================
+        // 2. ADOPTER RECORD CHECK
+        // =====================================================
         const [adopterRows] = await pool.query(
             `SELECT adopter_id FROM adopters WHERE account_id = ?`,
             [accountId]
@@ -892,7 +994,9 @@ exports.submitAdoptionApplication = async (req, res) => {
 
         const adopterId = adopterRows[0].adopter_id;
 
-        // 3. Kunin ang totoong uploaded filename galing kay Multer (req.file)
+        // =====================================================
+        // 3. UPLOADED FILE
+        // =====================================================
         const documentPath = req.file ? req.file.filename : null;
 
         const {
@@ -910,9 +1014,139 @@ exports.submitAdoptionApplication = async (req, res) => {
             emergency_relation
         } = req.body;
 
+        // =====================================================
+        // 4. SERVER-SIDE VALIDATION (SEUSR-03)
+        // =====================================================
+        let cleanFullName, cleanContact, cleanEmail, cleanAddress,
+            cleanCivilStatus, cleanAge, cleanOccupation, cleanIntent,
+            cleanEmergencyName, cleanEmergencyPhone, cleanEmergencyRelation;
+
+        try {
+
+            cleanFullName = validateAdoptionField(full_name, {
+                fieldName: 'Full Name',
+                minLength: 2,
+                maxLength: 100,
+                regex: ADOPTION_NAME_REGEX
+            });
+
+            cleanContact = validateAdoptionField(contact_number, {
+                fieldName: 'Contact Number',
+                minLength: 11,
+                maxLength: 13,
+                regex: ADOPTION_PHONE_REGEX
+            });
+
+            cleanEmail = validateAdoptionField(email, {
+                fieldName: 'Email Address',
+                minLength: 5,
+                maxLength: 150,
+                custom: (val) =>
+                    !validator.isEmail(val)
+                        ? 'Please enter a valid email address.'
+                        : null
+            });
+
+            cleanAddress = validateAdoptionField(full_address, {
+                fieldName: 'Full Address',
+                minLength: 5,
+                maxLength: 255,
+                regex: ADOPTION_ADDRESS_REGEX
+            });
+
+            cleanCivilStatus = validateAdoptionField(civil_status, {
+                fieldName: 'Civil Status',
+                maxLength: 20,
+                custom: (val) =>
+                    !ADOPTION_ALLOWED_CIVIL.includes(val)
+                        ? `Civil Status must be one of: ${ADOPTION_ALLOWED_CIVIL.join(', ')}.`
+                        : null
+            });
+
+            const rawAge = validateAdoptionField(age, {
+                fieldName: 'Age',
+                minLength: 1,
+                maxLength: 3,
+                custom: (val) => {
+                    const n = Number(val);
+                    if (!Number.isInteger(n)) return 'Age must be a whole number.';
+                    if (n < 18)              return 'You must be at least 18 years old.';
+                    if (n > 120)             return 'Please enter a realistic age.';
+                    return null;
+                }
+            });
+            cleanAge = Number(rawAge);
+
+            cleanOccupation = validateAdoptionField(occupation, {
+                fieldName: 'Occupation / Source of Income',
+                minLength: 2,
+                maxLength: 100,
+                regex: ADOPTION_OCCUPATION_REGEX
+            });
+
+            cleanIntent = validateAdoptionField(adoption_intent, {
+                fieldName: 'Adoption Intent',
+                minLength: 20,
+                maxLength: 2000
+                // Free text — DANGEROUS_REGEX pa rin ang bantay (walang <script>, etc.)
+            });
+
+            cleanEmergencyName = validateAdoptionField(emergency_name, {
+                fieldName: 'Emergency Contact Name',
+                minLength: 2,
+                maxLength: 100,
+                regex: ADOPTION_NAME_REGEX
+            });
+
+            cleanEmergencyPhone = validateAdoptionField(emergency_phone, {
+                fieldName: 'Emergency Phone Number',
+                minLength: 11,
+                maxLength: 13,
+                regex: ADOPTION_PHONE_REGEX
+            });
+
+            cleanEmergencyRelation = validateAdoptionField(emergency_relation, {
+                fieldName: 'Relationship to Emergency Contact',
+                minLength: 2,
+                maxLength: 50,
+                regex: ADOPTION_RELATION_REGEX
+            });
+
+        } catch (validationError) {
+            if (validationError.code === 'VALIDATION') {
+                // I-log bilang suspicious attempt (para sa security audit)
+                try {
+                    await logActivity(
+                        accountId,
+                        "suspicious_application_input",
+                        "application",
+                        null,
+                        validationError.message
+                    );
+                } catch (_) { /* huwag i-block ang response kung log fails */ }
+
+                return res.status(400).json({
+                    status: 'error',
+                    message: validationError.message
+                });
+            }
+            throw validationError;
+        }
+
+        // =====================================================
+        // 5. VALIDATE animal_id (numeric)
+        // =====================================================
+        const animalIdNum = Number(animal_id);
+        if (!Number.isInteger(animalIdNum) || animalIdNum <= 0) {
+            return res.status(400).json({
+                status: 'error',
+                message: 'Invalid pet selected.'
+            });
+        }
+
         const [petRows] = await pool.query(
             `SELECT organization_id FROM animals WHERE animal_id = ? AND deleted_at IS NULL`,
-            [animal_id]
+            [animalIdNum]
         );
 
         if (!petRows.length) {
@@ -924,36 +1158,38 @@ exports.submitAdoptionApplication = async (req, res) => {
 
         const organizationId = petRows[0].organization_id;
 
-        // 4. BUOIN ANG IMMUTABLE JSON SNAPSHOT
-        //For future reference, this snapshot can be used for auditing or historical purposes.
+        // =====================================================
+        // 6. BUILD IMMUTABLE SNAPSHOT (cleaned values only)
+        // =====================================================
         const applicantSnapshot = {
-            full_name: full_name || null,
-            contact_number: contact_number || null,
-            email: email || null,
-            full_address: full_address || null,
-            civil_status: civil_status || null,
-            age: age ? parseInt(age, 10) : null,
-            occupation: occupation || null,
-            submitted_at: new Date().toISOString()
+            full_name:      cleanFullName,
+            contact_number: cleanContact,
+            email:          cleanEmail,
+            full_address:   cleanAddress,
+            civil_status:   cleanCivilStatus,
+            age:            cleanAge,
+            occupation:     cleanOccupation,
+            submitted_at:   new Date().toISOString()
         };
 
         const snapshotJSON = JSON.stringify(applicantSnapshot);
 
-        // 2. CHECK KUNG MAY EXISTING APPLICATION NA PARA SA PET NA ITO
+        // =====================================================
+        // 7. CHECK EXISTING APPLICATION (re-apply flow)
+        // =====================================================
         const [existingApp] = await pool.query(
-            `SELECT application_id, status FROM user_adoption_applications 
-             WHERE adopter_id = ? AND animal_id = ? 
+            `SELECT application_id, status FROM user_adoption_applications
+             WHERE adopter_id = ? AND animal_id = ?
              ORDER BY created_at DESC LIMIT 1`,
-            [adopterId, animal_id]
+            [adopterId, animalIdNum]
         );
 
-        // Gawing lowercase para iwas case-sensitivity issues (hal. 'declined' vs 'Declined')
-        const currentStatus = existingApp.length > 0 ? (existingApp[0].status || '').trim().toLowerCase() : '';
-        
+        const currentStatus = existingApp.length > 0
+            ? (existingApp[0].status || '').trim().toLowerCase()
+            : '';
 
         if (existingApp.length > 0 && ['declined', 'rejected', 'cancelled'].includes(currentStatus)) {
-            
-            // Kunin ang lumang document_path ng application kung walang bagong file na na-upload
+
             const [oldAppRows] = await pool.query(
                 `SELECT document_path FROM user_adoption_applications WHERE application_id = ?`,
                 [existingApp[0].application_id]
@@ -963,47 +1199,51 @@ exports.submitAdoptionApplication = async (req, res) => {
 
             const updateQuery = `
                 UPDATE user_adoption_applications SET
-                    organization_id = ?,
-                    applicant_snapshot = ?,
-                    adoption_intent = ?,
-                    emergency_name = ?,
-                    emergency_phone = ?,
-                    emergency_relation = ?,
-                    document_path = ?,
-                    status = 'Under Review',
-                    decline_reason = NULL,
-                    created_at = NOW(),
-                    updated_at = NOW()
-                WHERE application_id = ?
+                    organization_id   = ?,
+                    applicant_snapshot= ?,
+                    adoption_intent   = ?,
+                    emergency_name    = ?,
+                    emergency_phone   = ?,
+                    emergency_relation= ?,
+                    document_path     = ?,
+                    status            = 'Under Review',
+                    decline_reason    = NULL,
+                    created_at        = NOW(),
+                    updated_at        = NOW()
+                WHERE application_id  = ?
             `;
 
             const updateValues = [
                 organizationId,
                 snapshotJSON,
-                adoption_intent || null,
-                emergency_name || null,
-                emergency_phone || null,
-                emergency_relation || null,
+                cleanIntent,
+                cleanEmergencyName,
+                cleanEmergencyPhone,
+                cleanEmergencyRelation,
                 finalDocumentPath,
                 existingApp[0].application_id
             ];
 
             await pool.query(updateQuery, updateValues);
 
-            // Clear stale interview data from the applicant's previous (declined) cycle -
-            // application_interviews is a separate table joined on application_id, and
-            // since re-apply reuses the same application_id, the old row would otherwise
-            // stick around and show up as if it belonged to this new cycle.
             await pool.query(
                 `DELETE FROM application_interviews WHERE application_id = ?`,
                 [existingApp[0].application_id]
             );
-            await logActivity(accountId, "adoption_application_submitted", "application", existingApp[0].application_id, "Re-application");
+
+            await logActivity(
+                accountId,
+                "adoption_application_submitted",
+                "application",
+                existingApp[0].application_id,
+                "Re-application"
+            );
 
             const [[orgAccountReapply]] = await pool.query(
                 `SELECT account_id FROM organizations WHERE organization_id = ?`,
                 [organizationId]
             );
+
             if (orgAccountReapply) {
                 await createNotification(
                     orgAccountReapply.account_id,
@@ -1020,39 +1260,40 @@ exports.submitAdoptionApplication = async (req, res) => {
             });
         }
 
+        // =====================================================
+        // 8. INSERT NEW APPLICATION (parameterized)
+        // =====================================================
         const insertQuery = `
             INSERT INTO user_adoption_applications (
-                organization_id,
-                adopter_id,
-                animal_id,
-                applicant_snapshot,
-                adoption_intent,
-                emergency_name,
-                emergency_phone,
-                emergency_relation,
-                document_path,
-                status,
-                created_at,
-                updated_at
+                organization_id, adopter_id, animal_id,
+                applicant_snapshot, adoption_intent,
+                emergency_name, emergency_phone, emergency_relation,
+                document_path, status, created_at, updated_at
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
         `;
 
         const values = [
             organizationId,
-            adopterId || null,
-            animal_id ? parseInt(animal_id, 10) : null,
+            adopterId,
+            animalIdNum,
             snapshotJSON,
-            adoption_intent || null,
-            emergency_name || null,
-            emergency_phone || null,
-            emergency_relation || null,
+            cleanIntent,
+            cleanEmergencyName,
+            cleanEmergencyPhone,
+            cleanEmergencyRelation,
             documentPath || null,
             'Under Review'
         ];
 
         await pool.query(insertQuery, values);
 
-        await logActivity(accountId, "adoption_application_submitted", "application", null, animal_id ? `Pet #${animal_id}` : null);
+        await logActivity(
+            accountId,
+            "adoption_application_submitted",
+            "application",
+            null,
+            `Pet #${animalIdNum}`
+        );
 
         const [[orgAccountNew]] = await pool.query(
             `SELECT account_id FROM organizations WHERE organization_id = ?`,
@@ -1063,7 +1304,7 @@ exports.submitAdoptionApplication = async (req, res) => {
             await createNotification(
                 orgAccountNew.account_id,
                 "New Adoption Application",
-                `A new application was submitted${animal_id ? ` for pet #${animal_id}` : ""}.`,
+                `A new application was submitted for pet #${animalIdNum}.`,
                 "application_submitted",
                 "/org/adoption"
             );
@@ -1078,11 +1319,10 @@ exports.submitAdoptionApplication = async (req, res) => {
         console.error('Error saving adoption application:', error);
         return res.status(500).json({
             status: 'error',
-            message: 'Failed to submit application: ' + error.message
+            message: 'Failed to submit application. Please try again.'
         });
     }
 };
-
 // Check if user has already applied for a specific pet
 exports.checkAppliedStatus = async (req, res) => {
     try {

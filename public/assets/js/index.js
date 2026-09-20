@@ -4,6 +4,158 @@ let currentQrSrc = "";
 let currentQrOrgName = "";    
 let currentQrMethod = "";     
 
+// ==========================================
+// CUSTOM MESSAGE BOX
+// ==========================================
+
+const messageBox = document.getElementById("messageBox");
+const messageIcon = document.getElementById("messageIcon");
+const messageTitle = document.getElementById("messageTitle");
+const messageText = document.getElementById("messageText");
+const messageCancelBtn = document.getElementById("messageCancelBtn");
+const messageConfirmBtn = document.getElementById("messageConfirmBtn");
+
+let messageResolver = null;
+
+const messageStyles = {
+    success: {
+        title: "Success",
+        icon: "fa-check",
+        iconBg: "bg-emerald-100",
+        iconText: "text-emerald-600"
+    },
+    error: {
+        title: "Error",
+        icon: "fa-xmark",
+        iconBg: "bg-red-100",
+        iconText: "text-red-600"
+    },
+    warning: {
+        title: "Warning",
+        icon: "fa-exclamation",
+        iconBg: "bg-amber-100",
+        iconText: "text-amber-600"
+    },
+    info: {
+        title: "Information",
+        icon: "fa-info",
+        iconBg: "bg-blue-100",
+        iconText: "text-blue-600"
+    }
+};
+
+function openMessageBox() {
+    if (!messageBox) return;
+
+    messageBox.classList.remove("hidden");
+    messageBox.classList.add("flex");
+    messageBox.setAttribute("aria-hidden", "false");
+    document.body.style.overflow = "hidden";
+}
+
+function closeMessageBox(result = false) {
+    if (!messageBox) return;
+
+    if (document.activeElement && messageBox.contains(document.activeElement)) {
+        document.activeElement.blur();
+    }
+
+    messageBox.classList.remove("flex");
+    messageBox.classList.add("hidden");
+    messageBox.setAttribute("aria-hidden", "true");
+    document.body.style.overflow = "";
+
+    if (messageResolver) {
+        messageResolver(result);
+        messageResolver = null;
+    }
+}
+function showMessage(message, type = "info") {
+    return new Promise((resolve) => {
+        if (!messageBox) {
+            resolve(false);
+            return;
+        }
+
+        messageResolver = resolve;
+
+        const style = messageStyles[type] || messageStyles.info;
+
+        messageTitle.textContent = style.title;
+        messageText.textContent = message;
+
+        messageIcon.className =
+            `mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full ${style.iconBg}`;
+
+        messageIcon.innerHTML =
+            `<i class="fa-solid ${style.icon} text-2xl ${style.iconText}"></i>`;
+
+        messageCancelBtn.classList.add("hidden");
+
+        messageConfirmBtn.textContent = "OK";
+        messageConfirmBtn.className =
+            "flex-1 rounded-xl bg-[#0151ff] px-5 py-3 font-semibold text-white transition hover:bg-[#003fe0]";
+
+        openMessageBox();
+    });
+}
+
+function showConfirm(message, options = {}) {
+    return new Promise((resolve) => {
+        if (!messageBox) {
+            resolve(false);
+            return;
+        }
+
+        messageResolver = resolve;
+
+        messageTitle.textContent = options.title || "Are you sure?";
+        messageText.textContent = message;
+
+        messageIcon.className =
+            "mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-amber-100";
+
+        messageIcon.innerHTML =
+            '<i class="fa-solid fa-question text-2xl text-amber-600"></i>';
+
+        messageCancelBtn.classList.remove("hidden");
+        messageCancelBtn.textContent = "Cancel";
+
+        messageConfirmBtn.textContent = options.confirmText || "Confirm";
+
+        messageConfirmBtn.className = options.danger
+            ? "flex-1 rounded-xl bg-red-600 px-5 py-3 font-semibold text-white transition hover:bg-red-700"
+            : "flex-1 rounded-xl bg-[#0151ff] px-5 py-3 font-semibold text-white transition hover:bg-[#003fe0]";
+
+        openMessageBox();
+    });
+}
+
+if (messageConfirmBtn) {
+    messageConfirmBtn.addEventListener("click", () => {
+        closeMessageBox(true);
+    });
+}
+
+if (messageCancelBtn) {
+    messageCancelBtn.addEventListener("click", () => {
+        closeMessageBox(false);
+    });
+}
+
+if (messageBox) {
+    messageBox.addEventListener("click", (event) => {
+        if (event.target === messageBox) {
+            closeMessageBox(false);
+        }
+    });
+}
+
+document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && messageBox?.classList.contains("flex")) {
+        closeMessageBox(false);
+    }
+});
 document.addEventListener("DOMContentLoaded", () => {
     fetchOrganizationsData();
      startStatsPolling();
@@ -214,8 +366,14 @@ function updatePaymentDetails() {
 
     if (qrContainer) {
         if (activeQR) {
-            qrContainer.innerHTML = `<img src="${activeQR}" alt="Payment QR Code" class="w-full h-full object-contain rounded-[12px]">`;
-            //  Ipakita ang button gamit ang style.display
+            qrContainer.innerHTML = `<img id="qrInlineImg" src="" alt="Payment QR Code" class="w-full h-full object-contain rounded-[12px]">`;
+            const imgEl = document.getElementById("qrInlineImg");
+
+            // ⭐ IPASA ang method name sa crop function
+            cropQrToSquare(activeQR, selectedMethodText).then(croppedSrc => {
+                if (imgEl) imgEl.src = croppedSrc;
+            });
+
             if (viewQrBtn) viewQrBtn.style.display = 'inline-flex';
         } else {
             qrContainer.innerHTML = `
@@ -223,12 +381,10 @@ function updatePaymentDetails() {
                     <i class="fa-solid fa-qrcode text-[50px] text-[#94a3b8] mb-1"></i>
                     <span class="text-[11px] text-[#64748b] block font-semibold">[ No QR Available ]</span>
                 </div>`;
-            //  Itago ang button
             if (viewQrBtn) viewQrBtn.style.display = 'none';
         }
     }
 }
-
 function toggleDonorFields() {
     const isAnonymous = document.getElementById('anonymousCheck').checked;
     const fieldsContainer = document.getElementById('donorDetailsFields');
@@ -257,7 +413,7 @@ async function handlePublicDonationSubmit(event) {
 
     // ⭐ Pre-check bago pa mag-fetch
     if (!orgId) {
-        alert("Please select an organization first.");
+        await showMessage("Please select an organization first.", "warning");
         return;
     }
         // ⭐ Amount validation — block zero at negative
@@ -266,11 +422,11 @@ async function handlePublicDonationSubmit(event) {
     const amountValue = amountField ? parseFloat(amountField.value) : NaN;
 
     if (!amountField || amountField.value.trim() === "" || isNaN(amountValue)) {
-        alert("Please enter a donation amount.");
+        await showMessage("Please enter a donation amount.", "warning");
         return;
     }
     if (amountValue <= 0) {
-        alert("Donation amount must be greater than zero. Negative amounts are not allowed.");
+        await showMessage("Donation amount must be greater than zero. Negative amounts are not allowed.","warning");
         if (amountField) amountField.value = "";
         return;
     }
@@ -286,7 +442,10 @@ async function handlePublicDonationSubmit(event) {
         const nameInput = document.getElementById('donorName');
         const typedName = (nameInput?.value || '').trim();
         if (!typedName) {
-            alert('Please enter your name or check "Donate Anonymously".');
+            await showMessage(
+                'Please enter your name or check "Donate Anonymously".',
+                "warning"
+            );
             return;
         }
         formData.set('donor_name', typedName);
@@ -294,8 +453,6 @@ async function handlePublicDonationSubmit(event) {
     }
 
     formData.set('donor_email', '');
-
-    //  DEBUG — tingnan sa console kung ano talaga ang pinapadala
     console.log("[Donation] payload:", {
         organization_id: orgId,
         payment_method: paymentMethod,
@@ -319,7 +476,10 @@ async function handlePublicDonationSubmit(event) {
         try {
             result = JSON.parse(raw);
         } catch (parseErr) {
-            alert(`Server error (${response.status}). Please check console.`);
+            await showMessage(
+                `Server error (${response.status}). Please check the console.`,
+                "error"
+            );
             return;
         }
 
@@ -350,7 +510,7 @@ async function handlePublicDonationSubmit(event) {
 
             document.getElementById('anonymousCheck').checked = false;
             toggleDonorFields();
-
+            unlockOcrFields();
             // ⭐ Show success modal
             showDonateSuccessModal({
                 type: "cash",
@@ -359,11 +519,17 @@ async function handlePublicDonationSubmit(event) {
                 rows: summaryRows
             });
         } else {
-            alert('Error: ' + (result.error || 'Failed to submit donation.'));
+            await showMessage(
+                result.error || "Failed to submit donation.",
+                "error"
+            );
         }
     } catch (err) {
         console.error("Donation submit error:", err);
-        alert('An unexpected error occurred. Please try again later.');
+        await showMessage(
+            "An unexpected error occurred. Please try again later.",
+            "error"
+        );
     }
 }
 function switchDonationType(type) {
@@ -416,7 +582,14 @@ async function handleInKindSubmit(event) {
     const isAnonymous = document.getElementById('inkindAnonymousCheck').checked;
 
     if (!orgId) {
-        alert("Please select an organization first.");
+        await showMessage("Please select an organization first.", "warning");
+        return;
+    }
+ 
+    const itemNameValue = (document.getElementById('inkindItemName')?.value || '').trim();
+    const itemCheck = validateItemName(itemNameValue);
+    if (!itemCheck.valid) {
+        await showMessage(itemCheck.reason, "warning");
         return;
     }
 
@@ -507,7 +680,11 @@ function openQrModal() {
     const org   = document.getElementById('qrModalOrg');
     if (!modal || !img) return;
 
-    img.src = currentQrSrc;
+    // ⭐ IPASA ang method name para tamang crop sa modal
+    cropQrToSquare(currentQrSrc, currentQrMethod).then(croppedSrc => {
+        img.src = croppedSrc;
+    });
+
     title.textContent = `Scan to Donate via ${currentQrMethod}`;
     sub.textContent   = `[ ${currentQrMethod} QR Code ]`;
     org.textContent   = currentQrOrgName;
@@ -516,11 +693,14 @@ function openQrModal() {
     modal.setAttribute('aria-hidden', 'false');
     document.body.style.overflow = 'hidden';
 }
-
 function closeQrModal() {
     const modal = document.getElementById('qrModal');
     if (!modal) return;
-    
+
+    if (document.activeElement && modal.contains(document.activeElement)) {
+        document.activeElement.blur();
+    }
+
     modal.classList.remove('is-open');
     modal.setAttribute('aria-hidden', 'true');
     document.body.style.overflow = '';
@@ -536,7 +716,7 @@ document.addEventListener('keydown', (e) => {
 async function handleReceiptUpload(event) {
     const file = event.target.files[0];
     if (!file) return;
-
+    unlockOcrFields();
   
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -551,6 +731,74 @@ async function handleReceiptUpload(event) {
 
   
     await runReceiptOCR(file);
+
+      lockReceiptFields();
+}
+function cropQrToSquare(src, method = "gcash") {
+    return new Promise((resolve) => {
+        if (!src) {
+            resolve(src);
+            return;
+        }
+
+        const img = new Image();
+        img.crossOrigin = "anonymous";
+
+        img.onload = () => {
+            const w = img.width;
+            const h = img.height;
+            const ratio = w / h;
+
+            let cropX = 0, cropY = 0, cropW = w, cropH = h;
+
+            if (ratio < 0.95) {
+                let widthPct, topPct, bottomPct;
+
+                if (String(method).toLowerCase().includes("maya")) {
+                    widthPct  = 0.55;
+                    topPct    = 0.31;
+                    bottomPct = 0.79;
+                } else {
+                    widthPct  = 0.52;
+                    topPct    = 0.19;
+                    bottomPct = 0.46;
+                }
+
+                cropW = w * widthPct;
+                cropX = (w - cropW) / 2;
+                cropY = h * topPct;
+                cropH = (h * bottomPct) - cropY;
+
+                if (cropH <= 0 || cropH > h) cropH = cropW;
+                if (cropY + cropH > h) cropY = h - cropH;
+                if (cropY < 0) cropY = 0;
+            }
+
+            const outWidth  = 600;
+            const outHeight = Math.round(outWidth * (cropH / cropW));
+
+            const canvas = document.createElement("canvas");
+            canvas.width  = outWidth;
+            canvas.height = outHeight;
+            const ctx = canvas.getContext("2d");
+
+            ctx.fillStyle = "#ffffff";
+            ctx.fillRect(0, 0, outWidth, outHeight);
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = "high";
+            ctx.drawImage(img, cropX, cropY, cropW, cropH, 0, 0, outWidth, outHeight);
+
+            try {
+                resolve(canvas.toDataURL("image/png"));
+            } catch (e) {
+                console.warn("[QR Crop] Export failed:", e);
+                resolve(src);
+            }
+        };
+
+        img.onerror = () => resolve(src);
+        img.src = src;
+    });
 }
 async function runReceiptOCR(file) {
     const statusBox  = document.getElementById("ocrStatus");
@@ -585,7 +833,9 @@ async function runReceiptOCR(file) {
 
         const parsed  = parseReceiptText(text);
         const result2 = fillReceiptFields(parsed);   
-
+            if (result2.filled > 0 || result2.corrected > 0) {
+                lockOcrFilledFields(parsed);
+            }
         if (statusText) {
             if (result2.corrected > 0) {
                 statusText.textContent =
@@ -764,26 +1014,100 @@ function fillReceiptFields(parsed) {
 
     return { filled, corrected };
 }
-/**
- * Brief visual flash para makita ng user ang auto-filled / corrected values.
- * @param {HTMLElement} el
- * @param {"blue"|"orange"} color - blue = bagong fill, orange = correction
- */
+// ==========================================
+// OCR FIELD LOCKING
+// Once a receipt is scanned & fields are auto-filled,
+// those inputs become read-only. Re-uploading a receipt
+// unlocks them again (so a fresh scan can refill).
+// ==========================================
+function lockOcrFilledFields(parsed) {
+    const fields = [
+        { el: document.querySelector('#donationForm input[name="reference_number"]'), has: !!parsed.reference },
+        { el: document.querySelector('#donationForm input[name="amount"]'),           has: !!parsed.amount },
+        { el: document.getElementById('donorName'),                                    has: !!parsed.name }
+    ];
+
+    fields.forEach(({ el, has }) => {
+        if (!el || !has) return;
+        if (!el.value || el.value.trim() === '') return;
+
+        el.readOnly = true;
+        el.dataset.ocrLocked = 'true';
+        el.classList.add('bg-gray-100', 'cursor-not-allowed');
+        el.title = 'Auto-filled from your receipt — cannot be edited. Re-upload a receipt to change.';
+    });
+}
+
+function unlockOcrFields() {
+    const fields = [
+        document.querySelector('#donationForm input[name="reference_number"]'),
+        document.querySelector('#donationForm input[name="amount"]'),
+        document.getElementById('donorName')
+    ];
+
+    fields.forEach(el => {
+        if (!el) return;
+        if (el.dataset.ocrLocked === 'true') {
+            el.readOnly = false;
+            delete el.dataset.ocrLocked;
+            el.classList.remove('bg-gray-100', 'cursor-not-allowed');
+            el.removeAttribute('title');
+        }
+    });
+}
+
+function validateItemName(name) {
+    const value = (name || '').trim();
+
+    if (!value)
+        return { valid: false, reason: 'Please enter the item you wish to donate.' };
+
+    if (value.length < 3)
+        return { valid: false, reason: 'Item name is too short. Please enter a valid item name.' };
+
+    if (value.length > 100)
+        return { valid: false, reason: 'Item name is too long (max 100 characters).' };
+
+    if (!/^[a-zA-Z0-9\s\-',.()\/&+]+$/.test(value))
+        return { valid: false, reason: 'Item name contains invalid characters.' };
+
+    if (!/[a-zA-Z]/.test(value))
+        return { valid: false, reason: 'Item name must contain letters.' };
+
+    if (!/[aeiouAEIOU]/.test(value))
+        return { valid: false, reason: 'Please enter a valid item name.' };
+
+    // ⭐ RESTORED: No character repeated 4+ times in a row
+    if (/(.)\1{3,}/i.test(value))
+        return { valid: false, reason: 'Please enter a valid item name.' };
+
+    // No 5+ consecutive consonants
+    if (/[bcdfghjklmnpqrstvwxyzBCDFGHJKLMNPQRSTVWXYZ]{5,}/.test(value))
+        return { valid: false, reason: 'Please enter a valid item name.' };
+
+    // Keyboard mash
+    if (/(asdf|sdfg|dfgh|fghj|ghjk|hjkl|qwer|wert|erty|rtyu|tyui|yuiop|zxcv|xcvb|cvbn|vbnm)/i
+            .test(value.replace(/\s+/g, '')))
+        return { valid: false, reason: 'Please enter a valid item name.' };
+
+    // Bawat word (3+ letters) dapat may vowel
+    const words = value.split(/[\s\-',.()\/&+]+/).filter(Boolean);
+    for (const w of words) {
+        const letters = w.replace(/[^a-zA-Z]/g, '');
+        if (letters.length >= 3 && !/[aeiouAEIOU]/.test(letters)) {
+            return { valid: false, reason: 'Please enter a valid item name.' };
+        }
+    }
+
+    return { valid: true };
+}
 function highlightOcrField(el, color = "blue") {
     if (!el) return;
 
-    const palette = {
-        blue:   { bg: "#eef7ff", border: "#0151ff" },
-        orange: { bg: "#fff7ed", border: "#f97316" }  // 🟠 correction
-    };
-    const c = palette[color] || palette.blue;
-
-    el.style.transition = "background-color .3s, border-color .3s";
-    el.style.backgroundColor = c.bg;
-    el.style.borderColor = c.border;
+    const cls = color === "orange" ? "ocr-highlight-orange" : "ocr-highlight-blue";
+    el.classList.add("ocr-highlight-transition", cls);
     setTimeout(() => {
-        el.style.backgroundColor = "";
-        el.style.borderColor = "";
+        el.classList.remove("ocr-highlight-transition", cls);
     }, 2600);
 }
 /** Scale the image up to a max width for better OCR on small GCash fonts. */
@@ -883,10 +1207,15 @@ function showDonateSuccessModal(options = {}) {
     modal.setAttribute("aria-hidden", "false");
     document.body.style.overflow = "hidden";
 }
-
 function closeDonateSuccessModal() {
     const modal = document.getElementById("donateSuccessModal");
     if (!modal) return;
+
+    // ⭐ Blur kung ang active element ay nasa loob ng modal
+    if (document.activeElement && modal.contains(document.activeElement)) {
+        document.activeElement.blur();
+    }
+
     modal.classList.remove("is-open");
     modal.setAttribute("aria-hidden", "true");
     document.body.style.overflow = "";
