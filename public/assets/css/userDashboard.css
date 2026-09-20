@@ -1,0 +1,48 @@
+* {
+            box-sizing: border-box;
+            scrollbar-width: none;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            margin: 0;
+            overscroll-behavior: none;
+            visibility: hidden;
+        }
+
+        #sidebar,
+        #header {
+            visibility: hidden;
+        }
+
+        .activity-timeline::before {
+            content: '';
+            position: absolute;
+            left: 20px;
+            top: 8px;
+            bottom: 8px;
+            width: 2px;
+            background: #e5e7eb;
+            border-radius: 4px;
+        }
+
+        .activity-item:last-child .activity-dot::after {
+            display: none;
+        }
+
+        /* Hide scrollbar but keep scrolling */
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        *::-webkit-scrollbar {
+            display: none;
+        }
