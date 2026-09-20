@@ -13,8 +13,8 @@ document.addEventListener("DOMContentLoaded", () => {
         filterUsers(this.value.trim().toLowerCase());
     });
 
-     // Role filter
-     document.getElementById("roleFilter").addEventListener("change", function() {
+    // Role filter
+    document.getElementById("roleFilter").addEventListener("change", function() {
         currentRoleFilter = this.value;
         const currentQuery = document.getElementById("searchInput").value.trim().toLowerCase();
         filterUsers(currentQuery);
@@ -33,7 +33,6 @@ document.addEventListener("DOMContentLoaded", () => {
 let allUsers = [];
 let currentRoleFilter = "all";
 let selectedUserId = null;
-
 
 // ─── Load users ────────────────────────────────────────
 async function loadUsers() {
@@ -86,12 +85,11 @@ function renderUsers(users) {
         container.appendChild(card);
     });
 
-    // Binibilang at ipinapakita lamang ang mga may status na "active" sa counter badge
     const activeCount = users.filter(u => (u.status || "active").toLowerCase() === "active").length;
     document.getElementById("userCount").textContent = `${activeCount} Active User${activeCount > 1 ? 's' : ''}`;
 }
 
-// ─── Build card (Compact) ─────────────────────────────
+// ─── Build card ────────────────────────────────────────
 function buildUserCard(user, index) {
     const userId = user.account_id || user.id || `user-${index}`;
     const name = user.name || "Unknown";
@@ -107,14 +105,13 @@ function buildUserCard(user, index) {
         statusClass = "suspended";
         statusLabel = "Suspended";
     } else if (status === "banned") {
-        statusClass = "status-banned"; // Ginagamit ang custom orange class para sa banned card
+        statusClass = "status-banned";
         statusLabel = "Banned";
     } else if (status === "disabled" || status === "inactive") {
         statusClass = "inactive";
         statusLabel = "Inactive";
     }
 
-    // Format time
     let timeStr = "Today 10:30 A.M";
     if (user.created_at) {
         const d = new Date(user.created_at);
@@ -136,7 +133,6 @@ function buildUserCard(user, index) {
     card.dataset.userId = userId;
 
     card.innerHTML = `
-        <!-- Header: Avatar + Name -->
         <div class="flex gap-3 items-start">
             ${avatarUrl ? `
                 <img src="${avatarUrl}" alt="${name}" class="avatar-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
@@ -155,7 +151,6 @@ function buildUserCard(user, index) {
             </div>
         </div>
 
-        <!-- Contact Info -->
         <div class="mt-3 space-y-1.5 text-xs">
             <p class="text-slate-600 flex items-center gap-1.5 truncate">
                 <i class="fa-solid fa-phone text-slate-400 w-3.5 text-[10px]"></i>
@@ -172,7 +167,6 @@ function buildUserCard(user, index) {
         </div>
     `;
 
-    // Click card → open detail
     card.addEventListener("click", () => {
         selectUser(userId);
     });
@@ -222,112 +216,134 @@ function openPanel(user) {
     const role = user.role || "User";
     const phone = user.phone || "—";
     const email = user.email || "—";
-    
+
     const status = (user.status || "active").toLowerCase();
     const isActive = status === "active";
     const isSuspended = status === "suspended";
     const isBanned = status === "banned";
 
     let statusLabel = "Active";
-    let statusClass = "status-active";
-    
+    let statusColor = "bg-emerald-50 text-emerald-700 border-emerald-200";
+    let statusDot = "bg-emerald-500";
+
     if (status === "suspended") {
-        statusClass = "status-suspended";
+        statusColor = "bg-amber-50 text-amber-700 border-amber-200";
+        statusDot = "bg-amber-500";
         statusLabel = "Suspended";
     } else if (status === "banned") {
-        statusClass = "status-banned";
+        statusColor = "bg-red-50 text-red-700 border-red-200";
+        statusDot = "bg-red-500";
         statusLabel = "Banned";
     } else if (status === "disabled" || status === "inactive") {
-        statusClass = "status-inactive";
+        statusColor = "bg-slate-100 text-slate-600 border-slate-200";
+        statusDot = "bg-slate-400";
         statusLabel = "Inactive";
     }
 
     const registered = user.created_at ? new Date(user.created_at).toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric"
+        month: "short", day: "numeric", year: "numeric"
     }) : "—";
 
     const lastLogin = user.last_login ? new Date(user.last_login).toLocaleString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-        hour: "numeric",
-        minute: "2-digit",
-        hour12: true
+        month: "short", day: "numeric", year: "numeric",
+        hour: "numeric", minute: "2-digit", hour12: true
     }) : "—";
 
-    const avatarUrl = user.profile_picture || "";
+    const avatarUrl = user.profile_picture || user.profile || "";
+    const uid = user.account_id || user.id;
 
     body.innerHTML = `
-        <img
-            src="${avatarUrl}"
-            alt="${name}"
-            class="profile-avatar"
-            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'"
-        />
-        <div class="profile-avatar-placeholder" style="display:none; background: linear-gradient(135deg, #6366f1, #8b5cf6); margin: 0 auto 12px;">
-            ${initial}
-        </div>
-
-        <div class="profile-name">${name}</div>
-        <div class="profile-role">${role}</div>
-        <div class="profile-email">${email}</div>
-
-        <div class="detail-grid">
-            <div class="detail-row">
-                <span class="label">Phone</span>
-                <span class="value">${phone}</span>
-            </div>
-            <div class="detail-row">
-                <span class="label">Registered</span>
-                <span class="value">${registered}</span>
-            </div>
-            <div class="detail-row">
-                <span class="label">Last Login</span>
-                <span class="value">${lastLogin}</span>
-            </div>
-            <div class="detail-row">
-                <span class="label">Status</span>
-                <span class="value ${statusClass}">${statusLabel}</span>
+        <!-- Compact Profile Header -->
+        <div class="flex items-start gap-3">
+            ${avatarUrl ? `
+                <img src="${avatarUrl}" alt="${name}"
+                     class="w-14 h-14 rounded-full object-cover border border-slate-200 flex-shrink-0"
+                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+                <div class="w-14 h-14 rounded-full items-center justify-center text-white font-bold text-lg flex-shrink-0"
+                     style="display:none; background: linear-gradient(135deg, #6366f1, #8b5cf6);">
+                    ${initial}
+                </div>
+            ` : `
+                <div class="w-14 h-14 rounded-full flex items-center justify-center text-white font-bold text-lg flex-shrink-0"
+                     style="background: linear-gradient(135deg, #6366f1, #8b5cf6);">
+                    ${initial}
+                </div>
+            `}
+            <div class="min-w-0 flex-1">
+                <div class="flex items-center gap-2 flex-wrap">
+                    <h2 class="font-semibold text-slate-800 text-sm truncate">${name}</h2>
+                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold border ${statusColor}">
+                        <span class="w-1.5 h-1.5 rounded-full ${statusDot}"></span>
+                        ${statusLabel}
+                    </span>
+                </div>
+                <p class="text-xs text-indigo-600 font-medium capitalize leading-tight">${role}</p>
+                <p class="text-xs text-slate-400 truncate leading-tight">${email}</p>
             </div>
         </div>
 
-        <h3 class="text-sm font-bold text-slate-800 mb-3">Account Actions</h3>
+        <!-- Compact Info List -->
+        <div class="mt-4 divide-y divide-slate-100 border border-slate-200 rounded-xl overflow-hidden bg-white">
+            <div class="flex items-center justify-between px-3 py-2 text-xs">
+                <span class="text-slate-500 flex items-center gap-2">
+                    <i class="fa-solid fa-phone text-slate-400 w-3.5 text-[10px]"></i>Phone
+                </span>
+                <span class="font-medium text-slate-700">${phone}</span>
+            </div>
+            <div class="flex items-center justify-between px-3 py-2 text-xs">
+                <span class="text-slate-500 flex items-center gap-2">
+                    <i class="fa-regular fa-calendar text-slate-400 w-3.5 text-[10px]"></i>Registered
+                </span>
+                <span class="font-medium text-slate-700">${registered}</span>
+            </div>
+            <div class="flex items-center justify-between px-3 py-2 text-xs">
+                <span class="text-slate-500 flex items-center gap-2">
+                    <i class="fa-regular fa-clock text-slate-400 w-3.5 text-[10px]"></i>Last Login
+                </span>
+                <span class="font-medium text-slate-700 text-right">${lastLogin}</span>
+            </div>
+        </div>
 
-        <div class="action-buttons">
-            <button class="action-btn" data-action="toggle" data-id="${user.account_id || user.id}">
-                <i class="fa-solid fa-arrows-rotate"></i>
-                ${isActive ? 'Deactivate' : 'Activate'} Account
-            </button>
-            <button class="action-btn" data-action="${isSuspended ? 'unsuspend' : 'suspend'}" data-id="${user.account_id || user.id}">
-                <i class="fa-solid ${isSuspended ? 'fa-user-check' : 'fa-user-slash'}"></i>
-                ${isSuspended ? 'Unsuspend Account' : 'Suspend Account'}
-            </button>
-            <button class="action-btn danger" data-action="${isBanned ? 'unban' : 'ban'}" data-id="${user.account_id || user.id}">
-                <i class="fa-solid ${isBanned ? 'fa-user-check' : 'fa-ban'}"></i>
-                ${isBanned ? 'Lift Ban' : 'Permanent Ban'}
-            </button>
+        <!-- Compact Actions -->
+        <div class="mt-5">
+            <h3 class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">Account Actions</h3>
+            <div class="space-y-2">
+                <button data-action="toggle" data-id="${uid}"
+                        class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/60 text-slate-700 text-xs font-semibold transition text-left">
+                    <i class="fa-solid fa-arrows-rotate text-indigo-500 w-4 text-center"></i>
+                    ${isActive ? 'Deactivate Account' : 'Activate Account'}
+                </button>
+
+                <button data-action="${isSuspended ? 'unsuspend' : 'suspend'}" data-id="${uid}"
+                        class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg border border-slate-200 hover:border-amber-300 hover:bg-amber-50/60 text-slate-700 text-xs font-semibold transition text-left">
+                    <i class="fa-solid ${isSuspended ? 'fa-user-check text-emerald-500' : 'fa-user-slash text-amber-500'} w-4 text-center"></i>
+                    ${isSuspended ? 'Unsuspend Account' : 'Suspend Account'}
+                </button>
+
+                <button data-action="${isBanned ? 'unban' : 'ban'}" data-id="${uid}"
+                        class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg border border-red-200 hover:border-red-300 hover:bg-red-50/60 text-red-600 text-xs font-semibold transition text-left">
+                    <i class="fa-solid ${isBanned ? 'fa-user-check' : 'fa-ban'} w-4 text-center"></i>
+                    ${isBanned ? 'Lift Ban' : 'Permanent Ban'}
+                </button>
+            </div>
         </div>
     `;
 
-    body.querySelectorAll(".action-btn").forEach(btn => {
+    body.querySelectorAll("[data-action]").forEach(btn => {
         btn.addEventListener("click", (e) => {
             e.stopPropagation();
-            const action = btn.dataset.action;
-            const id = btn.dataset.id;
-            handleAction(action, id, user);
+            handleAction(btn.dataset.action, btn.dataset.id, user);
         });
     });
 
-    panel.classList.add("open");
-    overlay.classList.add("show");
+    panel.classList.remove("translate-x-full");
+    overlay.classList.remove("opacity-0", "pointer-events-none");
     document.body.style.overflow = "hidden";
 }
 
 function closePanel() {
-    document.getElementById("detailPanel").classList.remove("open");
-    document.getElementById("panelOverlay").classList.remove("show");
+    document.getElementById("detailPanel").classList.add("translate-x-full");
+    document.getElementById("panelOverlay").classList.add("opacity-0", "pointer-events-none");
     document.body.style.overflow = "";
     selectedUserId = null;
     const currentQuery = document.getElementById("searchInput").value.trim().toLowerCase();
@@ -344,24 +360,25 @@ function filterUsers(query) {
         if (!stillVisible) closePanel();
     }
 }
-// Function para sa magandang UI notification sa halip na default alert
+
+// ─── Toast ─────────────────────────────────────────────
 function showToast(message, type = "success") {
     const container = document.getElementById("toastContainer");
     if (!container) {
-        // Fallback kung sakaling wala pang container sa HTML
         alert(message);
         return;
     }
 
     const toast = document.createElement("div");
     toast.className = `toast ${type}`;
-    
-    const icon = type === "success" ? '<i class="fa-solid fa-circle-check"></i>' : '<i class="fa-solid fa-circle-exclamation"></i>';
+
+    const icon = type === "success"
+        ? '<i class="fa-solid fa-circle-check"></i>'
+        : '<i class="fa-solid fa-circle-exclamation"></i>';
     toast.innerHTML = `${icon} <span>${message}</span>`;
 
     container.appendChild(toast);
 
-    // Automatic na mawawala pagkalipas ng 3 segundo
     setTimeout(() => {
         toast.style.opacity = "0";
         toast.style.transition = "opacity 0.3s ease";
@@ -369,7 +386,7 @@ function showToast(message, type = "success") {
     }, 3000);
 }
 
-// Function para sa Custom Confirm Modal UI
+// ─── Confirm Modal ─────────────────────────────────────
 function showConfirmModal(title, description, confirmButtonText = "Confirm", isDanger = false) {
     return new Promise((resolve) => {
         const modal = document.getElementById("customConfirmModal");
@@ -395,7 +412,6 @@ function showConfirmModal(title, description, confirmButtonText = "Confirm", isD
 
         modal.classList.remove("hidden");
 
-        // Clean up old event listeners para hindi mag-stack
         const newConfirmBtn = confirmBtn.cloneNode(true);
         const newCancelBtn = cancelBtn.cloneNode(true);
         confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
@@ -413,7 +429,7 @@ function showConfirmModal(title, description, confirmButtonText = "Confirm", isD
     });
 }
 
-// I-update ang handleAction para gamitin ang bagong UI modal
+// ─── Actions ───────────────────────────────────────────
 async function handleAction(action, id, user) {
     try {
         let url = "";
@@ -461,7 +477,6 @@ async function handleAction(action, id, user) {
                 return;
         }
 
-        // Gamitin ang Custom Modal sa halip na browser confirm()
         const confirmed = await showConfirmModal(actionTitle, actionDesc, "Yes, Proceed", isDanger);
         if (!confirmed) return;
 
