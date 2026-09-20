@@ -132,7 +132,7 @@
                             </div>
                         </div>
                     
-                        <!-- Section 1: Applicant Info -->
+                       <!-- Section 1: Applicant Info -->
                         <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
                             <h3 class="text-blue-600 font-bold flex items-center gap-2 mb-4">
                                 <i class="fa-regular fa-user"></i> Applicant Information
@@ -140,20 +140,20 @@
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div>
                                     <label class="block text-xs font-bold text-gray-700 mb-1">Full Name <span class="text-red-500">*</span></label>
-                                    <input type="text" id="app-fullname" name="full_name" placeholder="Type Full Name" class="w-full border rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-blue-400 border-gray-200" required />
+                                    <input type="text" id="app-fullname" name="full_name" placeholder="Type Full Name" class="w-full border rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-blue-400 border-gray-200" required minlength="2" maxlength="100" pattern="[A-Za-zñÑ\s.'-]+" title="Letters, spaces, periods, hyphens, and apostrophes only" autocomplete="name" />
                                 </div>
                                 <div>
                                     <label class="block text-xs font-bold text-gray-700 mb-1">Contact Number <span class="text-red-500">*</span></label>
-                                    <input type="tel" id="app-phone" name="contact_number" placeholder="09123456789" maxlength="11" pattern="09[0-9]{9}" title="Must be a valid PH phone number starting with 09 (11 digits)" class="ph-phone-input w-full border rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-blue-400 border-gray-200" required />
+                                    <input type="tel" id="app-phone" name="contact_number" placeholder="09123456789" maxlength="11" pattern="09[0-9]{9}" title="Must be a valid PH phone number starting with 09 (11 digits)" class="ph-phone-input w-full border rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-blue-400 border-gray-200" required inputmode="numeric" />
                                 </div>
                                 <div>
                                     <label class="block text-xs font-bold text-gray-700 mb-1">Email Address <span class="text-red-500">*</span></label>
-                                    <input type="email" id="app-email" name="email" placeholder="email" class="w-full border rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-blue-400 border-gray-200" required />
+                                    <input type="email" id="app-email" name="email" placeholder="email" class="w-full border rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-blue-400 border-gray-200" required maxlength="150" autocomplete="email" />
                                 </div>
                     
                                 <div class="md:col-span-3">
                                     <label class="block text-xs font-bold text-gray-700 mb-1">Street Address / House No. & Street <span class="text-red-500">*</span></label>
-                                    <input type="text" id="app-street" placeholder="House No. / Street" class="w-full border rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-blue-400 border-gray-200" required />
+                                    <input type="text" id="app-street" placeholder="House No. / Street" class="w-full border rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-blue-400 border-gray-200" required minlength="3" maxlength="150" pattern="[A-Za-z0-9ñÑ\s.,#\-\/()]+" title="Letters, numbers, spaces, and basic punctuation only" />
                                 </div>
                                 <div>
                                     <label class="block text-xs font-bold text-gray-700 mb-1">Region <span class="text-red-500">*</span></label>
@@ -181,7 +181,7 @@
                                 </div>
                                 <div>
                                     <label class="block text-xs font-bold text-gray-700 mb-1">Zip Code <span class="text-red-500">*</span></label>
-                                    <input type="text" id="app-zip" placeholder="e.g. 4434" maxlength="4" inputmode="numeric" class="w-full border rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-blue-400 border-gray-200" required />
+                                    <input type="text" id="app-zip" placeholder="e.g. 4434" maxlength="4" inputmode="numeric" class="w-full border rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-blue-400 border-gray-200" required pattern="\d{4}" title="Enter a valid 4-digit ZIP code" />
                                     <p id="app-zip-helper" class="text-xs mt-1"></p>
                                 </div>
                                 <!-- Hidden field: this is what actually gets submitted as full_address -->
@@ -198,12 +198,12 @@
                                 </div>
                                 <div>
                                     <label class="block text-xs font-bold text-gray-700 mb-1">Age <span class="text-red-500">*</span></label>
-                                    <input type="number" id="app-age" name="age" min="18" max="99" maxlength="2" placeholder="Type Age (e.g. 25)" class="w-full border rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-blue-400 border-gray-200" required />
+                                    <input type="number" id="app-age" name="age" min="18" max="120" placeholder="Type Age (e.g. 25)" class="w-full border rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-blue-400 border-gray-200" required inputmode="numeric" />
                                 </div>
                     
                                 <div>
                                     <label class="block text-xs font-bold text-gray-700 mb-1">Occupation / Source of Income <span class="text-red-500">*</span></label>
-                                    <input type="text" id="app-occupation" name="occupation" placeholder="e.g. Employee, Business" class="w-full border rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-blue-400 border-gray-200" required />
+                                    <input type="text" id="app-occupation" name="occupation" placeholder="e.g. Employee, Business" class="w-full border rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-blue-400 border-gray-200" required minlength="2" maxlength="100" pattern="[A-Za-z0-9ñÑ\s.,\-()\/]+" title="Letters, numbers, spaces, and basic punctuation only" />
                                 </div>
                             </div>
                         </div>
@@ -215,7 +215,7 @@
                             </h3>
                             <div>
                                 <label class="block text-xs font-bold text-gray-700 mb-1">Why do you want to adopt? <span class="text-red-500">*</span></label>
-                                <textarea id="app-intent" name="adoption_intent" rows="3" placeholder="Share your reason to adopt a pet..." class="w-full border rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-blue-400 border-gray-200" required></textarea>
+                                <textarea id="app-intent" name="adoption_intent" rows="3" placeholder="Share your reason to adopt a pet..." class="w-full border rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-blue-400 border-gray-200" required minlength="20" maxlength="2000"></textarea>
                             </div>
                         </div>
                     
@@ -227,15 +227,15 @@
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div>
                                     <label class="block text-xs font-bold text-gray-700 mb-1">Contact Person Name <span class="text-red-500">*</span></label>
-                                    <input type="text" id="app-emergency-name" name="emergency_name" placeholder="Full Name" class="w-full border rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-blue-400 border-gray-200" required />
+                                    <input type="text" id="app-emergency-name" name="emergency_name" placeholder="Full Name" class="w-full border rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-blue-400 border-gray-200" required minlength="2" maxlength="100" pattern="[A-Za-zñÑ\s.'-]+" title="Letters, spaces, periods, hyphens, and apostrophes only" />
                                 </div>
                                 <div>
                                     <label class="block text-xs font-bold text-gray-700 mb-1">Emergency Phone Number <span class="text-red-500">*</span></label>
-                                    <input type="tel" id="app-emergency-phone" name="emergency_phone" placeholder="09123456789" maxlength="11" pattern="09[0-9]{9}" title="Must be a valid PH phone number starting with 09 (11 digits)" class="ph-phone-input w-full border rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-blue-400 border-gray-200" required />
+                                    <input type="tel" id="app-emergency-phone" name="emergency_phone" placeholder="09123456789" maxlength="11" pattern="09[0-9]{9}" title="Must be a valid PH phone number starting with 09 (11 digits)" class="ph-phone-input w-full border rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-blue-400 border-gray-200" required inputmode="numeric" />
                                 </div>
                                 <div>
                                     <label class="block text-xs font-bold text-gray-700 mb-1">Relationship <span class="text-red-500">*</span></label>
-                                    <input type="text" id="app-emergency-relation" name="emergency_relation" placeholder="Parent / Sibling / Friend" class="w-full border rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-blue-400 border-gray-200" required />
+                                    <input type="text" id="app-emergency-relation" name="emergency_relation" placeholder="Parent / Sibling / Friend" class="w-full border rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-blue-400 border-gray-200" required minlength="2" maxlength="50" pattern="[A-Za-zñÑ\s.\-]+" title="Letters, spaces, periods, and hyphens only" />
                                 </div>
                             </div>
                         </div>
@@ -247,10 +247,9 @@
                             </h3>
                             <div>
                                 <label class="block text-xs font-bold text-gray-700 mb-1">Upload Valid ID / Proof of Residence (PDF/Image) <span class="text-red-500">*</span></label>
-                                <input type="file" id="app-document" name="document" class="w-full border border-gray-200 rounded-xl p-2 text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" required />
+                                <input type="file" id="app-document" name="document" class="w-full border border-gray-200 rounded-xl p-2 text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" required accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png" />
                             </div>
                         </div>
-                    
                         <!-- Action Buttons -->
                         <div class="flex justify-end gap-3 pt-4">
                             <button id="appCancelBtn" type="button" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-6 py-3 rounded-xl font-semibold transition-colors">

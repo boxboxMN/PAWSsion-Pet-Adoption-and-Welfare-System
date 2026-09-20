@@ -1187,11 +1187,90 @@ document.addEventListener("DOMContentLoaded", async () => {
         return fullAddr;
     }
 
-    const adoptionForm = document.getElementById('adoptionForm');
+        const adoptionForm = document.getElementById('adoptionForm');
     if (adoptionForm) {
         adoptionForm.addEventListener('submit', async function (e) {
             e.preventDefault();
 
+            // =====================================================
+            // ✅ SEUSR-03: HTML5 VALIDATION TRIGGER
+            // (Kailangan ito dahil ang e.preventDefault() ay pumipigil
+            //  sa default browser validation)
+            // =====================================================
+            if (!this.checkValidity()) {
+                this.reportValidity();
+                return;
+            }
+
+            // =====================================================
+            // ✅ SEUSR-03: CUSTOM VALIDATION FOR TEXTAREA
+            // (Hindi supported ng textarea ang `pattern` attribute)
+            // =====================================================
+            const intentField = document.getElementById('app-intent');
+            if (intentField) {
+                const intentValue = intentField.value.trim();
+
+                // (a) Minimum 20 characters
+                if (intentValue.length < 20) {
+                    intentField.setCustomValidity('Adoption intent must be at least 20 characters.');
+                    intentField.reportValidity();
+                    intentField.setCustomValidity('');
+                    return;
+                }
+
+                // (b) Dangerous patterns — XSS at SQL injection
+                const dangerousRegex = /(<script|<\/script|javascript:|onerror\s*=|onload\s*=|onclick\s*=|onmouseover\s*=|onfocus\s*=|onblur\s*=|oninput\s*=|onchange\s*=|onkeydown\s*=|onkeyup\s*=|onkeypress\s*=|<iframe|<img\s|<svg|<object|<embed|<\s*script|'\s*--|;\s*drop\s|;\s*delete\s|;\s*update\s|;\s*insert\s|union\s+select|or\s+1\s*=\s*1|or\s+'1'\s*=\s*'1'|\bexec\s*\(|\bxp_cmdshell\b)/i;
+
+                if (dangerousRegex.test(intentValue)) {
+                    intentField.setCustomValidity('Adoption intent contains invalid or dangerous characters.');
+                    intentField.reportValidity();
+                    intentField.setCustomValidity('');
+                    return;
+                }
+
+                // (c) Gibberish check (5+ sunod-sunod na parehong character)
+                if (/(.)\1{4,}/.test(intentValue)) {
+                    intentField.setCustomValidity('Adoption intent looks like gibberish. Please write a proper reason.');
+                    intentField.reportValidity();
+                    intentField.setCustomValidity('');
+                    return;
+                }
+            }
+
+            // =====================================================
+            // ✅ SEUSR-03: CUSTOM VALIDATION FOR NAME FIELDS
+            // (Extra check — HTML pattern ay hindi laging sapat)
+            // =====================================================
+            const nameRegex = /^[A-Za-zñÑáéíóúÁÉÍÓÚàèìòùÀÈÌÒÙ\s.'-]{2,100}$/;
+            const nameFields = [
+                { id: 'app-fullname',       label: 'Full Name' },
+                { id: 'app-emergency-name', label: 'Emergency Contact Name' }
+            ];
+
+            for (const field of nameFields) {
+                const el = document.getElementById(field.id);
+                if (!el) continue;
+
+                const val = el.value.trim();
+
+                if (!nameRegex.test(val)) {
+                    el.setCustomValidity(`${field.label} contains invalid characters. Letters, spaces, periods, hyphens, and apostrophes only.`);
+                    el.reportValidity();
+                    el.setCustomValidity('');
+                    return;
+                }
+
+                if (/(.)\1{4,}/.test(val)) {
+                    el.setCustomValidity(`${field.label} looks like gibberish. Please enter a real name.`);
+                    el.reportValidity();
+                    el.setCustomValidity('');
+                    return;
+                }
+            }
+
+            // =====================================================
+            // EXISTING VALIDATION (hindi binago)
+            // =====================================================
             const petId = document.getElementById('selectedPetId').value;
             if (!petId) {
                 alert("Please select a pet first!");
