@@ -206,7 +206,6 @@ function escapeHtml(value) {
 }
 
 function createApplicationRow(app) {
-    console.log("✅ ACTIVE! Nagsasagot si createApplicationRow para kay:", app.full_name);
     const initials = getInitials(app.full_name);
     const statusStyle = getApplicationStatusStyle(app.status);
 
