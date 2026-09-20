@@ -61,13 +61,13 @@ let barangaysData = [];
 
 document.addEventListener("DOMContentLoaded", async () => {
 
-await loadTopbar({
-    title: "Organization Profile",
-    subtitle: "View and manage your organization's public information, contact details, and account settings."
-});
+// await loadTopbar({
+//     title: "Organization Profile",
+//     subtitle: "View and manage your organization's public information, contact details, and account settings."
+// });
 
-await loadSidebar();
-// 2. Kuhanin ang kumpletong impormasyon ng Org mula sa bagong API route natin
+// await loadSidebar();
+// // 2. Kuhanin ang kumpletong impormasyon ng Org mula sa bagong API route natin
 try {
     const response = await fetch("/api/organization/profile");
 
