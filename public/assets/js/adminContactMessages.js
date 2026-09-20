@@ -62,7 +62,7 @@ function getSubjectBadge(subject) {
         other: { label: "Other", icon: "fa-solid fa-ellipsis", classes: "bg-purple-50 text-purple-600 border-purple-200" }
     };
     const entry = map[subject] || map["other"];
-    return `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold border ${entry.classes}"><i class="${entry.icon} text-[9px]"></i>${entry.label}</span>`;
+    return `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold border whitespace-nowrap ${entry.classes}"><i class="${entry.icon} text-[9px]"></i>${entry.label}</span>`;
 }
 
 async function loadFeedback() {
