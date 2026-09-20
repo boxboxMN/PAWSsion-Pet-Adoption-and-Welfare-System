@@ -211,99 +211,60 @@ function getMatchScorePercent(match) {
     return score;
 }
 
-// start
-        async function loadComponent(id, file) {
-        try {
-            const response = await fetch(file);
-            if (!response.ok) {
-                throw new Error(`Cannot load ${file}`);
-            }
+document.addEventListener("DOMContentLoaded", async () => {
 
-            document.getElementById(id).innerHTML =
-                await response.text();
+    // Wait until sidebar + header are loaded
+    await loadSidebar();
 
-        } catch (error) {
-            console.error(error);
-        }
-    }
-    Promise.all([
-        loadComponent("sidebar", "/user/userSidebar.html"),
-        loadComponent("header", "/user/userHeader.html")
-    ])
-    .then(() => {
+    // Wait one tick so the header HTML exists
+    requestAnimationFrame(() => {
 
-        document.getElementById("sidebar").style.visibility = "visible";
-        document.getElementById("header").style.visibility = "visible";
-
-        const currentPath = window.location.pathname;
-        const pageTitle = document.getElementById("pageTitle");
-
-        const links = document.querySelectorAll("#sidebar .nav-link");
-
-        links.forEach(link => {
-
-            const href = link.getAttribute("href");
-
-            const isActive =
-                href === currentPath ||
-                (href !== "/dashboard" && currentPath.startsWith(href));
-
-            if (isActive) {
-
-                link.className =
-                    "nav-link flex items-center gap-4 px-5 py-4 rounded-2xl bg-blue-600 text-white shadow";
-
-                if (pageTitle) {
-                    pageTitle.textContent = link.dataset.title;
-                }
-
-            } else {
-
-                link.className =
-                    "nav-link flex items-center gap-4 px-5 py-4 rounded-2xl text-gray-800 hover:bg-blue-50 hover:text-blue-600 transition";
-
-            }
-
+        // Set page title
+        loadTopbar({
+            title: "Pet Matchmaker",
+            subtitle: "Find pets that best match your lifestyle, preferences, and personality using our AI-powered matching system."
         });
 
-    
         document.body.style.visibility = "visible";
+    });
 
-    })
-    .catch(error => console.error(error));
+});
 
-        const introScreen = document.getElementById("introScreen");
-        const preferenceScreen = document.getElementById("preferenceScreen");
-        const loadingScreen = document.getElementById("matchingLoadingScreen");
-        const compatibilityScreen = document.getElementById("compatibilityScreen");
+const introScreen = document.getElementById("introScreen");
+const preferenceScreen = document.getElementById("preferenceScreen");
+const loadingScreen = document.getElementById("matchingLoadingScreen");
+const compatibilityScreen = document.getElementById("compatibilityScreen");
 
-        function showScreen(screenToShow) {
-            [
-                introScreen,
-                preferenceScreen,
-                loadingScreen,
-                compatibilityScreen
-            ].forEach((screen) => {
+function showScreen(screenToShow) {
+    [
+        introScreen,
+        preferenceScreen,
+        loadingScreen,
+        compatibilityScreen
+    ].forEach((screen) => {
 
-                screen.classList.toggle(
-                    "hidden",
-                    screen !== screenToShow
-                );
-
-            });
-
-            window.scrollTo({
-                top: 0,
-                behavior: "smooth"
-            });
+        if (screen) {
+            screen.classList.toggle(
+                "hidden",
+                screen !== screenToShow
+            );
         }
-        function showLoadingScreen() {
-            showScreen(loadingScreen);
-        }
-        function showPreferenceScreen() {
-            showScreen(preferenceScreen);
-        }
-        
+    });
+
+    window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+    });
+}
+
+function showLoadingScreen() {
+    showScreen(loadingScreen);
+}
+
+function showPreferenceScreen() {
+    showScreen(preferenceScreen);
+}
+
 // ==========================================================
 // UPDATE MATCHING PROGRESS
 // ==========================================================

@@ -7,14 +7,15 @@
     <link rel="icon" type="image/png" href="../assets/images/Pawpon_logo.png">
     <title>PAWPON – Cash Donation </title>
 
-    <script src="https://cdn.tailwindcss.com"></script>
+     <link rel="stylesheet" href="/css/tailwind.css">
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+        <!-- Local Font Awesome -->
+    <link rel="stylesheet" href="/css/fontawesome/all.min.css">
     <!-- Tesseract.js (OCR for auto-filling receipt details) -->
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/css/inter.css">
 
     <script src="../assets/js/userSidebar.js"></script>
     <script src="../assets/js/userHeader.js"></script>
@@ -79,14 +80,14 @@
             position: fixed;
             inset: 0;
             background: rgba(0, 0, 0, 0.5);
-            z-index: 999;
+            z-index: 9999;
             align-items: center;
             justify-content: center;
             padding: 1rem;
         }
 
         .modal-overlay.active {
-            display: flex;
+            display: flex !important;
         }
 
         .modal-box {
@@ -138,12 +139,7 @@
 
         <div class="h-[calc(100vh-6rem)] overflow-y-auto p-8">
             
-            <!-- BACK BUTTON -->
-            <div class="mb-6">
-                <a href="javascript:history.back()" class="inline-flex items-center gap-2 text-sm font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 px-4 py-2 rounded-xl transition border border-blue-200">
-                    <i class="fa-solid fa-arrow-left"></i> Back
-                </a>
-            </div>
+    
 
             <div class="text-center mb-8">
                 <h1 class="text-4xl font-bold text-blue-700">
@@ -203,36 +199,45 @@
                     </div>
 
                     <div class="mb-6">
-    <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Upload Receipt (Proof of Payment)</label>
-    <label class="border-2 border-dashed border-blue-300 rounded-xl p-4 flex items-center justify-between cursor-pointer hover:bg-blue-50/50 transition">
-        <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center flex-shrink-0">
-                <i class="fa-solid fa-cloud-arrow-up text-lg"></i>
-            </div>
-            <div>
-                <span class="text-blue-700 font-medium text-sm block">Choose file to upload</span>
-                <span id="receiptFileName" class="text-xs text-gray-500">Accepted file type: jpg, png, webp</span>
-            </div>
-        </div>
-        <span class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-4 py-2 rounded-lg font-medium transition">Browse</span>
-        <input type="file" id="receiptInput" name="receipt" class="hidden" accept="image/*" required />
-    </label>
+                        <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Upload Receipt (Proof of Payment)</label>
+                        <label class="border-2 border-dashed border-blue-300 rounded-xl p-4 flex items-center justify-between cursor-pointer hover:bg-blue-50/50 transition">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center flex-shrink-0">
+                                    <i class="fa-solid fa-cloud-arrow-up text-lg"></i>
+                                </div>
+                                <div>
+                                    <span class="text-blue-700 font-medium text-sm block">Choose file to upload</span>
+                                   <span id="receiptFileName" class="text-xs text-gray-500">
+                                        Accepted file type: JPG, JPEG, PNG (max 5MB)
+                                    </span>
+                                </div>
+                            </div>
+                            <span class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-4 py-2 rounded-lg font-medium transition">Browse</span>
+                            <input 
+                                type="file" 
+                                id="receiptInput" 
+                                name="receipt" 
+                                class="hidden" 
+                                accept="image/jpeg,image/jpg,image/png,.jpg,.jpeg,.png" 
+                                required 
+                            />
+                        </label>
 
-    <!-- OCR Status -->
-    <div id="ocrStatus" class="hidden mt-3 text-xs font-semibold text-blue-700 items-center gap-2">
-        <i class="fa-solid fa-spinner fa-spin"></i>
-        <span id="ocrStatusText">Scanning receipt...</span>
-    </div>
+                        <!-- OCR Status -->
+                        <div id="ocrStatus" class="hidden mt-3 text-xs font-semibold text-blue-700 items-center gap-2">
+                            <i class="fa-solid fa-spinner fa-spin"></i>
+                            <span id="ocrStatusText">Scanning receipt...</span>
+                        </div>
 
-    <!-- Receipt Preview -->
-    <div id="receiptPreviewWrap" class="hidden mt-3">
-        <img id="receiptPreview" class="max-h-52 rounded-xl border border-blue-200 shadow-sm" alt="Receipt preview">
-        <p class="text-[11px] text-gray-500 mt-1">
-            <i class="fa-solid fa-circle-check text-green-600"></i>
-            This is the receipt that will be submitted.
-        </p>
-    </div>
-</div>
+                        <!-- Receipt Preview -->
+                        <div id="receiptPreviewWrap" class="hidden mt-3">
+                            <img id="receiptPreview" class="max-h-52 rounded-xl border border-blue-200 shadow-sm" alt="Receipt preview">
+                            <p class="text-[11px] text-gray-500 mt-1">
+                                <i class="fa-solid fa-circle-check text-green-600"></i>
+                                This is the receipt that will be submitted.
+                            </p>
+                        </div>
+                    </div>
 
                     <div class="flex items-start gap-2 mb-6">
                         <input type="checkbox" class="mt-1" />
@@ -260,31 +265,12 @@
                             Used your app to scan this QR code
                         </p>
                         <div class="flex flex-col items-center justify-center mb-6">
-                            <img id="qrImage" class="rounded-lg border max-h-[200px] object-contain mb-3" />
-                            
-                            <button id="viewQrBtn" class="text-xs bg-blue-50 text-blue-700 hover:bg-blue-100 font-semibold px-3 py-1.5 rounded-lg border border-blue-200 transition flex items-center gap-1.5 cursor-pointer">
-                                <i class="fa-solid fa-expand"></i> View QR Code
-                            </button>
+                            <img id="qrImage" src="https://via.placeholder.com/200x200?text=Select+Organization" class="rounded-lg border max-h-[200px] object-contain mb-3" alt="QR Code" />
+                            <button id="viewQrBtn" type="button" onclick="openQRCodeModal(event)" class="text-xs bg-blue-50 text-blue-700 hover:bg-blue-100 font-semibold px-3 py-1.5 rounded-lg border border-blue-200 transition flex items-center gap-1.5 cursor-pointer">
+                            <i class="fa-solid fa-expand"></i> View QR Code
+                        </button>
                         </div>
                         
-                        <div id="qrModal" class="modal-overlay">
-                            <div class="modal-box p-4 max-w-sm text-center relative bg-white rounded-2xl">
-                                <span id="qrModalClose" class="absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 cursor-pointer transition z-10">
-                                    <i class="fa-solid fa-xmark"></i>
-                                </span>
-                                <h3 class="text-base font-bold text-blue-700 mb-2">Scan QR Code</h3>
-                                
-                                <div class="flex justify-center items-center mb-3 overflow-hidden rounded-xl border bg-gray-50 h-[400px]">
-                                    <img id="modalQrImage" class="w-full h-full object-fill" />
-                                </div>
-                                
-                                <p id="qrModalAccountName" class="text-sm font-semibold text-gray-800">Account Name</p>
-                                <p id="qrModalAccountNumber" class="text-xs text-gray-500 mb-3">Account Number</p>
-                                
-                                <button id="qrModalCloseBtn" class="w-full bg-blue-700 hover:bg-blue-800 text-white py-2.5 rounded-xl font-semibold transition cursor-pointer">Close</button>
-                            </div>
-                        </div>
-
                         <div class="space-y-3 mb-6">
                             <div>
                                 <p class="text-gray-500 text-xs uppercase font-semibold" id="accountNameLabel">GCASH Account Name:</p>
@@ -308,6 +294,7 @@
             </div>
         </div>
 
+        <!-- ORG MODAL -->
         <div id="orgModal" class="modal-overlay">
             <div class="modal-box p-0 overflow-hidden rounded-2xl">
                 <div class="bg-gradient-to-r from-blue-600 to-blue-700 p-6 text-white relative">
@@ -364,22 +351,29 @@
             </div>
         </div>
 
+<!-- QR MODAL -->
+<div id="qrModal" class="modal-overlay">
+    <div class="modal-box p-5 w-[90vw] max-w-sm text-center relative bg-white rounded-2xl max-h-[90vh] flex flex-col justify-between">
+        <span id="qrModalClose" class="absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 cursor-pointer transition z-10">
+            <i class="fa-solid fa-xmark"></i>
+        </span>
+
+        <h3 class="text-base font-bold text-blue-700 mb-3">Scan QR Code</h3>
+
+        <!-- Container na may dynamic height control -->
+        <div class="flex justify-center items-center mb-3 overflow-hidden rounded-xl border bg-gray-50 p-2 max-h-[55vh]">
+            <img id="modalQrImage" class="w-full h-auto max-h-[50vh] object-contain rounded-lg" alt="QR Code" />
+        </div>
+
+        <div>
+            <p id="qrModalAccountName" class="text-sm font-semibold text-gray-800 truncate">Account Name</p>
+            <p id="qrModalAccountNumber" class="text-xs text-gray-500 mb-3 truncate">Account Number</p>
+        </div>
+
+        <button id="qrModalCloseBtn" class="w-full bg-blue-700 hover:bg-blue-800 text-white py-2.5 rounded-xl font-semibold transition cursor-pointer">Close</button>
+    </div>
+</div>
         <div id="toastContainer" class="fixed bottom-5 right-5 z-[10000] flex flex-col gap-3 pointer-events-none"></div>
     </main>
-
-    <script>
-    document.addEventListener("DOMContentLoaded", async () => {
-        await loadSidebar();
-       
-        requestAnimationFrame(() => {
-            loadTopbar({
-                title: "Donation",
-                subtitle: "Support our shelter safely and securely through direct cash donations."
-            });
-
-            document.body.style.visibility = "visible";
-        });
-    });
-    </script>
 </body>
 </html>

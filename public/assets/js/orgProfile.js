@@ -68,6 +68,16 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 // await loadSidebar();
 // // 2. Kuhanin ang kumpletong impormasyon ng Org mula sa bagong API route natin
+
+if (window.location.pathname === "/org/profile") {
+    await loadTopbar({
+        title: "Organization Profile",
+        subtitle: "View and manage your organization's public information, contact details, and account settings."
+    });
+
+    await loadSidebar();
+}
+
 try {
     const response = await fetch("/api/organization/profile");
 

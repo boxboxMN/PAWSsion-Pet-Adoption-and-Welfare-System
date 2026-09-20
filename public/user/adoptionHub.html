@@ -8,17 +8,14 @@
     <title>PAWPON – Adoption Hub</title>
 
     <!-- Tailwind via CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
+     <link rel="stylesheet" href="/css/tailwind.css">
 
-    <!-- Local Font Awesome -->
-    <link
-  rel="stylesheet"
-  href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+ <!-- Local Font Awesome -->
+<link rel="stylesheet" href="/css/fontawesome/all.min.css">
 
     <!-- Google Font: Inter -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/css/inter.css">
     <script src="../assets/js/userSidebar.js"></script>
     <script src="../assets/js/userHeader.js"></script>
     <script src="../assets/js/userAdoptionHub.js" defer></script>
@@ -135,7 +132,7 @@
                             </div>
                         </div>
                     
-                        <!-- Section 1: Applicant Info -->
+                       <!-- Section 1: Applicant Info -->
                         <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
                             <h3 class="text-blue-600 font-bold flex items-center gap-2 mb-4">
                                 <i class="fa-regular fa-user"></i> Applicant Information
@@ -143,20 +140,20 @@
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div>
                                     <label class="block text-xs font-bold text-gray-700 mb-1">Full Name <span class="text-red-500">*</span></label>
-                                    <input type="text" id="app-fullname" name="full_name" placeholder="Type Full Name" class="w-full border rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-blue-400 border-gray-200" required />
+                                    <input type="text" id="app-fullname" name="full_name" placeholder="Type Full Name" class="w-full border rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-blue-400 border-gray-200" required minlength="2" maxlength="100" pattern="[A-Za-zñÑ\s.'-]+" title="Letters, spaces, periods, hyphens, and apostrophes only" autocomplete="name" />
                                 </div>
                                 <div>
                                     <label class="block text-xs font-bold text-gray-700 mb-1">Contact Number <span class="text-red-500">*</span></label>
-                                    <input type="tel" id="app-phone" name="contact_number" placeholder="09123456789" maxlength="11" pattern="09[0-9]{9}" title="Must be a valid PH phone number starting with 09 (11 digits)" class="ph-phone-input w-full border rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-blue-400 border-gray-200" required />
+                                    <input type="tel" id="app-phone" name="contact_number" placeholder="09123456789" maxlength="11" pattern="09[0-9]{9}" title="Must be a valid PH phone number starting with 09 (11 digits)" class="ph-phone-input w-full border rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-blue-400 border-gray-200" required inputmode="numeric" />
                                 </div>
                                 <div>
                                     <label class="block text-xs font-bold text-gray-700 mb-1">Email Address <span class="text-red-500">*</span></label>
-                                    <input type="email" id="app-email" name="email" placeholder="email" class="w-full border rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-blue-400 border-gray-200" required />
+                                    <input type="email" id="app-email" name="email" placeholder="email" class="w-full border rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-blue-400 border-gray-200" required maxlength="150" autocomplete="email" />
                                 </div>
                     
                                 <div class="md:col-span-3">
                                     <label class="block text-xs font-bold text-gray-700 mb-1">Street Address / House No. & Street <span class="text-red-500">*</span></label>
-                                    <input type="text" id="app-street" placeholder="House No. / Street" class="w-full border rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-blue-400 border-gray-200" required />
+                                    <input type="text" id="app-street" placeholder="House No. / Street" class="w-full border rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-blue-400 border-gray-200" required minlength="3" maxlength="150" pattern="[A-Za-z0-9ñÑ\s.,#\-\/()]+" title="Letters, numbers, spaces, and basic punctuation only" />
                                 </div>
                                 <div>
                                     <label class="block text-xs font-bold text-gray-700 mb-1">Region <span class="text-red-500">*</span></label>
@@ -184,7 +181,7 @@
                                 </div>
                                 <div>
                                     <label class="block text-xs font-bold text-gray-700 mb-1">Zip Code <span class="text-red-500">*</span></label>
-                                    <input type="text" id="app-zip" placeholder="e.g. 4434" maxlength="4" inputmode="numeric" class="w-full border rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-blue-400 border-gray-200" required />
+                                    <input type="text" id="app-zip" placeholder="e.g. 4434" maxlength="4" inputmode="numeric" class="w-full border rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-blue-400 border-gray-200" required pattern="\d{4}" title="Enter a valid 4-digit ZIP code" />
                                     <p id="app-zip-helper" class="text-xs mt-1"></p>
                                 </div>
                                 <!-- Hidden field: this is what actually gets submitted as full_address -->
@@ -201,12 +198,12 @@
                                 </div>
                                 <div>
                                     <label class="block text-xs font-bold text-gray-700 mb-1">Age <span class="text-red-500">*</span></label>
-                                    <input type="number" id="app-age" name="age" min="18" max="99" maxlength="2" placeholder="Type Age (e.g. 25)" class="w-full border rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-blue-400 border-gray-200" required />
+                                    <input type="number" id="app-age" name="age" min="18" max="120" placeholder="Type Age (e.g. 25)" class="w-full border rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-blue-400 border-gray-200" required inputmode="numeric" />
                                 </div>
                     
                                 <div>
                                     <label class="block text-xs font-bold text-gray-700 mb-1">Occupation / Source of Income <span class="text-red-500">*</span></label>
-                                    <input type="text" id="app-occupation" name="occupation" placeholder="e.g. Employee, Business" class="w-full border rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-blue-400 border-gray-200" required />
+                                    <input type="text" id="app-occupation" name="occupation" placeholder="e.g. Employee, Business" class="w-full border rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-blue-400 border-gray-200" required minlength="2" maxlength="100" pattern="[A-Za-z0-9ñÑ\s.,\-()\/]+" title="Letters, numbers, spaces, and basic punctuation only" />
                                 </div>
                             </div>
                         </div>
@@ -218,7 +215,7 @@
                             </h3>
                             <div>
                                 <label class="block text-xs font-bold text-gray-700 mb-1">Why do you want to adopt? <span class="text-red-500">*</span></label>
-                                <textarea id="app-intent" name="adoption_intent" rows="3" placeholder="Share your reason to adopt a pet..." class="w-full border rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-blue-400 border-gray-200" required></textarea>
+                                <textarea id="app-intent" name="adoption_intent" rows="3" placeholder="Share your reason to adopt a pet..." class="w-full border rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-blue-400 border-gray-200" required minlength="20" maxlength="2000"></textarea>
                             </div>
                         </div>
                     
@@ -230,15 +227,15 @@
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div>
                                     <label class="block text-xs font-bold text-gray-700 mb-1">Contact Person Name <span class="text-red-500">*</span></label>
-                                    <input type="text" id="app-emergency-name" name="emergency_name" placeholder="Full Name" class="w-full border rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-blue-400 border-gray-200" required />
+                                    <input type="text" id="app-emergency-name" name="emergency_name" placeholder="Full Name" class="w-full border rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-blue-400 border-gray-200" required minlength="2" maxlength="100" pattern="[A-Za-zñÑ\s.'-]+" title="Letters, spaces, periods, hyphens, and apostrophes only" />
                                 </div>
                                 <div>
                                     <label class="block text-xs font-bold text-gray-700 mb-1">Emergency Phone Number <span class="text-red-500">*</span></label>
-                                    <input type="tel" id="app-emergency-phone" name="emergency_phone" placeholder="09123456789" maxlength="11" pattern="09[0-9]{9}" title="Must be a valid PH phone number starting with 09 (11 digits)" class="ph-phone-input w-full border rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-blue-400 border-gray-200" required />
+                                    <input type="tel" id="app-emergency-phone" name="emergency_phone" placeholder="09123456789" maxlength="11" pattern="09[0-9]{9}" title="Must be a valid PH phone number starting with 09 (11 digits)" class="ph-phone-input w-full border rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-blue-400 border-gray-200" required inputmode="numeric" />
                                 </div>
                                 <div>
                                     <label class="block text-xs font-bold text-gray-700 mb-1">Relationship <span class="text-red-500">*</span></label>
-                                    <input type="text" id="app-emergency-relation" name="emergency_relation" placeholder="Parent / Sibling / Friend" class="w-full border rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-blue-400 border-gray-200" required />
+                                    <input type="text" id="app-emergency-relation" name="emergency_relation" placeholder="Parent / Sibling / Friend" class="w-full border rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-blue-400 border-gray-200" required minlength="2" maxlength="50" pattern="[A-Za-zñÑ\s.\-]+" title="Letters, spaces, periods, and hyphens only" />
                                 </div>
                             </div>
                         </div>
@@ -250,10 +247,9 @@
                             </h3>
                             <div>
                                 <label class="block text-xs font-bold text-gray-700 mb-1">Upload Valid ID / Proof of Residence (PDF/Image) <span class="text-red-500">*</span></label>
-                                <input type="file" id="app-document" name="document" class="w-full border border-gray-200 rounded-xl p-2 text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" required />
+                                <input type="file" id="app-document" name="document" class="w-full border border-gray-200 rounded-xl p-2 text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" required accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png" />
                             </div>
                         </div>
-                    
                         <!-- Action Buttons -->
                         <div class="flex justify-end gap-3 pt-4">
                             <button id="appCancelBtn" type="button" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-6 py-3 rounded-xl font-semibold transition-colors">
@@ -479,610 +475,5 @@
             </div>
         </div>
     </main>
-
-    <script>
-        document.addEventListener("DOMContentLoaded", async () => {
-
-            // Wait until sidebar + header are loaded
-            await loadSidebar();
-
-// ==========================================================
-// PHILIPPINE ADDRESS CASCADING (Region -> Province -> City -> Barangay)
-// ==========================================================
-const streetInput = document.getElementById('app-street');
-const regionSelect = document.getElementById('app-region');
-const provinceSelect = document.getElementById('app-province');
-const citySelect = document.getElementById('app-city');
-const barangaySelect = document.getElementById('app-barangay');
-const zipInput = document.getElementById('app-zip');
-const zipHelper = document.getElementById('app-zip-helper');
-const zipRegex = /^\d{4}$/;
-const fullAddressHidden = document.getElementById('app-address');
-
-let appRegionsData = [];
-let appProvincesData = [];
-let appCitiesData = [];
-let appBarangaysData = [];
-
-async function loadAppRegions() {
-    try {
-        regionSelect.innerHTML = '<option value="">Loading regions...</option>';
-        const res = await fetch('/data/regions.json');
-        appRegionsData = await res.json();
-
-        regionSelect.innerHTML = '<option value="">Select Region</option>';
-        appRegionsData.forEach(reg => {
-            const opt = document.createElement('option');
-            opt.value = reg.region_name;
-            opt.textContent = reg.region_name;
-            opt.dataset.code = reg.region_code;
-            regionSelect.appendChild(opt);
-        });
-    } catch (err) {
-        console.error("Error loading regions:", err);
-        regionSelect.innerHTML = '<option value="">System error: Missing data</option>';
-    }
-}
-
-async function loadProvincesForRegion(regCode, fallbackName) {
-    provinceSelect.innerHTML = '<option value="">Loading provinces...</option>';
-    provinceSelect.disabled = true;
-    citySelect.innerHTML = '<option value="">Select City / Municipality</option>';
-    citySelect.disabled = true;
-    barangaySelect.innerHTML = '<option value="">Select Barangay</option>';
-    barangaySelect.disabled = true;
-
-    if (!regCode) {
-        provinceSelect.innerHTML = '<option value="">Select Province</option>';
-        return;
-    }
-
-    try {
-        if (appProvincesData.length === 0) {
-            const res = await fetch('/data/provinces.json');
-            appProvincesData = await res.json();
-        }
-
-        let filteredProvinces = appProvincesData.filter(p => p.region_code === regCode);
-        filteredProvinces.sort((a, b) => a.province_name.localeCompare(b.province_name));
-
-        if (filteredProvinces.length === 0) {
-            filteredProvinces = [{ province_code: regCode, province_name: fallbackName }];
-        }
-
-        provinceSelect.innerHTML = '<option value="">Select Province</option>';
-        filteredProvinces.forEach(p => {
-            const opt = document.createElement('option');
-            opt.value = p.province_name;
-            opt.textContent = p.province_name;
-            opt.dataset.code = p.province_code;
-            provinceSelect.appendChild(opt);
-        });
-        provinceSelect.disabled = false;
-    } catch (err) {
-        console.error("Error loading provinces:", err);
-        provinceSelect.innerHTML = '<option value="">System error: Missing data</option>';
-    }
-}
-
-async function loadCitiesForProvince(provCode, regCode) {
-    citySelect.innerHTML = '<option value="">Loading cities...</option>';
-    citySelect.disabled = true;
-    barangaySelect.innerHTML = '<option value="">Select Barangay</option>';
-    barangaySelect.disabled = true;
-
-    if (!provCode) {
-        citySelect.innerHTML = '<option value="">Select City / Municipality</option>';
-        return;
-    }
-
-    try {
-        if (appCitiesData.length === 0) {
-            const res = await fetch('/data/cities.json');
-            appCitiesData = await res.json();
-        }
-
-        const filteredCities = appCitiesData.filter(c => c.province_code === provCode || c.region_desc === regCode);
-        filteredCities.sort((a, b) => a.city_name.localeCompare(b.city_name));
-
-        citySelect.innerHTML = '<option value="">Select City / Municipality</option>';
-        filteredCities.forEach(c => {
-            const opt = document.createElement('option');
-            opt.value = c.city_name;
-            opt.textContent = c.city_name;
-            opt.dataset.code = c.city_code;
-            citySelect.appendChild(opt);
-        });
-        citySelect.disabled = false;
-    } catch (err) {
-        console.error("Error loading cities:", err);
-        citySelect.innerHTML = '<option value="">System error: Missing data</option>';
-    }
-}
-
-async function loadBarangaysForCity(cityCode) {
-    barangaySelect.innerHTML = '<option value="">Loading barangays...</option>';
-    barangaySelect.disabled = true;
-
-    if (!cityCode) {
-        barangaySelect.innerHTML = '<option value="">Select Barangay</option>';
-        return;
-    }
-
-    try {
-        if (appBarangaysData.length === 0) {
-            const res = await fetch('/data/barangays.json');
-            appBarangaysData = await res.json();
-        }
-
-        const filteredBarangays = appBarangaysData.filter(b => b.city_code === cityCode);
-        filteredBarangays.sort((a, b) => a.brgy_name.localeCompare(b.brgy_name));
-
-        barangaySelect.innerHTML = '<option value="">Select Barangay</option>';
-        filteredBarangays.forEach(b => {
-            const opt = document.createElement('option');
-            opt.value = b.brgy_name;
-            opt.textContent = b.brgy_name;
-            barangaySelect.appendChild(opt);
-        });
-        barangaySelect.disabled = false;
-    } catch (err) {
-        console.error("Error loading barangays:", err);
-        barangaySelect.innerHTML = '<option value="">System error: Missing data</option>';
-    }
-}
-
-regionSelect.addEventListener('change', async function () {
-    const selectedOption = this.options[this.selectedIndex];
-    const regCode = selectedOption ? selectedOption.dataset.code : null;
-    await loadProvincesForRegion(regCode, selectedOption ? selectedOption.value : '');
-});
-
-provinceSelect.addEventListener('change', async function () {
-    const selectedOption = this.options[this.selectedIndex];
-    const provCode = selectedOption ? selectedOption.dataset.code : null;
-    const regCode = regionSelect.options[regionSelect.selectedIndex]?.dataset.code;
-    await loadCitiesForProvince(provCode, regCode);
-});
-
-citySelect.addEventListener('change', async function () {
-    const selectedOption = this.options[this.selectedIndex];
-    const cityCode = selectedOption ? selectedOption.dataset.code : null;
-    await loadBarangaysForCity(cityCode);
-});
-
-await loadAppRegions();
-
-async function applyAddressCascade({ region, province, city, barangay } = {}) {
-    if (regionSelect.options.length <= 1) {
-        await loadAppRegions();
-    }
-
-    if (!region) return;
-    const regionOption = [...regionSelect.options].find(o => o.value === region);
-    if (!regionOption) {
-        console.warn("applyAddressCascade: region not found in list:", region);
-        return;
-    }
-    regionSelect.value = region;
-    await loadProvincesForRegion(regionOption.dataset.code, region);
-
-    if (!province) return;
-    const provinceOption = [...provinceSelect.options].find(o => o.value === province);
-    if (!provinceOption) {
-        console.warn("applyAddressCascade: province not found in list:", province);
-        return;
-    }
-    provinceSelect.value = province;
-    await loadCitiesForProvince(provinceOption.dataset.code, regionOption.dataset.code);
-
-    if (!city) return;
-    const cityOption = [...citySelect.options].find(o => o.value === city);
-    if (!cityOption) {
-        console.warn("applyAddressCascade: city not found in list:", city);
-        return;
-    }
-    citySelect.value = city;
-    await loadBarangaysForCity(cityOption.dataset.code);
-
-    if (!barangay) return;
-    const barangayOption = [...barangaySelect.options].find(o => o.value === barangay);
-    if (barangayOption) {
-        barangaySelect.value = barangay;
-    } else {
-        console.warn("applyAddressCascade: barangay not found in list:", barangay);
-    }
-}
-window.applyAddressCascade = applyAddressCascade;
-
-const params = new URLSearchParams(window.location.search);
-
-            const urlPetId = params.get("petId");
-            const sessionPetId = sessionStorage.getItem("autoOpenPetId");
-
-            // Tanggalin ang session key agad para hindi paulit-ulit kapag ni-refresh ang page
-            if (sessionPetId) sessionStorage.removeItem("autoOpenPetId");
-
-            // Gamitin alinman sa dalawa ang may laman
-            const petId = urlPetId || sessionPetId;
-
-            let isFormOpened = false;
-            let pendingReapplyApp = null; // holds previous application data until the address cascade is ready
-
-            if (petId) {
-                try {
-                    // Check kung may existing application na
-                    const res = await fetch(`/check-applied/${petId}`, { credentials: 'include' });
-                    const data = await res.json();
-
-                    const inactiveStatuses = ['DECLINED', 'REJECTED', 'CANCELLED'];
-                    const isInactive = inactiveStatuses.includes((data.status || '').toUpperCase());
-
-                    // Kapag galing sa Re-apply button (Declined status) O bago pa lang ang application
-                    if (data.hasApplied && !isInactive) {
-                        alert(`You have already submitted an application for this pet (Status: ${data.status}).`);
-                        window.location.href = "/adoption-hub";
-                        return; 
-                    }
-
-                    console.log("Opening form for pet:", petId);
-                   // 2. Palaging buksan muna ang form view para hindi ito maipit sakaling magka-error ang auto-fill
-                   const hiddenInput = document.getElementById("selectedPetId");
-                    if (hiddenInput) hiddenInput.value = petId;
-
-                    document.getElementById("list-view").classList.add("hidden");
-                    document.getElementById("application-view").classList.remove("hidden");
-
-                    loadTopbar({
-                        title: "Adoption Form",
-                        subtitle: "Please fill out the form below to start your adoption journey."
-                    });
-
-                    isFormOpened = true;
-
-                    // 3. I-load ang pet details at profile nang hiwalay para ligtas sa error
-                    await loadSelectedPet(petId);
-                    
-                    try {
-                        await autoFillUserProfile();
-                    } catch (profileErr) {
-                        console.warn("Warning: Could not auto-fill profile data:", profileErr);
-                    }
-
-                    // 4. Kung ito ay re-application, i-load ang dating data
-                    if (sessionStorage.getItem("isReapply") === "true") {
-                        sessionStorage.removeItem("isReapply");
-                        const reapplyDataRaw = sessionStorage.getItem("reapplyData");
-                        if (reapplyDataRaw) {
-                            sessionStorage.removeItem("reapplyData");
-                            pendingReapplyApp = JSON.parse(reapplyDataRaw);
-                            autofillAdoptionForm(pendingReapplyApp);           
-                        }
-                    }
-
-                } catch (err) {
-                    console.error("Error opening adoption form:", err);
-                    alert("Unable to open the adoption form. Please try again.");
-                    window.location.href = "/adoption-hub";
-                }
-            }
-
-            // Topbar fallback at visibility setup
-            requestAnimationFrame(() => {
-                if (!isFormOpened) {
-                    loadTopbar({
-                        title: "Adoption Hub",
-                        subtitle: "Browse available pets, view their profiles, and begin your adoption journey."
-                    });
-                }
-                document.body.style.visibility = "visible";
-            });
-
-            // Helper function to return to Pet List
-            function returnToPetList() {
-                // Automatically open the application form if a pet ID is in the URL
-                if (petId) {
-
-                    // Save the pet ID
-                    const hiddenInput = document.getElementById("selectedPetId");
-                    if (hiddenInput) {
-                        hiddenInput.value = petId;
-                    }
-
-                    sessionStorage.removeItem("selectedPetId");
-
-                    // Panatilihin ang malinis na URL
-                    window.history.replaceState({}, "", "/adoption-hub");
-
-                    // Hide list
-                    document.getElementById("list-view").classList.add("hidden");
-
-                    // Show application form
-                    document.getElementById("application-view").classList.remove("hidden");
-
-                    // Update topbar
-                    if (typeof loadTopbar === "function") {
-                        loadTopbar({
-                            title: "Adoption Form",
-                            subtitle: "Please fill out the form below to start your adoption journey"
-                        });
-                    }
-                }
-                document.getElementById('application-view').classList.add('hidden');
-                document.getElementById('list-view').classList.remove('hidden');
-
-                if (typeof loadTopbar === 'function') {
-                    loadTopbar({
-                        title: "Adoption Hub",
-                        subtitle: "Browse available pets, view their profiles, and begin your adoption journey."
-                    });
-                }
-            }
-            async function loadSelectedPet(petId) {
-            try {
-                const res = await fetch(`/api/pets/${petId}`);
-                const pet = await res.json();
-
-                document.getElementById("selectedPetId").value = pet.animal_id;
-
-                // document.getElementById("selectedPetImage").src =
-                //     `/uploads/pets/${pet.image_path}`;
-
-                document.getElementById("selectedPetImage").src = pet.image_path
-                    ? `/uploads/pets/${pet.image_path}`
-                    : "/assets/images/no-image.png";
-
-                document.getElementById("selectedPetName").textContent =
-                    pet.name;
-
-                document.getElementById("selectedPetInfo").textContent =
-                    `${pet.gender} • ${pet.species} • ${pet.age}`;
-
-                document.getElementById("selectedPetOrg").textContent =
-                    pet.organization_name;
-
-            } catch (err) {
-                console.error(err);
-            }
-        }
-        function autofillAdoptionForm(app) {
-    if (!app) return;
-    const e = app.emergency || {};
-
-    // Name, phone, email, address, civil status, age, and occupation are
-    // already filled from the live profile by autoFillUserProfile() (called
-    // just before this). Only fill what the profile has no equivalent for:
-    // this is specific to the previous application itself.
-    document.getElementById("app-intent").value = app.intent || "";
-    document.getElementById("app-emergency-name").value = e.name || "";
-    document.getElementById("app-emergency-phone").value = e.phone || "";
-    document.getElementById("app-emergency-relation").value = e.relation || "";
-}
-            // 1. Kapag pinindot ang Apply Button sa Modal
-            const applyBtn = document.getElementById('applyModalBtn');
-            if (applyBtn) {
-                applyBtn.addEventListener("click", async function () {
-                    // Kung may sariling onclick function (tulad ng view decline reason), huwag buksan ang form
-                    if (this.onclick) return;
-                    
-                    const selectedPetId = window.currentPet.animal_id;
-
-                    // I-save ang Pet ID sa JavaScript memory / Session Storage
-                    sessionStorage.setItem("selectedPetId", selectedPetId);
-
-                    // PANATILIHING MALINIS ANG URL (Ise-set sa /adoption-hub nang WALANG query parameters)
-                    window.history.replaceState({}, "", "/adoption-hub");
-
-                    await loadSelectedPet(selectedPetId);
-                    await autoFillUserProfile();
-                    closePetModal();
-
-                    // Ipakita ang Application Form View
-                    document.getElementById("list-view").classList.add("hidden");
-                    document.getElementById("application-view").classList.remove("hidden");
-
-                    if (typeof loadTopbar === "function") {
-                        loadTopbar({
-                            title: "Adoption Form",
-                            subtitle: "Please fill out the form below to start your adoption journey."
-                        });
-                    }
-                });
-            }
-
-            // 2. Kapag pinindot ang Back Button mula sa Application Form
-            const backBtn = document.getElementById('appBackBtn');
-            if (backBtn) {
-                backBtn.addEventListener('click', returnToPetList);
-            }
-
-            // 3. Kapag pinindot ang Cancel Button sa Form
-            const cancelBtn = document.getElementById('appCancelBtn');
-            if (cancelBtn) {
-                cancelBtn.addEventListener('click', function() {
-                    const form = document.getElementById('adoptionForm');
-                    if (form) form.reset(); // I-clear ang mga na-type sa form
-                    returnToPetList();
-                });
-            }
-
-            // 4. Input restriction para PH Phone Numbers lamang
-            document.querySelectorAll('.ph-phone-input').forEach(input => {
-                input.addEventListener('input', (e) => {
-                    e.target.value = e.target.value.replace(/[^0-9]/g, '');
-                });
-            });
-
-            // 5. Input restriction para sa Age Field (Whole positive numbers lang, max 2 digits)
-            const ageInput = document.getElementById('app-age');
-            if (ageInput) {
-                ageInput.addEventListener('input', (e) => {
-                    e.target.value = e.target.value.replace(/[^0-9]/g, '');
-                    if (e.target.value.length > 2) {
-                        e.target.value = e.target.value.slice(0, 2);
-                    }
-                });
-            }
-
-            // 6. Submit Application Event Handler
-            zipInput.addEventListener('input', function () {
-                this.value = this.value.replace(/[^0-9]/g, '').slice(0, 4);
-
-                if (this.value.length === 0) {
-                    zipHelper.className = 'text-xs mt-1';
-                    zipHelper.innerHTML = '';
-                } else if (zipRegex.test(this.value)) {
-                    zipHelper.className = 'text-xs mt-1 text-green-600';
-                    zipHelper.innerHTML = '<i class="fa-solid fa-circle-check"></i> Valid ZIP code.';
-                } else {
-                    zipHelper.className = 'text-xs mt-1 text-red-500';
-                    zipHelper.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> Must be exactly 4 digits.';
-                }
-            });
-
-            // 6b. Combine Street + Barangay + City + Province + Region + Zip into one full_address string
-            function buildFullAddress() {
-                if (!zipRegex.test(zipInput.value.trim())) {
-                    zipHelper.className = 'text-xs mt-1 text-red-500';
-                    zipHelper.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> Must be exactly 4 digits.';
-                    return '';
-                }
-
-                const parts = [
-                    streetInput.value.trim(),
-                    barangaySelect.value.trim() ? `Barangay ${barangaySelect.value.trim()}` : '',
-                    citySelect.value.trim(),
-                    provinceSelect.value.trim(),
-                    regionSelect.value.trim(),
-                    zipInput.value.trim()
-                ].filter(Boolean);
-
-                fullAddressHidden.value = parts.join(', ');
-                return fullAddressHidden.value;
-            }
-
-            const adoptionForm = document.getElementById('adoptionForm');
-            if (adoptionForm) {
-                adoptionForm.addEventListener('submit', async function (e) {
-                    e.preventDefault();
-
-                    const petId = document.getElementById('selectedPetId').value;
-                    if (!petId) {
-                        alert("Please select a pet first!");
-                        return;
-                    }
-
-                    // I-build muna ang full_address bago i-collect ang FormData
-                    if (!buildFullAddress()) {
-                        alert("Please complete your address (Street, Region, Province, City, Barangay, Zip Code).");
-                        return;
-                    }
-
-
-                    // Kukuha ng lahat ng inputs pati na ang in-upload na file
-                    const formData = new FormData(this);
-
-                    const submitBtn = document.getElementById('appSubmitBtn');
-                    submitBtn.disabled = true;
-                    submitBtn.innerText = "Submitting...";
-
-                    try {
-                        const response = await fetch('/api/adoptions/submit-application', {
-                            method: 'POST',
-                            credentials: 'include',
-                            body: formData
-                        });
-
-                        const result = await response.json();
-
-                        if (response.ok) {
-                            showModal('Success!', result.message, true, () => {
-                                window.location.href = "/adoption-hub";
-                            });
-                        } else {
-                            // Ipapakita na ngayon ang mismong error mula sa Multer o Database!
-                            showModal('Upload Error', result.message || result.error || 'Failed to submit application.', false);
-                        }
-                    } catch (error) {
-                        console.error("Submission catch error:", error);
-                        showModal('Connection Error', 'Unable to reach the server. Please check your network connection.', false);
-                    } finally {
-                        submitBtn.disabled = false;
-                        submitBtn.innerText = "Submit Application";
-                    }
-                });
-            }
-
-            // ==========================================
-            // Auto-open application form from Matchmaker
-            // ==========================================
-            // if (petId) {
-
-            //     const hiddenInput = document.getElementById("selectedPetId");
-            //     hiddenInput.value = petId;
-
-            //     document.getElementById("list-view").classList.add("hidden");
-            //     document.getElementById("application-view").classList.remove("hidden");
-
-            //     loadTopbar({
-            //         title: "Adoption Form",
-            //         subtitle: "Please fill out the form below to start your adoption journey"
-            //     });
-
-            //     console.log("Application form opened!");
-            // }
-        });
-
-        let modalCallback = null;
-
-        function showModal(title, message, isSuccess = true, callback = null) {
-            const modal = document.getElementById('customModal');
-            const container = document.getElementById('modalContainer');
-            const iconContainer = document.getElementById('modalIconContainer');
-            const icon = document.getElementById('modalIcon');
-            const titleEl = document.getElementById('modalTitle');
-            const messageEl = document.getElementById('modalMessage');
-            const btn = document.getElementById('modalBtn');
-
-            titleEl.textContent = title;
-            messageEl.textContent = message;
-            modalCallback = callback;
-
-            if (isSuccess) {
-                // Blue Theme para sa Success
-                iconContainer.className = "mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-blue-100 text-blue-600";
-                icon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>`;
-                btn.className = "w-full rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-md transition-all hover:bg-blue-700 active:scale-95";
-            } else {
-                // Red Theme para sa Error
-                iconContainer.className = "mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-red-100 text-red-600";
-                icon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>`;
-                btn.className = "w-full rounded-xl bg-red-600 px-4 py-2.5 text-sm font-semibold text-white shadow-md transition-all hover:bg-red-700 active:scale-95";
-            }
-
-            // Isagawa ang Smooth Pop Animation
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-            setTimeout(() => {
-                container.classList.remove('scale-95');
-                container.classList.add('scale-100');
-            }, 10);
-        }
-
-        function closeModal() {
-            const modal = document.getElementById('customModal');
-            const container = document.getElementById('modalContainer');
-
-            container.classList.remove('scale-100');
-            container.classList.add('scale-95');
-
-            setTimeout(() => {
-                modal.classList.remove('flex');
-                modal.classList.add('hidden');
-                if (modalCallback) modalCallback();
-            }, 150);
-        }
-    </script>
 </body>
-
 </html>

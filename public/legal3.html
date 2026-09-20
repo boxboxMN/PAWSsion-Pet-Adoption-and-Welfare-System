@@ -8,13 +8,13 @@
 
 
 <!-- Tailwind CSS CDN -->
-<script src="https://cdn.tailwindcss.com"></script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+<link rel="stylesheet" href="/css/tailwind.css">
+ <!-- Local Font Awesome -->
+<link rel="stylesheet" href="/css/fontawesome/all.min.css">
 
 <!-- Inter Font -->
-<link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/inter.css">
 
 <!-- Favicon -->
 <link rel="icon" type="image/png" href="../assets/images/Pawpon_logo.png">
@@ -226,6 +226,8 @@
 
             <form id="contactForm" method="post">
 
+              <input type="hidden" name="_csrf" id="csrfToken" value="">
+    
                 <!-- Name + Email -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-0 sm:gap-4">
 
@@ -504,71 +506,6 @@
     </div>
 
 </footer>
-<script>
-    document.getElementById("contactForm").addEventListener("submit", async function (e) {
-        e.preventDefault();
-
-        const submitBtn = this.querySelector('button[type="submit"]');
-        const originalText = submitBtn.textContent;
-
-        const payload = {
-            name: document.getElementById("name").value.trim(),
-            email: document.getElementById("email").value.trim(),
-            subject: document.getElementById("subject").value,
-            message: document.getElementById("message").value.trim()
-        };
-
-        submitBtn.disabled = true;
-        submitBtn.textContent = "Sending...";
-
-        try {
-            const res = await fetch("/api/contact-messages", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload)
-            });
-
-            const data = await res.json();
-
-            if (data.success) {
-                showContactResultModal(true, "Message Sent!", data.message || "Thanks for reaching out! We'll get back to you soon.");
-                this.reset();
-            } else {
-                showContactResultModal(false, "Something Went Wrong", data.message || "Please check your details and try again.");
-            }
-        } catch (err) {
-            console.error("Contact form error:", err);
-            showContactResultModal(false, "Connection Error", "Unable to connect to the server. Please try again later.");
-        } finally {
-            submitBtn.disabled = false;
-            submitBtn.textContent = originalText;
-        }
-    });
-
-    function showContactResultModal(isSuccess, title, message) {
-            const modal = document.getElementById("contactResultModal");
-            const iconWrap = document.getElementById("contactResultIconWrap");
-            const icon = document.getElementById("contactResultIcon");
-            const titleEl = document.getElementById("contactResultTitle");
-            const messageEl = document.getElementById("contactResultMessage");
-
-            titleEl.textContent = title;
-            messageEl.textContent = message;
-
-            if (isSuccess) {
-                iconWrap.className = "mx-auto flex items-center justify-center h-14 w-14 rounded-full mb-4 bg-emerald-50";
-                icon.className = "fa-solid fa-circle-check text-2xl text-emerald-600";
-            } else {
-                iconWrap.className = "mx-auto flex items-center justify-center h-14 w-14 rounded-full mb-4 bg-rose-50";
-                icon.className = "fa-solid fa-circle-exclamation text-2xl text-rose-600";
-            }
-
-            modal.classList.remove("hidden");
-    }
-
-    document.getElementById("contactResultCloseBtn").addEventListener("click", function () {
-        document.getElementById("contactResultModal").classList.add("hidden");
-    });
-</script>
+<script src="assets/js/legal3.js"></script>
 </body>
 </html>

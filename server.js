@@ -12,7 +12,8 @@ app.use((req, res, next) => {
   res.setHeader("X-Frame-Options", "DENY");
   res.setHeader(
     "Content-Security-Policy",
-    "frame-ancestors 'none';"
+    "frame-ancestors 'none'",
+     "font-src 'self'"
   );
   next();
 });
@@ -35,17 +36,21 @@ app.use(
   helmet.contentSecurityPolicy({
     directives: {
       defaultSrc: ["'self'"],
+      
+      // DAGDAG DITO: Harangan ang kahit anong site na i-frame ang app mo (Clickjacking Protection)
+      frameAncestors: ["'none'"], 
+
       scriptSrc: [
         "'self'", 
-        "'unsafe-inline'",
+        "'wasm-unsafe-eval'",
         "https://cdn.tailwindcss.com",
-        "https://cdn.jsdelivr.net"
-     ],
+        "https://cdn.jsdelivr.net",
+        "https://cdnjs.cloudflare.com"
+      ],
       // 1. Payagan ang inline event handlers tulad ng onclick="..."
       scriptSrcAttr: ["'unsafe-inline'"],
       styleSrc: [
         "'self'", 
-        "'unsafe-inline'", 
         "https://fonts.googleapis.com",
         "https://cdnjs.cloudflare.com"
      ],
@@ -54,9 +59,9 @@ app.use(
         "https://fonts.gstatic.com",
         "https://cdnjs.cloudflare.com"
       ],
-      imgSrc: ["'self'", "data:", "blob:", "https://cdnjs.cloudflare.com"],
+      imgSrc: ["'self'", "data:", "blob:", "https://cdnjs.cloudflare.com", "https://via.placeholder.com"],
       // 1. Payagan ang network connections/fetches sa jsDelivr (para sa Tesseract.js data & maps)
-      connectSrc: ["'self'", "https://cdn.jsdelivr.net"],
+      connectSrc: ["'self'", "data:", "blob:", "https://cdn.jsdelivr.net",  "https://cdnjs.cloudflare.com"],
       // 2. Payagan ang Web Workers at Blob URLs na ginagamit ng Tesseract.js
       workerSrc: ["'self'", "blob:", "https://cdn.jsdelivr.net"],
 
@@ -743,7 +748,6 @@ app.get("/api/organization/session-data", async (req, res) => {
   }
 });
 
-// Fetching adoption applications FOR LOGGED-IN ORGANIZATION ONLY
 app.get('/api/organization/applications', async (req, res) => {
     try {
         const accountId = req.session?.accountId;
@@ -875,8 +879,8 @@ app.post('/api/user/applications/:id/reschedule-request', async (req, res) => {
 });
 
 app.get("/api/contact-info", adminController.getContactInfo);
-app.post("/api/contact-messages", adminController.submitContactMessage);
-
+// GANITO DAPAT:
+app.post("/api/contact-messages", csrfSynchronisedProtection, adminController.submitContactMessage);
 app.get("/api/guide", adminController.getGuideSections);
 
 // Notification routes

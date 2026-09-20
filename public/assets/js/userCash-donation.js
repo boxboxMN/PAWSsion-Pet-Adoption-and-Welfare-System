@@ -1,57 +1,15 @@
-async function loadComponent(id, file) {
-    try {
-        const response = await fetch(file);
-        if (!response.ok) {
-            throw new Error(`Cannot load ${file}`);
-        }
-        document.getElementById(id).innerHTML = await response.text();
-    } catch (error) {
-        console.error(error);
-    }
-}
+document.addEventListener("DOMContentLoaded", async () => {
+    await loadSidebar();
+    
+    requestAnimationFrame(() => {
+        loadTopbar({
+            title: "Donation",
+            subtitle: "Support our shelter safely and securely through direct cash donations."
+        });
 
-Promise.all([
-    loadComponent("sidebar", "/user/userSidebar.html"),
-    loadComponent("header", "/user/userHeader.html")
-])
-.then(() => {
-    const sidebar = document.getElementById("sidebar");
-    const header = document.getElementById("header");
-    if (sidebar) sidebar.style.visibility = "visible";
-    if (header) header.style.visibility = "visible";
-
-    const currentPath = window.location.pathname;
-    const pageTitle = document.getElementById("pageTitle");
-
-    const customTitles = {
-        "/profile": "Profile",
-        "/cash-donation": "Donation",
-        "/inkind-donation": "Donation"
-    };
-
-    if (pageTitle && customTitles[currentPath]) {
-        pageTitle.textContent = customTitles[currentPath];
-    }
-
-    const links = document.querySelectorAll("#sidebar .nav-link");
-
-    links.forEach(link => {
-        const href = link.getAttribute("href");
-        const isActive = href === currentPath || (href !== "/dashboard" && currentPath.startsWith(href));
-        if (isActive) {
-            link.className = "nav-link flex items-center gap-4 px-5 py-4 rounded-2xl bg-blue-600 text-white shadow";
-            if (pageTitle && !customTitles[currentPath]) {
-                pageTitle.textContent = link.dataset.title;
-            }
-        } else {
-            link.className = "nav-link flex items-center gap-4 px-5 py-4 rounded-2xl text-gray-800 hover:bg-blue-50 hover:text-blue-600 transition";
-        }
+        document.body.style.visibility = "visible";
     });
-    document.body.style.visibility = "visible";
-})
-.catch(error => console.error("Component loading error:", error));
 
-document.addEventListener("DOMContentLoaded", async function () {
     let organizations = [];
     let selectedOrganization = null;
     
@@ -65,7 +23,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     const orgEmail = document.getElementById("modalOrgEmail");
     const orgMission = document.getElementById("modalOrgMission");
 
-    const donorNameInput = document.querySelector('input[placeholder="Name"]');
+    const donorNameInput = document.querySelector('input[placeholder="Name"]') || document.getElementById("donorName");
     const donorEmailInput = document.querySelector('input[placeholder="Email Address"]');
     
     const paymentMethodSelect = document.getElementById("paymentMethod");
@@ -89,35 +47,74 @@ document.addEventListener("DOMContentLoaded", async function () {
         });
     }
     
-const viewQrBtn = document.getElementById("viewQrBtn");
-const qrModal = document.getElementById("qrModal");
-const qrModalClose = document.getElementById("qrModalClose");
-const qrModalCloseBtn = document.getElementById("qrModalCloseBtn");
-const modalQrImage = document.getElementById("modalQrImage");
-const qrModalAccountName = document.getElementById("qrModalAccountName");
-const qrModalAccountNumber = document.getElementById("qrModalAccountNumber");
+    /* =========================================================
+       QR MODAL — ROBUST HANDLING
+       ========================================================= */
+    const qrModal              = document.getElementById("qrModal");
+    const qrModalClose         = document.getElementById("qrModalClose");
+    const qrModalCloseBtn      = document.getElementById("qrModalCloseBtn");
+    const modalQrImage         = document.getElementById("modalQrImage");
+    const qrModalAccountName   = document.getElementById("qrModalAccountName");
+    const qrModalAccountNumber = document.getElementById("qrModalAccountNumber");
 
-if (viewQrBtn) {
-    viewQrBtn.addEventListener("click", function() {
-        const qrImageSrc = document.getElementById("qrImage").src;
-        const gcashNameText = document.getElementById("gcashName").textContent;
-        const gcashNumberText = document.getElementById("gcashNumber").textContent;
-        const accountNameLabelText = document.getElementById("accountNameLabel").textContent;
+    function openQrModal() {
+        const qrImageEl   = document.getElementById("qrImage");
+        const gcashNameEl = document.getElementById("gcashName");
+        const gcashNumEl  = document.getElementById("gcashNumber");
 
-        if (modalQrImage) modalQrImage.src = qrImageSrc;
-        if (qrModalAccountName) qrModalAccountName.textContent = `${accountNameLabelText} ${gcashNameText}`;
-        if (qrModalAccountNumber) qrModalAccountNumber.textContent = gcashNumberText;
+        const qrImageSrc  = qrImageEl   ? (qrImageEl.src || "") : "";
+        const nameText    = gcashNameEl ? gcashNameEl.textContent.trim() : "";
+        const numberText  = gcashNumEl  ? gcashNumEl.textContent.trim()  : "";
 
-        if (qrModal) qrModal.classList.add("active");
+        if (!qrImageSrc || qrImageSrc === "" || qrImageSrc.endsWith("#")) {
+            showToast("No QR code available for this organization.", "error");
+            return;
+        }
+
+        if (modalQrImage)         modalQrImage.src                 = qrImageSrc;
+        if (qrModalAccountName)   qrModalAccountName.textContent   = nameText   || "N/A";
+        if (qrModalAccountNumber) qrModalAccountNumber.textContent = numberText || "N/A";
+
+        if (qrModal) {
+            qrModal.classList.add("active");
+            qrModal.style.display = "flex";     // ← guarantees it shows
+            document.body.style.overflow = "hidden";
+        }
+    }
+
+    function closeQrModal() {
+        if (qrModal) {
+            qrModal.classList.remove("active");
+            qrModal.style.display = "";          // ← reset inline style
+            document.body.style.overflow = "";
+        }
+    }
+
+    /* ✅ Event delegation — works even if button is re-rendered */
+    document.addEventListener("click", function (e) {
+        if (e.target.closest("#viewQrBtn")) {
+            e.preventDefault();
+            e.stopPropagation();
+            openQrModal();
+        }
     });
-}
 
-function closeQrModal() {
-    if (qrModal) qrModal.classList.remove("active");
-}
+    if (qrModalClose)    qrModalClose.addEventListener("click", closeQrModal);
+    if (qrModalCloseBtn) qrModalCloseBtn.addEventListener("click", closeQrModal);
 
-if (qrModalClose) qrModalClose.addEventListener("click", closeQrModal);
-if (qrModalCloseBtn) qrModalCloseBtn.addEventListener("click", closeQrModal);
+    /* Click outside to close */
+    if (qrModal) {
+        qrModal.addEventListener("click", function (e) {
+            if (e.target === qrModal) closeQrModal();
+        });
+    }
+
+    /* Esc key closes QR modal */
+    document.addEventListener("keydown", function (e) {
+        if (e.key === "Escape" && qrModal && qrModal.classList.contains("active")) {
+            closeQrModal();
+        }
+    });
 
     const privacyCheckbox = document.querySelector('input[type="checkbox"]');
     const receiptFileInput = document.querySelector('input[type="file"]');
@@ -382,9 +379,10 @@ if (qrModalCloseBtn) qrModalCloseBtn.addEventListener("click", closeQrModal);
     }
 
     function closeModal() {
-        if (!modal) return;
-        modal.classList.remove("active");
-        document.body.style.overflow = "";
+         if (modal) {
+            modal.classList.remove("active");
+            document.body.style.overflow = "";
+        }
     }
 
     if (closeBtn) closeBtn.addEventListener("click", closeModal);
@@ -508,6 +506,10 @@ if (qrModalCloseBtn) qrModalCloseBtn.addEventListener("click", closeQrModal);
         });
     }
 
+    if (receiptFileInput) {
+        receiptFileInput.addEventListener("change", handleReceiptUpload);
+    }
+    
     await fetchUserProfile();
     await loadOrganizations();
 
@@ -564,23 +566,81 @@ function getValidImageUrl(imagePath, fallbackUrl) {
     }
     return imagePath;
 }
-
-const receiptInput = document.getElementById("receiptInput");
     if (receiptInput) {
         receiptInput.addEventListener("change", handleReceiptUpload);
     }
-    // ==========================================
-// RECEIPT OCR — Auto-fill Ref No., Amount, Name
-// ==========================================
-async function handleReceiptUpload(event) {
+ async function handleReceiptUpload(event) {
     const file = event.target.files[0];
-    if (!file) return;
+
+    // Walang file na pinili → clear preview at wag magpatuloy
+    if (!file) {
+        const preview = document.getElementById("receiptPreview");
+        const wrap    = document.getElementById("receiptPreviewWrap");
+        if (preview) preview.src = "";
+        if (wrap) wrap.classList.add("hidden");
+        return;
+    }
+
+    // ⭐ STRICT VALIDATION — JPEG at PNG lang
+    const allowedMimeTypes = [
+        "image/jpeg",
+        "image/jpg",
+        "image/png"
+    ];
+    const allowedExtensions = /\.(jpe?g|png)$/i;
+    const MAX_SIZE_MB = 5;
+
+    const isMimeAllowed = allowedMimeTypes.includes((file.type || "").toLowerCase());
+    const isExtAllowed  = allowedExtensions.test(file.name);
+
+    if (!isMimeAllowed && !isExtAllowed) {
+        showToast(
+            "Invalid file type. Please upload a JPG, JPEG, or PNG image only.",
+            "error"
+        );
+        event.target.value = "";   // ⭐ reset input
+
+        // Reset preview at status
+        const preview = document.getElementById("receiptPreview");
+        const wrap    = document.getElementById("receiptPreviewWrap");
+        if (preview) preview.src = "";
+        if (wrap) wrap.classList.add("hidden");
+
+        const fileNameEl = document.getElementById("receiptFileName");
+        if (fileNameEl) {
+            fileNameEl.textContent = "Accepted file type: JPG, JPEG, PNG (max 5MB)";
+            fileNameEl.classList.remove("text-blue-600", "font-medium");
+            fileNameEl.classList.add("text-gray-500");
+        }
+        return;
+    }
+
+    // ⭐ Size check
+    if (file.size > MAX_SIZE_MB * 1024 * 1024) {
+        showToast(`File too large. Maximum size is ${MAX_SIZE_MB}MB.`, "error");
+        event.target.value = "";
+
+        const fileNameEl = document.getElementById("receiptFileName");
+        if (fileNameEl) {
+            fileNameEl.textContent = "Accepted file type: JPG, JPEG, PNG (max 5MB)";
+            fileNameEl.classList.remove("text-blue-600", "font-medium");
+            fileNameEl.classList.add("text-gray-500");
+        }
+        return;
+    }
+
+    // ⭐ UNLOCK muna — para ma-refill ng bagong OCR
+    unlockOcrFields();
 
     // Show filename
     const fileNameEl = document.getElementById("receiptFileName");
-    if (fileNameEl) fileNameEl.textContent = file.name;
+    if (fileNameEl) {
+        fileNameEl.textContent = `Selected: ${file.name}`;
+        fileNameEl.classList.add("text-blue-600", "font-medium");
+        fileNameEl.classList.remove("text-gray-500");
+    }
 
-    // 1) Show preview of uploaded receipt
+    // 1) Show preview
     const reader = new FileReader();
     reader.onload = (e) => {
         const preview = document.getElementById("receiptPreview");
@@ -592,7 +652,7 @@ async function handleReceiptUpload(event) {
     };
     reader.readAsDataURL(file);
 
-    // 2) Run OCR
+    // 2) Run OCR (naglo-lock ito pagkatapos)
     await runReceiptOCR(file);
 }
 
@@ -627,7 +687,12 @@ async function runReceiptOCR(file) {
         console.log("[OCR raw text]\n---\n" + text + "\n---");
 
         const parsed  = parseReceiptText(text);
-        const result2 = fillReceiptFields(parsed);   // { filled, corrected }
+        const result2 = fillReceiptFields(parsed);
+
+        // ⭐ I-LOCK ang mga na-auto-fill na fields
+        if (result2.filled > 0 || result2.corrected > 0) {
+            lockOcrFilledFields(parsed);
+        }
 
         if (statusText) {
             if (result2.corrected > 0) {
@@ -654,7 +719,42 @@ async function runReceiptOCR(file) {
         }, 4000);
     }
 }
+// ==========================================
+// OCR FIELD LOCKING (user side)
+// ==========================================
+function lockOcrFilledFields(parsed) {
+    const fields = [
+        { el: document.getElementById("refNumInput"),  has: !!parsed.reference },
+        { el: document.getElementById("customAmount"),  has: !!parsed.amount    }
+    ];
 
+    fields.forEach(({ el, has }) => {
+        if (!el || !has) return;
+        if (!el.value || el.value.trim() === '') return;
+
+        el.readOnly = true;
+        el.dataset.ocrLocked = 'true';
+        el.classList.add('bg-gray-100', 'cursor-not-allowed');
+        el.title = 'Auto-filled from your receipt — cannot be edited. Re-upload a receipt to change.';
+    });
+}
+
+function unlockOcrFields() {
+    const fields = [
+        document.getElementById("refNumInput"),
+        document.getElementById("customAmount")
+    ];
+
+    fields.forEach(el => {
+        if (!el) return;
+        if (el.dataset.ocrLocked === 'true') {
+            el.readOnly = false;
+            delete el.dataset.ocrLocked;
+            el.classList.remove('bg-gray-100', 'cursor-not-allowed');
+            el.removeAttribute('title');
+        }
+    });
+}
 function parseReceiptText(text) {
     const out = { reference: "", amount: "", name: "" };
 
@@ -743,7 +843,7 @@ function fillReceiptFields(parsed) {
     // ⭐ Adapted para sa cash-donation.html field IDs
     const refInput    = document.getElementById("refNumInput");
     const amountInput = document.getElementById("customAmount");
-    const donorInput  = document.getElementById("donorName");
+    const donorInput  = document.querySelector('input[placeholder="Name"]') || document.getElementById("donorName");
 
     let filled = 0;
     let corrected = 0;
@@ -793,7 +893,6 @@ function fillReceiptFields(parsed) {
 
     return { filled, corrected };
 }
-
 function highlightOcrField(el, color = "blue") {
     if (!el) return;
 
@@ -832,15 +931,120 @@ function upscaleImageForOcr(file, maxWidth = 1600) {
         img.src = url;
     });
 }
+
 // Reset receipt preview + OCR status after successful submission
 const previewWrap = document.getElementById("receiptPreviewWrap");
 if (previewWrap) previewWrap.classList.add("hidden");
+
 const preview = document.getElementById("receiptPreview");
 if (preview) preview.src = "";
+
 const statusBox = document.getElementById("ocrStatus");
 if (statusBox) {
     statusBox.classList.add("hidden");
     statusBox.classList.remove("flex");
 }
+
 const fileNameEl = document.getElementById("receiptFileName");
-if (fileNameEl) fileNameEl.textContent = "Accepted file type: jpg, png, webp";
+if (fileNameEl) {
+    // ⭐ UPDATED — JPG, JPEG, PNG lang
+    fileNameEl.textContent = "Accepted file type: JPG, JPEG, PNG (max 5MB)";
+}
+
+/* =========================================================
+   GLOBAL QR MODAL — BULLETPROOF (works even if DOMContentLoaded fails)
+   ========================================================= */
+(function () {
+    function initQrHandlers() {
+        console.log("[QR] Initializing global handlers...");
+
+        // Global open function — callable via onclick="openQRCodeModal(event)"
+        window.openQRCodeModal = function (e) {
+            if (e) { e.preventDefault(); e.stopPropagation(); }
+
+            console.log("[QR] openQRCodeModal CALLED ✓");
+
+            const modal    = document.getElementById("qrModal");
+            const mainImg  = document.getElementById("qrImage");
+            const nameEl   = document.getElementById("gcashName");
+            const numEl    = document.getElementById("gcashNumber");
+            const modalImg = document.getElementById("modalQrImage");
+            const modalNm  = document.getElementById("qrModalAccountName");
+            const modalNo  = document.getElementById("qrModalAccountNumber");
+
+            if (!modal) {
+                console.error("[QR] ❌ #qrModal NOT FOUND");
+                return;
+            }
+
+            const src = mainImg ? String(mainImg.src || "").trim() : "";
+            console.log("[QR] src =", src);
+
+            if (!src || src === "" || src.endsWith("#")) {
+                if (typeof window.showToast === "function") {
+                    window.showToast("No QR code available for this organization.", "error");
+                } else {
+                    alert("No QR code available.");
+                }
+                return;
+            }
+
+            if (modalImg) modalImg.src = src;
+            if (modalNm)  modalNm.textContent = (nameEl && nameEl.textContent.trim()) || "N/A";
+            if (modalNo)  modalNo.textContent = (numEl  && numEl.textContent.trim())  || "N/A";
+
+            modal.classList.add("active");
+            modal.style.cssText = `
+                display: flex !important;
+                position: fixed !important;
+                inset: 0 !important;
+                background: rgba(0,0,0,0.5) !important;
+                z-index: 99999 !important;
+                align-items: center !important;
+                justify-content: center !important;
+                padding: 1rem !important;
+            `;
+            document.body.style.overflow = "hidden";
+            console.log("[QR] ✅ MODAL SHOWN");
+        };
+
+        window.closeQRCodeModal = function () {
+            const modal = document.getElementById("qrModal");
+            if (!modal) return;
+            modal.classList.remove("active");
+            modal.style.cssText = "";
+            document.body.style.overflow = "";
+            console.log("[QR] Modal closed");
+        };
+
+        // Delegated click — works even if button is re-rendered
+        document.addEventListener("click", function (e) {
+            if (e.target.closest("#viewQrBtn")) {
+                e.preventDefault();
+                e.stopPropagation();
+                window.openQRCodeModal(e);
+                return;
+            }
+            if (e.target.closest("#qrModalClose") || e.target.closest("#qrModalCloseBtn")) {
+                window.closeQRCodeModal();
+                return;
+            }
+            const modal = document.getElementById("qrModal");
+            if (modal && e.target === modal) {
+                window.closeQRCodeModal();
+            }
+        });
+
+        document.addEventListener("keydown", function (e) {
+            if (e.key === "Escape") window.closeQRCodeModal();
+        });
+
+        console.log("[QR] ✅ Global handlers installed");
+    }
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", initQrHandlers);
+    } else {
+        initQrHandlers();
+    }
+})();

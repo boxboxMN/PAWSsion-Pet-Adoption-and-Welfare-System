@@ -143,7 +143,7 @@ exports.login = async (req, res) => {
       'SELECT account_id, email, password_hash, status, role FROM accounts WHERE email = ? LIMIT 1',
       [email]
     );
-    const genericAuthError = 'Invalid email or password.';
+    const genericAuthError = 'Invalid credentials. Please check your email and password.';
 
     if (rows.length === 0) {
       await logActivity(null, "login_failed", "auth", null, `Unknown email: ${email}`);

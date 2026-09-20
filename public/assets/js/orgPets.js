@@ -1,6 +1,123 @@
 let allPets = [];
 let currentViewMode = "active"; // "active", "adopted", or "archived"
 
+/* =========================
+   CUSTOM MESSAGE BOX
+========================= */
+
+const messageBox = document.getElementById("messageBox");
+const messageIcon = document.getElementById("messageIcon");
+const messageTitle = document.getElementById("messageTitle");
+const messageText = document.getElementById("messageText");
+const messageCancelBtn = document.getElementById("messageCancelBtn");
+const messageConfirmBtn = document.getElementById("messageConfirmBtn");
+
+let messageResolve = null;
+
+function showMessage(message, type = "success") {
+    return new Promise((resolve) => {
+        messageResolve = resolve;
+
+        messageTitle.textContent =
+            type === "success" ? "Success" :
+            type === "error" ? "Error" :
+            type === "warning" ? "Warning" : "Information";
+
+        messageText.textContent = message;
+
+        const styles = {
+            success: {
+                bg: "bg-emerald-100",
+                text: "text-emerald-600",
+                icon: "fa-check"
+            },
+            error: {
+                bg: "bg-red-100",
+                text: "text-red-600",
+                icon: "fa-xmark"
+            },
+            warning: {
+                bg: "bg-amber-100",
+                text: "text-amber-600",
+                icon: "fa-exclamation"
+            },
+            info: {
+                bg: "bg-blue-100",
+                text: "text-blue-600",
+                icon: "fa-info"
+            }
+        };
+
+        const style = styles[type] || styles.info;
+
+        messageIcon.className =
+            `mx-auto flex items-center justify-center w-14 h-14 rounded-full ${style.bg} mb-4`;
+
+        messageIcon.innerHTML =
+            `<i class="fa-solid ${style.icon} ${style.text} text-2xl"></i>`;
+
+        messageCancelBtn.classList.add("hidden");
+        messageConfirmBtn.textContent = "OK";
+        messageConfirmBtn.className =
+            "flex-1 px-5 py-2.5 rounded-xl bg-blue-700 hover:bg-blue-800 text-white font-semibold transition";
+
+        messageBox.classList.remove("hidden");
+        messageBox.classList.add("flex");
+    });
+}
+
+function showConfirm(message, options = {}) {
+    return new Promise((resolve) => {
+        messageResolve = resolve;
+
+        messageTitle.textContent = options.title || "Are you sure?";
+        messageText.textContent = message;
+
+        messageIcon.className =
+            "mx-auto flex items-center justify-center w-14 h-14 rounded-full bg-amber-100 mb-4";
+
+        messageIcon.innerHTML =
+            '<i class="fa-solid fa-question text-amber-600 text-2xl"></i>';
+
+        messageCancelBtn.classList.remove("hidden");
+        messageConfirmBtn.textContent = options.confirmText || "Confirm";
+
+        messageConfirmBtn.className =
+            `flex-1 px-5 py-2.5 rounded-xl text-white font-semibold transition ${
+                options.danger
+                    ? "bg-red-600 hover:bg-red-700"
+                    : "bg-blue-700 hover:bg-blue-800"
+            }`;
+
+        messageBox.classList.remove("hidden");
+        messageBox.classList.add("flex");
+    });
+}
+
+function closeMessageBox(result = false) {
+    messageBox.classList.remove("flex");
+    messageBox.classList.add("hidden");
+
+    if (messageResolve) {
+        messageResolve(result);
+        messageResolve = null;
+    }
+}
+
+messageConfirmBtn.addEventListener("click", () => {
+    closeMessageBox(true);
+});
+
+messageCancelBtn.addEventListener("click", () => {
+    closeMessageBox(false);
+});
+
+// Close when clicking outside the message box
+messageBox.addEventListener("click", (e) => {
+    if (e.target === messageBox) {
+        closeMessageBox(false);
+    }
+});
 document.addEventListener("DOMContentLoaded", async () => {
     // Load shared dashboard components
     await loadSidebar("pets");
@@ -236,12 +353,18 @@ petForm.addEventListener("submit", async (e)=>{
         const phPhoneRegex = /^09\d{9}$/;
 
         if (!phPhoneRegex.test(contactNumber)) {
-            alert("Please enter a valid Philippine contact number (e.g., 09123456789).");
+            await showMessage(
+                "Please enter a valid Philippine contact number (e.g., 09123456789).",
+                "warning"
+            );
             return;
         }
 
         if (!phPhoneRegex.test(emergencyPhone)) {
-            alert("Please enter a valid Philippine emergency phone number (e.g., 09123456789).");
+            await showMessage(
+                "Please enter a valid Philippine emergency phone number (e.g., 09123456789).",
+                "warning"
+            );
             return;
         }
     }
@@ -272,12 +395,18 @@ petForm.addEventListener("submit", async (e)=>{
         }
 
         catch(err){
-            alert("Server returned invalid response. Check terminal.");
+            await showMessage(
+                "Server returned invalid response. Check terminal.",
+                "error"
+            );
             return;
         }
 
         if (data.success) {
-            alert(data.message);
+            await showMessage(
+                data.message,
+                "success"
+            );
             closeModal();
             petForm.reset();
 
@@ -311,14 +440,18 @@ petForm.addEventListener("submit", async (e)=>{
 
             await loadPets();
         } else {
-            alert(data.message || "Failed to save pet. Please check all required fields.");
+            await showMessage(
+                data.message || "Failed to save pet. Please check all required fields.",
+                "error"
+            );
         }
     }
 
     catch(error){
         console.error("FETCH ERROR:", error);
-        alert(
-            "Request failed. Check browser console and server terminal."
+        await showMessage(
+            "Request failed. Check browser console and server terminal.",
+            "error"
         );
     }
 });
@@ -464,36 +597,67 @@ function createTrashCard(pet) {
 document.addEventListener("click", async (e) => {
     const restoreBtn = e.target.closest(".restorePetBtn");
     if (restoreBtn) {
-        const id = restoreBtn.dataset.id;
-        const name = restoreBtn.dataset.name;
-        if (!confirm(`Restore ${name} from the Recycle Bin?`)) return;
-
-        try {
-            const res = await fetch(`/org/pets/restore/${id}`, { method: "POST" });
-            const data = await res.json();
-            alert(data.message);
-            if (data.success) loadTrash();
-        } catch (err) {
-            console.error("RESTORE ERROR:", err);
-            alert("Failed to restore pet.");
+    const id = restoreBtn.dataset.id;
+    const name = restoreBtn.dataset.name;
+    const confirmed = await showConfirm(
+        `Restore ${name} from the Recycle Bin?`,
+        {
+            title: "Restore Pet?",
+            confirmText: "Restore"
         }
-        return;
+    );
+
+    if (!confirmed) return;
+    try {
+        const res = await fetch(`/org/pets/restore/${id}`, {
+            method: "POST"
+        });
+        const data = await res.json();
+        await showMessage(
+            data.message || "Pet restored successfully.",
+            data.success ? "success" : "error"
+        );
+        if (data.success) {
+            await loadTrash();
+        }
+    } catch (err) {
+        console.error("RESTORE ERROR:", err);
+        await showMessage("Failed to restore pet.", "error");
     }
+    return;
+}
 
     const permDeleteBtn = e.target.closest(".permanentDeleteBtn");
     if (permDeleteBtn) {
         const id = permDeleteBtn.dataset.id;
         const name = permDeleteBtn.dataset.name;
-        if (!confirm(`Permanently delete ${name}? This CANNOT be undone.`)) return;
-
+        const confirmed = await showConfirm(
+            `Permanently delete ${name}? This CANNOT be undone.`,
+            {
+                title: "Delete Permanently?",
+                confirmText: "Delete Forever",
+                danger: true
+            }
+        );
+        if (!confirmed) return;
         try {
-            const res = await fetch(`/org/pets/permanent/${id}`, { method: "DELETE" });
+            const res = await fetch(`/org/pets/permanent/${id}`, {
+                method: "DELETE"
+            });
             const data = await res.json();
-            alert(data.message);
-            if (data.success) loadTrash();
+            await showMessage(
+                data.message || "Pet permanently deleted.",
+                data.success ? "success" : "error"
+            );
+            if (data.success) {
+                await loadTrash();
+            }
         } catch (err) {
             console.error("PERMANENT DELETE ERROR:", err);
-            alert("Failed to permanently delete pet.");
+            await showMessage(
+                "Failed to permanently delete pet.",
+                "error"
+            );
         }
         return;
     }
@@ -584,7 +748,10 @@ document.addEventListener("click", async (e) => {
         const data = await res.json();
 
         if (!data.success) {
-            alert("Unable to load pet details.");
+            await showMessage(
+                "Unable to load pet details.",
+                "error"
+            );
             return;
         }
 
@@ -646,11 +813,17 @@ function openPetDetailsModal(pet){
                         // Redirect sa mismong Adoption Details Page
                         window.location.href = "/org/adoption-details";
                     } else {
-                        alert("No adoption application details record found for this pet.");
+                        await showMessage(
+                            "No adoption application details record found for this pet.",
+                            "info"
+                        );
                     }
                 } catch (err) {
                     console.error("Error redirecting to application:", err);
-                    alert("Failed to load application details.");
+                    await showMessage(
+                        "Failed to load application details.",
+                        "error"
+                    );
                 }
             };
         }
@@ -669,7 +842,15 @@ function openPetDetailsModal(pet){
             archiveBtn.className = "bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition cursor-pointer";
 
             archiveBtn.onclick = async () => {
-                if (!confirm(`Do you want to restore ${pet.name} back to Active Pets?`)) return;
+                const confirmed = await showConfirm(
+                    `Do you want to restore ${pet.name} back to Active Pets?`,
+                    {
+                        title: "Restore Pet?",
+                        confirmText: "Restore"
+                    }
+                );
+
+                if (!confirmed) return;
 
                 try {
                     const storedPrevStatus = archiveBtn.dataset.prevStatus || null;
@@ -682,7 +863,10 @@ function openPetDetailsModal(pet){
 
                     const data = await res.json();
                     if (data.success) {
-                        alert(data.message);
+                        await showMessage(
+                        data.message || "Pet successfully restored with status: Available.",
+                        data.success ? "success" : "error"
+                    );
                         closeViewPetModal();
                         await loadPets();
                     } else {
@@ -690,7 +874,10 @@ function openPetDetailsModal(pet){
                     }
                 } catch (err) {
                     console.error("UNARCHIVE ERROR:", err);
-                    alert("Failed to unarchive pet.");
+                    await showMessage(
+                        "Failed to unarchive pet.",
+                        "error"
+                    );
                 }
             };
         }
@@ -709,7 +896,15 @@ function openPetDetailsModal(pet){
             archiveBtn.dataset.prevStatus = pet.adoption_status;
 
             archiveBtn.onclick = async () => {
-                if (!confirm(`Are you sure you want to archive ${pet.name}?`)) return;
+                const confirmed = await showConfirm(
+                    `Are you sure you want to archive ${pet.name}?`,
+                    {
+                        title: "Archive Pet?",
+                        confirmText: "Archive"
+                    }
+                );
+
+                if (!confirmed) return;
 
                 try {
                     const res = await fetch(`/org/pets/archive/${pet.animal_id}`, {
@@ -720,7 +915,10 @@ function openPetDetailsModal(pet){
 
                     const data = await res.json();
                     if (data.success) {
-                        alert(data.message);
+                        await showMessage(
+                            data.message || "Pet has been archived successfully.",
+                            data.success ? "success" : "error"
+                        );
                         closeViewPetModal();
                         await loadPets();
                     } else {
@@ -728,7 +926,10 @@ function openPetDetailsModal(pet){
                     }
                 } catch (err) {
                     console.error("ARCHIVE ERROR:", err);
-                    alert("Failed to archive pet.");
+                    await showMessage(
+                        "Failed to archive pet.",
+                        "error"
+                    );
                 }
             };
         }
@@ -764,8 +965,13 @@ function openPetDetailsModal(pet){
     };
 
     document.getElementById("deletePetBtn").onclick = async () => {
-        const confirmed = confirm(
-            `Move ${pet.name} to the Recycle Bin? You can restore it within 30 days from the Recycle Bin.`
+        const confirmed = await showConfirm(
+            `Move ${pet.name} to the Recycle Bin? You can restore it within 30 days from the Recycle Bin.`,
+            {
+                title: "Move to Recycle Bin?",
+                confirmText: "Move to Bin",
+                danger: true
+            }
         );
         if (!confirmed) return;
         try {
@@ -774,7 +980,10 @@ function openPetDetailsModal(pet){
             });
             const data = await res.json();
             if (data.success) {
-                alert(data.message);
+                await showMessage(
+                    data.message || "Pet moved to Recycle Bin. You can restore it within 30 days.",
+                    data.success ? "success" : "error"
+                );
                 closeViewPetModal();
                 await loadPets();
             } else {
@@ -782,7 +991,10 @@ function openPetDetailsModal(pet){
             }
         } catch (err) {
             console.error("DELETE ERROR:", err);
-            alert(err.message);
+            await showMessage(
+                err.message || "Failed to move pet to the Recycle Bin.",
+                "error"
+            );
         }
 
     };
@@ -906,14 +1118,17 @@ function closeModal(){
     }
 }
 
-document.querySelector(".add-med-btn").addEventListener("click", () => {
+document.querySelector(".add-med-btn").addEventListener("click", async () => {
 
     const treatment = document.getElementById("m-treatment").value.trim();
     const date = document.getElementById("m-date").value;
     const by = document.getElementById("m-by").value.trim();
 
     if (!treatment || !date || !by) {
-        alert("Please complete all medical history fields.");
+        await showMessage(
+            "Please complete all medical history fields.",
+            "warning"
+        );
         return;
     }
 

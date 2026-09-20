@@ -1,4 +1,4 @@
-﻿// Helper to format human-readable relative time
+﻿
 function timeAgo(dateString) {
     const date = new Date(dateString);
     const now = new Date();
@@ -44,15 +44,15 @@ async function loadRecentActivities() {
                     if (item.interview_date) {
                         interviewDateTime = new Date(item.interview_date);
                         
-                        // Isama ang eksaktong oras kung may interview_time na nakatakda
+                       
                         if (item.interview_time) {
                             const [hours, minutes] = item.interview_time.split(':');
                             interviewDateTime.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0);
                         } else {
-                            interviewDateTime.setHours(23, 59, 59, 999); // Kung walang oras, itakda sa huling bahagi ng araw
+                            interviewDateTime.setHours(23, 59, 59, 999); 
                         }
                 
-                        // Real-time comparison: Kung lumagpas na ang kasalukuyang oras sa interview schedule
+                        
                         if (now > interviewDateTime && (item.status === 'Interview Scheduled' || item.status === 'Under Review')) {
                             isPastInterview = true;
                         }
@@ -111,7 +111,7 @@ async function loadRecentActivities() {
     }
 }
 
-// upcoming interview schedule (user dashboard)
+
 function formatScheduleDate(dateStr) {
     if (!dateStr) return "TBD";
     return new Date(dateStr).toLocaleDateString("en-US", {
@@ -149,7 +149,7 @@ async function loadUpcomingSchedules() {
 
         const now = new Date();
 
-        // REAL-TIME FILTER: Kunin lamang ang mga schedules na HINDI PA nakakalipas
+       
         const activeSchedules = data.schedules.filter(item => {
             if (!item.interview_date) return false;
 
@@ -162,7 +162,7 @@ async function loadUpcomingSchedules() {
                 interviewDateTime.setHours(23, 59, 59, 999);
             }
 
-            return now <= interviewDateTime; // Lumabas lang kapag hinaharap pa ang oras/petsa
+            return now <= interviewDateTime; 
         });
 
         if (activeSchedules.length === 0) {
@@ -216,7 +216,7 @@ async function loadUpcomingSchedules() {
     }
 }
 
-// Helper function para sa empty state
+
 function renderEmptySchedule(container) {
     container.innerHTML = `
         <div class="text-center py-8 text-gray-400">
@@ -228,24 +228,136 @@ function renderEmptySchedule(container) {
 
 document.addEventListener("DOMContentLoaded", async () => {
 
-    // Wait until sidebar + header are loaded
+     // ==========================================
+    // LOGOUT ELEMENTS
+    // ==========================================
+    const logoutModal = document.getElementById("logoutModal");
+    const cancelLogoutBtn = document.getElementById("cancelLogoutBtn");
+    const confirmLogoutBtn = document.getElementById("confirmLogoutBtn");
+    const logoutModalContent = document.getElementById("logoutModalContent");
+
+    document.addEventListener("click", (e) => {
+
+        const logoutLink = e.target.closest("#logoutLink");
+
+        if (!logoutLink) {
+            return;
+        }
+
+        e.preventDefault();
+
+        console.log("Logout link clicked");
+
+        logoutModal?.classList.remove(
+            "opacity-0",
+            "pointer-events-none"
+        );
+
+        logoutModal?.classList.add("opacity-100");
+
+        logoutModalContent?.classList.remove("scale-95");
+        logoutModalContent?.classList.add("scale-100");
+    });
+
+    function closeLogoutModal() {
+
+        logoutModal?.classList.remove("opacity-100");
+
+        logoutModal?.classList.add(
+            "opacity-0",
+            "pointer-events-none"
+        );
+
+        logoutModalContent?.classList.remove("scale-100");
+        logoutModalContent?.classList.add("scale-95");
+    }
+
+
+    cancelLogoutBtn?.addEventListener("click", () => {
+
+        console.log("Logout cancelled");
+
+        closeLogoutModal();
+
+    });
+
+
+    logoutModal?.addEventListener("click", (e) => {
+
+        if (e.target === logoutModal) {
+            closeLogoutModal();
+        }
+
+    });
+
+    confirmLogoutBtn?.addEventListener("click", async () => {
+
+        console.log("Confirm logout clicked");
+
+        confirmLogoutBtn.disabled = true;
+        confirmLogoutBtn.textContent = "Logging out...";
+
+        try {
+
+            const response = await fetch("/auth/logout", {
+                method: "POST",
+                credentials: "include",
+                headers: {
+                    "Content-Type": "application/json"
+                }
+            });
+
+            console.log("Logout response status:", response.status);
+
+            const data = await response.json();
+
+            console.log("Logout response:", data);
+
+            if (response.ok && data.success) {
+
+                console.log("Logout successful");
+
+                window.location.replace("/auth/login");
+
+            } else {
+
+                console.error("Logout failed:", data);
+
+                confirmLogoutBtn.disabled = false;
+                confirmLogoutBtn.textContent = "Yes, Logout";
+
+                alert(data.message || "Logout failed.");
+
+            }
+
+        } catch (error) {
+
+            console.error("LOGOUT ERROR:", error);
+
+            confirmLogoutBtn.disabled = false;
+            confirmLogoutBtn.textContent = "Yes, Logout";
+
+            alert("Unable to logout. Please try again.");
+
+        }
+
+    });
+
     await loadSidebar("dashboard");
 
-    // Wait one tick so the header HTML exists
+    
     requestAnimationFrame(async () => {
 
-        // Set dashboard title
+       
         loadTopbar({
             title: "Dashboard",
             subtitle: "View your adoption progress, upcoming schedules, recent activities, and quick access to important features."
         });
 
-        // Load user's name
         await loadUserName();
         await loadRecentActivities();
         await loadUpcomingSchedules();
 
-        // Real-time polling: fetch updates every 30 seconds
         setInterval(loadRecentActivities, 30000);
         setInterval(loadUpcomingSchedules, 30000);
 

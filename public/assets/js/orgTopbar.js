@@ -225,6 +225,10 @@ async function updateTopbarProfilePic() {
             }
         }
     } catch (err) {
-        console.error("Error loading topbar profile picture:", err);
+       if (err.name === 'AbortError') {
+            console.warn("Profile picture request was cancelled.");
+        } else {
+            console.error("Error loading topbar profile picture:", err);
+        }
     }
 }

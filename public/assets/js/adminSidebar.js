@@ -4,6 +4,11 @@ async function loadSidebar(activePage) {
 
     try {
         const response = await fetch("sidebar.html");
+
+        if (!response.ok) {
+            throw new Error(`Failed to load sidebar: ${response.statusText}`);
+        }
+
         container.innerHTML = await response.text();
 
         const toggle = document.getElementById("orgDropdownToggle");
@@ -19,7 +24,6 @@ async function loadSidebar(activePage) {
             toggle?.classList.add("text-slate-100", "bg-slate-800/50");
         }
 
-        // Toggle click logic
         if (toggle && submenu && arrow) {
             toggle.addEventListener("click", (e) => {
                 e.preventDefault();
@@ -51,10 +55,17 @@ async function loadSidebar(activePage) {
         });
 
     } catch (error) {
-        console.error("Error loading sidebar:", error);
+        // ✅ CATCH ABORT ERROR: Huwag mag-throw ng red error kapag in-abort ng browser/extension ang fetch
+        if (error.name === "AbortError") {
+            console.log("Sidebar fetch request was aborted.");
+        } else {
+            console.error("Error loading sidebar:", error);
+        }
     }
 
-    setupLogoutControl();
+    if (typeof setupLogoutControl === "function") {
+        setupLogoutControl();
+    }
 }
 
 // Kaparehong logout confirmation pattern gaya ng org/user sidebars

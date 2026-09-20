@@ -4,16 +4,16 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/png" href="../assets/images/Pawpon_logo.png">
-    <title>PAWPON ADMIN – User Management </title>
+    <title>PAWPON ADMIN – User Management</title>
 
     <!-- Google Fonts & FontAwesome -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <link rel="stylesheet" href="/css/inter.css">
+    <!-- Local Font Awesome -->
+    <link rel="stylesheet" href="/css/fontawesome/all.min.css">
     <link rel="stylesheet" href="../assets/css/user-management.css" />
     <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/css/tailwind.css">
     <script src="../assets/js/adminSidebar.js"></script>
     <script src="../assets/js/adminTopbar.js"></script>
     <script src="../assets/js/adminUserManagement.js"></script>
@@ -65,7 +65,7 @@
                     <span id="userCount">0 Users</span>
                 </div>
             </div>
-            
+
             <!-- User Cards Grid -->
             <div
                 id="userRowsContainer"
@@ -75,31 +75,36 @@
         </div>
     </main>
 
-    <!-- Detail Panel Slide-over Overlay -->
-    <div id="panelOverlay" class="panel-overlay fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40 opacity-0 pointer-events-none transition-opacity"></div>
+    <!-- Detail Panel Overlay (single instance) -->
+    <div id="panelOverlay"
+         class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40 opacity-0 pointer-events-none transition-opacity duration-300"></div>
 
     <!-- Detail Panel Drawer -->
-    <aside id="detailPanel" class="detail-panel fixed top-0 right-0 w-full max-w-md h-full bg-white shadow-2xl z-50 transform translate-x-full flex flex-col border-l border-slate-200">
-        <!-- Drawer Header -->
-        <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-slate-50/50">
-            <h3 class="font-bold text-slate-800 text-base flex items-center gap-2.5">
-                <i class="fa-regular fa-id-card text-brand-600"></i> User Details
+    <aside id="detailPanel"
+           class="fixed top-0 right-0 w-full max-w-md h-full bg-white shadow-2xl z-50 translate-x-full transition-transform duration-300 ease-in-out flex flex-col border-l border-slate-200">
+
+        <!-- Header -->
+        <div class="flex items-center justify-between px-5 py-4 border-b border-slate-200 bg-slate-50/70">
+            <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2.5">
+                <span class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                    <i class="fa-regular fa-id-card text-xs"></i>
+                </span>
+                User Details
             </h3>
-            <button id="panelClose" class="w-8 h-8 rounded-lg bg-slate-200/60 hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition">
-                <i class="fas fa-xmark"></i>
+            <button id="panelClose"
+                    class="w-8 h-8 rounded-lg bg-slate-200/70 hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition">
+                <i class="fas fa-xmark text-sm"></i>
             </button>
         </div>
 
-        <!-- Drawer Content Body -->
-        <div id="panelBody" class="flex-1 overflow-y-auto p-6 space-y-6">
-            <!-- Dynamic Content loaded via JS -->
-        </div>
+        <!-- Body -->
+        <div id="panelBody" class="flex-1 overflow-y-auto p-4 space-y-4"></div>
     </aside>
 
     <!-- Custom Toast Notification Container -->
     <div id="toastContainer" class="fixed bottom-5 right-5 z-[70] flex flex-col gap-2 pointer-events-none"></div>
 
-    <!-- 🟢 DITO NA NAKALIPAT SA LABAS (ISANG HILERA NA SA PINAKABABANG <body>) -->
+    <!-- Custom Confirm Modal -->
     <div id="customConfirmModal" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm hidden">
         <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-sm mx-4 transform transition-all scale-95 opacity-0 duration-200" id="modalContentBox">
             <div class="flex items-center gap-3 mb-4">
