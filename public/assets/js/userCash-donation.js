@@ -178,6 +178,8 @@ document.addEventListener("DOMContentLoaded", async () => {
             }
 
             organizations.forEach(org => {
+                console.log("ORG PROFILE PIC:", org.organization_name, org.profile_pic);
+                
                 const profileImg = getValidImageUrl(
                     org.profile_pic,
                     "https://via.placeholder.com/64"
@@ -303,7 +305,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                     qrEl.src = org.maya_qr_code;
                     qrEl.classList.remove("hidden");
                 } else {
-                    qrEl.src = "https://via.placeholder.com/200x200?text=No+Maya+QR";
+                    qrEl.removeAttribute("src");
                     qrEl.classList.remove("hidden");
                 }
             }
@@ -319,7 +321,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                     qrEl.src = org.qr_code;
                     qrEl.classList.remove("hidden");
                 } else {
-                    qrEl.src = "https://via.placeholder.com/200x200?text=No+GCash+QR";
+                    qrEl.removeAttribute("src");
                     qrEl.classList.remove("hidden");
                 }
             }

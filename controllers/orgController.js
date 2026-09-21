@@ -1105,7 +1105,8 @@ exports.updatePaymentInfo = async (req, res) => {
             dropoff_location_name,
             dropoff_address,
             dropoff_hours,
-            dropoff_notes
+            dropoff_notes,
+            active_tab
 
         } = req.body;
 
@@ -1612,7 +1613,7 @@ exports.updatePaymentInfo = async (req, res) => {
             !!finalDropoffHours ||
             !!finalDropoffImage;
 
-        if (anyInkindProvided) {
+        if (active_tab === "inkind" && anyInkindProvided) {
             const missingInkind = [];
             if (!finalDropoffLocationName) missingInkind.push("Location Name");
             if (!finalDropoffAddress) missingInkind.push("Complete Address");

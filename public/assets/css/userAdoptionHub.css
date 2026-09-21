@@ -1,0 +1,35 @@
+body {
+    visibility: hidden;
+}
+
+#sidebar,
+#header {
+    visibility: hidden;
+}
+
+.upload-box-hover:hover {
+    border-color: #94a3b8;
+}
+
+.btn-back-hover:hover {
+    transform: translateX(-3px);
+}
+
+.hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+
+/* INALIS ANG UP AT DOWN ARROW SA NUMBER INPUTS */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+input[type="number"] {
+    -moz-appearance: textfield;
+}

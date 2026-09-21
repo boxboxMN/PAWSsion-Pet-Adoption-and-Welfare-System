@@ -51,6 +51,7 @@ app.use(
       scriptSrcAttr: ["'unsafe-inline'"],
       styleSrc: [
         "'self'", 
+        "'unsafe-inline'",
         "https://fonts.googleapis.com",
         "https://cdnjs.cloudflare.com"
      ],

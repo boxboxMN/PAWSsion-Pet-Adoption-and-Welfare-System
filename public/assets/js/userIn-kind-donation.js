@@ -135,6 +135,8 @@ document.addEventListener('DOMContentLoaded', async function() {
             }
 
             organizations.forEach(org => {
+                console.log("ORG PROFILE PIC:", org.organization_name, org.profile_pic);
+                
                 const profileImg = getValidImageUrl(org.profile_pic, "https://via.placeholder.com/64");
 
                 container.innerHTML += `

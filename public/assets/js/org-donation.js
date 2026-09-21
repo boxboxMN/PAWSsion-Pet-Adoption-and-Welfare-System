@@ -1414,7 +1414,7 @@ async function savePaymentDetails(e) {
 
         const hasLocationPhoto =
             (locationImgInputEl && locationImgInputEl.files && locationImgInputEl.files.length > 0) ||
-    (locationPreviewEl && locationPreviewEl.src && !locationPreviewEl.src.startsWith("data:image/svg+xml"));
+            (locationPreviewEl && locationPreviewEl.src && !locationPreviewEl.src.startsWith("data:image/svg+xml"));
 
         const inkindValues = {
             locationName: current.dropoff_location_name,
@@ -1429,7 +1429,7 @@ async function savePaymentDetails(e) {
             !!inkindValues.hours ||
             inkindValues.hasPhoto;
 
-        if (anyInkindFilled) {
+        if (activeTab === "inkind" && anyInkindFilled) {
             const missingInkindFields = [];
             if (!inkindValues.locationName) missingInkindFields.push("Location Name");
             if (!inkindValues.address) missingInkindFields.push("Complete Address");
@@ -1596,9 +1596,8 @@ async function savePaymentDetails(e) {
         // CREATE FORMDATA
         // =====================================================
 
-        const formData =
-            new FormData(form);
-
+        const formData = new FormData(form);
+        formData.set("active_tab", activeTab);
 
         // =====================================================
         // PAYMENT VALUES
