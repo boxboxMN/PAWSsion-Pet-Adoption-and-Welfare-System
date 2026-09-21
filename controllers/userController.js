@@ -1137,6 +1137,7 @@ exports.submitAdoptionApplication = async (req, res) => {
         // 5. VALIDATE animal_id (numeric)
         // =====================================================
         const animalIdNum = Number(animal_id);
+
         if (!Number.isInteger(animalIdNum) || animalIdNum <= 0) {
             return res.status(400).json({
                 status: 'error',
@@ -1145,7 +1146,7 @@ exports.submitAdoptionApplication = async (req, res) => {
         }
 
         const [petRows] = await pool.query(
-            `SELECT organization_id FROM animals WHERE animal_id = ? AND deleted_at IS NULL`,
+            `SELECT organization_id, name FROM animals WHERE animal_id = ? AND deleted_at IS NULL`,
             [animalIdNum]
         );
 
@@ -1157,7 +1158,7 @@ exports.submitAdoptionApplication = async (req, res) => {
         }
 
         const organizationId = petRows[0].organization_id;
-
+        const animalName = petRows[0].name;
         // =====================================================
         // 6. BUILD IMMUTABLE SNAPSHOT (cleaned values only)
         // =====================================================
@@ -1236,7 +1237,7 @@ exports.submitAdoptionApplication = async (req, res) => {
                 "adoption_application_submitted",
                 "application",
                 existingApp[0].application_id,
-                "Re-application"
+                `Re-application for ${animalName}`
             );
 
             const [[orgAccountReapply]] = await pool.query(
@@ -1248,7 +1249,7 @@ exports.submitAdoptionApplication = async (req, res) => {
                 await createNotification(
                     orgAccountReapply.account_id,
                     "New Adoption Application",
-                    "An adopter re-submitted an application for review.",
+                    `An adopter re-submitted an application for ${animalName}.`,
                     "application_submitted",
                     "/org/adoption"
                 );
@@ -1292,7 +1293,7 @@ exports.submitAdoptionApplication = async (req, res) => {
             "adoption_application_submitted",
             "application",
             null,
-            `Pet #${animalIdNum}`
+            animalName
         );
 
         const [[orgAccountNew]] = await pool.query(
@@ -1304,7 +1305,7 @@ exports.submitAdoptionApplication = async (req, res) => {
             await createNotification(
                 orgAccountNew.account_id,
                 "New Adoption Application",
-                `A new application was submitted for pet #${animalIdNum}.`,
+                `A new application was submitted for pet ${animalName}.`,
                 "application_submitted",
                 "/org/adoption"
             );
