@@ -150,7 +150,7 @@ function initUserNotifications() {
     if (!window.__userNotifPolling) {
         window.__userNotifPolling = true;
         setInterval(loadUserNotifications, 30000);
-        setInterval(checkUserSessionStatus, 30000);
+        setInterval(checkUserSessionStatus, 5000);
     }
 }
 
@@ -167,7 +167,13 @@ async function checkUserSessionStatus() {
     }
 }
 
+let isRedirecting = false;
+
 function lockUserSidebarAndRedirect(reason) {
+    // Prevent this from running multiple times
+    if (isRedirecting) return;
+    isRedirecting = true;
+
     document.querySelectorAll(".nav-link").forEach(link => {
         if (link.id !== "logoutLink") {
             link.classList.add("opacity-40", "cursor-not-allowed");
@@ -181,6 +187,9 @@ function lockUserSidebarAndRedirect(reason) {
     document.body.prepend(banner);
 
     setTimeout(() => {
-        window.location.href = `/auth/login?reason=${reason || "suspended"}`;
+        const loginReason = reason || "session_expired";
+
+        window.location.href =
+            `/auth/login?reason=${encodeURIComponent(loginReason)}`;
     }, 2500);
 }

@@ -6,7 +6,7 @@ const {
 } = csrfSync({
     getTokenFromRequest: (req) => {
         // Form submission
-        if (req.is("application/x-www-form-urlencoded")) {
+        if (req.body?.csrfToken) {
             return req.body.csrfToken;
         }
 

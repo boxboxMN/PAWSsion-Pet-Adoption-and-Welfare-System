@@ -91,7 +91,13 @@ async function checkSessionStatus() {
     }
 }
 
+let isRedirecting = false;
+
 function lockSidebarAndRedirect(reason) {
+    // Prevent this from running multiple times
+    if (isRedirecting) return;
+    isRedirecting = true;
+
     document.querySelectorAll(".nav-link").forEach(link => {
         if (link.id !== "logoutLink") {
             link.classList.add("opacity-40", "cursor-not-allowed");
@@ -105,7 +111,10 @@ function lockSidebarAndRedirect(reason) {
     document.body.prepend(banner);
 
     setTimeout(() => {
-        window.location.href = `/auth/login?reason=${reason || "suspended"}`;
+         const loginReason = reason || "session_expired";
+
+        window.location.href =
+            `/auth/login?reason=${encodeURIComponent(loginReason)}`;
     }, 2500);
 }
 

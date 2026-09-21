@@ -175,12 +175,14 @@ document.addEventListener('DOMContentLoaded', async () => {
             banned:
                 'Your account was permanently banned while you were logged in.',
             disabled:
-                'Your account was deactivated while you were logged in.'
+                'Your account was deactivated while you were logged in.',
+             session_expired:
+                'Your session has expired. Please log in again.'
         };
 
         showError(
             reasonMessages[reason] ||
-            'Your session was ended by an administrator.'
+            'Your session has ended. Please log in again.'
         );
     }
 

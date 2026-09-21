@@ -1256,15 +1256,49 @@ exports.checkAccountStatus = async (req, res, next) => {
  */
 exports.getSessionStatus = async (req, res) => {
     const accountId = req.session?.accountId;
-    if (!accountId) return res.json({ active: false });
+
+    // No active session
+    if (!accountId) {
+        return res.json({
+            active: false,
+            status: "session_expired"
+        });
+    }
 
     try {
-        const [[account]] = await pool.query(`SELECT status FROM accounts WHERE account_id = ?`, [accountId]);
-        const blocked = account && ["suspended", "banned", "disabled"].includes(account.status);
-        res.json({ active: !blocked, status: account?.status });
+        const [[account]] = await pool.query(
+            `SELECT status FROM accounts WHERE account_id = ?`,
+            [accountId]
+        );
+
+        // Account no longer exists
+        if (!account) {
+            return res.json({
+                active: false,
+                status: "session_expired"
+            });
+        }
+
+        const blockedStatuses = [
+            "suspended",
+            "banned",
+            "disabled"
+        ];
+
+        const blocked = blockedStatuses.includes(account.status);
+
+        return res.json({
+            active: !blocked,
+            status: account.status
+        });
+
     } catch (err) {
         console.error("Get Session Status Error:", err);
-        res.json({ active: true }); // fail open, same policy as the middleware
+
+        // Don't falsely report suspension if the database check fails
+        return res.json({
+            active: true
+        });
     }
 };
 
