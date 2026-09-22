@@ -1,3 +1,14 @@
+function escapeHtml(value) {
+    if (value === null || value === undefined) return '';
+
+    return String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
 let loadedOrganizations = [];
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -150,7 +161,7 @@ async function viewDetailsById(orgId) {
                                 <i class="fa-solid fa-file-pdf text-xs"></i>
                             </div>
                             <div class="min-w-0">
-                                <p class="font-semibold text-slate-800 truncate">${doc.document_name}</p>
+                                <p class="font-semibold text-slate-800 truncate">${escapeHtml(doc.document_name || 'Verification Document')}</p>
                                 <p class="text-[10px] text-slate-400 mt-0.5">Uploaded ${new Date(doc.uploaded_at).toLocaleDateString()}</p>
                             </div>
                         </div>

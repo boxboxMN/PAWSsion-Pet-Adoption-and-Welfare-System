@@ -1,11 +1,11 @@
 // routes/auth.js
-
 const express = require("express");
 const router = express.Router();
 const multer = require("multer");
 const path = require("path");
 const crypto = require("crypto");
 const fs = require("fs");
+const { fileTypeFromFile } = require("file-type");
 
 const authController = require("../controllers/AuthController");
 
@@ -63,6 +63,25 @@ const upload = multer({
     }
 });
 
+async function validateUploadedFile(file) {
+    if (!file || !file.path) {
+        return false;
+    }
+
+    const detectedType = await fileTypeFromFile(file.path);
+
+    if (!detectedType) {
+        return false;
+    }
+
+    const allowedMimeTypes = [
+        "application/pdf",
+        "image/jpeg",
+        "image/png"
+    ];
+
+    return allowedMimeTypes.includes(detectedType.mime);
+}
 
 // ==========================================
 // LOGIN PAGE
@@ -195,7 +214,7 @@ router.post(
     "/register-organization",
 
     (req, res, next) => {
-        upload.single("document")(req, res, (err) => {
+        upload.single("document")(req, res, async (err) => {
 
             if (err instanceof multer.MulterError) {
                 // Multer error such as file too large
@@ -207,7 +226,32 @@ router.post(
                 return res.status(400).send(err.message);
             }
 
-            next();
+            try {
+                const isValidFile = await validateUploadedFile(req.file);
+
+                if (!isValidFile) {
+                    if (req.file?.path) {
+                        fs.unlink(req.file.path, () => {});
+                    }
+
+                    return res.status(400).send(
+                        "Invalid file content. Please upload a valid PDF, JPG, JPEG, or PNG file."
+                    );
+                }
+
+                next();
+
+            } catch (error) {
+                console.error("File validation error:", error);
+
+                if (req.file?.path) {
+                    fs.unlink(req.file.path, () => {});
+                }
+
+                return res.status(400).send(
+                    "Unable to validate the uploaded file."
+                );
+            }
         });
     },
 

@@ -2,6 +2,7 @@ const express = require("express");
 const path = require("path");
 const multer = require("multer");
 const fs = require("fs");
+const { fileTypeFromFile } = require("file-type");
 const router = express.Router();
 const userController = require("../controllers/userController");
 const matchmakerController = require("../controllers/matchmakerController");
@@ -33,6 +34,26 @@ const upload = multer({
         cb(null, true);
     }
 });
+
+async function validateAvatarFile(file) {
+  if (!file || !file.path) {
+      return false;
+  }
+
+  const detectedType = await fileTypeFromFile(file.path);
+
+  if (!detectedType) {
+      return false;
+  }
+
+  const allowedMimeTypes = [
+      "image/jpeg",
+      "image/png"
+  ];
+
+  return allowedMimeTypes.includes(detectedType.mime);
+}
+
 // Setup Multer storage para sa Donation Receipts
 const receiptStorage = multer.diskStorage({
     destination: function (req, file, cb) {
@@ -162,6 +183,58 @@ router.post("/api/user/profile/update", checkUserSession, userController.updateP
 router.post("/api/user/profile/password", checkUserSession, userController.updatePassword);
 router.post("/api/user/profile/verify-password", checkUserSession, userController.verifyPassword);
 router.post("/api/user/profile/avatar", checkUserSession, upload.single("avatar"), userController.updateAvatar);
+router.post(
+  "/api/user/profile/avatar",
+  checkUserSession,
+  (req, res, next) => {
+      upload.single("avatar")(req, res, async (err) => {
+
+          if (err instanceof multer.MulterError) {
+              return res.status(400).json({
+                  success: false,
+                  error: err.message
+              });
+          }
+
+          if (err) {
+              return res.status(400).json({
+                  success: false,
+                  error: err.message
+              });
+          }
+
+          try {
+              const isValidFile = await validateAvatarFile(req.file);
+
+              if (!isValidFile) {
+                  if (req.file?.path) {
+                      fs.unlink(req.file.path, () => {});
+                  }
+
+                  return res.status(400).json({
+                      success: false,
+                      error: "Invalid file content. Please upload a valid JPG or PNG image."
+                  });
+              }
+
+              next();
+
+          } catch (error) {
+              console.error("Avatar file validation error:", error);
+
+              if (req.file?.path) {
+                  fs.unlink(req.file.path, () => {});
+              }
+
+              return res.status(400).json({
+                  success: false,
+                  error: "Unable to validate the uploaded file."
+              });
+          }
+      });
+  },
+  userController.updateAvatar
+);
 router.get("/api/organizations", checkUserSession, userController.getOrganizations);
 router.post( "/api/user/donation/cash", checkUserSession, uploadReceipt.single("receipt"), userController.submitCashDonation);
 router.post('/api/user/donation/in-kind', checkUserSession, userController.submitInKindDonation);

@@ -1,6 +1,16 @@
 const bcrypt = require('bcrypt');
 const validator = require('validator');
 const pool = require('../config/database');
+
+const regions = require('../public/data/regions.json');
+const provinces = require('../public/data/provinces.json');
+const cities = require('../public/data/cities.json');
+const barangays = require('../public/data/barangays.json');
+
+function normalizeAddress(value) {
+    return String(value || '').trim().toLowerCase();
+}
+
 const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#]).{8,}$/;
 const phoneRegex = /^(09\d{9}|\+639\d{9})$/;
 const zipRegex = /^\d{4}$/; //for zip code
@@ -40,6 +50,51 @@ exports.register = async (req, res) => {
     // ZIP Code format validation
     if (!zipRegex.test(zipCode)) {
         return res.status(400).send('Please enter a valid 4-digit Philippine ZIP code.');
+    }
+
+    const selectedRegion = regions.find(
+        r => normalizeAddress(r.region_name) === normalizeAddress(region)
+    );
+    
+    if (!selectedRegion) {
+        return res.status(400).send('Please select a valid region.');
+    }
+
+    const selectedProvince = provinces.find(
+        p =>
+            normalizeAddress(p.province_name) === normalizeAddress(province) &&
+            p.region_code === selectedRegion.region_code
+    );
+    
+    if (!selectedProvince) {
+        return res.status(400).send('Please select a valid province for the selected region.');
+    }
+
+    console.log("DEBUG ADDRESS:", {
+        city,
+        province,
+        selectedProvinceCode: selectedProvince.province_code
+    });
+
+    const selectedCity = cities.find(
+        c =>
+            normalizeAddress(c.city_name) === normalizeAddress(city) &&
+            c.province_code === selectedProvince.province_code
+    );
+    
+    if (!selectedCity) {
+        return res.status(400).send('Please select a valid city or municipality for the selected province.');
+    }
+
+    const selectedBarangay = barangays.find(
+        b =>
+            normalizeAddress(b.brgy_name) === normalizeAddress(barangay) &&
+            b.city_code === selectedCity.city_code &&
+            b.province_code === selectedProvince.province_code
+    );
+    
+    if (!selectedBarangay) {
+        return res.status(400).send('Please select a valid barangay for the selected city or municipality.');
     }
 
     // Birthday validation & 18+ calculation
@@ -312,7 +367,7 @@ exports.registerOrganization = async (req, res) => {
         const province = (req.body.province || '').trim();
         const city = (req.body.city || '').trim();
         const barangay = (req.body.barangay || '').trim();
-        const zipCode = (req.body.zipCode || '').toString().trim().replace(/\D/g, '');
+        const zipCode = (req.body.zipCode || '').toString().trim();
         const description = (req.body.description || '').trim();
 
         if (
@@ -409,6 +464,7 @@ exports.registerOrganization = async (req, res) => {
         res.status(500).send("Registration failed. Please try again later.");
     }
 };
+
 exports.checkEmailAvailability = async (req, res) => {
     try {
         const email = (req.query.email || '').trim().toLowerCase();
