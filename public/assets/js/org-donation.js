@@ -152,18 +152,6 @@ function switchModalConfigTab(type) {
     }
 }
 
-/**
- * Retrieves the organization's payment information
- * and in-kind drop-off details from the server[cite: 5].
- */
-/**
- * Retrieves the organization's payment information
- * and in-kind drop-off details from the server.
- *
- * Loads BOTH GCash and Maya information from the database.
- * The active payment method determines what is shown
- * in the account summary.
- */
 async function fetchPaymentDetails() {
     try {
 
@@ -188,10 +176,6 @@ async function fetchPaymentDetails() {
             String(data.payment_method || "gcash")
                 .toLowerCase()
                 .trim();
-
-        // =====================================================
-        // PAYMENT METHOD SELECT
-        // =====================================================
 
         const paymentMethodInput =
             document.getElementById("inputPaymentMethod");

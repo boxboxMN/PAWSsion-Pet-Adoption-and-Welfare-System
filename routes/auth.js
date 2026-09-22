@@ -152,7 +152,7 @@ router.post(
 
 router.post(
     "/login",
-    csrfSynchronisedProtection,
+    //csrfSynchronisedProtection, - comment ko muna while nag testing ako sa postman
     authController.login
 );
 

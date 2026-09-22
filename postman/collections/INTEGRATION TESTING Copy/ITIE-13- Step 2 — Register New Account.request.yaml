@@ -1,0 +1,5 @@
+$kind: http-request
+name: "ITIE-13: Step 2 — Register New Account"
+url: ""
+method: GET
+order: 4503497846805947

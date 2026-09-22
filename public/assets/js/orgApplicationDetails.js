@@ -227,10 +227,9 @@ function populateDetailsUI(app) {
         }
     }
 
-    // 3. Applied Date
+
     document.getElementById("appSubmittedDate").textContent = app.applied_date ? `Submitted on ${app.applied_date}` : 'Submitted on N/A';
 
-    // 4. Direct DB Mapping para sa Applicant Info
     document.getElementById("applicantName").textContent = val(app.full_name);
     
     const locEl = document.getElementById("applicantLocation");
@@ -725,10 +724,10 @@ async function selectInterviewMethod(method, isUserClick = false) {
         input.placeholder = "https://meet.google.com/xyz-abc-123";
     }
 
-    // Kung sadyang pinindot ng user ang button (hindi galing sa automatic modal load), burahin ang lumang laman
+    
     if (isUserClick) {
         if (method === 'onsite') {
-            // Auto-fill gamit ang naka-save na address ng organization
+            
             input.value = "Loading address...";
             const orgData = await getOrgProfileData();
             const fullAddress = buildOrgFullAddress(orgData);
@@ -792,7 +791,7 @@ async function submitInterviewSchedule(event) {
     const urlCheckRegex = /https?:\/\/|www\./i;
 
     if (selectedMethod === 'virtual') {
-        // Regex pattern para sa valid Google Meet links (meet.google.com/xxx-xxxx-xxx)
+        
         const gmeetRegex = /^https?:\/\/(www\.)?meet\.google\.com\/[a-z0-9]{3,4}-[a-z0-9]{3,4}-[a-z0-9]{3,4}(\?.*)?$/i;
 
         if (!detailVal || !gmeetRegex.test(detailVal)) {

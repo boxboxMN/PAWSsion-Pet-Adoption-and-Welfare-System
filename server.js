@@ -93,7 +93,7 @@ app.use((req, res, next) => {
 app.use(session({
   secret: process.env.SESSION_SECRET,
   resave: false,
-  saveUninitialized: false,
+  saveUninitialized: true, // ni true ko nung nag test ako sa postman // false sya dati
   cookie: {
     secure: false,       // For local HTTP development
     httpOnly: true,

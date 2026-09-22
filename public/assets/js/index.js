@@ -289,7 +289,6 @@ function updateOrgDetails() {
     document.getElementById('displayOrgNumber').textContent = orgNumber;
     document.getElementById('orgDescriptionBox').textContent = orgDesc;
 
-    //  Drop-off details (mula sa DB)
     const dropoffLoc   = selectedOption.getAttribute('data-dropoff-location') || 'Address not specified';
     const dropoffHours = selectedOption.getAttribute('data-dropoff-hours')    || 'Standard shelter hours apply';
     const dropoffName  = selectedOption.getAttribute('data-dropoff-name')     || 'Partner Shelter';
@@ -609,8 +608,6 @@ async function handleInKindSubmit(event) {
         }
         formData.set('donor_name', typedName);
     }
-
-    // DEBUG
     console.log("[In-Kind] payload:", {
         organization_id: orgId,
         is_anonymous: isAnonymous,
@@ -925,10 +922,6 @@ function parseReceiptText(text) {
             }
         }
     }
-
-    // ============================================================
-    // STEP 4: Fallback — scan lines from BOTTOM upward
-    // ============================================================
     if (!out.reference) {
         for (let i = lines.length - 1; i >= 0; i--) {
             const cleaned = fixDigits(lines[i]).replace(/[\s\-]/g, "");
@@ -1293,13 +1286,6 @@ function updateStatsDisplay(stats) {
     }
 }
 
-/**
- * Smooth count-up animation (easeOutCubic).
- * @param {HTMLElement} el
- * @param {number} from
- * @param {number} to
- * @param {number} duration ms
- */
 function animateCount(el, from, to, duration = 900) {
     if (!el) return;
     const start = performance.now();
