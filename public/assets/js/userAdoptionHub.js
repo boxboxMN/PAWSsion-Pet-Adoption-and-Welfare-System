@@ -1222,17 +1222,27 @@ document.addEventListener("DOMContentLoaded", async () => {
                 const dangerousRegex = /(<script|<\/script|javascript:|onerror\s*=|onload\s*=|onclick\s*=|onmouseover\s*=|onfocus\s*=|onblur\s*=|oninput\s*=|onchange\s*=|onkeydown\s*=|onkeyup\s*=|onkeypress\s*=|<iframe|<img\s|<svg|<object|<embed|<\s*script|'\s*--|;\s*drop\s|;\s*delete\s|;\s*update\s|;\s*insert\s|union\s+select|or\s+1\s*=\s*1|or\s+'1'\s*=\s*'1'|\bexec\s*\(|\bxp_cmdshell\b)/i;
 
                 if (dangerousRegex.test(intentValue)) {
-                    intentField.setCustomValidity('Adoption intent contains invalid or dangerous characters.');
-                    intentField.reportValidity();
-                    intentField.setCustomValidity('');
+                    // intentField.setCustomValidity('Adoption intent contains invalid or dangerous characters.');
+                    // intentField.reportValidity();
+                    // intentField.setCustomValidity('');
+                    showModal(
+                        'Invalid Input',
+                        'Adoption intent contains invalid or dangerous characters.',
+                        false
+                    );
                     return;
                 }
 
                 // (c) Gibberish check (5+ sunod-sunod na parehong character)
                 if (/(.)\1{4,}/.test(intentValue)) {
-                    intentField.setCustomValidity('Adoption intent looks like gibberish. Please write a proper reason.');
-                    intentField.reportValidity();
-                    intentField.setCustomValidity('');
+                    // intentField.setCustomValidity('Adoption intent looks like gibberish. Please write a proper reason.');
+                    // intentField.reportValidity();
+                    // intentField.setCustomValidity('');
+                    showModal(
+                        'Invalid Input',
+                        'Adoption intent looks like gibberish. Please write a proper reason.',
+                        false
+                    );
                     return;
                 }
             }
