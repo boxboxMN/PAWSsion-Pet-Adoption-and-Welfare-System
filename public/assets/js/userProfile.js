@@ -373,6 +373,54 @@ function exitEditMode() {
     setAvatarEditMode(false);
 }
 
+function showProfileModal(message, type = "success") {
+    const existingModal = document.getElementById("profileMessageModal");
+    if (existingModal) existingModal.remove();
+
+    const icon = type === "success"
+        ? "fa-circle-check"
+        : "fa-circle-exclamation";
+
+    const iconColor = type === "success"
+        ? "text-green-500"
+        : "text-red-500";
+
+    const buttonColor = type === "success"
+        ? "bg-blue-900 hover:bg-blue-800"
+        : "bg-red-600 hover:bg-red-500";
+
+    const modal = document.createElement("div");
+    modal.id = "profileMessageModal";
+    modal.className = "fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 px-4";
+
+    modal.innerHTML = `
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 text-center">
+            <i class="fas ${icon} ${iconColor} text-4xl mb-4"></i>
+
+            <h2 class="text-lg font-bold text-slate-800 mb-2">
+                ${type === "success" ? "Success!" : "Something went wrong"}
+            </h2>
+
+            <p class="text-sm text-slate-600 mb-6">
+                ${message}
+            </p>
+
+            <button
+                type="button"
+                id="profileModalClose"
+                class="${buttonColor} text-white px-6 py-2 rounded-lg font-medium transition">
+                OK
+            </button>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    document.getElementById("profileModalClose").addEventListener("click", () => {
+        modal.remove();
+    });
+}
+
 async function saveProfile() {
     let firstName = '';
     let lastName = '';
@@ -380,94 +428,94 @@ async function saveProfile() {
     const firstNameInputEl = document.getElementById('input-first-name');
     const lastNameInputEl = document.getElementById('input-last-name');
 
-if (firstNameInputEl && lastNameInputEl) {
-firstName = firstNameInputEl.value.trim();
-lastName = lastNameInputEl.value.trim();
-} else if (fullNameInputEl) {
-const nameParts = fullNameInputEl.value.trim().split(" ");
-firstName = nameParts[0] || "";
-lastName = nameParts.slice(1).join(" ") || "";
-}
+    if (firstNameInputEl && lastNameInputEl) {
+    firstName = firstNameInputEl.value.trim();
+    lastName = lastNameInputEl.value.trim();
+    } else if (fullNameInputEl) {
+    const nameParts = fullNameInputEl.value.trim().split(" ");
+    firstName = nameParts[0] || "";
+    lastName = nameParts.slice(1).join(" ") || "";
+    }
 
-const email = sanitizeEmail(inputEmail.value);
-const mobile = sanitizeMobile(inputMobile.value);
-const birthday = inputBirthday.value.trim();
-const civilStatus = inputCivilStatus.value.trim();
-const occupation = inputOccupation.value.trim();
-const streetAddress = inputStreet.value.trim();
+    const email = sanitizeEmail(inputEmail.value);
+    const mobile = sanitizeMobile(inputMobile.value);
+    const birthday = inputBirthday.value.trim();
+    const civilStatus = inputCivilStatus.value.trim();
+    const occupation = inputOccupation.value.trim();
+    const streetAddress = inputStreet.value.trim();
 
-const region = regionInput.value.trim();
-const province = provinceInput.value.trim();
-const city = cityInput.value.trim();
-const barangay = barangayInput.value.trim();
-const zipCode = zipInput.value.trim().replace(/\D/g, '');
+    const region = regionInput.value.trim();
+    const province = provinceInput.value.trim();
+    const city = cityInput.value.trim();
+    const barangay = barangayInput.value.trim();
+    const zipCode = zipInput.value.trim().replace(/\D/g, '');
 
-// 2. Client-side Validations
-if (!firstName || !lastName) {
-alert('Please provide your complete First and Last Name.');
-return;
-}
+    // 2. Client-side Validations
+    if (!firstName || !lastName) {
+    alert('Please provide your complete First and Last Name.');
+    return;
+    }
 
-if (!email) {
-alert('Email cannot be empty.');
-return;
-}
+    if (!email) {
+    alert('Email cannot be empty.');
+    return;
+    }
 
-if (!validateEmail(email)) {
-alert('Please enter a valid email address.');
-inputEmail.focus();
-return;
-}
+    if (!validateEmail(email)) {
+    alert('Please enter a valid email address.');
+    inputEmail.focus();
+    return;
+    }
 
-if (!mobile || !validatePhilippineMobile(mobile)) {
-alert('Please enter a valid Philippine mobile number.');
-return;
-}
+    if (!mobile || !validatePhilippineMobile(mobile)) {
+    alert('Please enter a valid Philippine mobile number.');
+    return;
+    }
 
-if (!birthday) {
-alert('Please enter your birthday.');
-return;
-}
+    if (!birthday) {
+    alert('Please enter your birthday.');
+    return;
+    }
 
-// 18+ Age Validation
-const birthDate = new Date(birthday);
-const today = new Date();
-let age = today.getFullYear() - birthDate.getFullYear();
-const monthDiff = today.getMonth() - birthDate.getMonth();
-if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-age--;
-}
-if (age < 18) {
-alert('You must be at least 18 years old.');
-return;
-}
+    // 18+ Age Validation
+    const birthDate = new Date(birthday);
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+    age--;
+    }
+    if (age < 18) {
+    alert('You must be at least 18 years old.');
+    return;
+    }
 
-if (!streetAddress || !region || !province || !city || !barangay) {
-alert('Please complete all address dropdowns and street address.');
-return;
-}
+    if (!streetAddress || !region || !province || !city || !barangay) {
+    alert('Please complete all address dropdowns and street address.');
+    return;
+    }
 
-if (!/^\d{4}$/.test(zipCode)) {
-alert('Please enter a valid 4-digit Philippine ZIP code.');
-return;
-}
+    if (!/^\d{4}$/.test(zipCode)) {
+    alert('Please enter a valid 4-digit Philippine ZIP code.');
+    return;
+    }
 
-// 3. Payload Construction
-const updatedData = {
-firstName,
-lastName,
-email,
-mobile,
-birthday,
-civilStatus,
-occupation,
-streetAddress,
-region,
-province,
-city,
-barangay,
-zipCode
-};
+    // 3. Payload Construction
+    const updatedData = {
+    firstName,
+    lastName,
+    email,
+    mobile,
+    birthday,
+    civilStatus,
+    occupation,
+    streetAddress,
+    region,
+    province,
+    city,
+    barangay,
+    zipCode
+    };
 
     try {
         const response = await fetch('/api/user/profile/update', {
@@ -479,15 +527,20 @@ zipCode
         const result = await response.json();
 
         if (result.success) {
-            alert('Profile Updated Successfully!');
+            showProfileModal('Your profile has been updated successfully!');
             await fetchProfileData();
             exitEditMode();
             
-            if(typeof loadComponent === "function") {
-                loadComponent("header", "/user/userHeader.html");
-            }
+            // if(typeof loadComponent === "function") {
+            //     loadComponent("header", "/user/userHeader.html");
+            // }
+            await refreshTopbarAvatar();
+
         } else {
-            alert('Failed to update profile: ' + result.error);
+            showProfileModal(
+                'Failed to update profile: ' + result.error,
+                'error'
+            );
         }
     } catch (error) {
         console.error("Network update error:", error);
@@ -601,12 +654,12 @@ avatarInput?.addEventListener('change', async function() {
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
-        alert('Please select an image file.');
+        showProfileModal('Please select an image file.', 'error');
         return;
     }
 
     if (file.size > 2 * 1024 * 1024) {
-        alert('File size is too large. Maximum limit is 2MB.');
+        showProfileModal('File size is too large. Maximum limit is 2MB.', 'error');
         return;
     }
 
@@ -627,14 +680,14 @@ avatarInput?.addEventListener('change', async function() {
         const result = await response.json();
 
         if (result.success) {
-            alert('Profile picture uploaded successfully!');
+            showProfileModal('Your profile picture has been uploaded successfully!');
             avatarDisplay.innerHTML = `<img src="${result.avatarUrl}" alt="Profile Picture" class="w-full h-full object-cover rounded-full">`;
             
-            if (typeof loadComponent === "function") {
-                loadComponent("header", "/user/userHeader.html");
-            }
+            // if (typeof loadComponent === "function") {
+            //     loadComponent("header", "/user/userHeader.html");
+            // }
         } else {
-            alert('Failed to upload: ' + result.error);
+            showProfileModal('Failed to upload: ' + result.error, 'error');
         }
     } catch (error) {
         console.error("Avatar upload error detailed:", error);
@@ -656,6 +709,32 @@ document.querySelectorAll('#password-form input').forEach(input => {
         }
     });
 });
+
+async function refreshTopbarAvatar() {
+    try {
+        const userRes = await fetch("/api/current-user");
+        const userData = await userRes.json();
+
+        const avatarContainer = document.getElementById("topbarAvatarContainer");
+
+        if (!avatarContainer) return;
+
+        if (userData.profile_picture) {
+            avatarContainer.innerHTML = `
+                <img src="${userData.profile_picture}" 
+                     alt="Profile" 
+                     class="w-full h-full object-cover rounded-full">
+            `;
+        } else {
+            avatarContainer.innerHTML = `
+                <i class="fas fa-user-circle text-2xl text-gray-500"></i>
+            `;
+        }
+
+    } catch (error) {
+        console.error("Error refreshing topbar avatar:", error);
+    }
+}
 
 // Initialization gamit ang loadSidebar, loadTopbar, at fetchProfileData katulad ng Adoption Hub
 document.addEventListener("DOMContentLoaded", async () => {

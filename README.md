@@ -749,3 +749,6 @@ For the contact messages in landing page
 - Sub Resource Integrity Attribute Missing -Myn
 - CSP:Wildcard Directive - Irene
 - CSP: Failure to Define Directive with No Fallback -Myn
+
+# new installed npm 
+npm install file-type

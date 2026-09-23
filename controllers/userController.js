@@ -5,6 +5,11 @@ const validator = require('validator');
 const AdoptionModel = require('../models/userModel');
 const { logActivity } = require("./adminController");
 const { createNotification, notifyAllAdmins } = require("./adminController");
+
+const regions = require("../public/data/regions.json");
+const provinces = require("../public/data/provinces.json");
+const cities = require("../public/data/cities.json");
+const barangays = require("../public/data/barangays.json");
 // =====================================================
 // SEUSR-03: ADOPTION APPLICATION VALIDATION HELPERS
 // =====================================================
@@ -151,10 +156,74 @@ exports.updateProfile = async (req, res) => {
     const zipCode = (req.body.zipCode || '')
         .toString()
         .trim()
-        .replace(/\D/g, '');
 
      if (!firstName || !lastName || !email) {
         return res.status(400).json({ error: "First name, Last name, and Email are required." });
+    }
+
+    const zipRegex = /^\d{4}$/;
+
+    if (zipCode && !zipRegex.test(zipCode)) {
+        return res.status(400).json({
+            success: false,
+            error: "Please enter a valid 4-digit ZIP code."
+        });
+    }
+
+    // ADDRESS HIERARCHY VALIDATION
+    function normalizeAddress(value) {
+        return String(value || '').trim().toLowerCase();
+    }
+
+    const selectedRegion = regions.find(
+        r => normalizeAddress(r.region_name) === normalizeAddress(region)
+    );
+
+    if (!selectedRegion) {
+        return res.status(400).json({
+            success: false,
+            error: "Please select a valid region."
+        });
+    }
+
+    const selectedProvince = provinces.find(
+        p =>
+            normalizeAddress(p.province_name) === normalizeAddress(province) &&
+            p.region_code === selectedRegion.region_code
+    );
+
+    if (!selectedProvince) {
+        return res.status(400).json({
+            success: false,
+            error: "Please select a valid province for the selected region."
+        });
+    }
+
+    const selectedCity = cities.find(
+        c =>
+            normalizeAddress(c.city_name) === normalizeAddress(city) &&
+            c.province_code === selectedProvince.province_code
+    );
+
+    if (!selectedCity) {
+        return res.status(400).json({
+            success: false,
+            error: "Please select a valid city or municipality for the selected province."
+        });
+    }
+
+    const selectedBarangay = barangays.find(
+        b =>
+            normalizeAddress(b.brgy_name) === normalizeAddress(barangay) &&
+            b.city_code === selectedCity.city_code &&
+            b.province_code === selectedProvince.province_code
+    );
+
+    if (!selectedBarangay) {
+        return res.status(400).json({
+            success: false,
+            error: "Please select a valid barangay for the selected city or municipality."
+        });
     }
 
     // ==========================================

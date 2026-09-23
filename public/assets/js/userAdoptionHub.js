@@ -2,6 +2,21 @@
 let petsData = [];
 let filteredPets = [];
 
+// =====================================================
+// SECURITY: HTML ESCAPING
+// Prevents user/database data from being interpreted as HTML
+// =====================================================
+function escapeHTML(value) {
+    if (value === null || value === undefined) return '';
+
+    return String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
 async function loadPets() {
     try {
 
@@ -100,8 +115,8 @@ grid.innerHTML = pets.map(pet => `
     <!-- Image -->
     <div class="relative overflow-hidden bg-slate-100">
         <img
-            src="${pet.img}"
-            alt="${pet.name}"
+           src="${escapeHTML(pet.img)}"
+           alt="${escapeHTML(pet.name)}"
             class="w-full h-60 object-cover transition-transform duration-500 group-hover:scale-105"
         >
 
@@ -119,14 +134,14 @@ grid.innerHTML = pets.map(pet => `
 
         <!-- Status -->
         <span class="absolute top-3 right-3 px-3 py-1 rounded-xl bg-green-600 text-white text-xs font-bold shadow-md">
-            ${pet.status.toUpperCase()}
+            ${escapeHTML(pet.status).toUpperCase()}
         </span>
 
         <!-- Name Banner -->
         <div class="absolute bottom-3 left-4 right-4">
             <div class="inline-flex items-center px-3.5 py-1.5 rounded-xl bg-white/80 backdrop-blur-md border border-white/60 shadow-md">
                 <h2 class="text-xl font-extrabold text-slate-900 tracking-tight">
-                    ${pet.name}
+                    ${escapeHTML(pet.name)}
                 </h2>
             </div>
         </div>
@@ -139,12 +154,12 @@ grid.innerHTML = pets.map(pet => `
         <div class="flex items-center gap-2 overflow-x-auto whitespace-nowrap no-scrollbar">
             <span class="inline-flex shrink-0 items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 text-xs font-semibold border border-slate-200/60">
                 <i class="fa-solid fa-paw text-slate-400 text-[10px]"></i>
-                ${pet.species}
+                    ${escapeHTML(pet.species)}
             </span>
 
             <span class="inline-flex shrink-0 items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 text-xs font-semibold border border-slate-200/60">
                 <i class="fa-regular fa-calendar-days text-slate-400 text-[10px]"></i>
-                ${pet.age}
+                    ${escapeHTML(pet.age)}
             </span>
 
             <span class="inline-flex shrink-0 items-center gap-1 px-2.5 py-1 rounded-lg border border-slate-200/60 bg-slate-100 text-xs font-semibold ${
@@ -157,7 +172,7 @@ grid.innerHTML = pets.map(pet => `
                         ? "fa-mars"
                         : "fa-venus"
                 } text-[10px]"></i>
-                ${pet.gender}
+                ${escapeHTML(pet.gender)}
             </span>
         </div>
 
@@ -168,7 +183,7 @@ grid.innerHTML = pets.map(pet => `
                 Organization
             </p>
             <p class="text-sm font-semibold text-slate-800 break-words">
-                ${pet.organization}
+                ${escapeHTML(pet.organization)}
             </p>
         </div>
 
@@ -552,13 +567,13 @@ function renderMedicalHistory(history) {
         tbody.innerHTML += `
             <tr class="border-t hover:bg-gray-50">
                 <td class="p-3">
-                    ${record.treatment}
+                    ${escapeHTML(record.treatment)}
                 </td>
                 <td class="p-3">
                     ${date}
                 </td>
                 <td class="p-3">
-                    ${record.administered_by}
+                    ${escapeHTML(record.administered_by)}
                 </td>
             </tr>
         `;
@@ -1184,7 +1199,33 @@ document.addEventListener("DOMContentLoaded", async () => {
         return fullAddr;
     }
 
-        const adoptionForm = document.getElementById('adoptionForm');
+    // =====================================================
+    // SECURITY: INPUT SANITIZATION & HTML ESCAPING
+    // =====================================================
+
+    // Cleans user input without changing normal readable text
+    function sanitizeInput(value) {
+        if (typeof value !== 'string') return '';
+
+        return value
+            .normalize('NFKC')
+            .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, '')
+            .trim();
+    }
+
+    // Escapes user-controlled text before inserting it into HTML
+    function escapeHTML(value) {
+        if (value === null || value === undefined) return '';
+
+        return String(value)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
+    const adoptionForm = document.getElementById('adoptionForm');
     if (adoptionForm) {
         adoptionForm.addEventListener('submit', async function (e) {
             e.preventDefault();
@@ -1205,7 +1246,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             // =====================================================
             const intentField = document.getElementById('app-intent');
             if (intentField) {
-                const intentValue = intentField.value.trim();
+                const intentValue = sanitizeInput(intentField.value);
 
                 // (a) Minimum 20 characters
                 if (intentValue.length < 20) {
@@ -1219,17 +1260,27 @@ document.addEventListener("DOMContentLoaded", async () => {
                 const dangerousRegex = /(<script|<\/script|javascript:|onerror\s*=|onload\s*=|onclick\s*=|onmouseover\s*=|onfocus\s*=|onblur\s*=|oninput\s*=|onchange\s*=|onkeydown\s*=|onkeyup\s*=|onkeypress\s*=|<iframe|<img\s|<svg|<object|<embed|<\s*script|'\s*--|;\s*drop\s|;\s*delete\s|;\s*update\s|;\s*insert\s|union\s+select|or\s+1\s*=\s*1|or\s+'1'\s*=\s*'1'|\bexec\s*\(|\bxp_cmdshell\b)/i;
 
                 if (dangerousRegex.test(intentValue)) {
-                    intentField.setCustomValidity('Adoption intent contains invalid or dangerous characters.');
-                    intentField.reportValidity();
-                    intentField.setCustomValidity('');
+                    // intentField.setCustomValidity('Adoption intent contains invalid or dangerous characters.');
+                    // intentField.reportValidity();
+                    // intentField.setCustomValidity('');
+                    showModal(
+                        'Invalid Input',
+                        'Adoption intent contains invalid or dangerous characters.',
+                        false
+                    );
                     return;
                 }
 
                 // (c) Gibberish check (5+ sunod-sunod na parehong character)
                 if (/(.)\1{4,}/.test(intentValue)) {
-                    intentField.setCustomValidity('Adoption intent looks like gibberish. Please write a proper reason.');
-                    intentField.reportValidity();
-                    intentField.setCustomValidity('');
+                    // intentField.setCustomValidity('Adoption intent looks like gibberish. Please write a proper reason.');
+                    // intentField.reportValidity();
+                    // intentField.setCustomValidity('');
+                    showModal(
+                        'Invalid Input',
+                        'Adoption intent looks like gibberish. Please write a proper reason.',
+                        false
+                    );
                     return;
                 }
             }
