@@ -1248,74 +1248,41 @@ exports.checkAccountStatus = async (req, res, next) => {
         console.error("Check Account Status Error:", err);
         next(); // fail open rather than locking everyone out on a DB hiccup
     }
-};
-/**
- * GET /api/session-status
- * Lightweight check: is the current session's account still active?
- * 
- * Also enforces Single Active Session (SAS):
- * - If the account's `current_session_id` doesn't match this request's
- *   session ID, it means another device has logged in and this session
- *   is now invalid → force logout.
- */
-exports.getSessionStatus = async (req, res) => {
+};exports.getSessionStatus = async (req, res) => {
     const accountId = req.session?.accountId;
 
-    // 1. Walang session → expired
     if (!accountId) {
-        return res.json({
-            active: false,
-            status: "session_expired"
-        });
+        return res.json({ active: false, status: "session_expired" });
     }
 
     try {
-        // 2. Kunin ang status at current_session_id
         const [[account]] = await pool.query(
             `SELECT status, current_session_id FROM accounts WHERE account_id = ?`,
             [accountId]
         );
 
-        // 3. Wala na sa DB → expired
         if (!account) {
-            return res.json({
-                active: false,
-                status: "session_expired"
-            });
+            return res.json({ active: false, status: "session_expired" });
         }
 
-        // ==========================================
-        // 4. ⭐ SAS CHECK — Single Active Session
-        // ==========================================
-        // Kung may naka-store na session ID sa DB,
-        // at HINDI tugma sa session ID ng request na ito,
-        // ibig sabihin, may bagong login sa ibang device.
-        if (
-            account.current_session_id &&
-            account.current_session_id !== req.sessionID
-        ) {
-            console.log(`[SAS] getSessionStatus: session mismatch`);
-            console.log(`      DB has: ${account.current_session_id}`);
-            console.log(`      Req has: ${req.sessionID}`);
-
+        // SAS check
+        if (account.current_session_id && account.current_session_id !== req.sessionID) {
             return res.json({
                 active: false,
                 status: "logged_in_elsewhere"
             });
         }
 
-        // 5. Check kung banned/suspended/disabled
         const blockedStatuses = ["suspended", "banned", "disabled"];
         const blocked = blockedStatuses.includes(account.status);
 
         return res.json({
             active: !blocked,
-            status: account.status
+            status: account.status,
+            accountId: accountId          // ⭐ IDINAGDAG
         });
-
     } catch (err) {
         console.error("Get Session Status Error:", err);
-        // Fail open — huwag i-block ang user kung may DB error
         return res.json({ active: true });
     }
 };
