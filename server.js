@@ -115,7 +115,14 @@ app.get("/auth/csrf-token", (req, res) => {
         token: generateToken(req)
     });
 });
+// ==========================================
+// AUTHENTICATED USER REDIRECT
+// ==========================================
+const redirectAuthenticated = require("./middleware/redirectAuthenticated");
 
+app.get("/", redirectAuthenticated, (req, res) => {
+    res.sendFile(path.join(__dirname, "public", "index.html"));
+});
 // ==========================================
 // STATIC FILES — serve FIRST (hindi kailangan ng session check)
 // ==========================================
@@ -128,6 +135,7 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use(checkAccountStatus);
 const singleSession = require("./middleware/singleSession");
 app.use(singleSession);
+
 const userRoutes = require("./routes/userRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 const orgRoutes = require("./routes/orgRoutes");

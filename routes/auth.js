@@ -7,6 +7,8 @@ const crypto = require("crypto");
 const fs = require("fs");
 const fileType = require('file-type');
 const authController = require("../controllers/AuthController");
+const pool = require("../config/database");
+const redirectAuthenticated = require("../middleware/redirectAuthenticated");
 
 const {
     csrfSynchronisedProtection,
@@ -80,30 +82,141 @@ async function validateUploadedFile(file) {
 
     return allowedMimeTypes.includes(detectedType.mime);
 }
+const redirectAuthenticatedUser = async (req, res, next) => {
+    try {
+        // No active session
+        if (!req.session?.accountId) {
+            return next();
+        }
 
+        const [rows] = await pool.query(
+            `SELECT account_id, role, status
+             FROM accounts
+             WHERE account_id = ?
+             LIMIT 1`,
+            [req.session.accountId]
+        );
+
+        // Session exists but account no longer exists
+        if (!rows.length) {
+            return req.session.destroy(() => {
+                res.clearCookie("connect.sid", { path: "/" });
+                return res.redirect("/auth/login");
+            });
+        }
+
+        const account = rows[0];
+
+        // Keep session role updated
+        req.session.role = account.role;
+
+        // Handle inactive accounts
+        if (["disabled", "suspended", "banned", "rejected"].includes(account.status)) {
+            return req.session.destroy(() => {
+                res.clearCookie("connect.sid", { path: "/" });
+                return res.redirect("/auth/login");
+            });
+        }
+
+        // Pending organization
+        if (account.role === "organization" && account.status === "pending") {
+            return res.redirect("/org/pending");
+        }
+
+        // Redirect according to authenticated role
+        if (account.role === "admin") {
+            return res.redirect("/admin/dashboard");
+        }
+
+        if (account.role === "organization") {
+            return res.redirect("/org/dashboard");
+        }
+
+        if (account.role === "adopter") {
+            return res.redirect("/dashboard");
+        }
+
+        return next();
+
+    } catch (error) {
+        console.error("Authenticated session check error:", error);
+        return next();
+    }
+};
 // ==========================================
 // LOGIN PAGE
 // ==========================================
 
-router.get("/login", (req, res) => {
+router.get("/login", redirectAuthenticated, async (req, res) => {
+
+    // ==========================================
+    // CHECK EXISTING AUTHENTICATED SESSION
+    // ==========================================
+    if (req.session && req.session.user) {
+
+        console.log(
+            "Existing authenticated session found:",
+            req.session.user.email
+        );
+
+        // Use the dashboard stored in the session
+        const dashboard = req.session.user.dashboard;
+
+        if (dashboard) {
+            return res.redirect(dashboard);
+        }
+
+        // Fallback if dashboard is not stored
+        switch (req.session.user.role) {
+
+            case "admin":
+                return res.redirect("/admin/dashboard");
+
+            case "officer":
+                return res.redirect("/org/dashboard");
+
+            case "organization":
+                return res.redirect("/org/dashboard");
+
+            case "adopter":
+            case "donor":
+                return res.redirect("/dashboard");
+
+            default:
+                console.warn(
+                    "Authenticated session has unknown role:",
+                    req.session.user.role
+                );
+
+                return res.redirect("/");
+        }
+    }
+
+    // ==========================================
+    // NO ACTIVE SESSION → SHOW LOGIN PAGE
+    // ==========================================
+
     const loginPath = path.join(
         __dirname,
         "../public/auth/login.html"
     );
 
     fs.readFile(loginPath, "utf8", (err, html) => {
+
         if (err) {
             console.error("Error loading login page:", err);
+
             return res
                 .status(500)
                 .send("Unable to load login page.");
         }
 
         const csrfToken = generateToken(req);
-            const htmlWithCsrf = html.replace(
-    /<input\s+type="hidden"\s+name="csrfToken"\s+value="">/i,
-    `<input type="hidden" name="csrfToken" value="${csrfToken}">`
-);
+
+        const htmlWithCsrf = html.replace(
+            /<input\s+type="hidden"\s+name="csrfToken"\s+value="">/i,
+            `<input type="hidden" name="csrfToken" value="${csrfToken}">`
+        );
 
         res.send(htmlWithCsrf);
     });
