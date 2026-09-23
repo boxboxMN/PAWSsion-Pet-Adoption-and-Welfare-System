@@ -170,16 +170,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     const reason = params.get('reason');
     if (reason) {
         const reasonMessages = {
-            suspended:
-                'Your account was suspended while you were logged in. Please contact support for details.',
-            banned:
-                'Your account was permanently banned while you were logged in.',
-            disabled:
-                'Your account was deactivated while you were logged in.',
-             session_expired:
-                'Your session has expired. Please log in again.',
-    
-    logged_in_elsewhere: 'Your account was signed in on another device. You have been logged out here.'
+    suspended: 'Your account was suspended while you were logged in. Please contact support for details.',
+    banned: 'Your account was permanently banned while you were logged in.',
+    disabled: 'Your account was deactivated while you were logged in.',
+    session_expired: 'Your session has expired. Please log in again.',
+    logged_in_elsewhere: 'Your account was signed in on another device. You have been logged out here.',
+    account_switched: 'A different account was signed in on this browser. This tab has been logged out.'
 };
     }
 
