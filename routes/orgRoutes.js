@@ -37,18 +37,25 @@ const {
 
 const router = express.Router();
 
-// 2. MIDDLEWARE FOR APPROVAL
 async function checkOrganizationApproval(req, res, next) {
     if (!req.session.accountId) {
         return res.redirect("/auth/login");
     }
+
     try {
         const [rows] = await pool.query(
-            `SELECT status, role FROM accounts WHERE account_id=?`,
+            `SELECT status, role FROM accounts WHERE account_id = ?`,
             [req.session.accountId]
         );
 
         if (!rows.length || rows[0].role !== "organization") {
+            // ✅ Redirect sa tamang dashboard base sa role
+            if (req.session.role === "adopter") {
+                return res.redirect("/dashboard");
+            }
+            if (req.session.role === "admin") {
+                return res.redirect("/admin/dashboard");
+            }
             return res.redirect("/auth/login");
         }
 

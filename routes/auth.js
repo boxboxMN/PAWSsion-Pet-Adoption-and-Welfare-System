@@ -13,7 +13,6 @@ const {
     csrfSynchronisedProtection,
     generateToken
 } = require("../middleware/csrf");
-
 console.log("AUTH ROUTES CHECK:");
 console.log("forgotPassword:", typeof authController.forgotPassword);
 console.log("resetPassword:", typeof authController.resetPassword);

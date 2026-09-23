@@ -177,13 +177,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             disabled:
                 'Your account was deactivated while you were logged in.',
              session_expired:
-                'Your session has expired. Please log in again.'
-        };
-
-        showError(
-            reasonMessages[reason] ||
-            'Your session has ended. Please log in again.'
-        );
+                'Your session has expired. Please log in again.',
+    
+    logged_in_elsewhere: 'Your account was signed in on another device. You have been logged out here.'
+};
     }
 
     // ==========================================

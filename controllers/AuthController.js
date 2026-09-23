@@ -123,7 +123,6 @@ exports.register = async (req, res) => {
     return res.status(500).send('Unable to create account right now.');
   }
 };
-
 exports.login = async (req, res) => {
   try {
     const email = (req.body.email || '').trim().toLowerCase();
@@ -133,7 +132,7 @@ exports.login = async (req, res) => {
       return res.status(400).send('Email and password are required.');
     }
 
-    // Check for suspicious patterns in email and password to detect potential SQL injection attempts
+    // Detect suspicious patterns (SQL injection attempts)
     const suspiciousPattern = /('|--|;|\bor\b\s+\d+\s*=\s*\d+|\bunion\b\s+\bselect\b)/i;
     if (suspiciousPattern.test(email) || suspiciousPattern.test(password)) {
       await logActivity(null, "suspicious_login_input", "auth", null, `Email: ${email}`);
@@ -161,108 +160,153 @@ exports.login = async (req, res) => {
       return res.status(429).send(`Too many failed login attempts. Please try again in ${remainingTime} minute(s).`);
     }
 
-    if (account.role === "organization" && account.status === "pending") {
-        req.session.accountId = account.account_id;
-        req.session.role = account.role;
-
-        const [orgRows] = await pool.query(
-            `SELECT organization_name FROM organizations WHERE account_id = ? LIMIT 1`,
-            [account.account_id]
-        );
-
-        req.session.displayName = orgRows.length > 0
-            ? orgRows[0].organization_name
-            : account.email;
-        
-        await logActivity(account.account_id, "login_pending_org", "auth", account.account_id, "Org pending verification");
-        
-        return res.redirect("/org/pending");
-    }
-
-
+    // ==========================================
+    // BLOCKED STATUS CHECKS (before anything else)
+    // ==========================================
     if (account.status === "disabled") {
-        await logActivity(account.account_id, "login_blocked", "auth", account.account_id, "Account disabled");
-        return res.status(403).send("This account has been disabled.");
+      await logActivity(account.account_id, "login_blocked", "auth", account.account_id, "Account disabled");
+      return res.status(403).send("This account has been disabled.");
     }
-
     if (account.status === "suspended") {
-        await logActivity(account.account_id, "login_blocked", "auth", account.account_id, "Account suspended");
-        return res.status(403).send("This account has been suspended.");
+      await logActivity(account.account_id, "login_blocked", "auth", account.account_id, "Account suspended");
+      return res.status(403).send("This account has been suspended.");
     }
-
     if (account.status === "banned") {
-        await logActivity(account.account_id, "login_blocked", "auth", account.account_id, "Account banned");
-        return res.status(403).send("This account has been permanently banned.");
+      await logActivity(account.account_id, "login_blocked", "auth", account.account_id, "Account banned");
+      return res.status(403).send("This account has been permanently banned.");
     }
-
     if (account.status === "rejected") {
-        await logActivity(account.account_id, "login_blocked", "auth", account.account_id, "Account rejected");
-        return res.status(403).send("Your account has been rejected.");
+      await logActivity(account.account_id, "login_blocked", "auth", account.account_id, "Account rejected");
+      return res.status(403).send("Your account has been rejected.");
     }
 
-    // Password check
-    const isValidPassword = await bcrypt.compare(password, account.password_hash);
-        if (!isValidPassword) {
-            loginRecord.attempts -= 1;
-
-            if (loginRecord.attempts <= 0) {
-                loginRecord.lockedUntil = Date.now() + 15 * 60 * 1000;
-                loginRecord.attempts = 5;
-                loginAttempts.set(account.account_id, loginRecord);
-
-                await logActivity(account.account_id, "login_locked", "auth", account.account_id, "Locked after 5 failed attempts");
-
-                return res.status(429).send("Too many failed login attempts. Your account is temporarily locked for 15 minutes.");
-            }
-
-            loginAttempts.set(account.account_id, loginRecord);
-
-            await logActivity(account.account_id, "login_failed", "auth", account.account_id, `Wrong password, attempts remaining: ${loginRecord.attempts}`);
-            return res.status(401).send(genericAuthError);
-        }
-
-          // Reset on successful password match
-          loginAttempts.delete(account.account_id);
-
-    // ✅ Update last login
-    await pool.query(
-        `
-        UPDATE accounts
-        SET last_login = NOW()
-        WHERE account_id = ?
-        `,
+    // ==========================================
+    // PENDING ORGANIZATION (special flow)
+    // ==========================================
+    if (account.role === "organization" && account.status === "pending") {
+      // 1. Update last_login
+      await pool.query(
+        `UPDATE accounts SET last_login = NOW() WHERE account_id = ?`,
         [account.account_id]
+      );
+
+      // 2. Regenerate session
+      await new Promise((resolve, reject) => {
+        req.session.regenerate((err) => {
+          if (err) return reject(err);
+          resolve();
+        });
+      });
+
+      // 3. Set session data
+      req.session.accountId = account.account_id;
+      req.session.role = account.role;
+
+      // 4. SAVE session ID to DB (SAS)
+      await pool.query(
+        `UPDATE accounts SET current_session_id = ? WHERE account_id = ?`,
+        [req.sessionID, account.account_id]
+      );
+
+      const [orgRows] = await pool.query(
+        `SELECT organization_name FROM organizations WHERE account_id = ? LIMIT 1`,
+        [account.account_id]
+      );
+
+      req.session.displayName = orgRows.length > 0
+        ? orgRows[0].organization_name
+        : account.email;
+
+      await logActivity(account.account_id, "login_pending_org", "auth", account.account_id, "Org pending verification");
+
+      return res.redirect("/org/pending");
+    }
+
+    // ==========================================
+    // PASSWORD CHECK
+    // ==========================================
+    const isValidPassword = await bcrypt.compare(password, account.password_hash);
+
+    if (!isValidPassword) {
+      loginRecord.attempts -= 1;
+
+      if (loginRecord.attempts <= 0) {
+        loginRecord.lockedUntil = Date.now() + 15 * 60 * 1000;
+        loginRecord.attempts = 5;
+        loginAttempts.set(account.account_id, loginRecord);
+
+        await logActivity(account.account_id, "login_locked", "auth", account.account_id, "Locked after 5 failed attempts");
+
+        return res.status(429).send("Too many failed login attempts. Your account is temporarily locked for 15 minutes.");
+      }
+
+      loginAttempts.set(account.account_id, loginRecord);
+
+      await logActivity(account.account_id, "login_failed", "auth", account.account_id, `Wrong password, attempts remaining: ${loginRecord.attempts}`);
+      return res.status(401).send(genericAuthError);
+    }
+
+    // Reset lockout on successful password match
+    loginAttempts.delete(account.account_id);
+
+    // ==========================================
+    // ✅ LOGIN SUCCESS
+    // ==========================================
+
+    // 1. Update last_login
+    await pool.query(
+      `UPDATE accounts SET last_login = NOW() WHERE account_id = ?`,
+      [account.account_id]
     );
 
-    // Create session
+    // 2. ⭐ Regenerate session ID (security best practice)
+    await new Promise((resolve, reject) => {
+      req.session.regenerate((err) => {
+        if (err) return reject(err);
+        resolve();
+      });
+    });
+
+    // 3. Set session data
     req.session.accountId = account.account_id;
     req.session.role = account.role;
 
+    // 4. ⭐ SAVE session ID to DB (Single Active Session)
+    await pool.query(
+      `UPDATE accounts SET current_session_id = ? WHERE account_id = ?`,
+      [req.sessionID, account.account_id]
+    );
+
+    console.log(`[SAS] Login: account ${account.account_id} session ${req.sessionID}`);
+
     await logActivity(account.account_id, "login_success", "auth", account.account_id);
 
+    // 5. Redirect based on role
     if (account.role === "admin") {
-        return res.redirect("/admin/dashboard");
+      return res.redirect("/admin/dashboard");
     }
+
     if (account.role === "adopter") {
-        const [adopterRows] = await pool.query(
-            "SELECT first_name, last_name FROM adopters WHERE account_id = ? LIMIT 1",
-            [account.account_id]
-        );
+      const [adopterRows] = await pool.query(
+        "SELECT first_name, last_name FROM adopters WHERE account_id = ? LIMIT 1",
+        [account.account_id]
+      );
 
-        req.session.displayName = adopterRows.length
-            ? `${adopterRows[0].first_name} ${adopterRows[0].last_name}`.trim()
-            : account.email;
+      req.session.displayName = adopterRows.length
+        ? `${adopterRows[0].first_name} ${adopterRows[0].last_name}`.trim()
+        : account.email;
 
-        return res.redirect("/dashboard");
+      return res.redirect("/dashboard");
     }
-    if (account.role === "organization") {
-        const [orgRows] = await pool.query(
-            "SELECT organization_name FROM organizations WHERE account_id = ? LIMIT 1",
-            [account.account_id]
-        );
 
-        req.session.displayName = orgRows.length ? orgRows[0].organization_name : account.email;
-        return res.redirect("/org/dashboard");
+    if (account.role === "organization") {
+      const [orgRows] = await pool.query(
+        "SELECT organization_name FROM organizations WHERE account_id = ? LIMIT 1",
+        [account.account_id]
+      );
+
+      req.session.displayName = orgRows.length ? orgRows[0].organization_name : account.email;
+      return res.redirect("/org/dashboard");
     }
 
     return res.status(403).send("Unknown account role.");
@@ -272,21 +316,34 @@ exports.login = async (req, res) => {
     return res.status(500).send('Unable to sign in right now.');
   }
 };
-
-exports.logout = (req, res, ) => {
+exports.logout = (req, res) => {
     const accountId = req.session?.accountId;
+    const sessionId = req.sessionID;
 
     req.session.destroy(async (err) => {
         if (err) {
             console.error("Logout error:", err);
-
             return res.status(500).json({
                 success: false,
                 message: "Failed to logout."
             });
         }
 
-        res.clearCookie("connect.sid");
+        // ✅ I-clear ang session ID sa DB — pero siguraduhing ikaw pa ang active
+        if (accountId && sessionId) {
+            try {
+                await pool.query(
+                    `UPDATE accounts 
+                     SET current_session_id = NULL 
+                     WHERE account_id = ? AND current_session_id = ?`,
+                    [accountId, sessionId]
+                );
+            } catch (dbErr) {
+                console.error("[SAS] Failed to clear session ID:", dbErr);
+            }
+        }
+
+        res.clearCookie("connect.sid", { path: "/" });
 
         await logActivity(accountId, "logout", "auth", accountId);
 
@@ -296,7 +353,6 @@ exports.logout = (req, res, ) => {
         });
     });
 };
-
 exports.registerOrganization = async (req, res) => {
     try {
         // Sanitize and validate inputs on the server-side

@@ -93,7 +93,7 @@ app.use((req, res, next) => {
 app.use(session({
   secret: process.env.SESSION_SECRET,
   resave: false,
-  saveUninitialized: true, // ni true ko nung nag test ako sa postman // false sya dati
+  saveUninitialized: false, // ni true ko nung nag test ako sa postman // false sya dati
   cookie: {
     secure: false,       // For local HTTP development
     httpOnly: true,
@@ -116,14 +116,18 @@ app.get("/auth/csrf-token", (req, res) => {
     });
 });
 
-// Blocks any request from a suspended/banned/disabled account.
-// Must run before ANY route handler that relies on req.session.accountId.
-app.use(checkAccountStatus);
-
-// ROUTES
+// ==========================================
+// STATIC FILES — serve FIRST (hindi kailangan ng session check)
+// ==========================================
 app.use(express.static(path.join(__dirname, "public")));
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
+// ==========================================
+// SESSION CHECKS — para lang sa protected routes
+// ==========================================
+app.use(checkAccountStatus);
+const singleSession = require("./middleware/singleSession");
+app.use(singleSession);
 const userRoutes = require("./routes/userRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 const orgRoutes = require("./routes/orgRoutes");
@@ -196,49 +200,49 @@ app.use("/auth", authRoutes);
 app.use(userRoutes);
 app.use("/admin", adminRoutes);
 app.use("/org", orgRoutes);
-
 app.get('/api/current-user', async (req, res) => {
   try {
-    const accountId = req.session?.accountId || req.session?.userId || req.query.accountId || req.query.userId;
-    let displayName = req.session?.displayName || req.session?.userName || 'User';
-    let profilePicture = null;
+    // ⛔ TANGGALIN ang query fallback — session lang ang dapat pagkatiwalaan
+    const accountId = req.session?.accountId;
 
-    if (accountId) {
-      const [rows] = await pool.query(
-        `SELECT a.account_id, a.email, ad.first_name, ad.last_name, ad.profile_picture
-         FROM accounts a
-         LEFT JOIN adopters ad ON ad.account_id = a.account_id
-         WHERE a.account_id = ?
-         LIMIT 1`,
-        [accountId]
-      );
-
-      if (rows[0]) {
-        const firstName = rows[0].first_name || '';
-        const lastName = rows[0].last_name || '';
-        displayName = [firstName, lastName].filter(Boolean).join(' ') || rows[0].email || 'User';
-        profilePicture = rows[0].profile_picture || null;
-        req.session.displayName = displayName;
-      }
-    } else {
-      const [rows] = await pool.query(
-        `SELECT first_name, last_name, profile_picture FROM adopters ORDER BY adopter_id LIMIT 1`
-      );
-
-      if (rows[0]) {
-        const firstName = rows[0].first_name || '';
-        const lastName = rows[0].last_name || '';
-        displayName = [firstName, lastName].filter(Boolean).join(' ') || 'User';
-        profilePicture = rows[0].profile_picture || null;
-        req.session.displayName = displayName;
-      }
+    // ⛔ WALANG SESSION = WALANG DATA
+    if (!accountId) {
+      return res.status(401).json({
+        success: false,
+        name: null,
+        profile_picture: null
+      });
     }
 
-    // IPINATAMA: Isinama ang profile_picture sa JSON response
-    res.json({ name: displayName, profile_picture: profilePicture });
+    const [rows] = await pool.query(
+      `SELECT a.account_id, a.email, ad.first_name, ad.last_name, ad.profile_picture
+       FROM accounts a
+       LEFT JOIN adopters ad ON ad.account_id = a.account_id
+       WHERE a.account_id = ?
+       LIMIT 1`,
+      [accountId]
+    );
+
+    if (!rows[0]) {
+      // Session exists pero wala na sa DB (deleted)
+      req.session.destroy(() => {});
+      return res.status(401).json({ success: false, name: null, profile_picture: null });
+    }
+
+    const firstName = rows[0].first_name || '';
+    const lastName  = rows[0].last_name  || '';
+    const displayName = [firstName, lastName].filter(Boolean).join(' ')
+                        || rows[0].email || 'User';
+
+    req.session.displayName = displayName;
+
+    res.json({
+      name: displayName,
+      profile_picture: rows[0].profile_picture || null
+    });
   } catch (error) {
     console.error('current-user error:', error);
-    res.json({ name: req.session?.displayName || 'User', profile_picture: null });
+    res.status(500).json({ success: false, name: null, profile_picture: null });
   }
 });
 app.get("/api/organization/pending", async (req, res) => {
@@ -835,18 +839,33 @@ app.get('/api/organization/applications', async (req, res) => {
 // Adoption routes
 app.use('/api/userAdoptions', userRoutes);
 
-// =====================================================
-// USER INTERVIEW RESCHEDULE REQUEST ENDPOINT
-// =====================================================
 app.post('/api/user/applications/:id/reschedule-request', async (req, res) => {
     if (!req.session?.accountId) {
         return res.status(401).json({ success: false, message: "Unauthorized access." });
     }
 
     const applicationId = req.params.id;
+    const accountId = req.session.accountId;
     const { preferred_date, preferred_time, reason } = req.body;
 
     try {
+        // ✅ OWNERSHIP CHECK — siguraduhing ang application ay pag-aari ng naka-login na user
+        const [ownerRows] = await pool.query(
+            `SELECT app.application_id
+             FROM user_adoption_applications app
+             INNER JOIN adopters ad ON ad.adopter_id = app.adopter_id
+             WHERE app.application_id = ? AND ad.account_id = ?
+             LIMIT 1`,
+            [applicationId, accountId]
+        );
+
+        if (!ownerRows.length) {
+            return res.status(403).json({
+                success: false,
+                message: "Forbidden: this application does not belong to you."
+            });
+        }
+
         const query = `
             INSERT INTO application_interviews 
                 (application_id, requested_interview_date, requested_interview_time, reschedule_reason, resched_status)

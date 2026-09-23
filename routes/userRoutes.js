@@ -107,12 +107,39 @@ const kamustahanStorage = multer.diskStorage({
 
 const uploadKamustahan = multer({ storage: kamustahanStorage });
 
-// Pinipigilan ang access kapag walang valid session (halimbawa: namatay ang session dahil nag-restart ang server)
 function checkUserSession(req, res, next) {
-  if (!req.session.accountId) {
-      return res.redirect("/auth/login");
-  }
-  next();
+    const isApi = req.originalUrl.startsWith("/api/");
+
+    // 1. Walang session
+    if (!req.session.accountId) {
+        if (isApi) {
+            return res.status(401).json({
+                success: false,
+                message: "Unauthorized. Please log in."
+            });
+        }
+        return res.redirect("/auth/login");
+    }
+
+    // 2. Role check — adopter lang
+    if (req.session.role !== "adopter") {
+        if (isApi) {
+            return res.status(403).json({
+                success: false,
+                message: "Forbidden. This resource is for adopters only."
+            });
+        }
+        // HTML page → redirect sa tamang dashboard
+        if (req.session.role === "organization") {
+            return res.redirect("/org/dashboard");
+        }
+        if (req.session.role === "admin") {
+            return res.redirect("/admin/dashboard");
+        }
+        return res.redirect("/auth/login");
+    }
+
+    next();
 }
 router.get("/api/pets", checkUserSession, userController.getAvailablePets);
 router.get("/api/pets/:id", checkUserSession, userController.getPetById);

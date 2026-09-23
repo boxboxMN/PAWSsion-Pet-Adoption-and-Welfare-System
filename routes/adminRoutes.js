@@ -7,7 +7,6 @@ const { logActivity, createNotification, notifyAllAdmins } = require("../control
 
 const router = express.Router();
 
-// Pinipigilan ang access kapag walang valid session, at siguraduhing 'admin' talaga ang role
 async function checkAdminSession(req, res, next) {
     if (!req.session.accountId) {
         return res.redirect("/auth/login");
@@ -17,7 +16,15 @@ async function checkAdminSession(req, res, next) {
             `SELECT role FROM accounts WHERE account_id = ?`,
             [req.session.accountId]
         );
+
         if (!rows.length || rows[0].role !== "admin") {
+            // ✅ Redirect base sa role
+            if (req.session.role === "adopter") {
+                return res.redirect("/dashboard");
+            }
+            if (req.session.role === "organization") {
+                return res.redirect("/org/dashboard");
+            }
             return res.redirect("/auth/login");
         }
         next();
