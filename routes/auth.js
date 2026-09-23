@@ -5,8 +5,7 @@ const multer = require("multer");
 const path = require("path");
 const crypto = require("crypto");
 const fs = require("fs");
-const { fileTypeFromFile } = require("file-type");
-
+const fileType = require('file-type');
 const authController = require("../controllers/AuthController");
 
 const {
@@ -67,7 +66,7 @@ async function validateUploadedFile(file) {
         return false;
     }
 
-    const detectedType = await fileTypeFromFile(file.path);
+    const detectedType = await fileType.fromFile(file.path);
 
     if (!detectedType) {
         return false;

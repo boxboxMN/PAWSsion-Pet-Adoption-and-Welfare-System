@@ -3013,18 +3013,90 @@ exports.getKamustahanUpdates = async (req, res) => {
 };
 exports.schedulePetUpdate = async (req, res) => {
     try {
+        // ==========================================
+        // VALIDATE INPUT
+        // ==========================================
         const { update_id, scheduled_date } = req.body;
-        
-        await pool.query(
-            `UPDATE kamustahan_updates 
-             SET scheduled_date = ?, status = 'For Update' 
-             WHERE update_id = ?`,
-            [scheduled_date, update_id]
+
+        if (!update_id || !scheduled_date) {
+            return res.status(400).json({
+                success: false,
+                message: "Update ID and scheduled deadline date are required."
+            });
+        }
+
+        // Validate date format (YYYY-MM-DD)
+        const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+        if (!dateRegex.test(String(scheduled_date).trim())) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid date format. Please use YYYY-MM-DD."
+            });
+        }
+
+        const parsedDate = new Date(`${scheduled_date}T00:00:00`);
+        if (isNaN(parsedDate.getTime())) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid scheduled deadline date."
+            });
+        }
+
+        // Bawal ang past date
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        if (parsedDate < today) {
+            return res.status(400).json({
+                success: false,
+                message: "The deadline cannot be a past date."
+            });
+        }
+
+        // ==========================================
+        // VERIFY ORGANIZATION OWNERSHIP
+        // ==========================================
+        const [org] = await pool.query(
+            `SELECT organization_id FROM organizations WHERE account_id = ?`,
+            [req.session.accountId]
         );
 
-        res.json({ success: true, message: "Schedule set successfully!" });
+        if (!org.length) {
+            return res.status(403).json({
+                success: false,
+                message: "Organization not found."
+            });
+        }
+
+        const organizationId = org[0].organization_id;
+
+        // ==========================================
+        // UPDATE (with ownership check)
+        // ==========================================
+        const [result] = await pool.query(
+            `UPDATE kamustahan_updates 
+             SET scheduled_date = ?, status = 'For Update' 
+             WHERE update_id = ? AND organization_id = ?`,
+            [scheduled_date, update_id, organizationId]
+        );
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "Update record not found or does not belong to your organization."
+            });
+        }
+
+        return res.json({
+            success: true,
+            message: `Deadline set to ${scheduled_date}. The adopter may submit anytime on or before this date.`
+        });
+
     } catch (err) {
-        res.status(500).json({ success: false, message: err.message });
+        console.error("Schedule Pet Update Error:", err);
+        return res.status(500).json({
+            success: false,
+            message: err.message
+        });
     }
 };
 exports.archiveKamustahanUpdate = async (req, res) => {
