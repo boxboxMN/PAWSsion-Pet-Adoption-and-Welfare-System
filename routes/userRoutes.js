@@ -164,6 +164,7 @@ function checkUserSession(req, res, next) {
 }
 router.get("/api/pets", checkUserSession, userController.getAvailablePets);
 router.get("/api/pets/:id", checkUserSession, userController.getPetById);
+router.post("/api/matchmaking/repair",checkUserSession,matchmakerController.repairBehavior);
 router.post( "/api/matchmaking", checkUserSession, matchmakerController.matchPets);
 router.get("/dashboard", checkUserSession, (req, res) => {
   res.sendFile(path.join(__dirname, "../public/user/userDashboard.html"));

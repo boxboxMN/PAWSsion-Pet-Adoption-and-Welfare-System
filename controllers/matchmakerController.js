@@ -1,6 +1,72 @@
-const matchmakingService = require("../services/matchmakingService");
+const matchmakingService =
+    require("../services/matchmakingService");
+
+
+// ==========================================================
+// REPAIR BEHAVIOR
+// ==========================================================
+
+exports.repairBehavior = async (req, res) => {
+
+    try {
+
+        const {
+            behavior
+        } = req.body;
+
+
+        if (!behavior || !behavior.trim()) {
+
+            return res.status(400).json({
+
+                success: false,
+
+                message:
+                    "Please provide a pet preference description."
+
+            });
+        }
+
+
+        const result =
+            await matchmakingService.repairBehavior(
+                behavior
+            );
+
+
+        return res.json(result);
+
+
+    } catch (error) {
+
+        console.error(
+            "========== BEHAVIOR REPAIR ERROR =========="
+        );
+
+        console.error(error);
+
+
+        return res.status(
+            error.status || 500
+        ).json({
+
+            success: false,
+
+            message:
+                error.message ||
+                "Unable to process the pet preference."
+
+        });
+    }
+};
+
+
+// ==========================================================
+// MATCH PETS
+// ==========================================================
 
 exports.matchPets = async (req, res) => {
+
     try {
 
         const {
@@ -10,36 +76,63 @@ exports.matchPets = async (req, res) => {
             behavior
         } = req.body;
 
-        // Basic validation
+
         if (!type || !sex || !age || !behavior) {
+
             return res.status(400).json({
+
                 success: false,
-                message: "Please complete all matchmaking fields."
+
+                message:
+                    "Please complete all matchmaking fields."
+
             });
         }
 
-        // Run the matchmaking service
-        const matches = await matchmakingService.matchPets({
-            type,
-            sex,
-            age,
-            behavior
+
+        const result =
+            await matchmakingService.matchPets({
+
+                type,
+                sex,
+                age,
+                behavior
+
+            });
+
+
+        return res.json({
+
+            success: true,
+
+            matches:
+                result.matches,
+
+            repairedBehavior:
+                result.repairedBehavior
+
         });
 
-        res.json({
-            success: true,
-            matches
-        });
 
     } catch (error) {
 
-        console.error("========== MATCHMAKING ERROR ==========");
+        console.error(
+            "========== MATCHMAKING ERROR =========="
+        );
+
         console.error(error);
 
-        res.status(500).json({
-            success: false,
-            message: error.message || "Unable to generate matches."
-        });
 
+        return res.status(
+            error.status || 500
+        ).json({
+
+            success: false,
+
+            message:
+                error.message ||
+                "Unable to generate matches."
+
+        });
     }
 };
