@@ -1,16 +1,13 @@
-
 // ==========================================================
 // MATCH RESULTS
 // ==========================================================
 
 let allMatchResults = [];
-
-// Currently displayed results after filters
 let filteredMatchResults = [];
 
 
 // ==========================================================
-// FILTER HELPER FUNCTIONS
+// FILTER HELPER
 // ==========================================================
 
 function normalizeFilterText(value) {
@@ -36,7 +33,7 @@ function normalizeBehaviorInput(rawInput) {
 
 
 // ==========================================================
-// CHECK FOR EXCESSIVE REPEATED CHARACTERS
+// EXCESSIVE CHARACTER REPETITION
 // ==========================================================
 
 function hasExcessiveCharacterRepetition(text) {
@@ -46,27 +43,17 @@ function hasExcessiveCharacterRepetition(text) {
 
 
 // ==========================================================
-// CHECK FOR EXTREMELY LONG WORDS
+// NO LETTERS
 // ==========================================================
 
-// function hasExtremelyLongWord(text) {
+function hasNoLetters(text) {
 
-//     const words = text.split(/\s+/);
-
-//     return words.some(word => {
-
-//         const cleanWord = word.replace(
-//             /[^\p{L}\p{N}]/gu,
-//             ""
-//         );
-
-//         return cleanWord.length > 40;
-//     });
-// }
+    return !/\p{L}/u.test(text);
+}
 
 
 // ==========================================================
-// CHECK FOR MALFORMED WORD SEPARATORS
+// MALFORMED SEPARATORS
 // ==========================================================
 
 function hasMalformedSeparators(text) {
@@ -79,22 +66,23 @@ function hasMalformedSeparators(text) {
 
 
 // ==========================================================
-// CHECK FOR EXCESSIVE SYMBOLS
+// EXCESSIVE SYMBOLS
 // ==========================================================
 
 function hasExcessiveSymbols(text) {
 
-    const letters = (
-        text.match(/\p{L}/gu) || []
-    ).length;
+    const letters =
+        (
+            text.match(/\p{L}/gu) || []
+        ).length;
 
-    const symbols = (
-        text.match(
-            /[^\p{L}\p{N}\s.,!?'"()\-]/gu
-        ) || []
-    ).length;
+    const symbols =
+        (
+            text.match(
+                /[^\p{L}\p{N}\s.,!?'"()\-]/gu
+            ) || []
+        ).length;
 
-    // No letters at all
     if (letters === 0) {
         return true;
     }
@@ -104,81 +92,49 @@ function hasExcessiveSymbols(text) {
 
 
 // ==========================================================
-// CHECK FOR NO LETTERS
+// MAXIMUM DESCRIPTION LENGTH
 // ==========================================================
 
-function hasNoLetters(text) {
-
-    return !/\p{L}/u.test(text);
-}
-
-
-// ==========================================================
-// CHECK FOR GIBBERISH-LIKE WORDS
-// ==========================================================
-
-function hasGibberishPattern(text) {
+function hasExcessiveDescriptionLength(text) {
 
     const words =
-        text.match(/\p{L}+/gu) || [];
+        text.match(
+            /\p{L}+(?:['’]\p{L}+)?/gu
+        ) || [];
 
-    if (words.length === 0) {
-        return true;
-    }
-
-    let suspiciousWords = 0;
-    let longWords = 0;
-
-    for (const word of words) {
-
-        // Ignore short words because they can
-        // legitimately have few or no vowels.
-        if (word.length < 7) {
-            continue;
-        }
-
-        longWords++;
-
-        const vowels =
-            word.match(
-                /[aeiouáéíóúàèìòù]/giu
-            ) || [];
-
-        if (vowels.length === 0) {
-            suspiciousWords++;
-        }
-    }
-
-    // Only apply this heuristic when there
-    // are at least 2 long words.
-    return (
-        longWords >= 2 &&
-        suspiciousWords / longWords >= 0.5
-    );
+    return words.length > 80;
 }
 
 
 // ==========================================================
-// CHECK FOR SUSPICIOUS WORD FORMATTING
+// SUSPICIOUS WORD FORMATTING
+// ==========================================================
+//
+// This is checked AFTER the Python repair.
+//
+// Therefore:
+//
+// iwantAkindpet
+//
+// should already have become something like:
+//
+// I want a kind pet
+//
 // ==========================================================
 
 function hasSuspiciousWordFormatting(text) {
 
-    const words = text.split(/\s+/);
+    const words =
+        text.split(/\s+/);
 
     let suspiciousCount = 0;
 
     for (const word of words) {
 
-        // Ignore short words.
         if (word.length < 8) {
             continue;
         }
 
-        // Detect camelCase / mashed formatting.
-        // Example:
-        // IWANTaKindpet
-        // wantACalmPet
         if (/[a-z][A-Z]/.test(word)) {
             suspiciousCount++;
         }
@@ -192,48 +148,24 @@ function hasSuspiciousWordFormatting(text) {
 
 
 // ==========================================================
-// CHECK FOR LIKELY MASHED WORDS
+// MAIN FRONTEND VALIDATOR
 // ==========================================================
-
-// function hasLikelyMashedWords(text) {
-
-//     const words = text.split(/\s+/);
-
-//     // A single very long token is suspicious because
-//     // this field is expected to contain a description.
-//     //
-//     // Example:
-//     // iwantakindpet
-//     // iwantacalmfriendlydog
-//     //
-//     // This is only a heuristic.
-//     if (words.length === 1) {
-
-//         const word = words[0].replace(
-//             /[^\p{L}]/gu,
-//             ""
-//         );
-
-//         return word.length >= 15;
-//     }
-
-//     return false;
-// }
-
-
-// ==========================================================
-// MAIN BEHAVIOR VALIDATION
+//
+// IMPORTANT:
+//
+// This is only a FINAL frontend safety check.
+//
+// The authoritative gibberish check happens in Flask.
 // ==========================================================
 
 function validateBehaviorInput(rawInput) {
 
-    // Normalize the original input first.
     const behavior =
         normalizeBehaviorInput(rawInput);
 
 
     // ------------------------------------------------------
-    // 1. EMPTY INPUT
+    // EMPTY
     // ------------------------------------------------------
 
     if (!behavior) {
@@ -248,7 +180,7 @@ function validateBehaviorInput(rawInput) {
 
 
     // ------------------------------------------------------
-    // 2. NO LETTERS
+    // LETTERS
     // ------------------------------------------------------
 
     if (hasNoLetters(behavior)) {
@@ -263,40 +195,33 @@ function validateBehaviorInput(rawInput) {
 
 
     // ------------------------------------------------------
-    // 3. EXCESSIVE CHARACTER REPETITION
+    // REPEATED CHARACTERS
     // ------------------------------------------------------
 
-    if (hasExcessiveCharacterRepetition(behavior)) {
+    if (
+        hasExcessiveCharacterRepetition(
+            behavior
+        )
+    ) {
 
         return {
             valid: false,
             value: behavior,
             message:
-                "Your description contains too many repeated characters. Please describe the personality, behavior, and traits of your preferred pet."
+                "Your description contains too many repeated characters. Please describe your preferred pet normally."
         };
     }
 
 
     // ------------------------------------------------------
-    // 4. EXTREMELY LONG WORD
+    // MALFORMED SEPARATORS
     // ------------------------------------------------------
 
-    // if (hasExtremelyLongWord(behavior)) {
-
-    //     return {
-    //         valid: false,
-    //         value: behavior,
-    //         message:
-    //             "Please use normal spaces between words when describing your pet preferences."
-    //     };
-    // }
-
-
-    // ------------------------------------------------------
-    // 5. MALFORMED WORD SEPARATORS
-    // ------------------------------------------------------
-
-    if (hasMalformedSeparators(behavior)) {
+    if (
+        hasMalformedSeparators(
+            behavior
+        )
+    ) {
 
         return {
             valid: false,
@@ -308,25 +233,33 @@ function validateBehaviorInput(rawInput) {
 
 
     // ------------------------------------------------------
-    // 6. EXCESSIVE SYMBOLS
+    // EXCESSIVE SYMBOLS
     // ------------------------------------------------------
 
-    if (hasExcessiveSymbols(behavior)) {
+    if (
+        hasExcessiveSymbols(
+            behavior
+        )
+    ) {
 
         return {
             valid: false,
             value: behavior,
             message:
-                "Please use normal words and sentences to describe the personality, behavior, and traits of your preferred pet."
+                "Please use normal words and sentences to describe your preferred pet."
         };
     }
 
 
     // ------------------------------------------------------
-    // 7. SUSPICIOUS WORD FORMATTING
+    // SUSPICIOUS CAMEL/MASHED FORMATTING
     // ------------------------------------------------------
 
-    if (hasSuspiciousWordFormatting(behavior)) {
+    if (
+        hasSuspiciousWordFormatting(
+            behavior
+        )
+    ) {
 
         return {
             valid: false,
@@ -336,80 +269,64 @@ function validateBehaviorInput(rawInput) {
         };
     }
 
+
     // ------------------------------------------------------
-    // 9. GIBBERISH
+    // MINIMUM WORD COUNT
     // ------------------------------------------------------
 
-    if (hasGibberishPattern(behavior)) {
+    const words =
+        behavior.match(
+            /\p{L}+(?:['’]\p{L}+)?/gu
+        ) || [];
+
+
+    if (words.length < 5) {
 
         return {
             valid: false,
             value: behavior,
             message:
-                "We couldn't understand your description. Please describe the personality, behavior, and traits of your preferred pet using normal words."
+                "Please provide at least 5 words describing the personality, behavior, and traits of your preferred pet."
         };
     }
 
 
     // ------------------------------------------------------
-    // 10. MINIMUM WORD COUNT
+    // MINIMUM CHARACTER COUNT
     // ------------------------------------------------------
 
-    // const words =
-    //     behavior.match(
-    //         /\p{L}+(?:['’]\p{L}+)?/gu
-    //     ) || [];
+    if (behavior.length < 20) {
 
-    // if (words.length < 5) {
-
-    //     return {
-    //         valid: false,
-    //         value: behavior,
-    //         message:
-    //             "Please provide more meaningful details about the personality, behavior, and traits of your preferred pet."
-    //     };
-    // }
+        return {
+            valid: false,
+            value: behavior,
+            message:
+                "Please provide a little more detail about the personality, behavior, and traits of your preferred pet."
+        };
+    }
 
 
     // ------------------------------------------------------
-    // 11. MINIMUM LETTER COUNT
+    // MAXIMUM WORD COUNT
     // ------------------------------------------------------
 
-    // const letters =
-    //     (
-    //         behavior.match(
-    //             /\p{L}/gu
-    //         ) || []
-    //     ).length;
+    if (
+        hasExcessiveDescriptionLength(
+            behavior
+        )
+    ) {
 
-    // if (letters < 10) {
-
-    //     return {
-    //         valid: false,
-    //         value: behavior,
-    //         message:
-    //             "Please provide more meaningful details about the personality, behavior, and traits of your preferred pet."
-    //     };
-    // }
+        return {
+            valid: false,
+            value: behavior,
+            message:
+                "Your description is too long. Please focus on the most important personality, behavior, and traits of your preferred pet."
+        };
+    }
 
 
     // ------------------------------------------------------
-    // 12. MINIMUM DESCRIPTION LENGTH
-    // ------------------------------------------------------
-
-    // if (behavior.length < 20) {
-
-    //     return {
-    //         valid: false,
-    //         value: behavior,
-    //         message:
-    //             "Please provide a little more detail about the personality, behavior, and traits of your preferred pet."
-    //     };
-    // }
-
-
-    // ------------------------------------------------------
-    // 13. MAXIMUM DESCRIPTION LENGTH
+    // MAXIMUM CHARACTERS
     // ------------------------------------------------------
 
     if (behavior.length > 500) {
@@ -433,45 +350,72 @@ function validateBehaviorInput(rawInput) {
         message: ""
     };
 }
+
+
 // ==========================================================
-// SANITIZE BEHAVIOR INPUT BEFORE REPAIR
+// SANITIZE BEFORE REPAIR
 // ==========================================================
 
 function sanitizeBehaviorInput(rawInput) {
 
-    // Make sure the input is always treated as text
     let text =
-        normalizeBehaviorInput(rawInput);
+        normalizeBehaviorInput(
+            rawInput
+        );
+
 
     // ------------------------------------------------------
-    // Replace punctuation with spaces
+    // REMOVE NUMBERS
     // ------------------------------------------------------
 
     text = text.replace(
-        /[.,!?;:]+/g,
+        /\p{N}+/gu,
         " "
     );
 
 
     // ------------------------------------------------------
-    // Convert separated single letters
+    // REMOVE UNNECESSARY SYMBOLS
     //
-    // p e t -> pet
-    // d o g -> dog
-    //
-    // Only joins 3 or more consecutive
-    // lowercase single-letter words.
+    // Preserve apostrophes and hyphens because they can
+    // belong to legitimate words.
     // ------------------------------------------------------
 
     text = text.replace(
-        /\b(?:[a-z]\s+){2,}[a-z]\b/g,
-        match =>
-            match.replace(/\s+/g, "")
+        /[^\p{L}\s'’\-]/gu,
+        " "
     );
 
 
     // ------------------------------------------------------
-    // Collapse repeated spaces
+    // TURN HYPHENATED WORDS INTO SEPARATE WORDS
+    // ------------------------------------------------------
+
+    text = text.replace(
+        /(\p{L})-(\p{L})/gu,
+        "$1 $2"
+    );
+
+
+    // ------------------------------------------------------
+    // JOIN SEPARATED SINGLE LETTERS
+    //
+    // p e t -> pet
+    // d o g -> dog
+    // ------------------------------------------------------
+
+    text = text.replace(
+        /\b(?:[a-z]\s+){2,}[a-z]\b/giu,
+        match =>
+            match.replace(
+                /\s+/g,
+                ""
+            )
+    );
+
+
+    // ------------------------------------------------------
+    // NORMALIZE SPACES
     // ------------------------------------------------------
 
     text = text
@@ -479,215 +423,349 @@ function sanitizeBehaviorInput(rawInput) {
         .trim();
 
 
-    // IMPORTANT:
-    // This function returns ONLY a string.
-    // It does NOT call validateBehaviorInput().
-    return text;
+    // ------------------------------------------------------
+    // REMOVE CONSECUTIVE DUPLICATES
+    //
+    // YAY YAY YAY YAY
+    // ↓
+    // YAY
+    // ------------------------------------------------------
+
+    const words =
+        text.split(/\s+/);
+
+    const cleanedWords = [];
+
+    for (const word of words) {
+
+        const previous =
+            cleanedWords[
+                cleanedWords.length - 1
+            ];
+
+        if (
+            previous &&
+            previous.toLowerCase() ===
+            word.toLowerCase()
+        ) {
+
+            continue;
+        }
+
+        cleanedWords.push(word);
+    }
+
+
+    return cleanedWords
+        .join(" ")
+        .replace(/\s+/g, " ")
+        .trim();
 }
+
+
 // ==========================================================
-// MATCH PETS
+// MAIN MATCHMAKING FLOW
 // ==========================================================
 
 async function showCompatibilityScreen() {
 
+    // ======================================================
+    // GET PREFERENCES
+    // ======================================================
+
     const type =
-        document.getElementById("type").value;
+        document.getElementById(
+            "type"
+        ).value;
 
     const sex =
-        document.getElementById("sex").value;
+        document.getElementById(
+            "sex"
+        ).value;
 
     const age =
-        document.getElementById("age").value;
+        document.getElementById(
+            "age"
+        ).value;
 
     const rawBehaviorInput =
-        document.getElementById("behavior").value;
+        document.getElementById(
+            "behavior"
+        ).value;
 
 
     // ======================================================
-    // VALIDATION MESSAGE
+    // MESSAGE
     // ======================================================
 
     const message =
-        document.getElementById("validationMessage");
+        document.getElementById(
+            "validationMessage"
+        );
 
-    message.classList.add("hidden");
+    message.classList.add(
+        "hidden"
+    );
 
 
     // ======================================================
     // BASIC PREFERENCE VALIDATION
     // ======================================================
 
-    if (!type || !sex || !age) {
+    if (
+        !type ||
+        !sex ||
+        !age
+    ) {
 
         message.textContent =
             "Please complete all pet preferences before continuing.";
 
-        message.classList.remove("hidden");
+        message.classList.remove(
+            "hidden"
+        );
 
         return;
     }
 
 
     // ======================================================
-    // EMPTY BEHAVIOR VALIDATION
+    // BEHAVIOR REQUIRED
     // ======================================================
 
-    if (!rawBehaviorInput.trim()) {
+    if (
+        !rawBehaviorInput.trim()
+    ) {
 
         message.textContent =
             "Please provide details about the personality, behavior, and traits of your preferred pet.";
 
-        message.classList.remove("hidden");
-
-        return;
-    }
-
-
-    // ======================================================
-    // SANITIZE BEFORE REPAIR
-    // ======================================================
-
-    const behaviorInput =
-        sanitizeBehaviorInput(rawBehaviorInput);
-
-
-    console.log("========================================");
-    console.log("BEHAVIOR INPUT");
-    console.log("========================================");
-
-    console.log(
-        "Raw:",
-        rawBehaviorInput
-    );
-
-    console.log(
-        "Sanitized:",
-        behaviorInput
-    );
-
-    console.log("========================================");
-    // ======================================================
-    // SEND SANITIZED TEXT TO REPAIR API
-    // ======================================================
-    let repairResponse;
-    let repairData;
-    try {
-        repairResponse = await fetch(
-            "/api/matchmaking/repair",
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    behavior: behaviorInput
-                })
-            }
+        message.classList.remove(
+            "hidden"
         );
-        repairData =
-            await repairResponse.json();
-    } catch (error) {
-        console.error(
-            "Behavior repair request failed:",
-            error
+
+        return;
+    }
+
+
+    // ======================================================
+    // SANITIZE
+    // ======================================================
+
+    const sanitizedBehavior =
+        sanitizeBehaviorInput(
+            rawBehaviorInput
         );
-        message.textContent =
-            "Unable to process your pet preference. Please try again.";
-        message.classList.remove("hidden");
-        return;
-    }
-    // ======================================================
-    // SHOW REPAIR RESULT
-    // =====================================================
-    console.log("========================================");
-    console.log("BEHAVIOR REPAIR RESULT");
-    console.log("========================================");
-    console.log(
-        "Original:",
-        rawBehaviorInput
-    );
-    console.log(
-        "Sanitized:",
-        behaviorInput
-    );
-    console.log(
-        "Repaired:",
-        repairData.repaired_text
-    );
-    console.log(
-        "Word count:",
-        repairData.word_count
-    );
-    console.log(
-        "Character count:",
-        repairData.character_count
-    );
-    console.log(
-        "Success:",
-        repairData.success
-    );
-    console.log("========================================");
-    // ======================================================
-    // REPAIR / SERVER VALIDATION FAILED
-    // ======================================================
-    if (
-        !repairResponse.ok ||
-        !repairData.success
-    ) {
-        message.textContent =
-            repairData.message ||
-            "Please provide more details about your preferred pet.";
-        message.classList.remove("hidden");
-        return;
-    }
-    // ======================================================
-    // GET FINAL REPAIRED BEHAVIOR
-    // ======================================================
-    const behavior =
-        repairData.repaired_text;
-    // ======================================================
-    // FINAL FRONTEND VALIDATION
-    // ======================================================
-    const finalValidation =
-        validateBehaviorInput(behavior);
-    if (!finalValidation.valid) {
-        message.textContent =
-            finalValidation.message;
-        message.classList.remove("hidden");
-        return;
-    }
-    // ======================================================
-    // VALID REPAIRED MATCHMAKING INPUT
-    // ======================================================
-    console.log("========================================");
-    console.log("VALID REPAIRED MATCHMAKING INPUT");
-    console.log("========================================");
-    console.log(
-        "Type:",
-        type
-    );
-    console.log(
-        "Sex:",
-        sex
-    );
-    console.log(
-        "Age:",
-        age
-    );
+
+
     console.log(
         "Original behavior:",
         rawBehaviorInput
     );
+
     console.log(
         "Sanitized behavior:",
-        behaviorInput
+        sanitizedBehavior
     );
+
+
+    // ======================================================
+    // SEND TO NODE REPAIR ENDPOINT
+    // ======================================================
+
+    let repairResponse;
+    let repairData;
+
+
+    try {
+
+        repairResponse =
+            await fetch(
+                "/api/matchmaking/repair",
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body: JSON.stringify({
+                        behavior:
+                            sanitizedBehavior
+                    })
+                }
+            );
+
+
+        repairData =
+            await repairResponse.json();
+
+    } catch (error) {
+
+        console.error(
+            "Behavior repair error:",
+            error
+        );
+
+        message.textContent =
+            "Unable to process your pet preference. Please try again.";
+
+        message.classList.remove(
+            "hidden"
+        );
+
+        return;
+    }
+
+
+    // ======================================================
+    // DEBUG
+    // ======================================================
+
     console.log(
-        "Repaired behavior:",
+        "========================================"
+    );
+
+    console.log(
+        "REPAIR RESULT"
+    );
+
+    console.log(
+        "Original:",
+        rawBehaviorInput
+    );
+
+    console.log(
+        "Sanitized:",
+        sanitizedBehavior
+    );
+
+    console.log(
+        "Repaired:",
+        repairData.repaired_text
+    );
+
+    console.log(
+        "Word count:",
+        repairData.word_count
+    );
+
+    console.log(
+        "Character count:",
+        repairData.character_count
+    );
+
+    console.log(
+        "Success:",
+        repairData.success
+    );
+
+    console.log(
+        "========================================"
+    );
+
+
+    // ======================================================
+    // PYTHON VALIDATION FAILED
+    // ======================================================
+
+    if (
+        !repairResponse.ok ||
+        !repairData.success
+    ) {
+
+        message.textContent =
+            repairData.message ||
+            "We couldn't understand your pet preference. Please try describing it using normal words.";
+
+        message.classList.remove(
+            "hidden"
+        );
+
+        return;
+    }
+
+
+    // ======================================================
+    // GET REPAIRED TEXT
+    // ======================================================
+
+    const repairedBehavior =
+        normalizeBehaviorInput(
+            repairData.repaired_text
+        );
+
+
+    // ======================================================
+    // FINAL FRONTEND VALIDATION
+    // ======================================================
+
+    const finalValidation =
+        validateBehaviorInput(
+            repairedBehavior
+        );
+
+
+    if (
+        !finalValidation.valid
+    ) {
+
+        console.warn(
+            "Final frontend validation failed:",
+            finalValidation.message
+        );
+
+        message.textContent =
+            finalValidation.message;
+
+        message.classList.remove(
+            "hidden"
+        );
+
+        return;
+    }
+
+
+    // ======================================================
+    // FINAL BEHAVIOR
+    // ======================================================
+
+    const behavior =
+        finalValidation.value;
+
+
+    console.log(
+        "========================================"
+    );
+
+    console.log(
+        "FINAL MATCHMAKING INPUT"
+    );
+
+    console.log(
+        "Type:",
+        type
+    );
+
+    console.log(
+        "Sex:",
+        sex
+    );
+
+    console.log(
+        "Age:",
+        age
+    );
+
+    console.log(
+        "Behavior:",
         behavior
     );
-    console.log("========================================");
-    
+    console.log(
+        "========================================"
+    );
+
     // ======================================================
     // SHOW LOADING SCREEN
 
