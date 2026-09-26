@@ -11,16 +11,16 @@
     <script src="/js/html2pdf/html2pdf.bundle.min.js"></script>
     <style>
     @media print {
-        /* Itago ang buong UI elements, navigation, sidebar, at mga buttons kapag nag-print */
+        /* Hide the whole UI, navigation, sidebar, and buttons when printing */
         body * {
             visibility: hidden;
         }
-        
-        /* Ipakita lamang ang printable report container */
+
+        /* Show only the printable report container */
         #printableReport, #printableReport * {
             visibility: visible;
         }
-        
+
         #printableReport {
             position: absolute;
             left: 0;
@@ -31,13 +31,13 @@
             background: white !important;
         }
 
-        /* Tanggalin ang mga anino at background styles para sa pormal na document */
+        /* Remove shadows and background styles for a formal document */
         .shadow-sm, .shadow-2xl, .border {
             box-shadow: none !important;
             border: none !important;
         }
 
-        /* TANGGALIN LAMANG SA EXPORT (PDF/PRINT): Ang Status (4th) at Actions (5th) columns */
+        /* HIDE ONLY IN EXPORT (PDF/PRINT): The Status (4th) and Actions (5th) columns */
         #printableReport th:nth-child(4),
         #printableReport th:nth-child(5),
         #printableReport td:nth-child(4),
@@ -46,7 +46,7 @@
         }
     }
 
-    /* Pormal at malinis na disenyo ng Table Headers */
+    /* Formal and clean design for Table Headers */
     #printableReport th {
         background-color: #f8fafc !important;
         color: #334155 !important;
@@ -57,7 +57,7 @@
         border-bottom: 2px solid #e2e8f0 !important;
     }
 
-    /* Palakihin ang pet image sa loob ng table cells */
+    /* Enlarge pet image inside table cells */
     #printableReport td img, 
     #printableReport th img,
     td img, 
@@ -70,7 +70,7 @@
         border: 1px solid #e2e8f0;
     }
 
-    /* FIX SA ARCHIVED TABLE & VIEW BUTTON: Binigyan ng tamang table layout at text-wrapping */
+    /* FIX FOR ARCHIVED TABLE & VIEW BUTTON: Proper table layout and text-wrapping */
     table {
         table-layout: fixed;
         width: 100%;
@@ -81,7 +81,7 @@
         overflow: hidden;
     }
 
-    /* Ayusin ang alignment para maging maayos at hindi mag-overlap ang pangalan */
+    /* Fix alignment so names don't overlap */
     #printableReport td, 
     td {
         vertical-align: middle !important;
@@ -210,11 +210,11 @@
                 </div>
             </div>
 
-            <!-- CONTAINER NG TABLE -->
+            <!-- TABLE CONTAINER -->
             <div id="tableViewContainer">
-                <!-- Ito lang ang lalabas sa PDF / Printout -->
+                <!-- Only this appears in PDF / Printout -->
                 <div id="printableReport">
-                    <!-- Pormal na Header para sa Report -->
+                    <!-- Formal Header for Report -->
                     <div class="hidden print:block mb-6 text-center">
                         <h1 class="text-xl font-bold text-gray-900">PAWSSION BENEVOLENCE CIRCLE</h1>
                         <p class="text-sm text-gray-600">Adopted Pets Kamustahan Report</p>
@@ -264,7 +264,7 @@
                 </div>
             </div>
 
-            <!-- CONTAINER NG CALENDAR -->
+            <!-- CALENDAR CONTAINER -->
             <div id="calendarViewContainer" class="hidden">
                 <div class="bg-white rounded-2xl border border-gray-200 p-6 shadow-xs">
                     <div class="flex items-center justify-between mb-6">
@@ -284,7 +284,7 @@
                     </div>
 
                     <div id="calendarGrid" class="grid grid-cols-7 gap-2">
-                        <!-- Dynamic na ila-load dito ang mga araw -->
+                        <!-- Dynamic day cells will be loaded here -->
                     </div>
                 </div>
             </div>
@@ -330,11 +330,11 @@
             </div>
         </div>
 
-        <!-- Set Schedule Modal -->
+        <!-- ✅ UPDATED: Set Update Deadline Modal -->
         <div id="scheduleModal" class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/45 backdrop-blur-sm hidden">
             <div class="bg-white rounded-2xl max-w-md w-full mx-4 p-6 shadow-2xl relative">
                 <div class="flex justify-between items-center mb-4 border-b pb-3">
-                    <h3 class="text-lg font-bold text-gray-900">Set Update Schedule</h3>
+                    <h3 class="text-lg font-bold text-gray-900">Set Update Deadline</h3>
                     <button onclick="closeScheduleModal()" class="text-gray-400 hover:text-gray-600">
                         <i class="fa-solid fa-xmark text-lg"></i>
                     </button>
@@ -342,12 +342,19 @@
                 <form id="scheduleForm" onsubmit="submitSchedule(event)">
                     <input type="hidden" id="schedUpdateId">
                     <div class="mb-4">
-                        <label class="block text-xs font-semibold text-gray-600 uppercase mb-2">Schedule Date</label>
-                        <input type="date" id="scheduledDateInput" required class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-blue-500">
+                        <label class="block text-xs font-semibold text-gray-600 uppercase mb-2">
+                            Update Deadline <span class="text-rose-500">*</span>
+                        </label>
+                        <input type="date" id="scheduledDateInput" required 
+                            class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-blue-500">
+                        <p class="text-[11px] text-gray-500 mt-1.5 leading-relaxed">
+                            This is the <strong>last day</strong> the adopter can submit an update. 
+                            They may submit on any day before or on this date.
+                        </p>
                     </div>
                     <div class="flex justify-end gap-2">
                         <button type="button" onclick="closeScheduleModal()" class="px-4 py-2 bg-gray-100 text-gray-700 text-sm font-semibold rounded-xl">Cancel</button>
-                        <button type="submit" class="px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-xl hover:bg-blue-700">Save Schedule</button>
+                        <button type="submit" class="px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-xl hover:bg-blue-700">Save Deadline</button>
                     </div>
                 </form>
             </div>

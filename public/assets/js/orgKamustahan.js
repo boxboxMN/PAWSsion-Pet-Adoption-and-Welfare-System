@@ -3,7 +3,105 @@ let currentTab = 'active';
 let currentSortOrder = 'desc'; 
 let currentView = 'table';
 let currentDate = new Date();
+// ==========================================
+// CUSTOM MODAL HELPERS
+// ==========================================
+function showModal({
+    title = "Notice",
+    message = "",
+    type = "info",
+    okText = "OK",
+    showCancel = false,
+    cancelText = "Cancel",
+    onOk = null,
+    onCancel = null
+} = {}) {
+    const modalId = showCancel ? 'customConfirmModal' : 'customAlertModal';
+    const boxId   = showCancel ? 'customConfirmBox'   : 'customAlertBox';
+    const modal = document.getElementById(modalId);
+    const box   = document.getElementById(boxId);
 
+    if (!modal || !box) {
+        if (showCancel) {
+            if (confirm(message)) onOk && onOk();
+            else onCancel && onCancel();
+        } else {
+            alert(message);
+            onOk && onOk();
+        }
+        return;
+    }
+
+    const themes = {
+        info:    { wrap: 'bg-blue-50 text-blue-600',       icon: 'fa-circle-info' },
+        success: { wrap: 'bg-emerald-50 text-emerald-600', icon: 'fa-circle-check' },
+        error:   { wrap: 'bg-rose-50 text-rose-600',       icon: 'fa-circle-exclamation' },
+        warning: { wrap: 'bg-amber-50 text-amber-600',     icon: 'fa-triangle-exclamation' }
+    };
+    const theme = themes[type] || themes.info;
+
+    if (!showCancel) {
+        const iconWrap = document.getElementById('customAlertIconWrap');
+        const icon     = document.getElementById('customAlertIcon');
+        document.getElementById('customAlertTitle').textContent   = title;
+        document.getElementById('customAlertMessage').textContent = message;
+        document.getElementById('customAlertOkBtn').textContent   = okText;
+        iconWrap.className = `w-16 h-16 rounded-2xl flex items-center justify-center mb-4 text-2xl shadow-inner ${theme.wrap}`;
+        icon.className = `fas ${theme.icon}`;
+
+        document.getElementById('customAlertOkBtn').onclick = () => {
+            closeModal(modal, box);
+            onOk && onOk();
+        };
+    } else {
+        document.getElementById('customConfirmTitle').textContent   = title;
+        document.getElementById('customConfirmMessage').textContent = message;
+        document.getElementById('customConfirmOkBtn').textContent   = okText;
+        document.getElementById('customConfirmCancelBtn').textContent = cancelText;
+
+        document.getElementById('customConfirmOkBtn').onclick = () => {
+            closeModal(modal, box);
+            onOk && onOk();
+        };
+        document.getElementById('customConfirmCancelBtn').onclick = () => {
+            closeModal(modal, box);
+            onCancel && onCancel();
+        };
+    }
+
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    requestAnimationFrame(() => {
+        box.classList.remove('scale-95', 'opacity-0');
+        box.classList.add('scale-100', 'opacity-100');
+    });
+}
+
+function closeModal(modal, box) {
+    box.classList.add('scale-95', 'opacity-0');
+    box.classList.remove('scale-100', 'opacity-100');
+    setTimeout(() => {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }, 180);
+}
+
+function showAlert(message, type = 'info', title = null) {
+    const titles = { info: 'Notice', success: 'Success', error: 'Error', warning: 'Warning' };
+    showModal({ title: title || titles[type] || 'Notice', message, type });
+}
+
+function showConfirm(message, onOk, onCancel = null, opts = {}) {
+    showModal({
+        title: opts.title || 'Are you sure?',
+        message,
+        type: opts.type || 'warning',
+        okText: opts.okText || 'Confirm',
+        cancelText: opts.cancelText || 'Cancel',
+        showCancel: true,
+        onOk, onCancel
+    });
+}
 // ==========================================
 // EXPORT DROPDOWN MENU HANDLERS
 // ==========================================
@@ -167,8 +265,8 @@ function exportData(type) {
     });
 
     if (dataToExport.length === 0) {
-        alert("No data found for the selected month and category.");
-        return;
+    showAlert("No data found for the selected month and category.", "warning");
+    return;
     }
 
     if (type === 'csv') {
@@ -191,9 +289,9 @@ function exportData(type) {
 
     } else if (type === 'pdf') {
         if (typeof html2pdf === 'undefined') {
-            alert("The PDF library has not been included yet.");
-            return;
-        }
+        showAlert("The PDF library has not been included yet.", "error");
+        return;
+    }
         renderPrintableReport(dataToExport);
         downloadKamustahanPDF();
     }
@@ -290,10 +388,10 @@ function renderPrintableReport(data) {
 function downloadKamustahanPDF() {
     const element = document.getElementById('printableReport'); 
 
-    if (!element) {
-        alert("No report container found for download.");
-        return;
-    }
+if (!element) {
+    showAlert("No report container found for download.", "error");
+    return;
+}
 
     const options = {
         margin:       10,
@@ -312,9 +410,9 @@ function downloadKamustahanPDF() {
             }
         })
         .catch(err => {
-            console.error("Error downloading PDF:", err);
-            alert("There was a problem downloading the PDF.");
-        });
+    console.error("Error downloading PDF:", err);
+    showAlert("There was a problem downloading the PDF.", "error");
+});
 }
 
 function exportSingleKamustahan() {
@@ -324,10 +422,9 @@ function exportSingleKamustahan() {
     const dateElement = document.getElementById('modalDate');
 
     if (!petNameElement || !photoElement) {
-        alert("May kulang na element sa modal mo.");
-        return;
-    }
-
+    showAlert("Some required elements are missing from the modal.", "error");
+    return;
+}
     const petName = petNameElement.innerText;
     const photoSrc = photoElement.src;
     const adopterRaw = adopterElement ? adopterElement.innerText : '';
@@ -335,9 +432,9 @@ function exportSingleKamustahan() {
 
     const printWindow = window.open('', '_blank');
     if (!printWindow) {
-        alert("Naka-block ang pop-up window ng iyong browser. Paki-allow po ito.");
-        return;
-    }
+    showAlert("Your browser blocked the pop-up window. Please allow pop-ups for this site.", "warning");
+    return;
+}
 
     printWindow.document.write(`
         <html>
@@ -613,26 +710,32 @@ function closeUpdateModal() {
     const modal = document.getElementById("updateModal");
     if (modal) modal.classList.add("hidden");
 }
-
 async function archiveUpdate(update_id) {
-    if(confirm("Are you sure you want to archive this update?")) {
-        try {
-            const res = await fetch('/org/kamustahan-archive', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ update_id })
-            });
-            const data = await res.json();
-            if(data.success) {
-                closeUpdateModal();
-                fetchKamustahanData();
-            } else {
-                alert(data.message || "Failed to archive update.");
+    showConfirm(
+        "Are you sure you want to archive this update?",
+        async () => {
+            try {
+                const res = await fetch('/org/kamustahan-archive', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ update_id })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    closeUpdateModal();
+                    fetchKamustahanData();
+                    showAlert("Update archived successfully.", "success");
+                } else {
+                    showAlert(data.message || "Failed to archive update.", "error");
+                }
+            } catch (err) {
+                console.error("Error archiving update:", err);
+                showAlert("Network error while archiving.", "error");
             }
-        } catch (err) {
-            console.error("Error archiving update:", err);
-        }
-    }
+        },
+        null,
+        { title: "Archive Update", okText: "Archive", type: "warning" }
+    );
 }
 
 function updateStatistics(data) {
@@ -673,17 +776,39 @@ function closeScheduleModal() {
     const scheduleModal = document.getElementById("scheduleModal");
     if (scheduleModal) scheduleModal.classList.add("hidden");
 }
-
 function submitSchedule(event) {
     event.preventDefault();
-    const update_id = document.getElementById("schedUpdateId").value;
+
+    const update_id      = document.getElementById("schedUpdateId").value;
     const scheduled_date = document.getElementById("scheduledDateInput").value;
 
-    // Double-check validation: prevent past dates in case the HTML min attribute is bypassed
-    const today = new Date().toISOString().split('T')[0];
-    if (scheduled_date < today) {
-        alert("You cannot set a schedule for past dates.");
+    if (!update_id) {
+        showAlert("Missing update record ID. Please refresh the page and try again.", "error");
         return;
+    }
+
+    if (!scheduled_date) {
+        showAlert("Please select a deadline date.", "warning");
+        return;
+    }
+
+    // Disallow past dates
+    const today = new Date();
+    const todayStr = new Date(today.getTime() - today.getTimezoneOffset() * 60000)
+        .toISOString()
+        .split('T')[0];
+
+    if (scheduled_date < todayStr) {
+        showAlert("You cannot set a deadline for a past date.", "warning");
+        return;
+    }
+
+    const submitBtn = event.target.querySelector('button[type="submit"]');
+    const originalText = submitBtn ? submitBtn.textContent : "";
+
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = "Saving...";
     }
 
     fetch('/org/kamustahan-schedule', {
@@ -693,12 +818,28 @@ function submitSchedule(event) {
     })
     .then(res => res.json())
     .then(data => {
-        if(data.success) {
+        if (data.success) {
             closeScheduleModal();
             fetchKamustahanData();
+
+            // ✅ CUSTOM MODAL — hindi na native alert
+            showAlert(
+                data.message || `Deadline set to ${scheduled_date}. The adopter may submit anytime on or before this date.`,
+                "success",
+                "Deadline Saved"
+            );
         } else {
-            alert(data.message);
+            showAlert(data.message || "Failed to save the deadline.", "error");
         }
     })
-    .catch(err => console.error(err));
+    .catch(err => {
+        console.error("Error saving schedule:", err);
+        showAlert("Network error while saving the deadline.", "error");
+    })
+    .finally(() => {
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = originalText || "Save Deadline";
+        }
+    });
 }

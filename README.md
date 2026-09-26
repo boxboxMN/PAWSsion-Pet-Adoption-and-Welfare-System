@@ -752,3 +752,7 @@ For the contact messages in landing page
 
 # new installed npm 
 npm install file-type
+
+.VENV
+python -m pip install wordninja
+python -m pip install symspellpy

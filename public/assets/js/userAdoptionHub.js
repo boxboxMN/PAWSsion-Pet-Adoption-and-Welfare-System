@@ -277,7 +277,7 @@ document.addEventListener("click", e => {
 
 });
 
-// Check if the user has already applied for adoption for this pet
+
 async function checkPetApplicationStatus(petId) {
     const applyBtn = document.getElementById('applyModalBtn');
     if (!applyBtn) return;
@@ -302,7 +302,7 @@ async function checkPetApplicationStatus(petId) {
                     <span>Application Declined (View Details)</span>
                 `;
 
-            // PAG-CLICK: I-save sa session storage at pumunta sa /application nang walang URL query
+        
             applyBtn.onclick = (e) => {
                 e.preventDefault();
                 sessionStorage.setItem("targetAppTab", "Declined");
@@ -1076,10 +1076,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (!app) return;
         const e = app.emergency || {};
 
-        // Name, phone, email, address, civil status, age, and occupation are
-        // already filled from the live profile by autoFillUserProfile() (called
-        // just before this). Only fill what the profile has no equivalent for:
-        // this is specific to the previous application itself.
+
         document.getElementById("app-intent").value = app.intent || "";
         document.getElementById("app-emergency-name").value = e.name || "";
         document.getElementById("app-emergency-phone").value = e.phone || "";

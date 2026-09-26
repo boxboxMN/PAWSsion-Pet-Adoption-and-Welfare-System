@@ -133,3 +133,124 @@ async function loadAdminNotifications() {
         console.error("Failed to load notifications:", err);
     }
 }
+// ==========================================
+// SESSION WATCHER + ACCOUNT SWITCH DETECTION (ADMIN)
+// ==========================================
+let __adminTabAccountId = null;
+let __adminRedirecting = false;
+
+async function __checkAdminSession() {
+    if (__adminRedirecting) return;
+
+    if (window.location.pathname.startsWith("/auth/")) return;
+
+    try {
+        const res = await fetch("/api/session-status", {
+            credentials: "same-origin",
+            cache: "no-store"
+        });
+
+        if (res.status === 401 || res.status === 403) {
+            __lockAdminAndRedirect("session_expired");
+            return;
+        }
+
+        const data = await res.json();
+
+        if (!data.active) {
+            __lockAdminAndRedirect(data.status || "session_expired");
+            return;
+        }
+
+        if (data.accountId) {
+            const currentId = String(data.accountId);
+
+            if (__adminTabAccountId === null) {
+                __adminTabAccountId = currentId;
+                console.log("[Admin Tab] Initial account_id:", currentId);
+                return;
+            }
+
+            if (__adminTabAccountId !== currentId) {
+                console.warn(`[Admin Switch] Was ${__adminTabAccountId}, now ${currentId}`);
+                __lockAdminAndRedirect("account_switched");
+            }
+        }
+    } catch (err) {
+        console.warn("Admin session check failed:", err.message);
+    }
+}
+
+function __lockAdminAndRedirect(reason) {
+    if (__adminRedirecting) return;
+    __adminRedirecting = true;
+
+    document.querySelectorAll("a, button, input, select, textarea").forEach(el => {
+        el.style.pointerEvents = "none";
+        el.style.opacity = "0.4";
+    });
+
+    const mainContent = document.querySelector("main") || document.body;
+    mainContent.style.filter = "blur(8px)";
+    mainContent.style.opacity = "0.15";
+    mainContent.style.transition = "opacity 0.15s";
+
+    const overlay = document.createElement("div");
+    overlay.id = "sessionEndedOverlay";
+    overlay.style.cssText = `
+        position: fixed; inset: 0;
+        background: rgba(255,255,255,0.85);
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+        z-index: 99998;
+        display: flex; align-items: center; justify-content: center;
+        flex-direction: column; gap: 16px;
+        font-family: system-ui, -apple-system, sans-serif;
+    `;
+
+    const isSwitch = reason === "account_switched";
+    const titleText = isSwitch ? "Different account signed in" : "Signed in on another device";
+    const subtitleText = isSwitch
+        ? "A different account was signed in on this browser. Redirecting..."
+        : "Your admin session was signed in elsewhere. Redirecting...";
+
+    overlay.innerHTML = `
+        <div style="
+            width: 48px; height: 48px;
+            border: 4px solid #e5e7eb;
+            border-top-color: #1656ff;
+            border-radius: 50%;
+            animation: sasSpin 0.6s linear infinite;
+        "></div>
+        <div style="text-align: center;">
+            <p style="color:#0f172a;font-size:15px;font-weight:700;margin:0 0 4px;">${titleText}</p>
+            <p style="color:#64748b;font-size:12px;margin:0;">${subtitleText}</p>
+        </div>
+        <style>@keyframes sasSpin { to { transform: rotate(360deg); } }</style>
+    `;
+    document.body.appendChild(overlay);
+
+    if (reason !== "account_switched") {
+        fetch("/auth/logout", {
+            method: "POST",
+            credentials: "same-origin",
+            keepalive: true
+        }).catch(() => {});
+    }
+
+    setTimeout(() => {
+        const r = reason || "session_expired";
+        window.location.replace(`/auth/login?reason=${encodeURIComponent(r)}`);
+    }, 250);
+}
+
+// Start polling (1.5s)
+if (typeof window.__adminWatcherStarted === "undefined") {
+    window.__adminWatcherStarted = true;
+    setInterval(__checkAdminSession, 1500);
+    window.addEventListener("pageshow", () => __checkAdminSession());
+    document.addEventListener("visibilitychange", () => {
+        if (!document.hidden) __checkAdminSession();
+    });
+    __checkAdminSession();
+}

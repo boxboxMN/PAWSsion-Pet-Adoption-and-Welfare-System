@@ -2,16 +2,16 @@
 // MATCH RESULTS
 // ==========================================================
 
-// Original results returned by the AI
 let allMatchResults = [];
-
-// Currently displayed results after filters
 let filteredMatchResults = [];
+
+
 // ==========================================================
-// FILTER HELPER FUNCTIONS
+// FILTER HELPER
 // ==========================================================
 
 function normalizeFilterText(value) {
+
     return String(value ?? "")
         .trim()
         .toLowerCase()
@@ -19,6 +19,944 @@ function normalizeFilterText(value) {
 }
 
 
+// ==========================================================
+// BEHAVIOR INPUT NORMALIZATION
+// ==========================================================
+
+function normalizeBehaviorInput(rawInput) {
+
+    return String(rawInput ?? "")
+        .normalize("NFKC")
+        .replace(/\s+/g, " ")
+        .trim();
+}
+
+
+// ==========================================================
+// EXCESSIVE CHARACTER REPETITION
+// ==========================================================
+
+function hasExcessiveCharacterRepetition(text) {
+
+    return /(.)\1{5,}/u.test(text);
+}
+
+
+// ==========================================================
+// NO LETTERS
+// ==========================================================
+
+function hasNoLetters(text) {
+
+    return !/\p{L}/u.test(text);
+}
+
+
+// ==========================================================
+// MALFORMED SEPARATORS
+// ==========================================================
+
+function hasMalformedSeparators(text) {
+
+    return (
+        /\p{L}[+_=|\\]\p{L}/u.test(text) ||
+        /\p{L}[#$%]\p{L}/u.test(text)
+    );
+}
+
+
+// ==========================================================
+// EXCESSIVE SYMBOLS
+// ==========================================================
+
+function hasExcessiveSymbols(text) {
+
+    const letters =
+        (
+            text.match(/\p{L}/gu) || []
+        ).length;
+
+    const symbols =
+        (
+            text.match(
+                /[^\p{L}\p{N}\s.,!?'"()\-]/gu
+            ) || []
+        ).length;
+
+    if (letters === 0) {
+        return true;
+    }
+
+    return symbols / letters > 0.30;
+}
+
+
+// ==========================================================
+// MAXIMUM DESCRIPTION LENGTH
+// ==========================================================
+
+function hasExcessiveDescriptionLength(text) {
+
+    const words =
+        text.match(
+            /\p{L}+(?:['’]\p{L}+)?/gu
+        ) || [];
+
+    return words.length > 80;
+}
+
+
+// ==========================================================
+// SUSPICIOUS WORD FORMATTING
+// ==========================================================
+//
+// This is checked AFTER the Python repair.
+//
+// Therefore:
+//
+// iwantAkindpet
+//
+// should already have become something like:
+//
+// I want a kind pet
+//
+// ==========================================================
+
+function hasSuspiciousWordFormatting(text) {
+
+    const words =
+        text.split(/\s+/);
+
+    let suspiciousCount = 0;
+
+    for (const word of words) {
+
+        if (word.length < 8) {
+            continue;
+        }
+
+        if (/[a-z][A-Z]/.test(word)) {
+            suspiciousCount++;
+        }
+    }
+
+    return (
+        words.length >= 2 &&
+        suspiciousCount >= 1
+    );
+}
+
+
+// ==========================================================
+// MAIN FRONTEND VALIDATOR
+// ==========================================================
+//
+// IMPORTANT:
+//
+// This is only a FINAL frontend safety check.
+//
+// The authoritative gibberish check happens in Flask.
+// ==========================================================
+
+function validateBehaviorInput(rawInput) {
+
+    const behavior =
+        normalizeBehaviorInput(rawInput);
+
+
+    // ------------------------------------------------------
+    // EMPTY
+    // ------------------------------------------------------
+
+    if (!behavior) {
+
+        return {
+            valid: false,
+            value: "",
+            message:
+                "Please describe the personality, behavior, and traits of your preferred pet."
+        };
+    }
+
+
+    // ------------------------------------------------------
+    // LETTERS
+    // ------------------------------------------------------
+
+    if (hasNoLetters(behavior)) {
+
+        return {
+            valid: false,
+            value: behavior,
+            message:
+                "Please describe your pet preferences using words, not only numbers or symbols."
+        };
+    }
+
+
+    // ------------------------------------------------------
+    // REPEATED CHARACTERS
+    // ------------------------------------------------------
+
+    if (
+        hasExcessiveCharacterRepetition(
+            behavior
+        )
+    ) {
+
+        return {
+            valid: false,
+            value: behavior,
+            message:
+                "Your description contains too many repeated characters. Please describe your preferred pet normally."
+        };
+    }
+
+
+    // ------------------------------------------------------
+    // MALFORMED SEPARATORS
+    // ------------------------------------------------------
+
+    if (
+        hasMalformedSeparators(
+            behavior
+        )
+    ) {
+
+        return {
+            valid: false,
+            value: behavior,
+            message:
+                "Please use spaces between words instead of symbols such as +, _, or =."
+        };
+    }
+
+
+    // ------------------------------------------------------
+    // EXCESSIVE SYMBOLS
+    // ------------------------------------------------------
+
+    if (
+        hasExcessiveSymbols(
+            behavior
+        )
+    ) {
+
+        return {
+            valid: false,
+            value: behavior,
+            message:
+                "Please use normal words and sentences to describe your preferred pet."
+        };
+    }
+
+
+    // ------------------------------------------------------
+    // SUSPICIOUS CAMEL/MASHED FORMATTING
+    // ------------------------------------------------------
+
+    if (
+        hasSuspiciousWordFormatting(
+            behavior
+        )
+    ) {
+
+        return {
+            valid: false,
+            value: behavior,
+            message:
+                "Please use normal spacing between words. For example, write 'I want a calm pet' instead of combining words together."
+        };
+    }
+
+
+    // ------------------------------------------------------
+    // MINIMUM WORD COUNT
+    // ------------------------------------------------------
+
+    const words =
+        behavior.match(
+            /\p{L}+(?:['’]\p{L}+)?/gu
+        ) || [];
+
+
+    if (words.length < 5) {
+
+        return {
+            valid: false,
+            value: behavior,
+            message:
+                "Please provide at least 5 words describing the personality, behavior, and traits of your preferred pet."
+        };
+    }
+
+
+    // ------------------------------------------------------
+    // MINIMUM CHARACTER COUNT
+    // ------------------------------------------------------
+
+    if (behavior.length < 20) {
+
+        return {
+            valid: false,
+            value: behavior,
+            message:
+                "Please provide a little more detail about the personality, behavior, and traits of your preferred pet."
+        };
+    }
+
+
+    // ------------------------------------------------------
+    // MAXIMUM WORD COUNT
+    // ------------------------------------------------------
+
+    if (
+        hasExcessiveDescriptionLength(
+            behavior
+        )
+    ) {
+
+        return {
+            valid: false,
+            value: behavior,
+            message:
+                "Your description is too long. Please focus on the most important personality, behavior, and traits of your preferred pet."
+        };
+    }
+
+
+    // ------------------------------------------------------
+    // MAXIMUM CHARACTERS
+    // ------------------------------------------------------
+
+    if (behavior.length > 500) {
+
+        return {
+            valid: false,
+            value: behavior,
+            message:
+                "Please keep your description within 500 characters."
+        };
+    }
+
+
+    // ------------------------------------------------------
+    // VALID
+    // ------------------------------------------------------
+
+    return {
+        valid: true,
+        value: behavior,
+        message: ""
+    };
+}
+
+
+// ==========================================================
+// SANITIZE BEFORE REPAIR
+// ==========================================================
+
+function sanitizeBehaviorInput(rawInput) {
+
+    let text =
+        normalizeBehaviorInput(
+            rawInput
+        );
+
+
+    // ------------------------------------------------------
+    // REMOVE NUMBERS
+    // ------------------------------------------------------
+
+    text = text.replace(
+        /\p{N}+/gu,
+        " "
+    );
+
+
+    // ------------------------------------------------------
+    // REMOVE UNNECESSARY SYMBOLS
+    //
+    // Preserve apostrophes and hyphens because they can
+    // belong to legitimate words.
+    // ------------------------------------------------------
+
+    text = text.replace(
+        /[^\p{L}\s'’\-]/gu,
+        " "
+    );
+
+
+    // ------------------------------------------------------
+    // TURN HYPHENATED WORDS INTO SEPARATE WORDS
+    // ------------------------------------------------------
+
+    text = text.replace(
+        /(\p{L})-(\p{L})/gu,
+        "$1 $2"
+    );
+
+
+    // ------------------------------------------------------
+    // JOIN SEPARATED SINGLE LETTERS
+    //
+    // p e t -> pet
+    // d o g -> dog
+    // ------------------------------------------------------
+
+    text = text.replace(
+        /\b(?:[a-z]\s+){2,}[a-z]\b/giu,
+        match =>
+            match.replace(
+                /\s+/g,
+                ""
+            )
+    );
+
+
+    // ------------------------------------------------------
+    // NORMALIZE SPACES
+    // ------------------------------------------------------
+
+    text = text
+        .replace(/\s+/g, " ")
+        .trim();
+
+
+    // ------------------------------------------------------
+    // REMOVE CONSECUTIVE DUPLICATES
+    //
+    // YAY YAY YAY YAY
+    // ↓
+    // YAY
+    // ------------------------------------------------------
+
+    const words =
+        text.split(/\s+/);
+
+    const cleanedWords = [];
+
+    for (const word of words) {
+
+        const previous =
+            cleanedWords[
+                cleanedWords.length - 1
+            ];
+
+        if (
+            previous &&
+            previous.toLowerCase() ===
+            word.toLowerCase()
+        ) {
+
+            continue;
+        }
+
+        cleanedWords.push(word);
+    }
+
+
+    return cleanedWords
+        .join(" ")
+        .replace(/\s+/g, " ")
+        .trim();
+}
+
+
+// ==========================================================
+// MAIN MATCHMAKING FLOW
+// ==========================================================
+
+async function showCompatibilityScreen() {
+
+    // ======================================================
+    // GET PREFERENCES
+    // ======================================================
+
+    const type =
+        document.getElementById(
+            "type"
+        ).value;
+
+    const sex =
+        document.getElementById(
+            "sex"
+        ).value;
+
+    const age =
+        document.getElementById(
+            "age"
+        ).value;
+
+    const rawBehaviorInput =
+        document.getElementById(
+            "behavior"
+        ).value;
+
+
+    // ======================================================
+    // MESSAGE
+    // ======================================================
+
+    const message =
+        document.getElementById(
+            "validationMessage"
+        );
+
+    message.classList.add(
+        "hidden"
+    );
+
+
+    // ======================================================
+    // BASIC PREFERENCE VALIDATION
+    // ======================================================
+
+    if (
+        !type ||
+        !sex ||
+        !age
+    ) {
+
+        message.textContent =
+            "Please complete all pet preferences before continuing.";
+
+        message.classList.remove(
+            "hidden"
+        );
+
+        return;
+    }
+
+
+    // ======================================================
+    // BEHAVIOR REQUIRED
+    // ======================================================
+
+    if (
+        !rawBehaviorInput.trim()
+    ) {
+
+        message.textContent =
+            "Please provide details about the personality, behavior, and traits of your preferred pet.";
+
+        message.classList.remove(
+            "hidden"
+        );
+
+        return;
+    }
+
+
+    // ======================================================
+    // SANITIZE
+    // ======================================================
+
+    const sanitizedBehavior =
+        sanitizeBehaviorInput(
+            rawBehaviorInput
+        );
+
+
+    console.log(
+        "Original behavior:",
+        rawBehaviorInput
+    );
+
+    console.log(
+        "Sanitized behavior:",
+        sanitizedBehavior
+    );
+
+
+    // ======================================================
+    // SEND TO NODE REPAIR ENDPOINT
+    // ======================================================
+
+    let repairResponse;
+    let repairData;
+
+
+    try {
+
+        repairResponse =
+            await fetch(
+                "/api/matchmaking/repair",
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body: JSON.stringify({
+                        behavior:
+                            sanitizedBehavior
+                    })
+                }
+            );
+
+
+        repairData =
+            await repairResponse.json();
+
+    } catch (error) {
+
+        console.error(
+            "Behavior repair error:",
+            error
+        );
+
+        message.textContent =
+            "Unable to process your pet preference. Please try again.";
+
+        message.classList.remove(
+            "hidden"
+        );
+
+        return;
+    }
+
+
+    // ======================================================
+    // DEBUG
+    // ======================================================
+
+    console.log(
+        "========================================"
+    );
+
+    console.log(
+        "REPAIR RESULT"
+    );
+
+    console.log(
+        "Original:",
+        rawBehaviorInput
+    );
+
+    console.log(
+        "Sanitized:",
+        sanitizedBehavior
+    );
+
+    console.log(
+        "Repaired:",
+        repairData.repaired_text
+    );
+
+    console.log(
+        "Word count:",
+        repairData.word_count
+    );
+
+    console.log(
+        "Character count:",
+        repairData.character_count
+    );
+
+    console.log(
+        "Success:",
+        repairData.success
+    );
+
+    console.log(
+        "========================================"
+    );
+
+
+    // ======================================================
+    // PYTHON VALIDATION FAILED
+    // ======================================================
+
+    if (
+        !repairResponse.ok ||
+        !repairData.success
+    ) {
+
+        message.textContent =
+            repairData.message ||
+            "We couldn't understand your pet preference. Please try describing it using normal words.";
+
+        message.classList.remove(
+            "hidden"
+        );
+
+        return;
+    }
+
+
+    // ======================================================
+    // GET REPAIRED TEXT
+    // ======================================================
+
+    const repairedBehavior =
+        normalizeBehaviorInput(
+            repairData.repaired_text
+        );
+
+
+    // ======================================================
+    // FINAL FRONTEND VALIDATION
+    // ======================================================
+
+    const finalValidation =
+        validateBehaviorInput(
+            repairedBehavior
+        );
+
+
+    if (
+        !finalValidation.valid
+    ) {
+
+        console.warn(
+            "Final frontend validation failed:",
+            finalValidation.message
+        );
+
+        message.textContent =
+            finalValidation.message;
+
+        message.classList.remove(
+            "hidden"
+        );
+
+        return;
+    }
+
+
+    // ======================================================
+    // FINAL BEHAVIOR
+    // ======================================================
+
+    const behavior =
+        finalValidation.value;
+
+
+    console.log(
+        "========================================"
+    );
+
+    console.log(
+        "FINAL MATCHMAKING INPUT"
+    );
+
+    console.log(
+        "Type:",
+        type
+    );
+
+    console.log(
+        "Sex:",
+        sex
+    );
+
+    console.log(
+        "Age:",
+        age
+    );
+
+    console.log(
+        "Behavior:",
+        behavior
+    );
+    console.log(
+        "========================================"
+    );
+
+    // ======================================================
+    // SHOW LOADING SCREEN
+
+    showLoadingScreen();
+
+    updateMatchingProgress(
+        0,
+        "Preparing your preferences..."
+    );
+
+
+    await new Promise(
+        resolve => setTimeout(resolve, 1000)
+    );
+
+
+    // ======================================================
+    // PROGRESS: 20%
+    // ======================================================
+
+    updateMatchingProgress(
+        20,
+        "Analyzing your preferences..."
+    );
+
+
+    await new Promise(
+        resolve => setTimeout(resolve, 2000)
+    );
+
+
+    // ======================================================
+    // PROGRESS: 40%
+    // ======================================================
+
+    updateMatchingProgress(
+        40,
+        "Searching through available pets..."
+    );
+
+
+    await new Promise(
+        resolve => setTimeout(resolve, 2000)
+    );
+
+
+    // ======================================================
+    // PROGRESS: 60%
+    // ======================================================
+
+    updateMatchingProgress(
+        60,
+        "Comparing your preferences with pet profiles..."
+    );
+
+
+    await new Promise(
+        resolve => setTimeout(resolve, 2000)
+    );
+
+
+    // ======================================================
+    // MATCHMAKING REQUEST
+    // ======================================================
+
+    try {
+
+        updateMatchingProgress(
+            70,
+            "Our AI is calculating compatibility..."
+        );
+
+
+        await new Promise(
+            resolve => setTimeout(resolve, 1000)
+        );
+
+
+        // ==================================================
+        // SEND REQUEST TO MATCHMAKING API
+        // ==================================================
+
+        const response = await fetch(
+            "/api/matchmaking",
+            {
+                method: "POST",
+
+                headers: {
+                    "Content-Type": "application/json"
+                },
+
+                body: JSON.stringify({
+
+                    // Keep the existing matchmaking fields.
+                    // These are NOT changed.
+
+                    type,
+                    sex,
+                    age,
+                    behavior
+                })
+            }
+        );
+        // ==================================================
+        // HANDLE API ERROR
+        // ==================================================
+
+        if (!response.ok) {
+            const errorData = await response.json();
+
+            console.error("Matching error response:", errorData);
+
+            message.textContent =
+                errorData.message ||
+                `Matching request failed: ${response.status}`;
+
+            message.classList.remove("hidden");
+
+            return;
+        }
+
+
+        // ==================================================
+        // RESPONSE RECEIVED
+        // ==================================================
+
+        updateMatchingProgress(
+            85,
+            "Ranking your best matches..."
+        );
+        await new Promise(
+            resolve => setTimeout(resolve, 1000)
+        );
+        const data =
+            await response.json();
+        console.log(
+            "Matchmaking response:",
+            data
+        );
+        // ==================================================
+        // RENDER MATCHES
+        // ==================================================
+        renderMatches(
+            data.matches
+        );
+        // ==================================================
+        // COMPLETE
+        // ==================================================
+
+        updateMatchingProgress(
+            100,
+            "Your matches are ready!"
+        );
+
+        await new Promise(
+            resolve => setTimeout(resolve, 1000)
+        );
+
+
+        // ==================================================
+        // SHOW RESULTS
+        // ==================================================
+
+        showScreen(
+            compatibilityScreen
+        );
+
+    } catch (err) {
+
+        // ==================================================
+        // HANDLE MATCHMAKING ERROR
+        // ==================================================
+
+        console.error(
+            "Matching error:",
+            err
+        );
+
+
+        // Return to preference screen
+        showScreen(
+            preferenceScreen
+        );
+
+
+        message.textContent =
+            "Something went wrong while finding matches. Please try again.";
+
+        message.classList.remove("hidden");
+    }
+}
 // ==========================================================
 // GET PET DATA
 // ==========================================================
@@ -277,167 +1215,6 @@ function updateMatchingProgress(percent, message) {
     if (progressBar) progressBar.style.width = `${percent}%`;
     if (progressText) progressText.textContent = `${percent}%`;
     if (loadingMessage && message) loadingMessage.textContent = message;
-}
-// =========================
-// MATCH PETS
-// =========================
-async function showCompatibilityScreen() {
-
-    const type = document.getElementById("type").value;
-    const sex = document.getElementById("sex").value;
-    const age = document.getElementById("age").value;
-    const behavior = document.getElementById("behavior").value.trim();
-
-    const message = document.getElementById("validationMessage");
-
-    // Hide previous message
-    message.classList.add("hidden");
-
-    // ==============================
-    // VALIDATION
-    // ==============================
-    if (
-        !type ||
-        !sex ||
-        !age ||
-        !behavior
-    ) {
-        message.classList.remove("hidden");
-        return;
-    }
-
-    console.log(type, sex, age, behavior);
-
-        // ==============================
-        // SHOW LOADING SCREEN
-        // ==============================
-        showLoadingScreen();
-
-        // Reset progress to 0%
-        updateMatchingProgress(
-            0,
-            "Preparing your preferences..."
-        );
-
-        // Give the browser a moment to render
-        await new Promise(resolve => setTimeout(resolve, 1000));
-
-        // ==============================
-        // PROGRESS: 20%
-        // ==============================
-        updateMatchingProgress(
-            20,
-            "Analyzing your preferences..."
-        );
-
-        await new Promise(resolve => setTimeout(resolve, 2000));
-
-        // ==============================
-        // PROGRESS: 40%
-        // ==============================
-        updateMatchingProgress(
-            40,
-            "Searching through available pets..."
-        );
-
-        await new Promise(resolve => setTimeout(resolve, 2000));
-
-        // ==============================
-        // PROGRESS: 60%
-        // ==============================
-        updateMatchingProgress(
-            60,
-            "Comparing your preferences with pet profiles..."
-        );
-
-        await new Promise(resolve => setTimeout(resolve, 2000));
-
-        try {
-
-            // ==============================
-            // AI MATCHING REQUEST
-            // ==============================
-
-            updateMatchingProgress(
-                70,
-                "Our AI is calculating compatibility..."
-            );
-            await new Promise(resolve => setTimeout(resolve, 1000));
-
-            const response = await fetch("/api/matchmaking", {
-                method: "POST",
-
-                headers: {
-                    "Content-Type": "application/json"
-                },
-
-                body: JSON.stringify({
-                    type,
-                    sex,
-                    age,
-                    behavior
-                })
-            });
-
-            console.log("Response:", response.status);
-
-            if (!response.ok) {
-                throw new Error(
-                    `Matching request failed: ${response.status}`
-                );
-            }
-
-            // ==============================
-            // RESPONSE RECEIVED
-            // ==============================
-
-            updateMatchingProgress(
-                85,
-                "Ranking your best matches..."
-            );
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            
-            const data = await response.json();
-
-            console.log(data);
-
-            // ==============================
-            // RENDER MATCHES
-            // ==============================
-
-            renderMatches(data.matches);
-
-            // ==============================
-            // COMPLETE
-            // ==============================
-
-            updateMatchingProgress(
-                100,
-                "Your matches are ready!"
-            );
-
-            // Let user see 100%
-            await new Promise(resolve => setTimeout(resolve, 1000));
-
-            // ==============================
-            // SHOW RESULTS
-            // ==============================
-
-            showScreen(compatibilityScreen);
-
-        } catch (err) {
-
-            console.error("Matching error:", err);
-
-            // If something goes wrong,
-            // return to preference screen
-            showScreen(preferenceScreen);
-
-            message.textContent =
-                "Something went wrong while finding matches. Please try again.";
-
-            message.classList.remove("hidden");
-        }
 }
 document
     .getElementById("introNextBtn")
@@ -1158,11 +1935,10 @@ function openMatchPetModal(pet, rank) {
                 "text-gray-700"
             );
     }
-   
     // ===========================
     // MATCH SCORE
     // ===========================
-  
+
     document.getElementById("modalRank").textContent = rank;
     document.getElementById("modalScore").textContent = pet.score + "%";
     document.getElementById("modalFinalScore").textContent = pet.score + "%";
@@ -1183,13 +1959,11 @@ function openMatchPetModal(pet, rank) {
         else {
             remark.textContent = "Possible Match 🐾";
         }
-
     // ===========================
     // MEDICAL HISTORY
     // ===========================
     const body = document.getElementById("modalMedicalBody");
     body.innerHTML = "";
-
     if (pet.medical_history && pet.medical_history.length) {
         pet.medical_history.forEach(record => {
             body.innerHTML += `
@@ -1207,16 +1981,13 @@ function openMatchPetModal(pet, rank) {
             </td>
         </tr>`;
     }
-
     // ===========================
     // OPEN MODAL
     // ===========================
     document.getElementById("viewPetModal").classList.remove("hidden");
     document.getElementById("viewPetModal").classList.add("flex");
-
 }
 function closeMatchPetModal() {
-
     document.getElementById("viewPetModal").classList.add("hidden");
     document.getElementById("viewPetModal").classList.remove("flex");
 }

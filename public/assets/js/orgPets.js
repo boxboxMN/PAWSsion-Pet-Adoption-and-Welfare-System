@@ -127,7 +127,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         subtitle: "Manage pet profiles, monitor availability, and oversee your organization's rescue animals."
     });
 
-    // Load org pets from db
     await loadPets();
 
     // Toggle Adopter Details Form Base sa Adoption Status
@@ -321,11 +320,6 @@ modal.addEventListener("click", (e) => {
         closeModal();
     }
 });
-
-// ==========================
-// FORM SUBMIT PLACEHOLDER
-// ==========================
-// This will later connect to your PHP API
 petForm.addEventListener("submit", async (e)=>{
 
     e.preventDefault();

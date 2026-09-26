@@ -1,0 +1,16 @@
+$kind: http-request
+name: login user
+url: http://localhost:3000/auth/login
+method: POST
+body:
+  type: json
+  content: "{\r
+
+    \  \"email\": \"shin@gmail.com\",\r
+
+    \  \"password\": \"shin@gmail.com\",\r
+
+    \  \"csrfToken\": \"77943857a2845cde04664e32a5f2913c7a23eccb6755e703b2c3bbad27f4f3489ba6c43b51b251d07406bf1694d40a04adb3c4ae32abfb6324578464663cc54c8a947fe9f5ac5fb400b2e4a0d5465bc9baaabb0e140e375131256c992e26f3b0081b406f530c1b364391105bacb20f80a71f100ea3ab402ce45a02b3e3f6c65b\"\r
+
+    }"
+order: 4503599627369229

@@ -1712,28 +1712,30 @@ exports.submitKamustahanUpdate = async (req, res) => {
             });
         }
 
-        // 3. Format Philippine Time and the database target schedule accurately
-        const phTimeOptions = { timeZone: 'Asia/Manila', year: 'numeric', month: '2-digit', day: '2-digit' };
-        const formatter = new Intl.DateTimeFormat('en-CA', phTimeOptions);
-        
-        const phToday = formatter.format(new Date());
-        const targetDateStr = formatter.format(new Date(currentSchedule.target_schedule));
+       // 3. Format Philippine Time and the database target schedule accurately
+            const phTimeOptions = { timeZone: 'Asia/Manila', year: 'numeric', month: '2-digit', day: '2-digit' };
+            const formatter = new Intl.DateTimeFormat('en-CA', phTimeOptions);
 
-        // Prevent 1970-01-01 or invalid empty database date traps
-        if (targetDateStr === '1970-01-01' || !targetDateStr) {
-            return res.status(400).json({ 
-                success: false, 
-                error: "The schedule date for this pet is not yet properly configured in the system." 
-            });
-        }
+            const phToday = formatter.format(new Date());
+            const targetDateStr = formatter.format(new Date(currentSchedule.target_schedule));
 
-        if (targetDateStr !== phToday) {
-            return res.status(400).json({ 
-                success: false, 
-                error: `It is not yet time or the correct date to update this pet. The scheduled date is on ${targetDateStr}.` 
-            });
-        }
+            // Prevent 1970-01-01 or invalid empty database date traps
+            if (targetDateStr === '1970-01-01' || !targetDateStr) {
+                return res.status(400).json({
+                    success: false,
+                    error: "The deadline for this pet is not yet properly configured in the system."
+                });
+            }
 
+            // ==========================================
+            // DEADLINE CHECK (hindi na exact-date)
+            // ==========================================
+            if (phToday > targetDateStr) {
+                return res.status(400).json({
+                    success: false,
+                    error: `The deadline to submit this update has already passed. The scheduled deadline was on ${targetDateStr}.`
+                });
+            }
         // 4. Update the record and set the upload timestamp
         await pool.query(`
             UPDATE kamustahan_updates 

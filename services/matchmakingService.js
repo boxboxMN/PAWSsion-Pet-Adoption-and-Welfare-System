@@ -33,8 +33,10 @@ async function matchPets(preferences) {
     
 
     // Generate ONE embedding for the adopter's description
-    const userEmbedding = await generateEmbedding(behavior);
+    const embeddingResult = await generateEmbedding(behavior);
 
+    const userEmbedding = embeddingResult.embedding;
+    const repairedBehavior = embeddingResult.repairedText;
     // Load pets together with their embeddings
    const [pets] = await pool.query(` 
     SELECT  
@@ -181,9 +183,91 @@ async function matchPets(preferences) {
     // Highest score first
     matches.sort((a, b) => b.score - a.score);
 
-    return matches;
+    return {
+        matches,
+        repairedBehavior
+    };
 }
+// ==========================================================
+// REPAIR BEHAVIOR
+// ==========================================================
 
+async function repairBehavior(behavior) {
+
+    try {
+
+        const axios = require("axios");
+
+        const response = await axios.post(
+            "http://127.0.0.1:5000/repair",
+            {
+                text: behavior
+            }
+        );
+
+
+        console.log("========================================");
+        console.log("FLASK REPAIR RESPONSE");
+        console.log("========================================");
+        console.log(response.data);
+        console.log("========================================");
+
+
+        return response.data;
+
+
+    } catch (error) {
+
+        console.error(
+            "========== FLASK REPAIR ERROR =========="
+        );
+
+
+        if (error.response) {
+
+            console.error(
+                "Flask status:",
+                error.response.status
+            );
+
+            console.error(
+                "Flask response:",
+                error.response.data
+            );
+
+
+            const flaskError =
+                new Error(
+                    error.response.data.message ||
+                    "Invalid behavior description."
+                );
+
+
+            flaskError.status =
+                error.response.status;
+
+
+            flaskError.repairedText =
+                error.response.data.repaired_text;
+
+
+            flaskError.wordCount =
+                error.response.data.word_count;
+
+
+            flaskError.characterCount =
+                error.response.data.character_count;
+
+
+            throw flaskError;
+
+        }
+
+
+        throw error;
+    }
+}
 module.exports = {
-    matchPets
+    matchPets,
+    repairBehavior
 };

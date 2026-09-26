@@ -456,13 +456,12 @@ openEditModalBtn?.addEventListener("click", async () => {
     }, 10);
 });
 
-// LIVE PREVIEW: Pag nagpalit ng Image ang User
 imageUploadInput?.addEventListener("change", (e) => {
     const file = e.target.files[0];
     if (file) {
-        selectedImageFile = file; // I-save sa state variable natin
+        selectedImageFile = file; 
         
-        // Gumawa ng pansamantalang local URL para sa live preview
+    
         const reader = new FileReader();
         reader.onload = function(e) {
             editModalPreview.src = e.target.result;

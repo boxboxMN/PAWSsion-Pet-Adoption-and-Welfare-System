@@ -1248,60 +1248,44 @@ exports.checkAccountStatus = async (req, res, next) => {
         console.error("Check Account Status Error:", err);
         next(); // fail open rather than locking everyone out on a DB hiccup
     }
-};
-
-/**
- * GET /api/session-status
- * Lightweight check: is the current session's account still active?
- */
-exports.getSessionStatus = async (req, res) => {
+};exports.getSessionStatus = async (req, res) => {
     const accountId = req.session?.accountId;
 
-    // No active session
     if (!accountId) {
-        return res.json({
-            active: false,
-            status: "session_expired"
-        });
+        return res.json({ active: false, status: "session_expired" });
     }
 
     try {
         const [[account]] = await pool.query(
-            `SELECT status FROM accounts WHERE account_id = ?`,
+            `SELECT status, current_session_id FROM accounts WHERE account_id = ?`,
             [accountId]
         );
 
-        // Account no longer exists
         if (!account) {
+            return res.json({ active: false, status: "session_expired" });
+        }
+
+        // SAS check
+        if (account.current_session_id && account.current_session_id !== req.sessionID) {
             return res.json({
                 active: false,
-                status: "session_expired"
+                status: "logged_in_elsewhere"
             });
         }
 
-        const blockedStatuses = [
-            "suspended",
-            "banned",
-            "disabled"
-        ];
-
+        const blockedStatuses = ["suspended", "banned", "disabled"];
         const blocked = blockedStatuses.includes(account.status);
 
         return res.json({
             active: !blocked,
-            status: account.status
+            status: account.status,
+            accountId: accountId          // ⭐ IDINAGDAG
         });
-
     } catch (err) {
         console.error("Get Session Status Error:", err);
-
-        // Don't falsely report suspension if the database check fails
-        return res.json({
-            active: true
-        });
+        return res.json({ active: true });
     }
 };
-
 // ==========================================
 // SUBMIT CONTACT MESSAGE (Public — walang kailangang login)
 // POST /api/contact-messages

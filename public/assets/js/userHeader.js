@@ -150,46 +150,142 @@ function initUserNotifications() {
     if (!window.__userNotifPolling) {
         window.__userNotifPolling = true;
         setInterval(loadUserNotifications, 30000);
-        setInterval(checkUserSessionStatus, 5000);
+        setInterval(checkUserSessionStatus, 1500);
     }
 }
 
+// ==========================================
+// FACEBOOK-STYLE SESSION WATCHER + ACCOUNT SWITCH
+// ==========================================
 async function checkUserSessionStatus() {
+    if (isRedirecting) return;
+
     try {
-        const res = await fetch("/api/session-status");
+        const res = await fetch("/api/session-status", {
+            credentials: "same-origin",
+            cache: "no-store"
+        });
+
+        if (res.status === 401 || res.status === 403) {
+            lockUserSidebarAndRedirect("session_expired");
+            return;
+        }
+
         const data = await res.json();
 
+        // 1. Session invalidated (SAS or ban/suspend)
         if (!data.active) {
-            lockUserSidebarAndRedirect(data.status);
+            lockUserSidebarAndRedirect(data.status || "session_expired");
+            return;
+        }
+
+        // 2. ⭐ ACCOUNT SWITCH DETECTION (same browser, different tab)
+        if (data.accountId) {
+            const savedAccountId = sessionStorage.getItem("pawpon_tab_account_id");
+
+            if (!savedAccountId) {
+                // First poll — i-save ang account ID ng tab na ito
+                sessionStorage.setItem("pawpon_tab_account_id", String(data.accountId));
+            } else if (String(savedAccountId) !== String(data.accountId)) {
+                // ❌ Ibang account na ang naka-login sa browser na ito
+                console.log(`[Account Switch] Tab had ${savedAccountId}, now ${data.accountId}`);
+                lockUserSidebarAndRedirect("account_switched");
+            }
         }
     } catch (err) {
-        console.error("Failed to check session status:", err);
+        console.warn("Session check failed:", err.message);
     }
 }
 
 let isRedirecting = false;
 
 function lockUserSidebarAndRedirect(reason) {
-    // Prevent this from running multiple times
     if (isRedirecting) return;
     isRedirecting = true;
 
-    document.querySelectorAll(".nav-link").forEach(link => {
-        if (link.id !== "logoutLink") {
-            link.classList.add("opacity-40", "cursor-not-allowed");
-            link.addEventListener("click", (e) => e.preventDefault());
-        }
+    // 1. I-disable ang lahat ng clickable elements
+    document.querySelectorAll("a, button, input, select, textarea").forEach(el => {
+        el.style.pointerEvents = "none";
+        el.style.opacity = "0.4";
     });
 
-    const banner = document.createElement("div");
-    banner.className = "fixed top-0 left-0 right-0 bg-red-600 text-white text-center py-3 z-[9999] text-sm font-semibold";
-    banner.textContent = "Your account status has changed. Redirecting to login...";
-    document.body.prepend(banner);
+    // 2. I-blur at i-hide agad ang buong page content (privacy)
+    const mainContent = document.querySelector("main") || document.body;
+    mainContent.style.filter = "blur(8px)";
+    mainContent.style.opacity = "0.15";
+    mainContent.style.transition = "opacity 0.15s";
 
+    // 3. Overlay (Facebook-style)
+    const overlay = document.createElement("div");
+    overlay.id = "sessionEndedOverlay";
+    overlay.style.cssText = `
+        position: fixed;
+        inset: 0;
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+        z-index: 99998;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        gap: 16px;
+        font-family: system-ui, -apple-system, sans-serif;
+    `;
+
+    // Iba ang title kapag account switch
+    const isSwitch = reason === "account_switched";
+    const titleText = isSwitch
+        ? "Different account signed in"
+        : "Signed in on another device";
+    const subtitleText = isSwitch
+        ? "A different account was signed in on this browser. Redirecting..."
+        : "Your account was signed in elsewhere. Redirecting...";
+
+    overlay.innerHTML = `
+        <div style="
+            width: 48px; height: 48px;
+            border: 4px solid #e5e7eb;
+            border-top-color: #1656ff;
+            border-radius: 50%;
+            animation: sasSpin 0.6s linear infinite;
+        "></div>
+        <div style="text-align: center;">
+            <p style="
+                color: #0f172a;
+                font-size: 15px;
+                font-weight: 700;
+                margin: 0 0 4px;
+            ">${titleText}</p>
+            <p style="
+                color: #64748b;
+                font-size: 12px;
+                margin: 0;
+            ">${subtitleText}</p>
+        </div>
+        <style>
+            @keyframes sasSpin { to { transform: rotate(360deg); } }
+        </style>
+    `;
+    document.body.appendChild(overlay);
+
+    // 4. I-force logout sa server — PERO hindi kapag account switch
+    if (reason !== "account_switched") {
+        fetch("/auth/logout", {
+            method: "POST",
+            credentials: "same-origin",
+            keepalive: true
+        }).catch(() => {});
+    }
+
+    // 5. I-clear ang tab-specific storage
+    try {
+        sessionStorage.removeItem("pawpon_tab_account_id");
+    } catch (e) { /* ignore */ }
+
+    // 6. ⭐ Redirect — 250ms na lang (dating 1500ms)
     setTimeout(() => {
         const loginReason = reason || "session_expired";
-
-        window.location.href =
-            `/auth/login?reason=${encodeURIComponent(loginReason)}`;
-    }, 2500);
+        window.location.replace(`/auth/login?reason=${encodeURIComponent(loginReason)}`);
+    }, 250);
 }

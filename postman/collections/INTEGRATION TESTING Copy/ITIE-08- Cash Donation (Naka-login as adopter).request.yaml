@@ -1,0 +1,5 @@
+$kind: http-request
+name: "ITIE-08: Cash Donation (Naka-login as adopter)"
+url: ""
+method: GET
+order: 4498163561451397
