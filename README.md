@@ -756,3 +756,5 @@ npm install file-type
 .VENV
 python -m pip install wordninja
 python -m pip install symspellpy
+
+# test the matchmaking for etagalog input 
