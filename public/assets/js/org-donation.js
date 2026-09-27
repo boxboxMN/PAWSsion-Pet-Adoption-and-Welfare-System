@@ -6,12 +6,19 @@
 const NO_QR_PLACEHOLDER = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="150" height="150" viewBox="0 0 150 150"><rect width="100%" height="100%" fill="%23f3f4f6"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="14" font-weight="bold" fill="%239ca3af">No QR Code</text></svg>';
 
 // Global state
-let activeTab = 'cash'; // 'cash' or 'inkind'
+let activeTab = 'cash';
 let allDonations = [];
 let allInKindDonations = [];
 let selectedDonationId = null;
 let selectedInKindId = null;
 let currentReceiptPath = null;
+
+// ⭐ PAGINATION STATE
+const ROWS_PER_PAGE = 5;
+let cashCurrentPage    = 1;
+let inkindCurrentPage  = 1;
+let cashFilteredData   = [];
+let inkindFilteredData = [];
 
 document.addEventListener("DOMContentLoaded", async () => {
     // Load Shared Layout Components
@@ -117,6 +124,9 @@ function switchDonationTab(tab) {
         inkindContainer.classList.remove("hidden");
         cashContainer.classList.add("hidden");
     }
+     // Reset page para sa tab na pinasok
+    if (tab === 'cash') cashCurrentPage = 1;
+    else inkindCurrentPage = 1;
 
     // Optional: i-clear o i-retrigger ang filter para sumakto sa napiling tab
     filterDonations();
@@ -481,10 +491,6 @@ initialPaymentFormState = {
         );
     }
 }
-/**
- * Retrieves all cash donations and displays
- * them in the donations table[cite: 5].
- */
 async function fetchDonations() {
     try {
         const res = await fetch("/org/donations");
@@ -502,6 +508,7 @@ async function fetchDonations() {
                 totalDisplay.textContent = `₱${totalAmount}`;
             }
 
+            cashCurrentPage = 1;                    // ⭐ IDINAGDAG
             renderDonationsTable(allDonations);
         }
     } catch (error) {
@@ -512,22 +519,30 @@ async function fetchDonations() {
         }
     }
 }
-
-/**
- * Displays the cash donations in the table
- * with their corresponding details and status[cite: 5].
- */
 function renderDonationsTable(donations) {
     const tbody = document.getElementById("donationsTableBody");
     if (!tbody) return;
 
-    if (!donations || donations.length === 0) {
+    cashFilteredData = donations || [];
+
+    // Empty state
+    if (cashFilteredData.length === 0) {
         tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-gray-400">No cash donations recorded yet.</td></tr>`;
-        updatePaginationInfo(0);
+        updatePaginationInfo("paginationInfo", 0, 0, 0);
+        renderPaginationButtons("paginationButtons", 1, 1, () => {}, 0);
         return;
     }
 
-    tbody.innerHTML = donations.map((d) => {
+    // ⭐ Compute current page slice
+    const totalPages = Math.max(1, Math.ceil(cashFilteredData.length / ROWS_PER_PAGE));
+    if (cashCurrentPage > totalPages) cashCurrentPage = totalPages;
+    if (cashCurrentPage < 1) cashCurrentPage = 1;
+
+    const startIdx = (cashCurrentPage - 1) * ROWS_PER_PAGE;
+    const endIdx   = startIdx + ROWS_PER_PAGE;
+    const pageData = cashFilteredData.slice(startIdx, endIdx);
+
+    tbody.innerHTML = pageData.map((d) => {
         const dateObj = new Date(d.created_at);
         const dateStr = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
         const timeStr = dateObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
@@ -545,8 +560,7 @@ function renderDonationsTable(donations) {
 
         const formattedAmount = parseFloat(d.amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2 });
         const donationId = d.cash_donation_id || d.id;
-        
-        // Dynamic detection para sa Maya at GCash
+
         const rawMethod = (d.payment_method || d.gateway || d.type || 'gcash').toLowerCase();
         let methodLabel = 'GCASH';
         if (rawMethod.includes('maya') || rawMethod.includes('paymaya')) {
@@ -587,13 +601,13 @@ function renderDonationsTable(donations) {
         `;
     }).join("");
 
-    updatePaginationInfo(donations.length);
+    updatePaginationInfo("paginationInfo", startIdx + 1, Math.min(endIdx, cashFilteredData.length), cashFilteredData.length);
+    renderPaginationButtons("paginationButtons", cashCurrentPage, totalPages, (p) => {
+        cashCurrentPage = p;
+        renderDonationsTable(cashFilteredData);
+    }, cashFilteredData.length);
 }
 
-/**
- * Retrieves all in-kind donations from the server
- * and updates the donation summary[cite: 5].
- */
 async function fetchInKindDonations() {
     try {
         const res = await fetch("/org/donations/in-kind");
@@ -607,6 +621,7 @@ async function fetchInKindDonations() {
                 displayTotal.textContent = result.totalInKind || 0; 
             }
 
+            inkindCurrentPage = 1;                     // ⭐ IDINAGDAG
             renderInKindTable(allInKindDonations);
         }
     } catch (error) {
@@ -617,22 +632,28 @@ async function fetchInKindDonations() {
         }
     }
 }
-
-/**
- * Displays the list of in-kind donations
- * in the donations table[cite: 5].
- */
 function renderInKindTable(donations) {
     const tbody = document.getElementById("inkindTableBody");
     if (!tbody) return;
 
-    if (!donations || donations.length === 0) {
+    inkindFilteredData = donations || [];
+
+    if (inkindFilteredData.length === 0) {
         tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-gray-400">No in-kind donations submitted yet.</td></tr>`;
-        document.getElementById("inkindPaginationInfo").textContent = "Showing 0 results";
+        updatePaginationInfo("inkindPaginationInfo", 0, 0, 0);
+        renderPaginationButtons("inkindPaginationButtons", 1, 1, () => {}, 0);
         return;
     }
 
-    tbody.innerHTML = donations.map((d) => {
+    const totalPages = Math.max(1, Math.ceil(inkindFilteredData.length / ROWS_PER_PAGE));
+    if (inkindCurrentPage > totalPages) inkindCurrentPage = totalPages;
+    if (inkindCurrentPage < 1) inkindCurrentPage = 1;
+
+    const startIdx = (inkindCurrentPage - 1) * ROWS_PER_PAGE;
+    const endIdx   = startIdx + ROWS_PER_PAGE;
+    const pageData = inkindFilteredData.slice(startIdx, endIdx);
+
+    tbody.innerHTML = pageData.map((d) => {
         const dateObj = new Date(d.created_at || Date.now());
         const dateStr = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 
@@ -665,9 +686,12 @@ function renderInKindTable(donations) {
         `;
     }).join("");
 
-    document.getElementById("inkindPaginationInfo").textContent = `Showing 1 to ${donations.length} of ${donations.length} results`;
+    updatePaginationInfo("inkindPaginationInfo", startIdx + 1, Math.min(endIdx, inkindFilteredData.length), inkindFilteredData.length);
+    renderPaginationButtons("inkindPaginationButtons", inkindCurrentPage, totalPages, (p) => {
+        inkindCurrentPage = p;
+        renderInKindTable(inkindFilteredData);
+    }, inkindFilteredData.length);
 }
-
 /**
  * Opens the in-kind donation review modal
  * and displays the selected donation details[cite: 5].
@@ -823,11 +847,6 @@ async function updateInKindStatus(newStatus, reason = null) {
         showToast("An error occurred while updating status.", 'error'); 
     }
 }
-
-/**
- * Filters cash and in-kind donations
- * based on the search keyword and status[cite: 5].
- */
 function filterDonations() {
     const searchInput = document.getElementById("searchInput");
     const statusSelect = document.getElementById("statusFilter");
@@ -836,6 +855,7 @@ function filterDonations() {
     const statusFilter = statusSelect ? statusSelect.value : "ALL";
 
     if (activeTab === 'cash') {
+        cashCurrentPage = 1;   // ⭐ reset sa page 1
         const filtered = allDonations.filter(d => {
             const matchesSearch = 
                 (d.donor_name && d.donor_name.toLowerCase().includes(searchTerm)) ||
@@ -851,6 +871,7 @@ function filterDonations() {
         });
         renderDonationsTable(filtered);
     } else {
+        inkindCurrentPage = 1;   // ⭐ reset sa page 1
         const filtered = allInKindDonations.filter(d => {
             const matchesSearch = 
                 (d.donor_name && d.donor_name.toLowerCase().includes(searchTerm)) ||
@@ -866,7 +887,6 @@ function filterDonations() {
         renderInKindTable(filtered);
     }
 }
-
 /**
  * Shows or hides the action dropdown menu
  * for the selected cash donation[cite: 5].
@@ -881,14 +901,113 @@ function toggleActionDropdown(e, id) {
 }
 
 /**
- * Updates the pagination information
- * displayed below the donations table[cite: 5].
+ * Updates the "Showing X to Y of Z results" text.
  */
-function updatePaginationInfo(count) {
-    const pagInfo = document.getElementById("paginationInfo");
-    if (pagInfo) {
-        pagInfo.textContent = `Showing 1 to ${count} of ${count} results`;
+function updatePaginationInfo(elementId, start, end, total) {
+    const pagInfo = document.getElementById(elementId);
+    if (!pagInfo) return;
+
+    if (total === 0) {
+        pagInfo.textContent = "Showing 0 results";
+    } else {
+        pagInfo.textContent = `Showing ${start} to ${end} of ${total} results`;
     }
+}
+
+/**
+ * Renders prev / page numbers / next inside the given container.
+ */
+function renderPaginationButtons(containerId, currentPage, totalPages, onPageClick, total) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    container.innerHTML = "";
+
+    // Kung 1 page lang o walang laman, itago ang lahat ng buttons
+    if (total === 0 || totalPages <= 1) {
+        return;
+    }
+
+    const makeBtn = (label, page, { disabled = false, active = false } = {}) => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+
+        let cls = "min-w-[36px] h-9 px-3 rounded-lg text-sm font-semibold border transition flex items-center justify-center";
+
+        if (active) {
+            cls += " bg-indigo-600 text-white border-indigo-600 shadow-sm";
+        } else if (disabled) {
+            cls += " bg-gray-50 text-gray-300 border-gray-200 cursor-not-allowed";
+        } else {
+            cls += " bg-white text-gray-600 border-gray-200 hover:bg-gray-50 hover:text-indigo-700";
+        }
+
+        btn.className = cls;
+        btn.innerHTML = label;
+        btn.disabled = disabled;
+
+        if (!disabled && !active) {
+            btn.addEventListener("click", () => onPageClick(page));
+        }
+        return btn;
+    };
+
+    // Prev
+    container.appendChild(makeBtn(
+        '<i class="fa-solid fa-chevron-left text-xs"></i>',
+        currentPage - 1,
+        { disabled: currentPage === 1 }
+    ));
+
+    // Page numbers with ellipsis
+    const pages = getPaginationRange(currentPage, totalPages);
+    pages.forEach(p => {
+        if (p === "...") {
+            const span = document.createElement("span");
+            span.className = "px-1 text-gray-400 text-sm font-semibold select-none";
+            span.textContent = "...";
+            container.appendChild(span);
+        } else {
+            container.appendChild(makeBtn(p, p, { active: p === currentPage }));
+        }
+    });
+
+    // Next
+    container.appendChild(makeBtn(
+        '<i class="fa-solid fa-chevron-right text-xs"></i>',
+        currentPage + 1,
+        { disabled: currentPage === totalPages }
+    ));
+}
+
+/**
+ * Helper para sa page numbers with ellipsis (hal. 1 … 4 5 6 … 20)
+ */
+function getPaginationRange(current, total) {
+    const delta = 1;
+    const range = [];
+    const rangeWithDots = [];
+    let last;
+
+    for (let i = 1; i <= total; i++) {
+        if (i === 1 || i === total || (i >= current - delta && i <= current + delta)) {
+            range.push(i);
+        }
+    }
+
+    range.forEach(i => {
+        if (last) {
+            if (i - last === 2) {
+                rangeWithDots.push(last + 1);
+            } else if (i - last > 2) {
+                rangeWithDots.push("...");
+            }
+        }
+        rangeWithDots.push(i);
+        last = i;
+    });
+
+    return rangeWithDots;
 }
 
 /**

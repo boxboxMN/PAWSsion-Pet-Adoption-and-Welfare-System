@@ -71,10 +71,17 @@ document.addEventListener("DOMContentLoaded", async () => {
             return;
         }
 
-        if (modalQrImage)         modalQrImage.src                 = qrImageSrc;
-        if (qrModalAccountName)   qrModalAccountName.textContent   = nameText   || "N/A";
-        if (qrModalAccountNumber) qrModalAccountNumber.textContent = numberText || "N/A";
+        const method = paymentMethodSelect ? paymentMethodSelect.value : "GCash";
 
+if (modalQrImage) {
+    modalQrImage.src = qrImageSrc;   // fallback
+    cropQrToSquare(qrImageSrc, method).then(cropped => {
+        modalQrImage.src = cropped;
+    });
+}
+
+if (qrModalAccountName)   qrModalAccountName.textContent   = nameText   || "N/A";
+if (qrModalAccountNumber) qrModalAccountNumber.textContent = numberText || "N/A";
         if (qrModal) {
             qrModal.classList.add("active");
             qrModal.style.display = "flex";     // ← guarantees it shows
@@ -991,11 +998,23 @@ if (fileNameEl) {
                 return;
             }
 
-            if (modalImg) modalImg.src = src;
+                            // ⭐ Detect payment method para tamang crop
+            const methodSelect = document.getElementById("paymentMethod");
+            const currentMethod = methodSelect ? methodSelect.value : "GCash";
+
+            // ⭐ I-crop MUNA bago ipakita — walang fallback, walang glitch
+            if (modalImg) {
+                modalImg.style.opacity = "0";
+                cropQrToSquare(src, currentMethod).then(cropped => {
+                    modalImg.src = cropped;
+                    modalImg.style.opacity = "1";
+                });
+            }
+
             if (modalNm)  modalNm.textContent = (nameEl && nameEl.textContent.trim()) || "N/A";
             if (modalNo)  modalNo.textContent = (numEl  && numEl.textContent.trim())  || "N/A";
 
-            modal.classList.add("active");
+                modal.classList.add("active");
             modal.style.cssText = `
                 display: flex !important;
                 position: fixed !important;
@@ -1050,3 +1069,84 @@ if (fileNameEl) {
         initQrHandlers();
     }
 })();
+function cropQrToSquare(src, method = "gcash") {
+    return new Promise((resolve) => {
+        if (!src) { resolve(src); return; }
+
+        const img = new Image();
+        // ⭐ WALANG crossOrigin — same-origin ang mga images, kailangan ito para gumana ang canvas
+        // img.crossOrigin = "anonymous";
+
+        img.onload = () => {
+            const w = img.width;
+            const h = img.height;
+            const ratio = w / h;
+
+            let cropX = 0, cropY = 0, cropW = w, cropH = h;
+
+            if (ratio < 0.95) {
+                let widthPct, topPct, bottomPct;
+
+                if (String(method).toLowerCase().includes("maya")) {
+                    // Maya: QR is in lower-middle, after green header + logo + name + phone
+                    widthPct  = 0.72;
+                    topPct    = 0.36;   // ⭐ Start below name/phone
+                    bottomPct = 0.72;   // ⭐ End before "Transfer fees may apply"
+                } else {
+                    // GCash: QR is in upper area, right after blue header bar
+                    widthPct  = 0.60;
+                    topPct    = 0.22;   // ⭐ Taasan para laktawan ang blue bar
+                    bottomPct = 0.46;
+                }
+
+                // Compute crop region
+                cropW = w * widthPct;
+                cropX = (w - cropW) / 2;
+                cropY = h * topPct;
+                cropH = (h * bottomPct) - cropY;
+
+                // ⭐ Force SQUARE — pantay ang lapad at taas
+                const size = Math.max(cropW, cropH);
+                cropW = size;
+                cropH = size;
+
+                // ⭐ Re-center sa original crop center Y
+                const originalCenterY = (h * topPct) + ((h * bottomPct) - (h * topPct)) / 2;
+                cropX = (w - cropW) / 2;
+                cropY = originalCenterY - (cropH / 2);
+
+                // ⭐ Clamp sa image bounds
+                if (cropY < 0) cropY = 0;
+                if (cropY + cropH > h) cropY = h - cropH;
+                if (cropX < 0) cropX = 0;
+                if (cropX + cropW > w) cropX = w - cropW;
+            }
+
+            // ⭐ Output — 600×600 square PNG
+            const outSize = 600;
+            const canvas = document.createElement("canvas");
+            canvas.width  = outSize;
+            canvas.height = outSize;
+            const ctx = canvas.getContext("2d");
+
+            ctx.fillStyle = "#ffffff";
+            ctx.fillRect(0, 0, outSize, outSize);
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = "high";
+            ctx.drawImage(img, cropX, cropY, cropW, cropH, 0, 0, outSize, outSize);
+
+            try {
+                resolve(canvas.toDataURL("image/png"));
+            } catch (e) {
+                console.warn("[QR Crop] Canvas export failed:", e);
+                resolve(src);
+            }
+        };
+
+        img.onerror = (e) => {
+            console.warn("[QR Crop] Image load failed:", e);
+            resolve(src);
+        };
+        img.src = src;
+    });
+}

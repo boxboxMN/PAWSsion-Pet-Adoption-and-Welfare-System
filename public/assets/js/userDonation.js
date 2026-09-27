@@ -3,6 +3,10 @@ let rawDonationsData = [];
 // Stores the currently selected receipt path for zoom/view actions
 let currentActiveReceiptPath = "";
 
+// ⭐ Pagination state
+const ROWS_PER_PAGE = 5;             // ilang rows kada page
+let currentPage = 1;
+let currentFilteredData = [];        // filtered list para sa pagination
     document.addEventListener("DOMContentLoaded", async () => {
     await loadSidebar();
     // Wait one tick so the header HTML exists
@@ -20,10 +24,6 @@ let currentActiveReceiptPath = "";
     await fetchUserDonations();
 });
 
-/**
- * Fetches all donation records of the logged-in user
- * from the server and updates the table and statistics.
- */
 async function fetchUserDonations() {
     try {
         const response = await fetch('/api/user/donations');
@@ -31,6 +31,7 @@ async function fetchUserDonations() {
 
         if (result.success) {
             rawDonationsData = result.donations;
+            currentPage = 1;                   // ⭐ reset
             renderDonations(rawDonationsData);
             calculateStats(rawDonationsData);
         } else {
@@ -41,19 +42,28 @@ async function fetchUserDonations() {
         showEmptyTable("No donations found or error connecting to server.");
     }
 }
-
-/**
- * Renders donation records into the donation table.
- */
 function renderDonations(data) {
+    currentFilteredData = data || [];
+
     const tbody = document.getElementById("donationTableBody");
     tbody.innerHTML = "";
 
-    if (!data || data.length === 0) {
+    if (currentFilteredData.length === 0) {
         showEmptyTable("No donation records found.");
+        updatePaginationUI();
         return;
     }
-    data.forEach(item => {
+
+    // ⭐ Compute slice for current page
+    const totalPages = Math.max(1, Math.ceil(currentFilteredData.length / ROWS_PER_PAGE));
+    if (currentPage > totalPages) currentPage = totalPages;
+    if (currentPage < 1) currentPage = 1;
+
+    const startIdx = (currentPage - 1) * ROWS_PER_PAGE;
+    const endIdx   = startIdx + ROWS_PER_PAGE;
+    const pageData = currentFilteredData.slice(startIdx, endIdx);
+
+    pageData.forEach(item => {
         const formattedDate = new Date(item.date).toLocaleDateString("en-US", {
             year: 'numeric',
             month: 'short',
@@ -62,14 +72,13 @@ function renderDonations(data) {
 
         const isCash = item.type === "Cash";
         const iconClass = isCash ? "fa-money-bill-wave" : "fa-box-open";
-        
+
         let detailsHtml = `<h3 class="font-medium text-gray-800">${item.organization || 'Animal Shelter'}</h3>`;
         if (isCash && item.reference_number) {
             detailsHtml += `<p class="text-xs text-gray-400 mt-0.5">Ref No: ${item.reference_number}</p>`;
         }
 
-        // Updated para gamitin ang item_name at quantity kung in-kind
-        const amountOrItems = isCash 
+        const amountOrItems = isCash
             ? `₱ ${parseFloat(item.amount).toLocaleString('en-US', {minimumFractionDigits: 2})}`
             : (item.item_name ? `${item.item_name} (${item.quantity || ''})` : (item.items || 'In-Kind Items'));
 
@@ -116,6 +125,119 @@ function renderDonations(data) {
         `;
         tbody.appendChild(tr);
     });
+
+    updatePaginationUI();
+}
+function updatePaginationUI() {
+    const infoEl     = document.getElementById("paginationInfo");
+    const controlsEl = document.getElementById("paginationControls");
+    const footerEl   = document.getElementById("paginationFooter");
+
+    if (!infoEl || !controlsEl || !footerEl) return;
+
+    const total = currentFilteredData.length;
+
+    // Kung walang laman, itago ang footer
+    if (total === 0) {
+        footerEl.classList.add("hidden");
+        return;
+    }
+    footerEl.classList.remove("hidden");
+
+    const totalPages = Math.max(1, Math.ceil(total / ROWS_PER_PAGE));
+    const startIdx   = (currentPage - 1) * ROWS_PER_PAGE + 1;
+    const endIdx     = Math.min(currentPage * ROWS_PER_PAGE, total);
+
+    infoEl.textContent = `Showing ${endIdx - startIdx + 1} of ${total} results`;
+
+    // Build page buttons
+    controlsEl.innerHTML = "";
+
+    const makeBtn = (label, page, { disabled = false, active = false, isIcon = false } = {}) => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+
+        let cls = "min-w-[36px] h-9 px-3 rounded-lg text-sm font-semibold border transition flex items-center justify-center";
+
+        if (active) {
+            cls += " bg-blue-600 text-white border-blue-600 shadow-sm";
+        } else if (disabled) {
+            cls += " bg-gray-50 text-gray-300 border-gray-200 cursor-not-allowed";
+        } else {
+            cls += " bg-white text-gray-600 border-gray-200 hover:bg-gray-50 hover:text-blue-700";
+        }
+
+        btn.className = cls;
+        btn.innerHTML = label;
+        btn.disabled = disabled;
+
+        if (!disabled) {
+            btn.addEventListener("click", () => goToPage(page));
+        }
+        return btn;
+    };
+
+    // Prev
+    controlsEl.appendChild(makeBtn(
+        '<i class="fa-solid fa-chevron-left text-xs"></i>',
+        currentPage - 1,
+        { disabled: currentPage === 1, isIcon: true }
+    ));
+
+    // Page numbers with ellipsis logic
+    const pages = getPaginationRange(currentPage, totalPages);
+    pages.forEach(p => {
+        if (p === "...") {
+            const span = document.createElement("span");
+            span.className = "px-1 text-gray-400 text-sm font-semibold select-none";
+            span.textContent = "...";
+            controlsEl.appendChild(span);
+        } else {
+            controlsEl.appendChild(makeBtn(p, p, { active: p === currentPage }));
+        }
+    });
+
+    // Next
+    controlsEl.appendChild(makeBtn(
+        '<i class="fa-solid fa-chevron-right text-xs"></i>',
+        currentPage + 1,
+        { disabled: currentPage === totalPages, isIcon: true }
+    ));
+}
+
+function getPaginationRange(current, total) {
+    const delta = 1; // ilang pages sa bawat tabi ng current
+    const range = [];
+    const rangeWithDots = [];
+    let last;
+
+    for (let i = 1; i <= total; i++) {
+        if (i === 1 || i === total || (i >= current - delta && i <= current + delta)) {
+            range.push(i);
+        }
+    }
+
+    range.forEach(i => {
+        if (last) {
+            if (i - last === 2) {
+                rangeWithDots.push(last + 1);
+            } else if (i - last > 2) {
+                rangeWithDots.push("...");
+            }
+        }
+        rangeWithDots.push(i);
+        last = i;
+    });
+
+    return rangeWithDots;
+}
+
+function goToPage(page) {
+    const totalPages = Math.max(1, Math.ceil(currentFilteredData.length / ROWS_PER_PAGE));
+    if (page < 1 || page > totalPages || page === currentPage) return;
+
+    currentPage = page;
+    renderDonations(currentFilteredData);
 }
 /**
  * Calculates and updates dashboard statistics.
