@@ -762,7 +762,80 @@ function getMatchScorePercent(match) {
     }
     return score;
 }
+const typeSelect = document.getElementById("type");
+const ageSelect = document.getElementById("age");
+function updateAgeOptions() {
+    const selectedType = typeSelect.value;
 
+    // Save the currently selected age value
+    const currentAge = ageSelect.value;
+
+    // Clear existing age options
+    ageSelect.innerHTML = "";
+
+    // Default placeholder
+    const placeholder = document.createElement("option");
+    placeholder.value = "";
+    placeholder.disabled = true;
+    placeholder.textContent = "Select Age";
+    ageSelect.appendChild(placeholder);
+
+    // Any option
+    const anyOption = document.createElement("option");
+    anyOption.value = "Any";
+    anyOption.textContent = "Any";
+    ageSelect.appendChild(anyOption);
+
+    // 0–1 year old option
+    const youngOption = document.createElement("option");
+
+    // IMPORTANT:
+    // Keep the backend value unchanged.
+    youngOption.value = "Puppy/Kitten (0-1 yr old)";
+
+    if (selectedType === "Dog") {
+        youngOption.textContent = "Puppy (0-1 yr old)";
+    } else if (selectedType === "Cat") {
+        youngOption.textContent = "Kitten (0-1 yr old)";
+    } else {
+        youngOption.textContent = "Puppy/Kitten (0-1 yr old)";
+    }
+
+    ageSelect.appendChild(youngOption);
+
+    // Adolescence
+    const adolescenceOption = document.createElement("option");
+    adolescenceOption.value = "Adolescence (2-3 yrs old)";
+    adolescenceOption.textContent = "Adolescence (2-3 yrs old)";
+    ageSelect.appendChild(adolescenceOption);
+
+    // Adult
+    const adultOption = document.createElement("option");
+    adultOption.value = "Adult (4-7 yrs old)";
+    adultOption.textContent = "Adult (4-7 yrs old)";
+    ageSelect.appendChild(adultOption);
+
+    // Senior
+    const seniorOption = document.createElement("option");
+    seniorOption.value = "Senior (8-10 yrs old)";
+    seniorOption.textContent = "Senior (8-10 yrs old)";
+    ageSelect.appendChild(seniorOption);
+
+    // Restore previously selected value if it still exists
+    if (
+        currentAge === "Any" ||
+        currentAge === "Puppy/Kitten (0-1 yr old)" ||
+        currentAge === "Adolescence (2-3 yrs old)" ||
+        currentAge === "Adult (4-7 yrs old)" ||
+        currentAge === "Senior (8-10 yrs old)"
+    ) {
+        ageSelect.value = currentAge;
+    } else {
+        ageSelect.value = "";
+    }
+}
+typeSelect.addEventListener("change", updateAgeOptions);
+updateAgeOptions();
 document.addEventListener("DOMContentLoaded", async () => {
     // Wait until sidebar + header are loaded
     await loadSidebar();

@@ -86,7 +86,12 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use((req, res, next) => {
-    console.log("Incoming:", req.method, req.url);
+    const ignoredRoutes = [
+        "/api/session-status"
+    ];
+    if (!ignoredRoutes.includes(req.path)) {
+        console.log(`Incoming: ${req.method} ${req.url}`);
+    }
     next();
 });
 

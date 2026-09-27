@@ -55,159 +55,178 @@ def get_words(text):
     )
 # ============================================================
 # GIBBERISH DETECTION
+# ============================================================
+
 COMMON_SHORT_WORDS = {
     "a", "i", "an", "am", "as", "at", "be", "by", "do", "go",
     "he", "if", "in", "is", "it", "me", "my", "no", "of", "on",
     "or", "so", "to", "up", "us", "we",
+
     # Common Tagalog / Taglish
     "ako", "ang", "at", "ay", "ba", "dahil", "din", "doon",
     "ito", "iyan", "iyon", "ka", "kay", "ko", "kung", "may",
     "mo", "na", "ng", "ni", "o", "pa", "para", "sa", "si",
-    "sila", "sino", "ito", "the"
+    "sila", "sino", "the"
 }
+
 
 def is_suspicious_word(word):
     """
-    Detect whether ONE word looks like random/gibberish text.
+    Detect whether ONE word strongly resembles random/gibberish text.
+    This intentionally avoids aggressive consonant-pattern rules
+    because legitimate English words can contain consonant clusters.
     """
+
     word = word.lower().strip()
+
     # Remove apostrophes only for analysis
     clean = re.sub(r"['’]", "", word)
 
     if not clean:
         return False
+
     # Normal short words are allowed
     if clean in COMMON_SHORT_WORDS:
         return False
+
     # --------------------------------------------------------
     # 1. RANDOM SINGLE LETTERS
     # --------------------------------------------------------
-    # Only a and i are normally valid standalone English words.
+
     if len(clean) == 1:
         return clean not in {"a", "i"}
+
     # --------------------------------------------------------
-    # 2. VERY SHORT NON-WORDS
-    # -------------------------------------------------------
-    # Two-letter words that are not common words are suspicious.
+    # 2. TWO-LETTER NON-WORDS
+    # --------------------------------------------------------
+
     if len(clean) == 2:
         return True
-    # Three-letter words with no vowel are highly suspicious.
-    if len(clean) == 3:
-        vowels = re.findall(
-            r"[aeiouáéíóúàèìòùâêîôûäëïöü]",
-            clean,
-            re.IGNORECASE
-        )
 
-        if len(vowels) == 0:
-            return True
     # --------------------------------------------------------
-    # 3. FIVE OR MORE CONSONANTS IN A ROW
+    # 3. THREE-LETTER WORDS WITH NO VOWEL
     # --------------------------------------------------------
-    if re.search(
-        r"[bcdfghjklmnpqrstvwxyz]{5,}",
-        clean,
-        re.IGNORECASE
-    ):
-        return True
-    # --------------------------------------------------------
-    # 4. REPETITIVE RANDOM PATTERNS
-    # --------------------------------------------------------
-    if re.fullmatch(
-        r"(.{1,2})\1{3,}",
-        clean,
-        re.IGNORECASE
-    ):
-        return True
-    # --------------------------------------------------------
-    # 5. VOWEL / CONSONANT ANALYSIS
-    # --------------------------------------------------------
+
     vowels = re.findall(
-        r"[aeiouáéíóúàèìòùâêîôûäëïöü]",
-        clean,
-        re.IGNORECASE
-    )
-    consonants = re.findall(
-        r"[bcdfghjklmnpqrstvwxyz]",
+        r"[aeiouyáéíóúàèìòùâêîôûäëïöü]",
         clean,
         re.IGNORECASE
     )
 
-    length = len(clean)
-    vowel_count = len(vowels)
-    consonant_count = len(consonants)
-    # Long words with almost no vowels are suspicious.
-    if length >= 5 and vowel_count == 0:
+    if len(clean) == 3 and len(vowels) == 0:
         return True
-    if length >= 7 and vowel_count / length < 0.15:
-        return True
-    # Extremely consonant-heavy words
-    if length >= 7 and consonant_count / length >= 0.75:
-        return True
+
     # --------------------------------------------------------
-    # 6. REPEATED CONSONANT PATTERNS
+    # 4. EXTREME REPEATED CHARACTERS
     # --------------------------------------------------------
+
+    if re.search(r"(.)\1{3,}", clean, re.IGNORECASE):
+        return True
+
+    # Examples:
+    # jjjj
+    # aaaa
+    # hahahahaha
+
+    if re.fullmatch(r"(.{1,2})\1{3,}", clean, re.IGNORECASE):
+        return True
+
+    # --------------------------------------------------------
+    # 5. VERY LONG WORD WITH ZERO VOWELS
+    # --------------------------------------------------------
+
+    if len(clean) >= 6 and len(vowels) == 0:
+        return True
+
+    # --------------------------------------------------------
+    # 6. EXTREMELY LOW VOWEL RATIO
+    # --------------------------------------------------------
+
+    if len(clean) >= 8:
+        vowel_ratio = len(vowels) / len(clean)
+
+        if vowel_ratio < 0.15:
+            return True
+
+    # --------------------------------------------------------
+    # 7. EXTREMELY LONG CONSONANT RUN
+    # --------------------------------------------------------
+    # Only use 6+ consonants in a row.
+    # This avoids incorrectly flagging normal words such as
+    # "friendly", "children", "spending", etc.
+
     if re.search(
-        r"[bcdfghjklmnpqrstvwxyz]{3,}[aeiou]{0,1}[bcdfghjklmnpqrstvwxyz]{3,}",
+        r"[bcdfghjklmnpqrstvwxz]{6,}",
         clean,
         re.IGNORECASE
     ):
         return True
+
     return False
+
 
 def looks_like_gibberish(text):
     """
     Detect whether the ENTIRE description looks like gibberish.
+
+    A few suspicious words are allowed because legitimate
+    sentences can contain uncommon words or names.
     """
+
     words = re.findall(
         r"\b[\w]+(?:['’][\w]+)?\b",
         text.lower(),
         re.UNICODE
     )
+
     if not words:
         return True
+
     total_words = len(words)
+
     suspicious_words = 0
-    very_short_suspicious = 0
     meaningless_single_letters = 0
+
     for word in words:
+
         # ----------------------------------------------------
         # Single-letter garbage
         # ----------------------------------------------------
+
         if len(word) == 1 and word not in {"a", "i"}:
             meaningless_single_letters += 1
             suspicious_words += 1
             continue
+
         # ----------------------------------------------------
-        # Suspicious short words
-        # ----------------------------------------------------
-        if len(word) <= 3 and word not in COMMON_SHORT_WORDS:
-            very_short_suspicious += 1
-        # ---------------------------------------------------
         # General word-level check
         # ----------------------------------------------------
+
         if is_suspicious_word(word):
             suspicious_words += 1
+
     suspicious_ratio = suspicious_words / total_words
-    short_garbage_ratio = very_short_suspicious / total_words
+
     # ========================================================
     # HARD FAIL CONDITIONS
     # ========================================================
-    # 1. Three or more random single-letter tokens
+
+    # 1. Three or more random single letters
     if meaningless_single_letters >= 3:
         return True
-    # 2. At least 3 suspicious short words
-    if very_short_suspicious >= 3:
+
+    # 2. Extremely high percentage of suspicious words
+    if total_words >= 8 and suspicious_ratio >= 0.40:
         return True
-    # 3. More than 40% of the sentence is suspicious
-    if total_words >= 5 and suspicious_ratio >= 0.40:
-        return True
-    # 4. More than 50% consists of suspicious 1-3 letter words
-    if total_words >= 5 and short_garbage_ratio >= 0.50:
-        return True
-    # 5. At least 2 suspicious words in a short sentence
+
+    # 3. Very short descriptions with several suspicious words
     if total_words <= 8 and suspicious_words >= 2:
         return True
+
+    # 4. Very short text that consists mostly of suspicious words
+    if total_words <= 5 and suspicious_ratio >= 0.50:
+        return True
+
     return False
 # ==========================================================
 # SANITIZE BEFORE REPAIR
@@ -401,17 +420,17 @@ def repair_text():
         # ---------------------------------------------------
         # Maximum requirements
         # ----------------------------------------------------
-        if word_count > 80:
+        if word_count > 100:
             return jsonify({
                 "success": False,
-                "message": "Please keep your description below 80 words.",
+                "message": "Please keep your description below 100 words.",
                 "word_count": word_count,
                 "character_count": character_count
             }), 400
-        if character_count > 500:
+        if character_count > 1000:
             return jsonify({
                 "success": False,
-                "message": "Please keep your description below 500 characters.",
+                "message": "Please keep your description below 1000 characters.",
                 "word_count": word_count,
                 "character_count": character_count
             }), 400
