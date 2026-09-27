@@ -40,6 +40,7 @@ function setupSidebarCollapse() {
             logoContainer.style.justifyContent = collapsed ? "center" : "";
             logoContainer.style.paddingLeft = collapsed ? "0" : "";
             logoContainer.style.paddingRight = collapsed ? "0" : "";
+            logoContainer.style.minHeight = collapsed ? "56px" : "";
         }
         if (logo) logo.style.display = collapsed ? "none" : "";
 
