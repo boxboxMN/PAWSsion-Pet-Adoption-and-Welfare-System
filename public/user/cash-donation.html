@@ -351,26 +351,24 @@
             </div>
         </div>
 
-<!-- QR MODAL -->
+<!-- ⭐ QR MODAL — compact, QR-fitted, bigger -->
 <div id="qrModal" class="modal-overlay">
-    <div class="modal-box p-5 w-[90vw] max-w-sm text-center relative bg-white rounded-2xl max-h-[90vh] flex flex-col justify-between">
-        <span id="qrModalClose" class="absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 cursor-pointer transition z-10">
-            <i class="fa-solid fa-xmark"></i>
-        </span>
+    <div class="modal-box relative bg-white rounded-2xl p-3"
+         style="width: 300px; max-width: 90vw; overflow: visible;">
 
-        <h3 class="text-base font-bold text-blue-700 mb-3">Scan QR Code</h3>
+        <!-- Floating close button -->
+        <button id="qrModalCloseBtn" type="button"
+            class="absolute -top-3 -right-3 w-9 h-9 bg-white border border-gray-200 rounded-full flex items-center justify-center shadow-md hover:bg-gray-50 transition z-10 cursor-pointer">
+            <i class="fa-solid fa-xmark text-base text-gray-600"></i>
+        </button>
 
-        <!-- Container na may dynamic height control -->
-        <div class="flex justify-center items-center mb-3 overflow-hidden rounded-xl border bg-gray-50 p-2 max-h-[55vh]">
-            <img id="modalQrImage" class="w-full h-auto max-h-[50vh] object-contain rounded-lg" alt="QR Code" />
-        </div>
+        <!-- QR image — swak lang sa QR -->
+        <img id="modalQrImage"
+            class="w-full h-auto rounded-xl block bg-white transition-opacity duration-200"
+            alt="QR Code" />
 
-        <div>
-            <p id="qrModalAccountName" class="text-sm font-semibold text-gray-800 truncate">Account Name</p>
-            <p id="qrModalAccountNumber" class="text-xs text-gray-500 mb-3 truncate">Account Number</p>
-        </div>
-
-        <button id="qrModalCloseBtn" class="w-full bg-blue-700 hover:bg-blue-800 text-white py-2.5 rounded-xl font-semibold transition cursor-pointer">Close</button>
+        <!-- Hidden fallback close button -->
+        <button id="qrModalClose" type="button" class="hidden">Close</button>
     </div>
 </div>
         <div id="toastContainer" class="fixed bottom-5 right-5 z-[10000] flex flex-col gap-3 pointer-events-none"></div>
