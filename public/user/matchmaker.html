@@ -49,6 +49,616 @@
         *::-webkit-scrollbar {
          display: none;
         }
+        /* =========================================================
+   RESPONSIVE DESIGN
+   Desktop layout remains unchanged.
+   Mobile/tablet adjustments only.
+   ========================================================= */
+
+/* ---------------------------------------------------------
+   TABLET + MOBILE
+   --------------------------------------------------------- */
+@media (max-width: 1023px) {
+
+    /* Remove desktop sidebar spacing */
+    main {
+        margin-left: 0 !important;
+        padding-top: 5rem !important;
+    }
+
+    /* Header becomes full width */
+    #header {
+        left: 0 !important;
+        height: 5rem !important;
+    }
+
+    /* Main scroll area */
+    main > div {
+        height: calc(100vh - 5rem) !important;
+        padding: 1rem !important;
+    }
+
+    /* =====================================================
+       INTRO SCREEN
+       ===================================================== */
+
+    #introScreen {
+        min-height: 100%;
+        padding: 1rem !important;
+    }
+
+    #introScreen > div {
+        padding: 1.25rem !important;
+        margin-top: 0 !important;
+        gap: 1.5rem;
+    }
+
+    #introScreen img {
+        width: min(70vw, 320px) !important;
+        margin-top: 0 !important;
+    }
+
+    #introScreen h1 {
+        font-size: clamp(1.75rem, 6vw, 2.25rem) !important;
+    }
+
+    #introScreen p {
+        font-size: 0.875rem !important;
+    }
+
+    #introNextBtn {
+        width: 100% !important;
+        min-width: 0 !important;
+    }
+
+
+    /* =====================================================
+       PREFERENCE SCREEN
+       ===================================================== */
+
+    #preferenceScreen {
+        padding: 1rem !important;
+    }
+
+    #preferenceScreen > div {
+        padding: 1rem !important;
+        margin-top: 0 !important;
+        gap: 1.5rem;
+    }
+
+    /* Header */
+    #preferenceScreen .border-b {
+        margin-left: 0 !important;
+        margin-top: 0 !important;
+        padding-bottom: 1rem !important;
+    }
+
+    #preferenceScreen .border-b h1 {
+        font-size: 1.75rem !important;
+    }
+
+    #preferenceScreen .border-b p {
+        font-size: 0.75rem !important;
+        line-height: 1.5;
+    }
+
+    /* Dropdown grid */
+    #preferenceScreen form {
+        grid-template-columns: 1fr !important;
+        gap: 1rem !important;
+    }
+
+    #preferenceScreen form > div {
+        margin-left: 0 !important;
+        margin-top: 0 !important;
+    }
+
+    #preferenceScreen select {
+        width: 100% !important;
+        min-height: 46px;
+    }
+
+    /* Behavior section */
+    #preferenceScreen .space-y-4 {
+        margin-left: 0 !important;
+        margin-top: 0 !important;
+    }
+
+    #behavior {
+        min-height: 160px;
+        font-size: 0.875rem;
+    }
+
+    /* Guidelines */
+    #preferenceScreen .bg-slate-50 {
+        padding: 0.875rem !important;
+    }
+
+    #preferenceScreen .bg-slate-50 p {
+        text-align: left !important;
+    }
+
+    /* Action buttons */
+    #preferenceScreen .flex.flex-col.sm\:flex-row {
+        margin-top: 0 !important;
+        width: 100%;
+    }
+
+    #preferenceBackBtn,
+    #preferenceNextBtn {
+        width: 100% !important;
+        min-width: 0 !important;
+    }
+
+
+    /* =====================================================
+       LOADING SCREEN
+       ===================================================== */
+
+    #matchingLoadingScreen {
+        padding: 1rem !important;
+    }
+
+    #matchingLoadingTitle {
+        font-size: 1.5rem !important;
+    }
+
+    #matchingLoadingMessage {
+        font-size: 0.8rem !important;
+    }
+
+
+    /* =====================================================
+       COMPATIBILITY RESULTS
+       ===================================================== */
+
+    #compatibilityScreen {
+        margin-left: 0 !important;
+        margin-top: 0 !important;
+        padding: 0.5rem !important;
+        width: 100%;
+    }
+
+    /* Result header */
+    #compatibilityScreen > div:first-child {
+        padding: 1.25rem !important;
+    }
+
+    #compatibilityScreen > div:first-child h1 {
+        font-size: 1.5rem !important;
+        line-height: 1.25;
+    }
+
+    #compatibilityScreen > div:first-child p {
+        font-size: 0.75rem !important;
+    }
+
+    /* Filter bar */
+    #compatibilityScreen .bg-white.border {
+        padding: 0.75rem !important;
+    }
+
+    #compatibilityScreen .bg-white.border > div {
+        gap: 0.75rem !important;
+    }
+
+    /* Filters become full width */
+    #matchSearch,
+    #matchSpeciesFilter,
+    #matchGenderFilter,
+    #matchAgeFilter,
+    #matchOrganizationFilter,
+    #matchScoreFilter {
+        width: 100% !important;
+        min-width: 0 !important;
+    }
+
+    /* Result count */
+    #matchResultCount {
+        font-size: 0.875rem;
+    }
+
+    /* Clear button */
+    #clearMatchFilters {
+        width: 100% !important;
+    }
+
+    /* Cards */
+    #matchResultsContainer {
+        grid-template-columns: 1fr !important;
+        gap: 1rem !important;
+        margin-top: 1rem !important;
+    }
+
+    /* Footer */
+    #compatibilityRestartBtn {
+        width: 100%;
+        max-width: 360px;
+    }
+}
+
+
+/* ---------------------------------------------------------
+   SMALL MOBILE DEVICES
+   --------------------------------------------------------- */
+@media (max-width: 640px) {
+
+    /* =====================================================
+       GENERAL
+       ===================================================== */
+
+    body {
+        overflow: hidden;
+    }
+
+    main {
+        padding-top: 4.25rem !important;
+    }
+
+    #header {
+        height: 4.25rem !important;
+    }
+
+    main > div {
+        height: calc(100vh - 4.25rem) !important;
+        padding: 0.75rem !important;
+    }
+
+
+    /* =====================================================
+       INTRO
+       ===================================================== */
+
+    #introScreen {
+        padding: 0.5rem !important;
+    }
+
+    #introScreen > div {
+        padding: 0.75rem !important;
+        gap: 1.25rem;
+    }
+
+    #introScreen img {
+        width: min(75vw, 270px) !important;
+    }
+
+    #introScreen h1 {
+        font-size: 1.7rem !important;
+    }
+
+    #introScreen p {
+        font-size: 0.8rem !important;
+        line-height: 1.6;
+    }
+
+    #introNextBtn {
+        padding: 0.875rem 1rem !important;
+        font-size: 0.875rem !important;
+    }
+
+
+    /* =====================================================
+       PREFERENCES
+       ===================================================== */
+
+    #preferenceScreen {
+        padding: 0.25rem !important;
+    }
+
+    #preferenceScreen > div {
+        padding: 0.75rem !important;
+    }
+
+    #preferenceScreen .border-b h1 {
+        font-size: 1.5rem !important;
+    }
+
+    #preferenceScreen .border-b p {
+        font-size: 0.7rem !important;
+    }
+
+    #preferenceScreen label {
+        font-size: 0.7rem !important;
+    }
+
+    #preferenceScreen select {
+        font-size: 0.8rem !important;
+        padding: 0.75rem !important;
+    }
+
+    #behavior {
+        padding: 0.875rem !important;
+        min-height: 170px;
+        font-size: 0.8rem !important;
+    }
+
+    #preferenceScreen .bg-slate-50 p {
+        font-size: 0.7rem !important;
+        line-height: 1.6;
+    }
+
+    #preferenceScreen .bg-slate-50 > div {
+        font-size: 0.7rem !important;
+    }
+
+    #validationMessage {
+        font-size: 0.7rem !important;
+        padding: 0.75rem !important;
+        text-align: center;
+    }
+
+    #preferenceBackBtn,
+    #preferenceNextBtn {
+        padding: 0.8rem 1rem !important;
+    }
+
+
+    /* =====================================================
+       LOADING
+       ===================================================== */
+
+    #matchingLoadingTitle {
+        font-size: 1.25rem !important;
+    }
+
+    #matchingLoadingMessage {
+        font-size: 0.75rem !important;
+    }
+
+    #matchingLoadingStatus {
+        font-size: 0.7rem !important;
+    }
+
+
+    /* =====================================================
+       MATCH RESULTS
+       ===================================================== */
+
+    #compatibilityScreen {
+        padding: 0 !important;
+    }
+
+    #compatibilityScreen > div:first-child {
+        border-radius: 1rem !important;
+        padding: 1rem !important;
+    }
+
+    #compatibilityScreen > div:first-child h1 {
+        font-size: 1.3rem !important;
+    }
+
+    #compatibilityScreen > div:first-child p {
+        font-size: 0.7rem !important;
+    }
+
+    /* Filter label */
+    #compatibilityScreen .bg-white.border .shrink-0 {
+        width: 100%;
+    }
+
+    /* Result count */
+    #compatibilityScreen .bg-white.border .shrink-0:last-child {
+        width: 100%;
+    }
+
+    /* Cards */
+    #matchResultsContainer {
+        grid-template-columns: 1fr !important;
+    }
+
+    /* Restart */
+    #compatibilityRestartBtn {
+        width: 100%;
+        max-width: none;
+        font-size: 0.75rem !important;
+        padding: 0.8rem 1rem !important;
+    }
+}
+
+
+/* =========================================================
+   PET PROFILE MODAL
+   ========================================================= */
+
+/* Tablet */
+@media (max-width: 1023px) {
+
+    #viewPetModal {
+        padding: 0.75rem !important;
+    }
+
+    #viewPetModal > div {
+        max-width: 100% !important;
+        height: 94vh !important;
+        border-radius: 1.5rem !important;
+    }
+
+    #viewPetModal > div > div {
+        grid-template-columns: 280px 1fr !important;
+    }
+
+    #modalImage {
+        height: 280px !important;
+    }
+
+    #modalName {
+        font-size: 2rem !important;
+    }
+
+    #viewPetModal section {
+        padding: 1rem !important;
+    }
+
+    #viewPetModal aside {
+        padding: 1rem !important;
+    }
+}
+
+
+/* Mobile */
+@media (max-width: 640px) {
+
+    #viewPetModal {
+        padding: 0.5rem !important;
+        align-items: center;
+    }
+
+    #viewPetModal > div {
+        width: 100% !important;
+        height: 96vh !important;
+        max-height: 96vh !important;
+        border-radius: 1.25rem !important;
+    }
+
+    /* Change modal from two columns to one */
+    #viewPetModal > div > div {
+        display: flex !important;
+        flex-direction: column !important;
+        height: 100% !important;
+        overflow-y: auto !important;
+    }
+
+    /* Left column */
+    #viewPetModal aside {
+        width: 100% !important;
+        border-right: none !important;
+        border-bottom: 1px solid #e2e8f0 !important;
+        padding: 0.875rem !important;
+        overflow: visible !important;
+    }
+
+    /* Pet image */
+    #modalImage {
+        width: 100% !important;
+        height: min(55vw, 280px) !important;
+        min-height: 200px;
+        object-fit: cover;
+    }
+
+    /* Quick information */
+    #viewPetModal aside .divide-y > div {
+        padding: 0.65rem 0 !important;
+    }
+
+    /* Right column */
+    #viewPetModal section {
+        width: 100% !important;
+        padding: 0.875rem !important;
+        overflow: visible !important;
+    }
+
+    /* Pet name */
+    #modalName {
+        font-size: 1.75rem !important;
+        line-height: 1.2;
+        word-break: break-word;
+    }
+
+    /* Verification badge */
+    #viewPetModal section .fa-circle-check {
+        font-size: 1rem !important;
+    }
+
+    /* Status badges */
+    #viewPetModal section .flex.flex-wrap {
+        gap: 0.5rem !important;
+    }
+
+    #statusBadge,
+    #healthBadge,
+    #vaccinationBadge {
+        padding: 0.5rem 0.75rem !important;
+        font-size: 0.7rem !important;
+    }
+
+    /* Bento grid becomes one column */
+    #viewPetModal section .grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    #viewPetModal section .grid > .col-span-2 {
+        grid-column: span 1 !important;
+    }
+
+    /* Description */
+    #modalBehavior {
+        font-size: 0.8rem !important;
+        line-height: 1.6;
+        text-align: left !important;
+        overflow-wrap: anywhere;
+    }
+
+    /* Final score */
+    #modalFinalScore {
+        font-size: 2.25rem !important;
+    }
+
+    /* Medical history */
+    #viewPetModal table {
+        min-width: 600px;
+    }
+
+    #viewPetModal .overflow-x-auto {
+        overflow-x: auto !important;
+    }
+
+    /* Medical header */
+    #viewPetModal section .bg-slate-50\/70 {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 0.5rem !important;
+    }
+
+    /* Apply button */
+    #applyBtn {
+        width: 100% !important;
+    }
+
+    /* Close button */
+    #viewPetModal > div > button {
+        top: 0.75rem !important;
+        right: 0.75rem !important;
+        width: 2.25rem;
+        height: 2.25rem;
+        border-radius: 9999px;
+        background: rgba(255,255,255,0.9);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+}
+
+
+/* =========================================================
+   VERY SMALL PHONES
+   ========================================================= */
+
+@media (max-width: 400px) {
+
+    #introScreen h1 {
+        font-size: 1.5rem !important;
+    }
+
+    #introScreen p {
+        font-size: 0.75rem !important;
+    }
+
+    #preferenceScreen .border-b h1 {
+        font-size: 1.35rem !important;
+    }
+
+    #compatibilityScreen > div:first-child h1 {
+        font-size: 1.15rem !important;
+    }
+
+    #modalName {
+        font-size: 1.5rem !important;
+    }
+
+    #modalFinalScore {
+        font-size: 2rem !important;
+    }
+}
 
     </style>
 </head>
