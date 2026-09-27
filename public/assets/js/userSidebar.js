@@ -18,6 +18,58 @@ function loadTopbar({ title = "", subtitle = "" }) {
     if (subtitleEl) subtitleEl.textContent = subtitle;
 }
 
+function setupSidebarCollapse() {
+    const sidebar = document.getElementById("sidebar");
+    const sidebarPanel = document.getElementById("userSidebarPanel");
+    const logoContainer = document.getElementById("logoContainer");
+    const logo = logoContainer?.querySelector("img");
+    const collapseBtn = document.getElementById("collapseBtn");
+    const collapseIcon = document.getElementById("collapseIcon");
+
+    if (!sidebar || !sidebarPanel || !collapseBtn) return;
+
+    collapseBtn.addEventListener("click", () => {
+        const collapsed = sidebar.dataset.collapsed !== "true";
+        const width = collapsed ? "5rem" : "";
+
+        sidebar.dataset.collapsed = String(collapsed);
+        sidebar.style.width = width;
+        sidebarPanel.style.width = width;
+
+        if (logoContainer) {
+            logoContainer.style.justifyContent = collapsed ? "center" : "";
+            logoContainer.style.paddingLeft = collapsed ? "0" : "";
+            logoContainer.style.paddingRight = collapsed ? "0" : "";
+        }
+        if (logo) logo.style.display = collapsed ? "none" : "";
+
+        document.querySelectorAll("#sidebar .sidebar-text").forEach((element) => {
+            element.style.display = collapsed ? "none" : "";
+        });
+
+        document.querySelectorAll("#sidebar .nav-link, #sidebar #logoutLink").forEach((link) => {
+            link.style.paddingLeft = collapsed ? "0" : "";
+            link.style.paddingRight = collapsed ? "0" : "";
+            link.style.justifyContent = collapsed ? "center" : "";
+        });
+
+        document.querySelectorAll(".ml-64").forEach((element) => {
+            element.style.marginLeft = collapsed ? "5rem" : "";
+        });
+
+        document.querySelectorAll(".left-64").forEach((element) => {
+            element.style.left = collapsed ? "5rem" : "";
+        });
+
+        if (collapseIcon) {
+            collapseIcon.style.transform = collapsed ? "rotate(180deg)" : "";
+        }
+
+        collapseBtn.setAttribute("aria-expanded", String(!collapsed));
+        collapseBtn.setAttribute("aria-label", collapsed ? "Expand sidebar" : "Collapse sidebar");
+    });
+}
+
 // ==========================================
 // LOGOUT MODAL
 // ==========================================
@@ -207,6 +259,8 @@ async function loadSidebar(activePage = "") {
             link.className = "nav-link flex items-center gap-4 px-5 py-4 rounded-2xl text-gray-800 hover:bg-blue-50 hover:text-blue-600 transition";
         }
     });
+
+    setupSidebarCollapse();
 
     // Setup Shared Logout
     setupLogout();
