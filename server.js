@@ -82,6 +82,14 @@ const { uploadOrgPic } = require('./config/upload');
 const { logActivity } = require("./controllers/adminController");
 const { checkAccountStatus } = require("./controllers/adminController");
 
+db.query("SELECT 1 AS test")
+    .then(() => {
+        console.log("✅ Railway MySQL connection successful");
+    })
+    .catch((err) => {
+        console.error("❌ Railway MySQL connection failed:", err.message);
+    });
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
