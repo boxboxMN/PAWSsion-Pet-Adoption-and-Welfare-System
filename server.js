@@ -96,15 +96,14 @@ app.use((req, res, next) => {
 });
 
 app.use(session({
-  secret: process.env.SESSION_SECRET,
-  resave: false,
-  saveUninitialized: false, // ni true ko nung nag test ako sa postman // false sya dati
-  cookie: {
-    secure: false,       // For local HTTP development
-    httpOnly: true,
-    sameSite: 'lax',
-    maxAge: 1000 * 60 * 60 // 1 hour
-  }
+    secret: process.env.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+        secure: process.env.NODE_ENV === "production",
+        httpOnly: true,
+        maxAge: 1000 * 60 * 60 * 24
+    }
 }));
 
 // ==========================================
