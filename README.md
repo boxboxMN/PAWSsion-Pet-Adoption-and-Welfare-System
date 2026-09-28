@@ -756,3 +756,10 @@ npm install file-type
 .VENV
 python -m pip install wordninja
 python -m pip install symspellpy
+
+# google sign in
+ npm install google-auth-library
+
+# db table for google auth
+ALTER TABLE accounts
+ADD COLUMN google_sub VARCHAR(255) NULL UNIQUE;

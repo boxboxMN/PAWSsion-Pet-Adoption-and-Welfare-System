@@ -2,6 +2,7 @@ require("dotenv").config();
 const express = require('express');
 const session = require('express-session');
 const helmet = require('helmet');
+const transporter = require("./config/email");
 
 const app = express();
 app.disable("x-powered-by");
@@ -29,6 +30,13 @@ app.use(
   helmet({
     // Disable HSTS locally so it doesn't force http:// to https://
     hsts: false,
+    crossOriginOpenerPolicy: {
+        policy: "same-origin-allow-popups"
+      },
+  
+    referrerPolicy: {
+        policy: "no-referrer-when-downgrade"
+      },
   })
 );
 
@@ -45,7 +53,8 @@ app.use(
         "'wasm-unsafe-eval'",
         "https://cdn.tailwindcss.com",
         "https://cdn.jsdelivr.net",
-        "https://cdnjs.cloudflare.com"
+        "https://cdnjs.cloudflare.com",
+        "https://accounts.google.com/gsi/client"
       ],
       // 1. Payagan ang inline event handlers tulad ng onclick="..."
       scriptSrcAttr: ["'unsafe-inline'"],
@@ -53,16 +62,19 @@ app.use(
         "'self'", 
         "'unsafe-inline'",
         "https://fonts.googleapis.com",
-        "https://cdnjs.cloudflare.com"
+        "https://cdnjs.cloudflare.com",
+        "https://accounts.google.com/gsi/style"
      ],
       fontSrc: [
         "'self'", 
         "https://fonts.gstatic.com",
         "https://cdnjs.cloudflare.com"
       ],
+      frameSrc: ["'self'", "https://accounts.google.com/gsi/"],
+
       imgSrc: ["'self'", "data:", "blob:", "https://cdnjs.cloudflare.com", "https://via.placeholder.com"],
       // 1. Payagan ang network connections/fetches sa jsDelivr (para sa Tesseract.js data & maps)
-      connectSrc: ["'self'", "data:", "blob:", "https://cdn.jsdelivr.net",  "https://cdnjs.cloudflare.com"],
+      connectSrc: ["'self'", "data:", "blob:", "https://cdn.jsdelivr.net",  "https://cdnjs.cloudflare.com", "https://accounts.google.com/gsi/"],
       // 2. Payagan ang Web Workers at Blob URLs na ginagamit ng Tesseract.js
       workerSrc: ["'self'", "blob:", "https://cdn.jsdelivr.net"],
 
@@ -115,6 +127,7 @@ app.get("/auth/csrf-token", (req, res) => {
         token: generateToken(req)
     });
 });
+
 // ==========================================
 // AUTHENTICATED USER REDIRECT
 // ==========================================
@@ -152,8 +165,6 @@ const orgPasswordAttempts = new Map();
 
 function getOrgAttemptRecord(accountId) {
     return orgPasswordAttempts.get(accountId) || { attempts: 5, lockedUntil: null };
-
-
 }
 
 // ==========================================
@@ -1114,6 +1125,15 @@ app.get("/faqs", (req, res) => {
 });
 
 app.get("/api/session-status", adminController.getSessionStatus);
+
+transporter.verify((error) => {
+    if (error) {
+        console.error("Email transporter connection failed:", error.message);
+    } else {
+        console.log("Email transporter is ready.");
+    }
+});
+
 const PORT = 3000;
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);

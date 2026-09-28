@@ -46,6 +46,357 @@ const nextToStep3 = document.getElementById('nextToStep3');
 const form = document.getElementById('createAccountForm');
 const emailInput = document.getElementById('email');
 const emailHelper = document.getElementById('emailHelper');
+const manualOtpSection = document.getElementById("manualOtpSection");
+const otpInputSection = document.getElementById("otpInputSection");
+const otpModal = document.getElementById("otpModal");
+const closeOtpModalButton = document.getElementById("closeOtpModal");
+const emailOtpInput = document.getElementById("emailOtp");
+const otpHelper = document.getElementById("otpHelper");
+const sendOtpButton = document.getElementById("sendOtpButton");
+const verifyOtpButton = document.getElementById("verifyOtpButton");
+const emailOtpStatus = document.getElementById("emailOtpStatus");
+const openOtpModalButton = document.getElementById("openOtpModalButton");
+const changeEmailButton = document.getElementById("changeEmailButton");
+const resendOtpButton = document.getElementById("resendOtpButton");
+
+let resendCountdownTimer = null;
+
+function updateManualOtpVisibility() {
+    const emailIsEmpty = emailInput.value.trim() === "";
+
+    manualOtpSection.hidden = emailInput.readOnly || emailIsEmpty;
+
+    if (emailInput.readOnly || emailIsEmpty) {
+        otpInputSection.hidden = true;
+        emailOtpInput.value = "";
+        otpHelper.textContent = "";
+    }
+}
+
+closeOtpModalButton.addEventListener("click", () => {
+    otpModal.hidden = true;
+});
+
+changeEmailButton.addEventListener("click", () => {
+    clearInterval(resendCountdownTimer);
+    resendCountdownTimer = null;
+
+    emailInput.readOnly = false;
+    emailInput.value = "";
+    emailInput.focus();
+    
+    isRegistrationEmailOtpVerified = false;
+    isEmailValidAndAvailable = false;
+
+    updateSignUpButtonState();
+
+    emailHelper.className = "input-helper-text";
+    emailHelper.textContent = "";
+
+    emailOtpStatus.className = "input-helper-text";
+    emailOtpStatus.textContent = "";
+
+    changeEmailButton.hidden = true;
+
+    updateManualOtpVisibility();
+});
+
+openOtpModalButton.addEventListener("click", async () => {
+    const email = emailInput.value.trim().toLowerCase();
+
+    if (!emailValidatorRegex.test(email)) {
+        emailHelper.className = "input-helper-text error";
+        emailHelper.textContent = "Please enter a valid email address.";
+        return;
+    }
+
+    await verifyEmailUniqueness();
+
+    if (!isEmailValidAndAvailable) {
+        return;
+    }
+
+    // Reset OTP modal to its initial state
+    clearInterval(resendCountdownTimer);
+    resendCountdownTimer = null;
+
+    isRegistrationEmailOtpVerified = false;
+
+    otpHelper.className = "input-helper-text";
+    otpHelper.textContent = "";
+    emailOtpInput.value = "";
+    emailOtpInput.disabled = false;
+
+    sendOtpButton.hidden = false;
+    sendOtpButton.disabled = false;
+    sendOtpButton.textContent = "Send Code";
+
+    otpInputSection.hidden = true;
+
+    verifyOtpButton.hidden = false;
+    verifyOtpButton.disabled = true;
+    verifyOtpButton.textContent = "Verify Code";
+
+    resendOtpButton.hidden = true;
+    resendOtpButton.disabled = true;
+    resendOtpButton.textContent = "Resend Code";
+
+    otpModal.hidden = false;
+});
+
+function startResendCountdown(seconds = 60) {
+    clearInterval(resendCountdownTimer);
+
+    resendOtpButton.hidden = false;
+    resendOtpButton.disabled = true;
+
+    let remaining = seconds;
+
+    resendOtpButton.textContent = `Resend Code in ${remaining}s`;
+
+    resendCountdownTimer = setInterval(() => {
+        remaining--;
+
+        if (remaining <= 0) {
+            clearInterval(resendCountdownTimer);
+            resendCountdownTimer = null;
+
+            resendOtpButton.disabled = false;
+            resendOtpButton.textContent = "Resend Code";
+            return;
+        }
+
+        resendOtpButton.textContent = `Resend Code in ${remaining}s`;
+    }, 1000);
+}
+
+sendOtpButton.addEventListener("click", async () => {
+    const email = emailInput.value.trim().toLowerCase();
+
+    if (emailInput.readOnly) {
+        return;
+    }
+
+    if (!emailValidatorRegex.test(email)) {
+        otpHelper.className = "input-helper-text error";
+        otpHelper.textContent = "Please enter a valid email address first.";
+        return;
+    }
+
+    // Recheck email availability before requesting a code.
+    await verifyEmailUniqueness();
+
+    if (!isEmailValidAndAvailable) {
+        otpHelper.className = "input-helper-text error";
+        otpHelper.textContent = "Please use an available email address.";
+        return;
+    }
+
+    const csrfToken = form.querySelector('input[name="csrfToken"]')?.value;
+
+    if (!csrfToken) {
+        otpHelper.className = "input-helper-text error";
+        otpHelper.textContent = "Security token missing. Please reload the page.";
+        return;
+    }
+
+    sendOtpButton.disabled = true;
+    sendOtpButton.textContent = "Sending...";
+    otpHelper.className = "input-helper-text";
+    otpHelper.textContent = "";
+
+    try {
+        const response = await fetch("/auth/registration/send-otp", {
+            method: "POST",
+            credentials: "same-origin",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRF-Token": csrfToken
+            },
+            body: JSON.stringify({ email })
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error(result.message || "Could not send the verification code.");
+        }
+        sendOtpButton.hidden = true;
+
+        otpInputSection.hidden = false;
+        otpHelper.className = "input-helper-text success";
+        otpHelper.textContent = result.message || "Code sent. Check your email.";
+
+        emailOtpInput.value = "";
+        emailOtpInput.disabled = false;
+
+        verifyOtpButton.hidden = false;
+        verifyOtpButton.disabled = true;
+        verifyOtpButton.textContent = "Verify Code";
+
+        resendOtpButton.hidden = false;
+        resendOtpButton.disabled = true;
+
+        startResendCountdown(60);
+
+        emailOtpInput.focus();
+
+    } catch (error) {
+        otpHelper.className = "input-helper-text error";
+        otpHelper.textContent = error.message || "Unable to send the code. Please try again.";
+    } finally {
+        sendOtpButton.disabled = false;
+        sendOtpButton.textContent = "Send Code";
+    }
+});
+
+resendOtpButton.addEventListener("click", async () => {
+    const email = emailInput.value.trim().toLowerCase();
+
+    if (resendOtpButton.disabled) {
+        return;
+    }
+
+    const csrfToken = form.querySelector('input[name="csrfToken"]')?.value;
+
+    if (!csrfToken) {
+        otpHelper.className = "input-helper-text error";
+        otpHelper.textContent = "Security token missing. Please reload the page.";
+        return;
+    }
+
+    resendOtpButton.disabled = true;
+    resendOtpButton.textContent = "Sending...";
+
+    try {
+        const response = await fetch("/auth/registration/send-otp", {
+            method: "POST",
+            credentials: "same-origin",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRF-Token": csrfToken
+            },
+            body: JSON.stringify({ email })
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error(
+                result.message || "Could not resend the verification code."
+            );
+        }
+
+        isRegistrationEmailOtpVerified = false;
+
+        otpHelper.className = "input-helper-text success";
+        otpHelper.textContent =
+            result.message || "A new verification code has been sent.";
+
+        emailOtpInput.value = "";
+        verifyOtpButton.disabled = true;
+
+        startResendCountdown(60);
+
+        emailOtpInput.focus();
+
+    } catch (error) {
+        otpHelper.className = "input-helper-text error";
+        otpHelper.textContent =
+            error.message || "Unable to resend the code. Please try again.";
+
+        resendOtpButton.disabled = false;
+        resendOtpButton.textContent = "Resend Code";
+    }
+});
+
+emailOtpInput.addEventListener("input", () => {
+    const otp = emailOtpInput.value.trim();
+
+    // Allow numbers only
+    emailOtpInput.value = otp.replace(/\D/g, "").slice(0, 6);
+
+    // Enable only when exactly 6 digits are entered
+    verifyOtpButton.disabled = emailOtpInput.value.length !== 6;
+});
+
+verifyOtpButton.addEventListener("click", async () => {
+    const email = emailInput.value.trim().toLowerCase();
+    const otp = emailOtpInput.value.trim();
+
+    if (!/^\d{6}$/.test(otp)) {
+        otpHelper.className = "input-helper-text error";
+        otpHelper.textContent = "Please enter the 6-digit code.";
+        return;
+    }
+
+    const csrfToken = form.querySelector('input[name="csrfToken"]')?.value;
+
+    if (!csrfToken) {
+        otpHelper.className = "input-helper-text error";
+        otpHelper.textContent = "Security token missing. Please refresh the page.";
+        return;
+    }
+
+    verifyOtpButton.disabled = true;
+    verifyOtpButton.textContent = "Verifying...";
+
+    try {
+        const response = await fetch("/auth/registration/verify-otp", {
+            method: "POST",
+            credentials: "same-origin",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRF-Token": csrfToken
+            },
+            body: JSON.stringify({ email, otp })
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error(result.message || "Could not verify the code.");
+        }
+
+        isRegistrationEmailOtpVerified = true;
+
+        emailInput.readOnly = true;
+        changeEmailButton.hidden = false;
+
+        updateManualOtpVisibility();
+        updateSignUpButtonState();
+
+        otpHelper.className = "input-helper-text success";
+        otpHelper.textContent = result.message || "Email verified successfully.";
+
+        emailOtpInput.value = "";
+        emailOtpInput.disabled = true;
+        verifyOtpButton.disabled = true;
+        verifyOtpButton.textContent = "Verified";
+
+        emailOtpStatus.className = "input-helper-text success";
+        emailOtpStatus.textContent = result.message || "Email verified successfully.";
+
+        setTimeout(() => {
+            otpModal.hidden = true;
+
+            // Reset modal controls for a future attempt, if needed
+            emailOtpInput.disabled = false;
+            verifyOtpButton.disabled = false;
+            verifyOtpButton.textContent = "Verify Code";
+            otpHelper.textContent = "";
+        }, 1800);
+    } catch (error) {
+        otpHelper.className = "input-helper-text error";
+        otpHelper.textContent = error.message || "Verification failed. Please try again.";
+    } finally {
+        if (!isRegistrationEmailOtpVerified) {
+            verifyOtpButton.disabled = false;
+            verifyOtpButton.textContent = "Verify Code";
+        }
+    }
+});
+
 const phoneInput = document.getElementById('phoneNumber');
 const phoneHelper = document.getElementById('phoneHelper');
 const passwordInput = document.getElementById('password');
@@ -75,6 +426,19 @@ const streetAddressHelper = document.getElementById("streetAddressHelper");
 
 let currentAlertCallback = null;
 let isEmailValidAndAvailable = false;
+let isRegistrationEmailOtpVerified = false;
+
+const signUpButton = form.querySelector(".submit-btn");
+
+function updateSignUpButtonState() {
+    const emailIsVerified =
+        emailInput.readOnly || isRegistrationEmailOtpVerified;
+
+    signUpButton.disabled = !emailIsVerified;
+}
+
+updateSignUpButtonState();
+
 let isBirthdayValid = false;
 let regionsData = [];
 let provincesData = [];
@@ -361,7 +725,6 @@ alertBtn.addEventListener("click", () => {
     }
 });
 
-
 const setupToggle = (button, input) => {
     if (!button || !input) return;
     button.addEventListener('click', () => {
@@ -408,8 +771,8 @@ async function verifyEmailUniqueness() {
             emailHelper.innerHTML = "<i class='fa-solid fa-circle-xmark'></i> Email address is already registered.";
             isEmailValidAndAvailable = false;
         } else {
-            emailHelper.className = "input-helper-text success";
-            emailHelper.innerHTML = "<i class='fa-solid fa-circle-check'></i> Email is available.";
+            emailHelper.className = "input-helper-text";
+            emailHelper.innerHTML = "";
             isEmailValidAndAvailable = true;
         }
     } catch (err) {
@@ -418,10 +781,29 @@ async function verifyEmailUniqueness() {
     }
 }
 
-emailInput.addEventListener("blur", verifyEmailUniqueness);
-emailInput.addEventListener("input", () => {
-    isEmailValidAndAvailable = false; 
+emailInput.addEventListener("blur", () => {
+    if (!emailInput.readOnly) {
+        verifyEmailUniqueness();
+    }
 });
+
+emailInput.addEventListener("input", () => {
+    if (!emailInput.readOnly) {
+        isEmailValidAndAvailable = false;
+    }
+});
+
+emailInput.addEventListener("input", () => {
+    if (!emailInput.readOnly) {
+        isEmailValidAndAvailable = false;
+        isRegistrationEmailOtpVerified = false;
+    }
+
+    updateManualOtpVisibility();
+
+});
+
+updateManualOtpVisibility();
 
 // ===================================
 // LIVE MOBILE NUMBER MASK AND FORMAT
@@ -509,6 +891,11 @@ form.addEventListener("submit", async function(e) {
         }
     }
 
+    if (!emailInput.readOnly && !isRegistrationEmailOtpVerified) {
+        openOtpModalButton.click();
+        return;
+    }
+
     if (!phoneRegex.test(phoneNumber)) {
         showCustomAlert("Please enter a valid 11-digit Philippine mobile number starting with 09.", "error");
         return;
@@ -565,11 +952,14 @@ if (
         confirmPassword: confirmPassword
     };
 
+    const csrfToken = form.querySelector('input[name="csrfToken"]')?.value;
+
     try {
         const response = await fetch("/auth/register", {
             method: "POST",
             headers: {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                "X-CSRF-Token": csrfToken
             },
             body: JSON.stringify(payload)
         });
@@ -1043,4 +1433,81 @@ document.addEventListener("keydown", function (e) {
     if (e.key === "Escape") {
         legalModal.classList.remove("active");
     }
+});
+
+window.addEventListener("load", () => {
+    if (!window.google?.accounts?.id) {
+        console.error("Google Identity Services did not load.");
+        return;
+    }
+
+    google.accounts.id.initialize({
+        client_id: "166979367595-rcju1pnic64htalpr29ciamk6uk3u7da.apps.googleusercontent.com",
+        callback: async (response) => {
+            try {
+                const csrfResponse = await fetch("/auth/csrf-token", {
+                    method: "GET",
+                    credentials: "same-origin"
+                });
+
+                if (!csrfResponse.ok) {
+                    throw new Error("Could not get security token.");
+                }
+
+                const csrfData = await csrfResponse.json();
+
+                const googleResponse = await fetch("/auth/google", {
+                    method: "POST",
+                    credentials: "same-origin",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRF-Token": csrfData.token
+                    },
+                    body: JSON.stringify({
+                        credential: response.credential
+                    })
+                });
+
+                const result = await googleResponse.json();
+
+                if (!googleResponse.ok) {
+                    throw new Error(result.message || "Google verification failed.");
+                }
+
+                emailInput.value = result.email;
+                emailInput.readOnly = true;
+                updateManualOtpVisibility();
+                isEmailValidAndAvailable = true;
+
+                emailHelper.className = "input-helper-text success";
+                emailHelper.textContent = "Google email verified.";
+
+                updateSignUpButtonState();
+
+                showCustomAlert(
+                    "Google email verified. Continue completing your adopter registration."
+                );
+            } catch (error) {
+                console.error("Google verification error:", error);
+                showCustomAlert(
+                    error.message || "Unable to verify your Google account.",
+                    "error"
+                );
+            }
+        }
+    });
+
+    const googleButton = document.getElementById("adopterGoogleSignInButton");
+
+    if (!googleButton) {
+        console.error("Adopter Google button container not found.");
+        return;
+    }
+
+    google.accounts.id.renderButton(googleButton, {
+        theme: "outline",
+        size: "large",
+        text: "continue_with",
+        shape: "rectangular"
+    });
 });

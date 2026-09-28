@@ -82,11 +82,9 @@
   =================== */
   
   .header-section{
-  
-  margin-top:60px; /* adjust */
-  margin-left:90px;
-  margin-right:30px;
-  
+    margin-top:150px; /* adjust */
+    margin-left:90px;
+    margin-right:30px;
   }
   
   .header-section h2{
@@ -597,18 +595,23 @@
     }
   
     .right{
-      width:100%;
-      margin-left:0;
-      border-top-left-radius:60px;
-      border-top-right-radius:60px;
-      box-shadow:0 -5px 30px rgba(90, 125, 252, 0.06);
-      padding:10px 0 30px;
+      width: 54%;
+      background: white;
+      border-top-left-radius: 250px;
+      margin-left: 30px;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      box-shadow: -5px 0 30px rgba(90, 125, 252, 0.05);
+      overflow-y: auto;
+      height: 100vh;
+      min-height: 0;
     }
   
     .login-box{
-      width:100%;
-      max-width:520px;
-      padding:0 20px;
+      width: 520px;
+      max-width: 100%;
+      margin: auto;
     }
   
     .header-section,
@@ -830,4 +833,28 @@ input::-ms-clear {
         padding: 45px 25px 30px;
     }
 
+}
+
+.google-signin-section {
+  width: 90%;
+  margin-left: 100px;
+  margin-top: 16px;
+  display: flex;
+  justify-content: flex-start;
+}
+
+/* Match the form's left offset on smaller desktops */
+@media (max-width: 1100px) {
+  .google-signin-section {
+    margin-left: 50px;
+  }
+}
+
+/* Stack layout on tablets and phones */
+@media (max-width: 900px) {
+  .google-signin-section {
+    width: 100%;
+    margin-left: 0;
+    justify-content: center;
+  }
 }
