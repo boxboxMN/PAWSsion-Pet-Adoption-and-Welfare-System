@@ -1192,39 +1192,183 @@ VIEW PET PROFILE (NEW BENTO DESIGN)
                     </div>
 
                     <!-- FINAL MATCH SCORE -->
-                    <div class="rounded-2xl border border-slate-200/80 shadow-xs p-3 bg-white flex flex-col justify-between">
-
-                        <div>
-                            <div class="flex items-center gap-2.5">
-                                <div class="w-9 h-9 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center justify-center shrink-0">
-                                    <i class="fa-solid fa-medal text-emerald-600 text-sm"></i>
-                                </div>
-                                <h3 class="font-bold text-sm uppercase tracking-wider text-slate-800">Final Match Score</h3>
+                    <div class="rounded-2xl border border-slate-200/80 shadow-xs p-3 bg-white">
+                        <!-- Header -->
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-9 h-9 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-medal text-emerald-600 text-sm"></i>
                             </div>
 
-                            <div class="flex items-baseline justify-between mt-3.5">
+                            <div>
+                                <h3 class="font-bold text-sm uppercase tracking-wider text-slate-800">
+                                    Match Compatibility
+                                </h3>
+                                <p class="text-[11px] text-slate-500 mt-0.5">
+                                    How well this pet matches your preferences
+                                </p>
+                            </div>
+                        </div>
+                        <!-- FINAL SCORE -->
+                        <div class="mt-4 flex items-center justify-between">
+                            <div>
+                                <p class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                                    Overall Match
+                                </p>
+                                <div class="flex items-baseline gap-2">
+                                    <h2 id="modalFinalScore"
+                                        class="text-4xl font-black text-emerald-600 tracking-tight">
+                                        83.0%
+                                    </h2>
+                                    <p id="modalMatchRemark"
+                                    class="text-sm font-bold text-slate-600">
+                                        Great Match 💚
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="w-12 h-12 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center">
+                                <i class="fa-solid fa-heart text-emerald-500"></i>
+                            </div>
+                        </div>
+                        <!-- Overall Progress -->
+                        <div class="w-full bg-slate-100 rounded-full h-2.5 mt-3 overflow-hidden">
+                            <div id="modalFinalScoreBar"
+                                class="bg-gradient-to-r from-emerald-500 to-blue-600 h-2.5 rounded-full transition-all duration-700"
+                                style="width:0%">
+                            </div>
+                        </div>
+                        <!-- MATCH BREAKDOWN -->
+                        <div class="mt-5">
+                            <div class="flex items-center justify-between mb-2.5">
+                                <h4 class="text-xs font-bold uppercase tracking-wider text-slate-700">
+                                    Match Breakdown
+                                </h4>
+                                <span class="text-[10px] text-slate-400">
+                                    Based on your preferences
+                                </span>
+                            </div>
+                            <!-- TYPE -->
+                            <div class="rounded-xl border border-slate-100 bg-slate-50/70 p-3 mb-2">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-2.5">
+                                        <div class="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
+                                            <i class="fa-solid fa-paw text-blue-600 text-xs"></i>
+                                        </div>
+                                        <div>
+                                            <p class="text-xs font-bold text-slate-800">
+                                                Pet Type
+                                            </p>
+                                            <p id="modalTypeMatchDetail"
+                                            class="text-[11px] text-slate-500">
+                                                Dog matches your preferred type
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <span id="modalTypeMatch"
+                                        class="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 px-2 py-1 rounded-full">
+                                        <i class="fa-solid fa-check text-[9px]"></i>
+                                        Match
+                                    </span>
+                                </div>
+                            </div>
+                            <!-- BEHAVIOR -->
+                            <div class="rounded-xl border border-slate-100 bg-slate-50/70 p-3 mb-2">
+                                <div class="flex items-center justify-between mb-2">
+                                    <div class="flex items-center gap-2.5">
+                                        <div class="w-8 h-8 rounded-lg bg-purple-50 flex items-center justify-center">
+                                            <i class="fa-solid fa-wand-magic-sparkles text-purple-600 text-xs"></i>
+                                        </div>
+                                        <div>
+                                            <p class="text-xs font-bold text-slate-800">
+                                                Personality & Behavior
+                                            </p>
+                                            <p class="text-[11px] text-slate-500">
+                                                Similarity to your description
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <span id="modalBehaviorScore"
+                                        class="text-sm font-black text-purple-600">
+                                        72.5%
+                                    </span>
+                                </div>
+                                <div class="w-full bg-slate-200 rounded-full h-1.5 overflow-hidden">
+                                    <div id="modalBehaviorScoreBar"
+                                        class="bg-purple-500 h-1.5 rounded-full transition-all duration-700"
+                                        style="width:0%">
+                                    </div>
+                                </div>
+                                <p id="modalBehaviorDetail"
+                                class="text-[10px] text-slate-500 mt-1.5">
+                                    The pet's personality is similar to the preferences in your description.
+                                </p>
+                            </div>
+                            <!-- AGE -->
+                            <div class="rounded-xl border border-slate-100 bg-slate-50/70 p-3 mb-2">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-2.5">
+                                        <div class="w-8 h-8 rounded-lg bg-orange-50 flex items-center justify-center">
+                                            <i class="fa-solid fa-cake-candles text-orange-500 text-xs"></i>
+                                        </div>
+                                        <div>
+                                            <p class="text-xs font-bold text-slate-800">
+                                                Age
+                                            </p>
+                                            <p id="modalAgeMatchDetail"
+                                            class="text-[11px] text-slate-500">
+                                                Age preference matches
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <span id="modalAgeScore"
+                                        class="text-sm font-black text-orange-500">
+                                        100%
+                                    </span>
+                                </div>
+                            </div>
+                            <!-- SEX -->
+                            <div class="rounded-xl border border-slate-100 bg-slate-50/70 p-3">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-2.5">
+                                        <div class="w-8 h-8 rounded-lg bg-pink-50 flex items-center justify-center">
+                                            <i class="fa-solid fa-venus-mars text-pink-500 text-xs"></i>
+                                        </div>
+                                        <div>
+                                            <p class="text-xs font-bold text-slate-800">
+                                                Gender
+                                            </p>
+                                            <p id="modalSexMatchDetail"
+                                            class="text-[11px] text-slate-500">
+                                                Gender preference matches
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <span id="modalSexScore"
+                                        class="text-sm font-black text-pink-500">
+                                        100%
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- HOW SCORE IS CALCULATED -->
+                        <div class="mt-4 rounded-xl bg-emerald-50/80 border border-emerald-100/80 p-3">
+                            <div class="flex items-start gap-2.5">
+                                <i class="fa-solid fa-circle-info text-emerald-600 text-sm mt-0.5 shrink-0"></i>
                                 <div>
-                                    <h2 id="modalFinalScore" class="text-4xl font-black text-emerald-600 tracking-tight">83%</h2>
-                                    <p id="modalMatchRemark" class="text-sm font-bold text-slate-600 mt-0.5">Excellent Match 💚</p>
+                                    <p class="text-xs font-bold text-slate-800 mb-1">
+                                        How is the score calculated?
+                                    </p>
+                                    <p class="text-[11px] text-slate-600 leading-relaxed">
+                                        Your match score combines
+                                        <strong>personality & behavior (70%)</strong>,
+                                        <strong>age (20%)</strong>, and
+                                        <strong>gender (10%)</strong>.
+                                        A higher score means the pet's characteristics are more
+                                        compatible with the preferences you provided.
+                                    </p>
                                 </div>
                             </div>
-
-                            <!-- Progress -->
-                            <div class="w-full bg-slate-100 rounded-full h-2.5 mt-3.5 overflow-hidden">
-                                <div id="modalFinalScoreBar" class="bg-gradient-to-r from-emerald-500 to-blue-600 h-2.5 rounded-full transition-all duration-700" style="width:0%"></div>
-                            </div>
                         </div>
-
-                        <!-- AI Insight -->
-                        <div class="mt-4 rounded-xl bg-emerald-50/80 border border-emerald-100/80 p-3 flex items-start gap-2.5">
-                            <i class="fa-solid fa-sparkles text-emerald-600 text-sm mt-0.5 shrink-0"></i>
-                            <p class="text-xs text-slate-700 leading-normal">
-                                This score combines <strong>pet description (70%)</strong>, <strong>age (20%)</strong>, and <strong>gender (10%)</strong> to estimate overall adoption compatibility.
-                            </p>
-                        </div>
-
                     </div>
-
                     <!-- MEDICAL HISTORY -->
                     <div class="col-span-2 rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden bg-white">
                         <!-- Header -->
@@ -1237,7 +1381,6 @@ VIEW PET PROFILE (NEW BENTO DESIGN)
                             </div>
                             <span class="text-xs font-medium text-slate-500">Latest treatments & vaccinations</span>
                         </div>
-
                         <!-- TABLE -->
                         <div class="overflow-x-auto">
                             <table class="w-full text-sm">
