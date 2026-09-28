@@ -77,17 +77,18 @@ app.use(helmet.noSniff());
 app.use(helmet.frameguard({ action: 'deny' }));
 
 const pool = require('./config/database');
-const { uploadOrgPic } = require('./config/upload');
-const { logActivity } = require("./controllers/adminController");
-const { checkAccountStatus } = require("./controllers/adminController");
+console.log("🔵 DATABASE TEST CODE LOADED");
 
 db.query("SELECT 1 AS test")
     .then(() => {
-        console.log("✅ Railway MySQL connection successful");
+        console.log("🟢 RAILWAY MYSQL CONNECTION SUCCESSFUL");
     })
     .catch((err) => {
-        console.error("❌ Railway MySQL connection failed:", err.message);
+        console.error("🔴 RAILWAY MYSQL CONNECTION FAILED:", err.message);
     });
+const { uploadOrgPic } = require('./config/upload');
+const { logActivity } = require("./controllers/adminController");
+const { checkAccountStatus } = require("./controllers/adminController");
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
