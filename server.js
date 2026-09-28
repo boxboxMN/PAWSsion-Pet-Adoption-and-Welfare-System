@@ -72,7 +72,6 @@ app.use(
   })
 );
 
-// Apply other standard security headers automatically (Anti-clickjacking, X-Content-Type-Options, etc.)
 app.use(helmet.xssFilter());
 app.use(helmet.noSniff());
 app.use(helmet.frameguard({ action: 'deny' }));
