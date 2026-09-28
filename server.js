@@ -77,9 +77,10 @@ app.use(helmet.noSniff());
 app.use(helmet.frameguard({ action: 'deny' }));
 
 const pool = require('./config/database');
+
 console.log("🔵 DATABASE TEST CODE LOADED");
 
-db.query("SELECT 1 AS test")
+pool.query("SELECT 1 AS test")
     .then(() => {
         console.log("🟢 RAILWAY MYSQL CONNECTION SUCCESSFUL");
     })
