@@ -213,7 +213,7 @@ exports.addPet = async (req, res) => {
         // ==========================================
         try {
             console.log("Generating embedding...");
-            const embedding = await generateEmbedding(
+            const { embedding } = await generateEmbedding(
                 pet_description || ""
             );
             console.log("Embedding generated.");
@@ -615,7 +615,7 @@ exports.updatePet = async (req, res) => {
         // UPDATE EMBEDDING
         // ==========================================
         try {
-            const embedding = await generateEmbedding(
+            const { embedding } = await generateEmbedding(
                 pet_description || ""
             );
             await pool.query(
