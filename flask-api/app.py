@@ -1377,12 +1377,6 @@ def get_embedding():
         embedding = model.encode(
             text
         ).tolist()
-        print("========================================")
-        print("EMBEDDING DEBUG")
-        print("MODEL: paraphrase-MiniLM-L3-v2")
-        print("DIMENSION:", len(embedding))
-        print("TEXT:", text)
-        print("========================================")
         # ==================================================
         # LOG
         # ==================================================
