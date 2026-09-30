@@ -320,9 +320,18 @@ modal.addEventListener("click", (e) => {
         closeModal();
     }
 });
+
 petForm.addEventListener("submit", async (e)=>{
 
     e.preventDefault();
+    
+    if (!editingPetId && !petImageInput.files.length) {
+        await showMessage(
+            "Please upload a photo of the pet before submitting.",
+            "warning"
+        );
+        return;
+    }
     
     const formData = new FormData(petForm);
     formData.append(
@@ -944,6 +953,22 @@ function openPetDetailsModal(pet){
         petForm.vaccination_status.value = pet.vaccination_status;
         petForm.adoption_status.value = pet.adoption_status;
         petForm.pet_description.value = pet.pet_description || "";
+
+        const petImagePreview = document.getElementById("petImagePreview");
+        const uploadPlaceholder = document.getElementById("uploadPlaceholder");
+        const petImageInput = document.getElementById("petImageInput");
+
+        if (pet.image_path) {
+            petImagePreview.src = `/uploads/pets/${pet.image_path}`;
+            petImagePreview.classList.remove("hidden");
+            uploadPlaceholder.classList.add("hidden");
+            petImageInput.required = false;
+        } else {
+            petImagePreview.src = "";
+            petImagePreview.classList.add("hidden");
+            uploadPlaceholder.classList.remove("hidden");
+            petImageInput.required = true;
+        }
 
         medicalList = pet.medical_history ? [...pet.medical_history] : [];
         renderMedicalTable();
