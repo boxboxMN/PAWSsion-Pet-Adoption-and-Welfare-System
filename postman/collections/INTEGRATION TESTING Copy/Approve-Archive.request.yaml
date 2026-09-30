@@ -1,5 +1,0 @@
-$kind: http-request
-name: Approve/Archive
-url: ""
-method: GET
-order: 4503599627370176

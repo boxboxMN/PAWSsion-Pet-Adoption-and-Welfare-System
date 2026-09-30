@@ -757,6 +757,9 @@ npm install file-type
 python -m pip install wordninja
 python -m pip install symspellpy
 
+# test the matchmaking for etagalog input 
+(venv) PS C:\Users\Mariel Hernandez\PAWSsion-Pet-Adoption-and-Welfare-System\flask-api> python -m pip install taglid
+
 # google sign in
  npm install google-auth-library
 

@@ -4,20 +4,19 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-     <link rel="icon" type="image/png" href="../assets/images/Pawpon_logo.png">
+    <link rel="icon" type="image/png" href="../assets/images/Pawpon_logo.png">
     <title>PAWPON – Donation</title>
 
     <!-- Tailwind via CDN -->
-     <link rel="stylesheet" href="/css/tailwind.css">
+    <link rel="stylesheet" href="/css/tailwind.css">
 
- <!-- Local Font Awesome -->
-<link rel="stylesheet" href="/css/fontawesome/all.min.css">
+    <!-- Local Font Awesome -->
+    <link rel="stylesheet" href="/css/fontawesome/all.min.css">
 
     <!-- Google Font: Inter -->
-    
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="stylesheet" href="/css/inter.css">
-    
+
     <script src="../assets/js/userSidebar.js"></script>
     <script src="../assets/js/userHeader.js"></script>
     <script src="../assets/js/userDonation.js" defer></script>
@@ -126,26 +125,46 @@
                     </select>
                 </div>
 
-                <!-- TABLE -->
-                <div class="mt-6 overflow-x-auto border border-gray-200 rounded-xl bg-white shadow-sm">
-                    <table class="w-full text-left">
-                        <thead class="bg-gray-50">
-                            <tr class="text-sm text-gray-600 border-b border-gray-200">
-                                <th class="p-4 font-semibold">Date</th>
-                                <th class="p-4 font-semibold">Type</th>
-                                <th class="p-4 font-semibold">Organization / Details</th>
-                                <th class="p-4 font-semibold">Amount / Items</th>
-                                <th class="p-4 font-semibold">Status</th>
-                                <th class="p-4 font-semibold text-center">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody id="donationTableBody">
-                            <!-- Dynamic rows will be inserted here -->
-                            <tr>
-                                <td colspan="6" class="text-center p-6 text-gray-500">Loading donations...</td>
-                            </tr>
-                        </tbody>
-                    </table>
+                <!-- ===== TABLE + PAGINATION (SINGLE CARD) ===== -->
+                <div class="mt-6 border border-gray-200 rounded-xl bg-white shadow-sm overflow-hidden">
+
+                    <!-- Scrollable table area -->
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead class="bg-gray-50">
+                                <tr class="text-sm text-gray-600 border-b border-gray-200">
+                                    <th class="p-4 font-semibold">Date</th>
+                                    <th class="p-4 font-semibold">Type</th>
+                                    <th class="p-4 font-semibold">Organization / Details</th>
+                                    <th class="p-4 font-semibold">Amount / Items</th>
+                                    <th class="p-4 font-semibold">Status</th>
+                                    <th class="p-4 font-semibold text-center">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="donationTableBody">
+                                <!-- Dynamic rows will be inserted here -->
+                                <tr>
+                                    <td colspan="6" class="text-center p-6 text-gray-500">Loading donations...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- ===== PAGINATION FOOTER (inside the same card) ===== -->
+                    <div id="paginationFooter"
+                        class="border-t border-gray-200 px-5 py-4 flex items-center justify-between gap-4">
+
+                        <!-- Left: Showing X of Y -->
+                        <p id="paginationInfo" class="text-sm text-gray-500 font-medium">
+                            Showing 0 of 0 results
+                        </p>
+
+                        <!-- Right: Prev / Page Numbers / Next -->
+                        <div id="paginationControls" class="flex items-center gap-2">
+                            <!-- Buttons rendered by JS -->
+                        </div>
+                    </div>
+
                 </div>
 
             </div>

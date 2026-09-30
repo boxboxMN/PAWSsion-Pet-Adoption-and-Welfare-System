@@ -766,6 +766,13 @@ function cropQrToSquare(src, method = "gcash") {
                 cropY = h * topPct;
                 cropH = (h * bottomPct) - cropY;
 
+                const referenceAspect = (0.52 * w) / (0.27 * h); 
+                const targetH = cropW / referenceAspect;
+                const centerY = cropY + cropH / 2;
+
+                cropH = targetH;
+                cropY = centerY - cropH / 2;
+
                 if (cropH <= 0 || cropH > h) cropH = cropW;
                 if (cropY + cropH > h) cropY = h - cropH;
                 if (cropY < 0) cropY = 0;

@@ -97,6 +97,8 @@ async function matchPets(preferences) {
         let behaviorSimilarity = (similarity + 1) / 2;
 
         console.log("====================================");
+
+        matches.sort((a, b) => b.score - a.score);
         console.log("Pet:", pet.name);
         console.log("Raw Cosine Similarity:", similarity.toFixed(4));
 
@@ -130,6 +132,7 @@ async function matchPets(preferences) {
         // =========================================
         // FINAL MATCH SCORE
         // =========================================
+        
         const finalScore = (behaviorSimilarity * behaviorWeight) + (ageScore * ageWeight) + (sexScore * sexWeight);
 
         console.log("Behavior Weight       :", (behaviorWeight * 100).toFixed(0) + "%");

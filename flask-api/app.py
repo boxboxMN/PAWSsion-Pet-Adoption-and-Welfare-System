@@ -1,70 +1,66 @@
 from flask import Flask, request, jsonify
 from sentence_transformers import SentenceTransformer
+from taglid.lid import lang_identify, simplify
 import wordninja
 import re
 
+
+# ==========================================================
+# FLASK APP
+# ==========================================================
 
 app = Flask(__name__)
 
 
 # ==========================================================
-# LOAD MODEL
+# LOAD SENTENCE TRANSFORMER MODEL
 # ==========================================================
 
-print("Loading model...")
+print("Loading Sentence Transformer model...")
 
 model = SentenceTransformer(
     "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
 )
 
-print("Model loaded!")
-
+print("Sentence Transformer model loaded!")
 print(
-    "Model max sequence length:",
-    model.max_seq_length
+    "Embedding dimension:",
+    model.get_sentence_embedding_dimension()
 )
 
 
 # ==========================================================
-# TEXT HELPERS
+# TEXT NORMALIZATION
 # ==========================================================
 
 def normalize_text(text):
     """
-    Normalize whitespace and Unicode without changing
-    the original capitalization yet.
+    Normalize whitespace without changing the meaning
+    of the user's description.
     """
 
     text = str(text or "")
 
-    # Unicode normalization
     text = text.strip()
 
-    # Normalize whitespace
-    text = re.sub(r"\s+", " ", text)
+    text = re.sub(
+        r"\s+",
+        " ",
+        text
+    )
 
     return text.strip()
 
 
-def count_words(text):
-    """
-    Count actual letter-based words.
-    Supports letters with Unicode characters and
-    apostrophes.
-    """
-
-    words = re.findall(
-        r"\b\w+(?:['’]\w+)?\b",
-        text,
-        flags=re.UNICODE
-    )
-
-    return len(words)
-
+# ==========================================================
+# WORD EXTRACTION
+# ==========================================================
 
 def get_words(text):
     """
-    Return words used for validation.
+    Extract words from the text.
+
+    Supports Unicode characters and apostrophes.
     """
 
     return re.findall(
@@ -72,237 +68,452 @@ def get_words(text):
         text,
         flags=re.UNICODE
     )
-# ============================================================
-# GIBBERISH DETECTION
-# ============================================================
 
-# Legitimate short English / Tagalog / Taglish words.
-# This is NOT a list of allowed descriptions.
-# It only prevents normal short words from being marked as gibberish.
-COMMON_SHORT_WORDS = {
-    "a", "i", "an", "am", "as", "at", "be", "by", "do", "go",
-    "he", "if", "in", "is", "it", "me", "my", "no", "of", "on",
-    "or", "so", "to", "up", "us", "we",
 
-    # Common Tagalog / Taglish
-    "ako", "ang", "at", "ay", "ba", "dahil", "din", "doon",
-    "ito", "iyan", "iyon", "ka", "kay", "ko", "kung", "may",
-    "mo", "na", "ng", "ni", "o", "pa", "para", "sa", "si",
-    "sila", "sino", "ito", "the"
-}
+def count_words(text):
+    """
+    Count words in the text.
+    """
 
+    return len(
+        get_words(text)
+    )
+
+
+# ==========================================================
+# TAGLID LANGUAGE DETECTION
+# ==========================================================
+
+def get_taglid_results(text):
+    """
+    Run TagLID on the complete text.
+
+    TagLID is used for English, Tagalog, and Taglish
+    language identification.
+
+    No manually hard-coded English or Tagalog vocabulary
+    is used.
+    """
+
+    try:
+
+        labeled_text = lang_identify(
+            text
+        )
+
+        simplified_text = simplify(
+            labeled_text
+        )
+
+        return simplified_text
+
+    except Exception as e:
+
+        print(
+            "TagLID error:",
+            e
+        )
+
+        return []
+
+
+def get_language_counts(text):
+    """
+    Count English and Tagalog words detected by TagLID.
+    """
+
+    results = get_taglid_results(
+        text
+    )
+
+    language_counts = {
+        "eng": 0,
+        "tgl": 0
+    }
+
+    for item in results:
+
+        if not isinstance(
+            item,
+            (tuple, list)
+        ):
+            continue
+
+        if len(item) < 2:
+            continue
+
+        language = str(
+            item[1]
+        ).lower()
+
+        if language == "eng":
+
+            language_counts["eng"] += 1
+
+        elif language == "tgl":
+
+            language_counts["tgl"] += 1
+
+    return language_counts
+
+
+def is_taglish(text):
+    """
+    Returns True when TagLID detects both English
+    and Tagalog in the same description.
+    """
+
+    language_counts = get_language_counts(
+        text
+    )
+
+    return (
+        language_counts["eng"] > 0
+        and
+        language_counts["tgl"] > 0
+    )
+
+
+def contains_tagalog(text):
+    """
+    Returns True when TagLID detects at least
+    one Tagalog word.
+    """
+
+    language_counts = get_language_counts(
+        text
+    )
+
+    return language_counts["tgl"] > 0
+
+
+def contains_supported_language(text):
+    """
+    Returns True when TagLID detects at least
+    one English or Tagalog word.
+    """
+
+    language_counts = get_language_counts(
+        text
+    )
+
+    return (
+        language_counts["eng"] > 0
+        or
+        language_counts["tgl"] > 0
+    )
+
+
+# ==========================================================
+# STRUCTURAL GIBBERISH DETECTION
+# ==========================================================
 
 def is_suspicious_word(word):
     """
-    Detect whether ONE word looks like random/gibberish text.
+    Detect obviously malformed/random words using
+    structural characteristics.
+
+    This does NOT use a hard-coded English or Tagalog
+    vocabulary list.
     """
 
-    word = word.lower().strip()
+    word = str(
+        word or ""
+    ).lower().strip()
 
-    # Remove apostrophes only for analysis
-    clean = re.sub(r"['’]", "", word)
+    clean = re.sub(
+        r"['’]",
+        "",
+        word
+    )
 
     if not clean:
         return False
 
-    # Normal short words are allowed
-    if clean in COMMON_SHORT_WORDS:
+    # Very short words are not considered suspicious.
+    if len(clean) <= 2:
         return False
 
-    # --------------------------------------------------------
-    # 1. RANDOM SINGLE LETTERS
-    # --------------------------------------------------------
-
-    # Only a and i are normally valid standalone English words.
-    if len(clean) == 1:
-        return clean not in {"a", "i"}
-
-    # --------------------------------------------------------
-    # 2. VERY SHORT NON-WORDS
-    # --------------------------------------------------------
-
-    # Two-letter words that are not common words are suspicious.
-    if len(clean) == 2:
-        return True
-
-    # Three-letter words with no vowel are highly suspicious.
-    if len(clean) == 3:
-        vowels = re.findall(
-            r"[aeiouáéíóúàèìòùâêîôûäëïöü]",
-            clean,
-            re.IGNORECASE
-        )
-
-        if len(vowels) == 0:
-            return True
-
-    # --------------------------------------------------------
-    # 3. FIVE OR MORE CONSONANTS IN A ROW
-    # --------------------------------------------------------
+    # ------------------------------------------------------
+    # CHECK 1: Repeated characters
+    # Example:
+    # heyyyyyyy
+    # aaaaaaaa
+    # ------------------------------------------------------
 
     if re.search(
-        r"[bcdfghjklmnpqrstvwxyz]{5,}",
-        clean,
-        re.IGNORECASE
+        r"(.)\1{3,}",
+        clean
     ):
         return True
 
-    # --------------------------------------------------------
-    # 4. REPETITIVE RANDOM PATTERNS
-    # --------------------------------------------------------
+    # ------------------------------------------------------
+    # CHECK 2: Repeated chunks
+    # Example:
+    # ababababab
+    # xyzxyzxyz
+    # ------------------------------------------------------
 
     if re.fullmatch(
-        r"(.{1,2})\1{3,}",
-        clean,
-        re.IGNORECASE
+        r"(.{1,3})\1{3,}",
+        clean
     ):
         return True
 
-    # --------------------------------------------------------
-    # 5. VOWEL / CONSONANT ANALYSIS
-    # --------------------------------------------------------
+    # ------------------------------------------------------
+    # CHECK 3: Vowel ratio
+    # ------------------------------------------------------
 
     vowels = re.findall(
-        r"[aeiouáéíóúàèìòùâêîôûäëïöü]",
+        r"[aeiouyáéíóúàèìòùâêîôûäëïöü]",
         clean,
         re.IGNORECASE
     )
 
-    consonants = re.findall(
-        r"[bcdfghjklmnpqrstvwxyz]",
-        clean,
-        re.IGNORECASE
+    vowel_ratio = (
+        len(vowels) / len(clean)
     )
 
-    length = len(clean)
-    vowel_count = len(vowels)
-    consonant_count = len(consonants)
-
-    # Long words with almost no vowels are suspicious.
-    if length >= 5 and vowel_count == 0:
+    # Very long word with almost no vowels.
+    if (
+        len(clean) >= 12
+        and
+        vowel_ratio < 0.20
+    ):
         return True
 
-    if length >= 7 and vowel_count / length < 0.15:
+    # Extremely long word with unusually few vowels.
+    if (
+        len(clean) >= 18
+        and
+        vowel_ratio < 0.30
+    ):
         return True
 
-    # Extremely consonant-heavy words
-    if length >= 7 and consonant_count / length >= 0.75:
-        return True
-
-    # --------------------------------------------------------
-    # 6. REPEATED CONSONANT PATTERNS
-    # --------------------------------------------------------
+    # ------------------------------------------------------
+    # CHECK 4: Extremely long consonant sequence
+    # ------------------------------------------------------
 
     if re.search(
-        r"[bcdfghjklmnpqrstvwxyz]{3,}[aeiou]{0,1}[bcdfghjklmnpqrstvwxyz]{3,}",
+        r"[bcdfghjklmnpqrstvwxz]{7,}",
         clean,
         re.IGNORECASE
     ):
         return True
+
+    # ------------------------------------------------------
+    # CHECK 5: Excessive character variety in a long word
+    # ------------------------------------------------------
+
+    if len(clean) >= 16:
+
+        unique_ratio = (
+            len(set(clean))
+            /
+            len(clean)
+        )
+
+        if unique_ratio >= 0.85:
+            return True
 
     return False
 
 
+# ==========================================================
+# WHOLE TEXT GIBBERISH DETECTION
+# ==========================================================
+
 def looks_like_gibberish(text):
     """
-    Detect whether the ENTIRE description looks like gibberish.
+    Determine whether the complete description appears
+    to contain random or meaningless text.
 
-    Important:
-    We don't reject based on one unusual word.
-    We look at the overall quality of the sentence.
+    This function intentionally does NOT depend solely
+    on TagLID because TagLID is a language identifier,
+    not a semantic gibberish detector.
     """
 
-    words = re.findall(
-        r"\b[\w]+(?:['’][\w]+)?\b",
-        text.lower(),
-        re.UNICODE
+    words = get_words(
+        text
     )
 
     if not words:
         return True
 
-    total_words = len(words)
+    total_words = len(
+        words
+    )
 
-    suspicious_words = 0
-    very_short_suspicious = 0
-    meaningless_single_letters = 0
+    # ------------------------------------------------------
+    # CHECK 1:
+    # Individual suspicious words
+    # ------------------------------------------------------
+
+    suspicious_words = []
 
     for word in words:
 
-        # ----------------------------------------------------
-        # Single-letter garbage
-        # ----------------------------------------------------
+        if is_suspicious_word(
+            word
+        ):
+            suspicious_words.append(
+                word
+            )
 
-        if len(word) == 1 and word not in {"a", "i"}:
-            meaningless_single_letters += 1
-            suspicious_words += 1
+    # If one obviously malformed long/random word exists,
+    # reject the description.
+    if suspicious_words:
+
+        print(
+            "Suspicious words detected:",
+            suspicious_words
+        )
+
+        return True
+
+    # ------------------------------------------------------
+    # CHECK 2:
+    # TagLID language recognition
+    # ------------------------------------------------------
+
+    language_counts = get_language_counts(
+        text
+    )
+
+    eng_count = language_counts["eng"]
+    tgl_count = language_counts["tgl"]
+
+    supported_count = (
+        eng_count
+        +
+        tgl_count
+    )
+
+    supported_ratio = (
+        supported_count
+        /
+        total_words
+    )
+
+    # ------------------------------------------------------
+    # If most of the text is recognized as English,
+    # Tagalog, or Taglish, it is not structural gibberish.
+    # ------------------------------------------------------
+
+    if supported_ratio >= 0.60:
+
+        return False
+
+    # ------------------------------------------------------
+    # CHECK 3:
+    # Overall suspicious structure
+    # ------------------------------------------------------
+
+    structural_suspicious = 0
+
+    for word in words:
+
+        clean = re.sub(
+            r"['’]",
+            "",
+            word.lower()
+        )
+
+        if len(clean) < 3:
             continue
 
-        # ----------------------------------------------------
-        # Suspicious short words
-        # ----------------------------------------------------
+        vowels = re.findall(
+            r"[aeiouyáéíóúàèìòùâêîôûäëïöü]",
+            clean,
+            re.IGNORECASE
+        )
 
-        if len(word) <= 3 and word not in COMMON_SHORT_WORDS:
-            very_short_suspicious += 1
+        vowel_ratio = (
+            len(vowels)
+            /
+            len(clean)
+        )
 
-        # ----------------------------------------------------
-        # General word-level check
-        # ----------------------------------------------------
+        # Long words with extremely unusual vowel structure.
+        if (
+            len(clean) >= 10
+            and
+            vowel_ratio < 0.20
+        ):
 
-        if is_suspicious_word(word):
-            suspicious_words += 1
+            structural_suspicious += 1
 
-    suspicious_ratio = suspicious_words / total_words
-    short_garbage_ratio = very_short_suspicious / total_words
+        # Long consonant sequence.
+        elif re.search(
+            r"[bcdfghjklmnpqrstvwxz]{7,}",
+            clean,
+            re.IGNORECASE
+        ):
 
-    # ========================================================
-    # HARD FAIL CONDITIONS
-    # ========================================================
+            structural_suspicious += 1
 
-    # 1. Three or more random single-letter tokens
-    if meaningless_single_letters >= 3:
+    suspicious_ratio = (
+        structural_suspicious
+        /
+        total_words
+    )
+
+    # ------------------------------------------------------
+    # Mostly suspicious text
+    # ------------------------------------------------------
+
+    if (
+        total_words >= 8
+        and
+        suspicious_ratio >= 0.40
+    ):
+
         return True
 
-    # 2. At least 3 suspicious short words
-    if very_short_suspicious >= 3:
+    if (
+        total_words <= 7
+        and
+        suspicious_ratio >= 0.50
+    ):
+
         return True
 
-    # 3. More than 40% of the sentence is suspicious
-    if total_words >= 5 and suspicious_ratio >= 0.40:
-        return True
+    # ------------------------------------------------------
+    # Very little language recognition + suspicious
+    # structure
+    # ------------------------------------------------------
 
-    # 4. More than 50% consists of suspicious 1-3 letter words
-    if total_words >= 5 and short_garbage_ratio >= 0.50:
-        return True
+    if (
+        supported_ratio < 0.30
+        and
+        suspicious_ratio >= 0.20
+    ):
 
-    # 5. At least 2 suspicious words in a short sentence
-    if total_words <= 8 and suspicious_words >= 2:
         return True
 
     return False
+
+
 # ==========================================================
-# SANITIZE BEFORE REPAIR
+# SANITIZE INPUT
 # ==========================================================
 
 def sanitize_before_repair(text):
     """
-    Remove obvious technical noise before WordNinja.
-
-    IMPORTANT:
-
-    This does NOT try to decide whether the text is
-    meaningful.
-
-    It only prepares the text for repair.
+    Remove unnecessary characters while preserving
+    normal language characters and punctuation.
     """
 
-    text = normalize_text(text)
+    text = normalize_text(
+        text
+    )
 
     if not text:
+
         return ""
 
     # ------------------------------------------------------
-    # Remove numbers
+    # REMOVE NUMBERS
     # ------------------------------------------------------
 
     text = re.sub(
@@ -312,26 +523,27 @@ def sanitize_before_repair(text):
     )
 
     # ------------------------------------------------------
-    # Replace punctuation/symbols with spaces
-    #
-    # Keep apostrophes because:
-    #
-    # don't
-    # can't
-    # I'm
-    #
-    # can carry meaning.
+    # KEEP:
+    # Unicode letters
+    # whitespace
+    # apostrophes
+    # hyphens
+    # common punctuation
     # ------------------------------------------------------
 
     text = re.sub(
-        r"[^\w\s'’\-]",
+        r"[^\w\s'’\-\.,!?]",
         " ",
         text,
         flags=re.UNICODE
     )
 
     # ------------------------------------------------------
-    # Remove hyphens as separators
+    # REMOVE INTERNAL HYPHENS USED AS SEPARATORS
+    # Example:
+    # friendly-playful
+    # becomes:
+    # friendly playful
     # ------------------------------------------------------
 
     text = re.sub(
@@ -341,7 +553,7 @@ def sanitize_before_repair(text):
     )
 
     # ------------------------------------------------------
-    # Normalize spaces
+    # NORMALIZE SPACES
     # ------------------------------------------------------
 
     text = re.sub(
@@ -351,11 +563,11 @@ def sanitize_before_repair(text):
     ).strip()
 
     # ------------------------------------------------------
-    # Remove consecutive repeated words
-    #
-    # YAY YAY YAY YAY
-    # becomes
-    # YAY
+    # REMOVE IMMEDIATE DUPLICATE WORDS
+    # Example:
+    # friendly friendly dog
+    # becomes:
+    # friendly dog
     # ------------------------------------------------------
 
     words = text.split()
@@ -365,48 +577,155 @@ def sanitize_before_repair(text):
     for word in words:
 
         if (
-            cleaned_words and
-            cleaned_words[-1].lower() == word.lower()
+            cleaned_words
+            and
+            cleaned_words[-1].lower()
+            ==
+            word.lower()
         ):
             continue
 
-        cleaned_words.append(word)
+        cleaned_words.append(
+            word
+        )
 
-    text = " ".join(cleaned_words)
+    text = " ".join(
+        cleaned_words
+    )
 
     return text.strip()
 
 
 # ==========================================================
-# REPAIR BEHAVIOR TEXT
+# DETERMINE WHETHER WORDNINJA IS NEEDED
+# ==========================================================
+
+def should_repair_text(text):
+    """
+    WordNinja is only used when the text appears to
+    contain missing word boundaries.
+
+    IMPORTANT:
+    Tagalog/Taglish text is never sent to WordNinja.
+    """
+
+    # ------------------------------------------------------
+    # IMPORTANT:
+    # Skip WordNinja when Tagalog is detected.
+    #
+    # This prevents valid Tagalog text such as:
+    #
+    # "gusto ko ng mabait masayahin at mahilig maglaro
+    # na alaga"
+    #
+    # from being incorrectly split.
+    # ------------------------------------------------------
+
+    if contains_tagalog(
+        text
+    ):
+
+        print(
+            "TagLID detected Tagalog."
+        )
+
+        print(
+            "WordNinja: Skipped"
+        )
+
+        return False
+
+    words = get_words(
+        text
+    )
+
+    if not words:
+
+        return False
+
+    # ------------------------------------------------------
+    # Normal sentence:
+    # Do not repair.
+    # ------------------------------------------------------
+
+    if len(words) >= 5:
+
+        return False
+
+    # ------------------------------------------------------
+    # Possibly unseparated text.
+    #
+    # Example:
+    # friendlyplayfuldog...
+    # ------------------------------------------------------
+
+    if (
+        len(words) <= 2
+        and
+        len(text) >= 30
+    ):
+
+        return True
+
+    return False
+
+
+# ==========================================================
+# WORDNINJA REPAIR
 # ==========================================================
 
 def repair_behavior_text(text):
+    """
+    Repair missing word boundaries using WordNinja.
 
-    text = normalize_text(text)
+    This function should only be called after
+    should_repair_text() returns True.
+    """
+
+    text = normalize_text(
+        text
+    )
 
     if not text:
+
         return ""
 
     # ------------------------------------------------------
-    # Normalize punctuation
+    # REMOVE SENTENCE PUNCTUATION TEMPORARILY
     # ------------------------------------------------------
 
-    text = text.replace(".", " ")
-    text = text.replace(",", " ")
-    text = text.replace("!", " ")
-    text = text.replace("?", " ")
-    text = text.replace(";", " ")
-    text = text.replace(":", " ")
+    text = text.replace(
+        ".",
+        " "
+    )
+
+    text = text.replace(
+        ",",
+        " "
+    )
+
+    text = text.replace(
+        "!",
+        " "
+    )
+
+    text = text.replace(
+        "?",
+        " "
+    )
+
+    text = text.replace(
+        ";",
+        " "
+    )
+
+    text = text.replace(
+        ":",
+        " "
+    )
 
     # ------------------------------------------------------
-    # Separate camelCase
-    #
-    # iWantAKindPet
-    #
-    # becomes approximately:
-    #
-    # i Want A Kind Pet
+    # SEPARATE CAMEL CASE
     # ------------------------------------------------------
 
     text = re.sub(
@@ -416,7 +735,7 @@ def repair_behavior_text(text):
     )
 
     # ------------------------------------------------------
-    # Normalize spaces
+    # NORMALIZE SPACES
     # ------------------------------------------------------
 
     text = re.sub(
@@ -429,13 +748,13 @@ def repair_behavior_text(text):
     # WORDNINJA
     # ------------------------------------------------------
 
-    words = wordninja.split(text)
+    words = wordninja.split(
+        text
+    )
 
-    # ------------------------------------------------------
-    # Rebuild
-    # ------------------------------------------------------
-
-    repaired = " ".join(words)
+    repaired = " ".join(
+        words
+    )
 
     repaired = re.sub(
         r"\s+",
@@ -443,35 +762,23 @@ def repair_behavior_text(text):
         repaired
     ).strip()
 
-    # ------------------------------------------------------
-    # Normalize capitalization
-    # ------------------------------------------------------
-
-    if repaired:
-
-        repaired = repaired.lower()
-
-        repaired = (
-            repaired[0].upper()
-            + repaired[1:]
-        )
-
     return repaired
 
 
 # ==========================================================
-# POST-REPAIR CLEANUP
+# CLEAN REPAIRED TEXT
 # ==========================================================
 
 def cleanup_repaired_text(text):
 
-    text = normalize_text(text)
+    text = normalize_text(
+        text
+    )
 
     if not text:
+
         return ""
 
-    # Remove consecutive repeated words again because
-    # WordNinja may produce fragments.
     words = text.split()
 
     cleaned_words = []
@@ -479,140 +786,524 @@ def cleanup_repaired_text(text):
     for word in words:
 
         if (
-            cleaned_words and
-            cleaned_words[-1].lower() ==
+            cleaned_words
+            and
+            cleaned_words[-1].lower()
+            ==
             word.lower()
         ):
             continue
 
-        cleaned_words.append(word)
+        cleaned_words.append(
+            word
+        )
 
-    text = " ".join(cleaned_words)
-
-    return text.strip()
+    return " ".join(
+        cleaned_words
+    ).strip()
 
 
 # ==========================================================
-# REPAIR + VALIDATE
+# EMBEDDING ENDPOINT
 # ==========================================================
-@app.route("/repair", methods=["POST"])
-def repair_text():
+
+@app.route(
+    "/embedding",
+    methods=["POST"]
+)
+def embedding():
 
     try:
-        data = request.get_json()
+
+        # --------------------------------------------------
+        # READ JSON
+        # --------------------------------------------------
+
+        data = request.get_json(
+            silent=True
+        )
 
         if not data:
+
             return jsonify({
                 "success": False,
                 "message": "No data received."
             }), 400
 
-        text = data.get("text", "")
+        # --------------------------------------------------
+        # GET TEXT
+        # --------------------------------------------------
 
-        if not str(text).strip():
+        text = data.get(
+            "text",
+            ""
+        )
+
+        text = normalize_text(
+            text
+        )
+
+        if not text:
+
             return jsonify({
                 "success": False,
-                "message": "Please provide a pet preference description."
+                "message": "Text is required."
             }), 400
 
-        # ----------------------------------------------------
-        # Normalize + repair
-        # ----------------------------------------------------
+        # --------------------------------------------------
+        # GENERATE EMBEDDING
+        # --------------------------------------------------
 
-        sanitized_text = sanitize_before_repair(text)
+        embedding_vector = model.encode(
+            text,
+            normalize_embeddings=False
+        )
 
-        repaired_text = repair_behavior_text(sanitized_text)
-
-        repaired_text = cleanup_repaired_text(repaired_text)
-
-        if not repaired_text:
-            return jsonify({
-                "success": False,
-                "message": "Please enter a meaningful pet preference description."
-            }), 400
-
-        # ----------------------------------------------------
-        # Count words / characters
-        # ----------------------------------------------------
-
-        words = repaired_text.split()
-
-        word_count = len(words)
-        character_count = len(repaired_text)
-
-        # ----------------------------------------------------
-        # Minimum requirements
-        # ----------------------------------------------------
-
-        if word_count < 5:
-            return jsonify({
-                "success": False,
-                "message": "Please provide at least 5 words.",
-                "repaired_text": repaired_text,
-                "word_count": word_count,
-                "character_count": character_count
-            }), 400
-
-        if character_count < 20:
-            return jsonify({
-                "success": False,
-                "message": "Please provide at least 20 characters.",
-                "repaired_text": repaired_text,
-                "word_count": word_count,
-                "character_count": character_count
-            }), 400
-
-        # ----------------------------------------------------
-        # Maximum requirements
-        # ----------------------------------------------------
-
-        if word_count > 80:
-            return jsonify({
-                "success": False,
-                "message": "Please keep your description below 80 words.",
-                "word_count": word_count,
-                "character_count": character_count
-            }), 400
-
-        if character_count > 500:
-            return jsonify({
-                "success": False,
-                "message": "Please keep your description below 500 characters.",
-                "word_count": word_count,
-                "character_count": character_count
-            }), 400
-
-        # ====================================================
-        # IMPORTANT: GIBBERISH CHECK
-        # ====================================================
-
-        if looks_like_gibberish(repaired_text):
-            return jsonify({
-                "success": False,
-                "message": "Your description appears to contain random or meaningless text. Please describe the type of pet you are looking for.",
-                "repaired_text": repaired_text,
-                "word_count": word_count,
-                "character_count": character_count
-            }), 400
-
-        # ----------------------------------------------------
-        # Everything passed
-        # ----------------------------------------------------
+        # --------------------------------------------------
+        # RETURN EMBEDDING
+        # --------------------------------------------------
 
         return jsonify({
             "success": True,
-            "repaired_text": repaired_text,
-            "word_count": word_count,
-            "character_count": character_count
+            "embedding": embedding_vector.tolist()
         }), 200
 
     except Exception as e:
 
-        print("Repair error:", e)
+        print(
+            "Embedding error:",
+            e
+        )
 
         return jsonify({
             "success": False,
-            "message": "Unable to process your description."
+            "message": "Unable to generate embedding."
+        }), 500
+
+
+# ==========================================================
+# REPAIR / VALIDATION ENDPOINT
+# ==========================================================
+
+@app.route(
+    "/repair",
+    methods=["POST"]
+)
+def repair_text():
+
+    try:
+
+        # ==================================================
+        # STEP 1
+        # READ REQUEST
+        # ==================================================
+
+        data = request.get_json(
+            silent=True
+        )
+
+        if not data:
+
+            return jsonify({
+                "success": False,
+                "message": "No data received."
+            }), 400
+
+        text = data.get(
+            "text",
+            ""
+        )
+
+        # ==================================================
+        # STEP 2
+        # EMPTY INPUT
+        # ==================================================
+
+        if not str(text).strip():
+
+            return jsonify({
+                "success": False,
+                "message":
+                    "Please provide a pet preference description."
+            }), 400
+
+        # ==================================================
+        # STEP 3
+        # SANITIZE INPUT
+        # ==================================================
+
+        sanitized_text = sanitize_before_repair(
+            text
+        )
+
+        if not sanitized_text:
+
+            return jsonify({
+                "success": False,
+                "message":
+                    "Please enter a meaningful pet preference description."
+            }), 400
+
+        # ==================================================
+        # STEP 4
+        # TAGLID
+        # ==================================================
+
+        language_counts = get_language_counts(
+            sanitized_text
+        )
+
+        has_tagalog = (
+            language_counts["tgl"] > 0
+        )
+
+        has_english = (
+            language_counts["eng"] > 0
+        )
+
+        taglish = (
+            has_tagalog
+            and
+            has_english
+        )
+
+        print("")
+        print("========================================")
+        print("TAGLID RESULT")
+        print("Text:", sanitized_text)
+        print(
+            "English:",
+            language_counts["eng"]
+        )
+        print(
+            "Tagalog:",
+            language_counts["tgl"]
+        )
+        print(
+            "Taglish:",
+            taglish
+        )
+        print("========================================")
+        print("")
+
+        # ==================================================
+        # STEP 5
+        # GIBBERISH CHECK
+        #
+        # IMPORTANT:
+        # This happens BEFORE WordNinja.
+        # ==================================================
+
+        if looks_like_gibberish(
+            sanitized_text
+        ):
+
+            return jsonify({
+                "success": False,
+                "message":
+                    "Your description appears to contain random "
+                    "or meaningless text. Please describe the "
+                    "type of pet you are looking for.",
+                "repaired_text":
+                    sanitized_text,
+                "word_count":
+                    count_words(
+                        sanitized_text
+                    ),
+                "character_count":
+                    len(
+                        sanitized_text
+                    ),
+                "languages":
+                    language_counts,
+                "is_taglish":
+                    taglish
+            }), 400
+
+        # ==================================================
+        # STEP 6
+        # OPTIONAL WORD REPAIR
+        # ==================================================
+
+        repaired_text = sanitized_text
+
+        if should_repair_text(
+            sanitized_text
+        ):
+
+            print(
+                "WordNinja: Repairing text"
+            )
+
+            repaired_text = repair_behavior_text(
+                sanitized_text
+            )
+
+        else:
+
+            print(
+                "WordNinja: Skipped"
+            )
+
+        # ==================================================
+        # STEP 7
+        # CLEANUP
+        # ==================================================
+
+        repaired_text = cleanup_repaired_text(
+            repaired_text
+        )
+
+        if not repaired_text:
+
+            return jsonify({
+                "success": False,
+                "message":
+                    "Please enter a meaningful pet preference description."
+            }), 400
+
+        # ==================================================
+        # STEP 8
+        # COUNT WORDS / CHARACTERS
+        # ==================================================
+
+        words = get_words(
+            repaired_text
+        )
+
+        word_count = len(
+            words
+        )
+
+        character_count = len(
+            repaired_text
+        )
+
+        # ==================================================
+        # STEP 9
+        # MINIMUM WORD COUNT
+        # ==================================================
+
+        if word_count < 5:
+
+            return jsonify({
+                "success": False,
+                "message":
+                    "Please provide at least 5 words.",
+                "repaired_text":
+                    repaired_text,
+                "word_count":
+                    word_count,
+                "character_count":
+                    character_count,
+                "languages":
+                    language_counts,
+                "is_taglish":
+                    taglish
+            }), 400
+
+        # ==================================================
+        # STEP 10
+        # MINIMUM CHARACTER COUNT
+        # ==================================================
+
+        if character_count < 20:
+
+            return jsonify({
+                "success": False,
+                "message":
+                    "Please provide at least 20 characters.",
+                "repaired_text":
+                    repaired_text,
+                "word_count":
+                    word_count,
+                "character_count":
+                    character_count,
+                "languages":
+                    language_counts,
+                "is_taglish":
+                    taglish
+            }), 400
+
+        # ==================================================
+        # STEP 11
+        # MAXIMUM WORD COUNT
+        # ==================================================
+
+        if word_count > 100:
+
+            return jsonify({
+                "success": False,
+                "message":
+                    "Please keep your description below 100 words.",
+                "repaired_text":
+                    repaired_text,
+                "word_count":
+                    word_count,
+                "character_count":
+                    character_count,
+                "languages":
+                    language_counts,
+                "is_taglish":
+                    taglish
+            }), 400
+
+        # ==================================================
+        # STEP 12
+        # MAXIMUM CHARACTER COUNT
+        # ==================================================
+
+        if character_count > 1000:
+
+            return jsonify({
+                "success": False,
+                "message":
+                    "Please keep your description below "
+                    "1000 characters.",
+                "repaired_text":
+                    repaired_text,
+                "word_count":
+                    word_count,
+                "character_count":
+                    character_count,
+                "languages":
+                    language_counts,
+                "is_taglish":
+                    taglish
+            }), 400
+
+        # ==================================================
+        # STEP 13
+        # FINAL GIBBERISH CHECK
+        #
+        # This catches malformed text that may remain
+        # after optional repair.
+        # ==================================================
+
+        if looks_like_gibberish(
+            repaired_text
+        ):
+
+            return jsonify({
+                "success": False,
+                "message":
+                    "Your description appears to contain random "
+                    "or meaningless text. Please describe the "
+                    "type of pet you are looking for.",
+                "repaired_text":
+                    repaired_text,
+                "word_count":
+                    word_count,
+                "character_count":
+                    character_count,
+                "languages":
+                    language_counts,
+                "is_taglish":
+                    taglish
+            }), 400
+
+        # ==================================================
+        # STEP 14
+        # UPDATE TAGLID RESULT
+        #
+        # Use the final text for the returned language counts.
+        # ==================================================
+
+        final_language_counts = get_language_counts(
+            repaired_text
+        )
+
+        final_is_taglish = (
+            final_language_counts["eng"] > 0
+            and
+            final_language_counts["tgl"] > 0
+        )
+
+        # ==================================================
+        # STEP 15
+        # GET TAGALOG / ENGLISH WORDS
+        # ==================================================
+
+        taglid_results = get_taglid_results(
+            repaired_text
+        )
+
+        tagalog_words = []
+        english_words = []
+
+        for item in taglid_results:
+
+            if not isinstance(
+                item,
+                (tuple, list)
+            ):
+                continue
+
+            if len(item) < 2:
+                continue
+
+            word = str(
+                item[0]
+            )
+
+            language = str(
+                item[1]
+            ).lower()
+
+            if language == "tgl":
+
+                tagalog_words.append(
+                    word
+                )
+
+            elif language == "eng":
+
+                english_words.append(
+                    word
+                )
+
+        # ==================================================
+        # STEP 16
+        # SUCCESS
+        # ==================================================
+
+        return jsonify({
+            "success": True,
+            "repaired_text":
+                repaired_text,
+            "word_count":
+                word_count,
+            "character_count":
+                character_count,
+            "languages":
+                final_language_counts,
+            "is_taglish":
+                final_is_taglish,
+            "tagalog_words":
+                tagalog_words,
+            "english_words":
+                english_words
+        }), 200
+
+    except Exception as e:
+
+        print(
+            "========================================"
+        )
+
+        print(
+            "REPAIR ERROR:",
+            e
+        )
+
+        print(
+            "========================================"
+        )
+
+        return jsonify({
+            "success": False,
+            "message":
+                "Unable to process your description."
         }), 500
 # ==========================================================
 # EMBEDDING
@@ -623,204 +1314,126 @@ def repair_text():
     methods=["POST"]
 )
 def get_embedding():
-
     try:
-
         data = request.get_json()
-
         if not data:
-
             return jsonify({
-
                 "success":
                     False,
-
                 "message":
                     "No data received."
-
             }), 400
-
-
         text = data.get(
             "text",
             ""
         )
-
-
         if not str(text).strip():
-
             return jsonify({
-
                 "success":
                     False,
-
                 "message":
                     "Text is required."
-
             }), 400
-
 
         # ==================================================
         # FINAL BASIC SAFETY CHECK
         # ==================================================
-        #
-        # The /repair endpoint should already have validated
-        # this text.
-        #
-        # This is simply another safety layer.
-        # ==================================================
-
         text = normalize_text(text)
-
-
         if not text:
-
             return jsonify({
-
                 "success":
                     False,
-
                 "message":
                     "Text is required."
-
             }), 400
-
-
         # ==================================================
         # TOKEN COUNT
         # ==================================================
-
         encoded = model.tokenizer(
             text,
             add_special_tokens=True,
             truncation=False
         )
-
         token_count = len(
             encoded["input_ids"]
         )
-
-
         # ==================================================
         # MODEL TOKEN LIMIT
-        # ==================================================
-        #
         # Your model has max_seq_length = 128.
-        #
-        # We reject anything that exceeds it rather than
-        # silently allowing the model to truncate the text.
-        # ==================================================
 
         if token_count > 128:
-
             return jsonify({
-
                 "success":
                     False,
-
                 "message":
                     "Your description is too detailed for the matching model. Please shorten it.",
-
                 "token_count":
                     token_count
-
             }), 400
-
 
         # ==================================================
         # GENERATE EMBEDDING
         # ==================================================
-
         embedding = model.encode(
             text
         ).tolist()
-
-
         # ==================================================
         # LOG
         # ==================================================
-
         print(
             "========================================"
         )
-
         print(
             "EMBEDDING TEXT:"
         )
-
         print(
             text
         )
-
         print(
             "Token count:",
             token_count
         )
-
         print(
             "Embedding dimensions:",
             len(embedding)
         )
-
         print(
             "========================================"
         )
-
-
         return jsonify({
-
             "success":
                 True,
-
             "embedding":
                 embedding,
-
             "repaired_text":
                 text,
-
             "token_count":
                 token_count
-
         })
-
-
     except Exception as error:
-
         print(
             "========================================"
         )
-
         print(
             "EMBEDDING ERROR"
         )
-
         print(
             "========================================"
         )
-
         print(error)
-
         print(
             "========================================"
         )
-
         return jsonify({
-
             "success":
                 False,
-
             "message":
                 "Unable to generate embedding."
-
         }), 500
-
-
 # ==========================================================
 # RUN FLASK
 # ==========================================================
-
 if __name__ == "__main__":
-
     app.run(
         debug=False,
         port=5000

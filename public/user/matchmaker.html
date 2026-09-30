@@ -37,6 +37,14 @@
         #header{
             visibility:hidden;
         }
+        #viewPetModal .modal-status-pills {
+            margin-left: 3rem;
+        }
+        @media (max-width: 640px) {
+            #viewPetModal .modal-status-pills {
+                margin-left: 1rem;
+            }
+        }
         /* Hide scrollbar but keep scrolling */
         .hide-scrollbar {
             -ms-overflow-style: none;  /* IE and Edge */
@@ -49,6 +57,616 @@
         *::-webkit-scrollbar {
          display: none;
         }
+        /* =========================================================
+   RESPONSIVE DESIGN
+   Desktop layout remains unchanged.
+   Mobile/tablet adjustments only.
+   ========================================================= */
+
+/* ---------------------------------------------------------
+   TABLET + MOBILE
+   --------------------------------------------------------- */
+@media (max-width: 1023px) {
+
+    /* Remove desktop sidebar spacing */
+    main {
+        margin-left: 0 !important;
+        padding-top: 5rem !important;
+    }
+
+    /* Header becomes full width */
+    #header {
+        left: 0 !important;
+        height: 5rem !important;
+    }
+
+    /* Main scroll area */
+    main > div {
+        height: calc(100vh - 5rem) !important;
+        padding: 1rem !important;
+    }
+
+    /* =====================================================
+       INTRO SCREEN
+       ===================================================== */
+
+    #introScreen {
+        min-height: 100%;
+        padding: 1rem !important;
+    }
+
+    #introScreen > div {
+        padding: 1.25rem !important;
+        margin-top: 0 !important;
+        gap: 1.5rem;
+    }
+
+    #introScreen img {
+        width: min(70vw, 320px) !important;
+        margin-top: 0 !important;
+    }
+
+    #introScreen h1 {
+        font-size: clamp(1.75rem, 6vw, 2.25rem) !important;
+    }
+
+    #introScreen p {
+        font-size: 0.875rem !important;
+    }
+
+    #introNextBtn {
+        width: 100% !important;
+        min-width: 0 !important;
+    }
+
+
+    /* =====================================================
+       PREFERENCE SCREEN
+       ===================================================== */
+
+    #preferenceScreen {
+        padding: 1rem !important;
+    }
+
+    #preferenceScreen > div {
+        padding: 1rem !important;
+        margin-top: 0 !important;
+        gap: 1.5rem;
+    }
+
+    /* Header */
+    #preferenceScreen .border-b {
+        margin-left: 0 !important;
+        margin-top: 0 !important;
+        padding-bottom: 1rem !important;
+    }
+
+    #preferenceScreen .border-b h1 {
+        font-size: 1.75rem !important;
+    }
+
+    #preferenceScreen .border-b p {
+        font-size: 0.75rem !important;
+        line-height: 1.5;
+    }
+
+    /* Dropdown grid */
+    #preferenceScreen form {
+        grid-template-columns: 1fr !important;
+        gap: 1rem !important;
+    }
+
+    #preferenceScreen form > div {
+        margin-left: 0 !important;
+        margin-top: 0 !important;
+    }
+
+    #preferenceScreen select {
+        width: 100% !important;
+        min-height: 46px;
+    }
+
+    /* Behavior section */
+    #preferenceScreen .space-y-4 {
+        margin-left: 0 !important;
+        margin-top: 0 !important;
+    }
+
+    #behavior {
+        min-height: 160px;
+        font-size: 0.875rem;
+    }
+
+    /* Guidelines */
+    #preferenceScreen .bg-slate-50 {
+        padding: 0.875rem !important;
+    }
+
+    #preferenceScreen .bg-slate-50 p {
+        text-align: left !important;
+    }
+
+    /* Action buttons */
+    #preferenceScreen .flex.flex-col.sm\:flex-row {
+        margin-top: 0 !important;
+        width: 100%;
+    }
+
+    #preferenceBackBtn,
+    #preferenceNextBtn {
+        width: 100% !important;
+        min-width: 0 !important;
+    }
+
+
+    /* =====================================================
+       LOADING SCREEN
+       ===================================================== */
+
+    #matchingLoadingScreen {
+        padding: 1rem !important;
+    }
+
+    #matchingLoadingTitle {
+        font-size: 1.5rem !important;
+    }
+
+    #matchingLoadingMessage {
+        font-size: 0.8rem !important;
+    }
+
+
+    /* =====================================================
+       COMPATIBILITY RESULTS
+       ===================================================== */
+
+    #compatibilityScreen {
+        margin-left: 0 !important;
+        margin-top: 0 !important;
+        padding: 0.5rem !important;
+        width: 100%;
+    }
+
+    /* Result header */
+    #compatibilityScreen > div:first-child {
+        padding: 1.25rem !important;
+    }
+
+    #compatibilityScreen > div:first-child h1 {
+        font-size: 1.5rem !important;
+        line-height: 1.25;
+    }
+
+    #compatibilityScreen > div:first-child p {
+        font-size: 0.75rem !important;
+    }
+
+    /* Filter bar */
+    #compatibilityScreen .bg-white.border {
+        padding: 0.75rem !important;
+    }
+
+    #compatibilityScreen .bg-white.border > div {
+        gap: 0.75rem !important;
+    }
+
+    /* Filters become full width */
+    #matchSearch,
+    #matchSpeciesFilter,
+    #matchGenderFilter,
+    #matchAgeFilter,
+    #matchOrganizationFilter,
+    #matchScoreFilter {
+        width: 100% !important;
+        min-width: 0 !important;
+    }
+
+    /* Result count */
+    #matchResultCount {
+        font-size: 0.875rem;
+    }
+
+    /* Clear button */
+    #clearMatchFilters {
+        width: 100% !important;
+    }
+
+    /* Cards */
+    #matchResultsContainer {
+        grid-template-columns: 1fr !important;
+        gap: 1rem !important;
+        margin-top: 1rem !important;
+    }
+
+    /* Footer */
+    #compatibilityRestartBtn {
+        width: 100%;
+        max-width: 360px;
+    }
+}
+
+
+/* ---------------------------------------------------------
+   SMALL MOBILE DEVICES
+   --------------------------------------------------------- */
+@media (max-width: 640px) {
+
+    /* =====================================================
+       GENERAL
+       ===================================================== */
+
+    body {
+        overflow: hidden;
+    }
+
+    main {
+        padding-top: 4.25rem !important;
+    }
+
+    #header {
+        height: 4.25rem !important;
+    }
+
+    main > div {
+        height: calc(100vh - 4.25rem) !important;
+        padding: 0.75rem !important;
+    }
+
+
+    /* =====================================================
+       INTRO
+       ===================================================== */
+
+    #introScreen {
+        padding: 0.5rem !important;
+    }
+
+    #introScreen > div {
+        padding: 0.75rem !important;
+        gap: 1.25rem;
+    }
+
+    #introScreen img {
+        width: min(75vw, 270px) !important;
+    }
+
+    #introScreen h1 {
+        font-size: 1.7rem !important;
+    }
+
+    #introScreen p {
+        font-size: 0.8rem !important;
+        line-height: 1.6;
+    }
+
+    #introNextBtn {
+        padding: 0.875rem 1rem !important;
+        font-size: 0.875rem !important;
+    }
+
+
+    /* =====================================================
+       PREFERENCES
+       ===================================================== */
+
+    #preferenceScreen {
+        padding: 0.25rem !important;
+    }
+
+    #preferenceScreen > div {
+        padding: 0.75rem !important;
+    }
+
+    #preferenceScreen .border-b h1 {
+        font-size: 1.5rem !important;
+    }
+
+    #preferenceScreen .border-b p {
+        font-size: 0.7rem !important;
+    }
+
+    #preferenceScreen label {
+        font-size: 0.7rem !important;
+    }
+
+    #preferenceScreen select {
+        font-size: 0.8rem !important;
+        padding: 0.75rem !important;
+    }
+
+    #behavior {
+        padding: 0.875rem !important;
+        min-height: 170px;
+        font-size: 0.8rem !important;
+    }
+
+    #preferenceScreen .bg-slate-50 p {
+        font-size: 0.7rem !important;
+        line-height: 1.6;
+    }
+
+    #preferenceScreen .bg-slate-50 > div {
+        font-size: 0.7rem !important;
+    }
+
+    #validationMessage {
+        font-size: 0.7rem !important;
+        padding: 0.75rem !important;
+        text-align: center;
+    }
+
+    #preferenceBackBtn,
+    #preferenceNextBtn {
+        padding: 0.8rem 1rem !important;
+    }
+
+
+    /* =====================================================
+       LOADING
+       ===================================================== */
+
+    #matchingLoadingTitle {
+        font-size: 1.25rem !important;
+    }
+
+    #matchingLoadingMessage {
+        font-size: 0.75rem !important;
+    }
+
+    #matchingLoadingStatus {
+        font-size: 0.7rem !important;
+    }
+
+
+    /* =====================================================
+       MATCH RESULTS
+       ===================================================== */
+
+    #compatibilityScreen {
+        padding: 0 !important;
+    }
+
+    #compatibilityScreen > div:first-child {
+        border-radius: 1rem !important;
+        padding: 1rem !important;
+    }
+
+    #compatibilityScreen > div:first-child h1 {
+        font-size: 1.3rem !important;
+    }
+
+    #compatibilityScreen > div:first-child p {
+        font-size: 0.7rem !important;
+    }
+
+    /* Filter label */
+    #compatibilityScreen .bg-white.border .shrink-0 {
+        width: 100%;
+    }
+
+    /* Result count */
+    #compatibilityScreen .bg-white.border .shrink-0:last-child {
+        width: 100%;
+    }
+
+    /* Cards */
+    #matchResultsContainer {
+        grid-template-columns: 1fr !important;
+    }
+
+    /* Restart */
+    #compatibilityRestartBtn {
+        width: 100%;
+        max-width: none;
+        font-size: 0.75rem !important;
+        padding: 0.8rem 1rem !important;
+    }
+}
+
+
+/* =========================================================
+   PET PROFILE MODAL
+   ========================================================= */
+
+/* Tablet */
+@media (max-width: 1023px) {
+
+    #viewPetModal {
+        padding: 0.75rem !important;
+    }
+
+    #viewPetModal > div {
+        max-width: 100% !important;
+        height: 94vh !important;
+        border-radius: 1.5rem !important;
+    }
+
+    #viewPetModal > div > div {
+        grid-template-columns: 280px 1fr !important;
+    }
+
+    #modalImage {
+        height: 280px !important;
+    }
+
+    #modalName {
+        font-size: 2rem !important;
+    }
+
+    #viewPetModal section {
+        padding: 1rem !important;
+    }
+
+    #viewPetModal aside {
+        padding: 1rem !important;
+    }
+}
+
+
+/* Mobile */
+@media (max-width: 640px) {
+
+    #viewPetModal {
+        padding: 0.5rem !important;
+        align-items: center;
+    }
+
+    #viewPetModal > div {
+        width: 100% !important;
+        height: 96vh !important;
+        max-height: 96vh !important;
+        border-radius: 1.25rem !important;
+    }
+
+    /* Change modal from two columns to one */
+    #viewPetModal > div > div {
+        display: flex !important;
+        flex-direction: column !important;
+        height: 100% !important;
+        overflow-y: auto !important;
+    }
+
+    /* Left column */
+    #viewPetModal aside {
+        width: 100% !important;
+        border-right: none !important;
+        border-bottom: 1px solid #e2e8f0 !important;
+        padding: 0.875rem !important;
+        overflow: visible !important;
+    }
+
+    /* Pet image */
+    #modalImage {
+        width: 100% !important;
+        height: min(55vw, 280px) !important;
+        min-height: 200px;
+        object-fit: cover;
+    }
+
+    /* Quick information */
+    #viewPetModal aside .divide-y > div {
+        padding: 0.65rem 0 !important;
+    }
+
+    /* Right column */
+    #viewPetModal section {
+        width: 100% !important;
+        padding: 0.875rem !important;
+        overflow: visible !important;
+    }
+
+    /* Pet name */
+    #modalName {
+        font-size: 1.75rem !important;
+        line-height: 1.2;
+        word-break: break-word;
+    }
+
+    /* Verification badge */
+    #viewPetModal section .fa-circle-check {
+        font-size: 1rem !important;
+    }
+
+    /* Status badges */
+    #viewPetModal section .flex.flex-wrap {
+        gap: 0.5rem !important;
+    }
+
+    #statusBadge,
+    #healthBadge,
+    #vaccinationBadge {
+        padding: 0.5rem 0.75rem !important;
+        font-size: 0.7rem !important;
+    }
+
+    /* Bento grid becomes one column */
+    #viewPetModal section .grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    #viewPetModal section .grid > .col-span-2 {
+        grid-column: span 1 !important;
+    }
+
+    /* Description */
+    #modalBehavior {
+        font-size: 0.8rem !important;
+        line-height: 1.6;
+        text-align: left !important;
+        overflow-wrap: anywhere;
+    }
+
+    /* Final score */
+    #modalFinalScore {
+        font-size: 2.25rem !important;
+    }
+
+    /* Medical history */
+    #viewPetModal table {
+        min-width: 600px;
+    }
+
+    #viewPetModal .overflow-x-auto {
+        overflow-x: auto !important;
+    }
+
+    /* Medical header */
+    #viewPetModal section .bg-slate-50\/70 {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 0.5rem !important;
+    }
+
+    /* Apply button */
+    #applyBtn {
+        width: 100% !important;
+    }
+
+    /* Close button */
+    #viewPetModal > div > button {
+        top: 0.75rem !important;
+        right: 0.75rem !important;
+        width: 2.25rem;
+        height: 2.25rem;
+        border-radius: 9999px;
+        background: rgba(255,255,255,0.9);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+}
+
+
+/* =========================================================
+   VERY SMALL PHONES
+   ========================================================= */
+
+@media (max-width: 400px) {
+
+    #introScreen h1 {
+        font-size: 1.5rem !important;
+    }
+
+    #introScreen p {
+        font-size: 0.75rem !important;
+    }
+
+    #preferenceScreen .border-b h1 {
+        font-size: 1.35rem !important;
+    }
+
+    #compatibilityScreen > div:first-child h1 {
+        font-size: 1.15rem !important;
+    }
+
+    #modalName {
+        font-size: 1.5rem !important;
+    }
+
+    #modalFinalScore {
+        font-size: 2rem !important;
+    }
+}
 
     </style>
 </head>
@@ -181,7 +799,8 @@
                         <p class="text-xs text-slate-500 leading-relaxed">The more details you provide about their behavior and traits, the better our AI engine can match you.</p>
                     </div>
 
-                    <textarea rows="4" id="behavior"
+                   <textarea rows="4" id="behavior"
+                        oninput="this.value = this.value.replace(/[0-9]/g, '')"
                         class="w-full bg-slate-50/60 hover:bg-slate-50 border border-slate-200/90 focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 rounded-2xl p-4 text-sm text-slate-800 placeholder:text-slate-400 transition-all outline-none leading-relaxed"
                         placeholder="Describe the personality, behavior, and traits you prefer in a pet...&#10;&#10;e.g., I would like a friendly, calm, playful, and affectionate pet that enjoys being around people, is gentle with children, and gets along well with other pets."></textarea>
                     <!-- GUIDELINES CALLOUT BOX -->
@@ -529,35 +1148,29 @@ VIEW PET PROFILE (NEW BENTO DESIGN)
             <section class="p-5 overflow-y-auto bg-white space-y-5">
                <!-- HEADER & STATUS -->
                 <div class="border-b border-slate-200/80 pb-5">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <!-- Name & Verification Badge -->
-                            <div class="flex items-center gap-2.5">
-                                <h1 id="modalName" class="text-4xl font-extrabold text-slate-900 tracking-tight"></h1>
-                                <div class="flex items-center justify-center text-blue-600 bg-blue-50 border border-blue-200/60 rounded-full p-1 shadow-2xs">
-                                    <i class="fa-solid fa-circle-check text-xl"></i>
-                                </div>
+                    <div class="flex flex-wrap items-center gap-x-3 gap-y-2">
+                        <!-- Name & Verification Badge -->
+                        <div class="flex items-center gap-2.5">
+                            <h1 id="modalName" class="text-4xl font-extrabold text-slate-900 tracking-tight"></h1>
+                            <div class="flex items-center justify-center text-blue-600 bg-blue-50 border border-blue-200/60 rounded-full p-1 shadow-2xs">
+                                <i class="fa-solid fa-circle-check text-xl"></i>
                             </div>
                         </div>
-                    </div>
 
-                    <!-- STATUS PILLS -->
-                    <div class="flex flex-wrap items-center gap-3 mt-4">
-                        <!-- Adoption Status -->
-                        <div id="statusBadge" class="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold">
+                        <!-- STATUS PILLS -->
+                        <div class="modal-status-pills flex flex-wrap items-center gap-2">
+                        <div id="statusBadge" class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold">
                             <span id="modalStatusRemark"></span>
                         </div>
 
-                        <!-- Health Tag -->
-                        <div id="healthBadge" class="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium">
+                        <div id="healthBadge" class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium">
                             <span id="modalHealthRemark"></span>
                         </div>
 
-                        <!-- Vaccination Tag -->
-                        <div id="vaccinationBadge"  class="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium">
+                        <div id="vaccinationBadge" class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium">
                             <span id="modalVaccinationRemark"></span>
                         </div>
-
+                        </div>
                     </div>
                 </div>
 
@@ -565,9 +1178,130 @@ VIEW PET PROFILE (NEW BENTO DESIGN)
                 BENTO GRID
                 =========================== -->
                 <div class="grid grid-cols-2 gap-4">
+<!-- FINAL MATCH SCORE -->
+<div class="col-span-2 rounded-2xl border border-slate-200/80 shadow-xs p-2.5 bg-white">
+    <!-- HEADER -->
+    <div class="flex items-center gap-2">
+        <div class="w-8 h-8 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center justify-center shrink-0">
+            <i class="fa-solid fa-medal text-emerald-600 text-xs"></i>
+        </div>
+        <div>
+            <h3 class="font-bold text-[13px] uppercase tracking-wider text-slate-800">Match Compatibility</h3>
+            <p class="text-[10px] text-slate-500 mt-0.5">How well this pet matches your preferences</p>
+        </div>
+    </div>
+    <!-- FINAL SCORE -->
+    <div class="mt-3 flex items-center justify-between">
+        <div>
+            <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Overall Match</p>
+            <div class="flex items-baseline gap-1.5">
+                <h2 id="modalFinalScore" class="text-3xl font-black text-emerald-600 tracking-tight">83.0%</h2>
+                <p id="modalMatchRemark" class="text-xs font-bold text-slate-600">Great Match</p>
+            </div>
+        </div>
+        <div class="w-10 h-10 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center">
+            <i class="fa-solid fa-heart text-emerald-500 text-sm"></i>
+        </div>
+    </div>
+    <!-- OVERALL PROGRESS -->
+    <div class="w-full bg-slate-100 rounded-full h-2 mt-2 overflow-hidden">
+        <div id="modalFinalScoreBar" class="bg-gradient-to-r from-emerald-500 to-blue-600 h-2 rounded-full transition-all duration-700" style="width:0%"></div>
+    </div>
+    <!-- MATCH BREAKDOWN -->
+    <div class="mt-3.5 grid grid-cols-1 sm:grid-cols-2 gap-2">
+        <div class="col-span-1 sm:col-span-2 flex items-center justify-between mb-2">
+            <h4 class="text-[11px] font-bold uppercase tracking-wider text-slate-700">Match Breakdown</h4>
+            <span class="text-[9px] text-slate-400">Based on your preferences</span>
+        </div>
+        <!-- TYPE -->
+        <div class="rounded-xl border border-slate-100 bg-slate-50/70 p-2.5">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <div class="w-7 h-7 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
+                        <i class="fa-solid fa-paw text-blue-600 text-[10px]"></i>
+                    </div>
+                    <div>
+                        <p class="text-[11px] font-bold text-slate-800">Pet Type</p>
+                        <p id="modalTypeMatchDetail" class="text-[10px] text-slate-500">Dog matches your preferred type</p>
+                    </div>
+                </div>
+                <span id="modalTypeMatch" class="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-full">
+                    <i class="fa-solid fa-check text-[8px]"></i>
+                    Match
+                </span>
+            </div>
+        </div>
+        <!-- BEHAVIOR -->
+        <div class="rounded-xl border border-slate-100 bg-slate-50/70 p-2.5">
+            <div class="flex items-center justify-between mb-1.5">
+                <div class="flex items-center gap-2">
+                    <div class="w-7 h-7 rounded-lg bg-purple-50 flex items-center justify-center shrink-0">
+                        <i class="fa-solid fa-wand-magic-sparkles text-purple-600 text-[10px]"></i>
+                    </div>
+                    <div>
+                        <p class="text-[11px] font-bold text-slate-800">Personality & Behavior</p>
+                        <p class="text-[10px] text-slate-500">Similarity to your description</p>
+                    </div>
+                </div>
 
+                <span id="modalBehaviorScore" class="text-xs font-black text-purple-600">0%</span>
+            </div>
+            <!-- BEHAVIOR PROGRESS -->
+            <div class="w-full bg-slate-200 rounded-full h-1.5 overflow-hidden">
+                <div id="modalBehaviorScoreBar" class="bg-purple-500 h-1.5 rounded-full transition-all duration-700" style="width:0%"></div>
+            </div>
+            <p id="modalBehaviorDetail" class="text-[9px] text-slate-500 mt-1 leading-relaxed">
+                Calculating behavior compatibilitY
+            </p>
+        </div>
+        <!-- AGE -->
+        <div class="rounded-xl border border-slate-100 bg-slate-50/70 p-2.5">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <div class="w-7 h-7 rounded-lg bg-orange-50 flex items-center justify-center shrink-0">
+                        <i class="fa-solid fa-cake-candles text-orange-500 text-[10px]"></i>
+                    </div>
+                    <div>
+                        <p class="text-[11px] font-bold text-slate-800">Age</p>
+                        <p id="modalAgeMatchDetail" class="text-[10px] text-slate-500">Age preference matches</p>
+                    </div>
+                </div>
+
+                <span id="modalAgeScore" class="text-xs font-black text-orange-500">0%</span>
+            </div>
+        </div>
+        <!-- SEX -->
+        <div class="rounded-xl border border-slate-100 bg-slate-50/70 p-2.5">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <div class="w-7 h-7 rounded-lg bg-pink-50 flex items-center justify-center shrink-0">
+                        <i class="fa-solid fa-venus-mars text-pink-500 text-[10px]"></i>
+                    </div>
+                    <div>
+                        <p class="text-[11px] font-bold text-slate-800">Gender</p>
+                        <p id="modalSexMatchDetail" class="text-[10px] text-slate-500">Gender preference matches</p>
+                    </div>
+                </div>
+
+                <span id="modalSexScore" class="text-xs font-black text-pink-500">0%</span>
+            </div>
+        </div>
+    </div>
+    <!-- HOW SCORE IS CALCULATED -->
+    <div class="mt-3 rounded-xl bg-emerald-50/80 border border-emerald-100/80 p-2.5">
+        <div class="flex items-start gap-2">
+            <i class="fa-solid fa-circle-info text-emerald-600 text-xs mt-0.5 shrink-0"></i>
+            <div>
+                <p class="text-[11px] font-bold text-slate-800 mb-0.5">How is the score calculated?</p>
+                <p class="text-[10px] text-slate-600 leading-relaxed">
+                    Your match score combines <strong>personality & behavior (70%)</strong>, <strong>age (20%)</strong>, and <strong>gender (10%)</strong>. A higher score means the pet's characteristics are more compatible with the preferences you provided.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
                     <!-- PET DESCRIPTION -->
-                    <div class="rounded-2xl border border-slate-200/80 shadow-xs p-3 bg-white flex flex-col">
+                    <div class="col-span-2 rounded-2xl border border-slate-200/80 shadow-xs p-3 bg-white flex flex-col">
                         <div class="flex items-center gap-2.5">
                             <div class="w-9 h-9 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center shrink-0">
                                 <i class="fa-solid fa-paw text-blue-600 text-sm"></i>
@@ -580,41 +1314,6 @@ VIEW PET PROFILE (NEW BENTO DESIGN)
                             </p>
                         </div>
                     </div>
-
-                    <!-- FINAL MATCH SCORE -->
-                    <div class="rounded-2xl border border-slate-200/80 shadow-xs p-3 bg-white flex flex-col justify-between">
-
-                        <div>
-                            <div class="flex items-center gap-2.5">
-                                <div class="w-9 h-9 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center justify-center shrink-0">
-                                    <i class="fa-solid fa-medal text-emerald-600 text-sm"></i>
-                                </div>
-                                <h3 class="font-bold text-sm uppercase tracking-wider text-slate-800">Final Match Score</h3>
-                            </div>
-
-                            <div class="flex items-baseline justify-between mt-3.5">
-                                <div>
-                                    <h2 id="modalFinalScore" class="text-4xl font-black text-emerald-600 tracking-tight">83%</h2>
-                                    <p id="modalMatchRemark" class="text-sm font-bold text-slate-600 mt-0.5">Excellent Match 💚</p>
-                                </div>
-                            </div>
-
-                            <!-- Progress -->
-                            <div class="w-full bg-slate-100 rounded-full h-2.5 mt-3.5 overflow-hidden">
-                                <div id="modalFinalScoreBar" class="bg-gradient-to-r from-emerald-500 to-blue-600 h-2.5 rounded-full transition-all duration-700" style="width:0%"></div>
-                            </div>
-                        </div>
-
-                        <!-- AI Insight -->
-                        <div class="mt-4 rounded-xl bg-emerald-50/80 border border-emerald-100/80 p-3 flex items-start gap-2.5">
-                            <i class="fa-solid fa-sparkles text-emerald-600 text-sm mt-0.5 shrink-0"></i>
-                            <p class="text-xs text-slate-700 leading-normal">
-                                This score combines <strong>pet description (70%)</strong>, <strong>age (20%)</strong>, and <strong>gender (10%)</strong> to estimate overall adoption compatibility.
-                            </p>
-                        </div>
-
-                    </div>
-
                     <!-- MEDICAL HISTORY -->
                     <div class="col-span-2 rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden bg-white">
                         <!-- Header -->
@@ -627,7 +1326,6 @@ VIEW PET PROFILE (NEW BENTO DESIGN)
                             </div>
                             <span class="text-xs font-medium text-slate-500">Latest treatments & vaccinations</span>
                         </div>
-
                         <!-- TABLE -->
                         <div class="overflow-x-auto">
                             <table class="w-full text-sm">
