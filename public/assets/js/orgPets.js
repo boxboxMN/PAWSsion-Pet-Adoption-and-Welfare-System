@@ -916,7 +916,10 @@ function openPetDetailsModal(pet){
                         closeViewPetModal();
                         await loadPets();
                     } else {
-                        alert(data.message);
+                        await showMessage(
+                            data.message || "Unable to archive this pet.",
+                            "warning"
+                        );
                     }
                 } catch (err) {
                     console.error("ARCHIVE ERROR:", err);
@@ -981,7 +984,10 @@ function openPetDetailsModal(pet){
                 closeViewPetModal();
                 await loadPets();
             } else {
-                alert(data.message);
+                await showMessage(
+                    data.message || "Unable to move this pet to the Recycle Bin.",
+                    "warning"
+                );
             }
         } catch (err) {
             console.error("DELETE ERROR:", err);
