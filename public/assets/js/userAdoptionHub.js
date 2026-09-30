@@ -1076,7 +1076,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (!app) return;
         const e = app.emergency || {};
 
-
         document.getElementById("app-intent").value = app.intent || "";
         document.getElementById("app-emergency-name").value = e.name || "";
         document.getElementById("app-emergency-phone").value = e.phone || "";

@@ -358,8 +358,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         await loadRecentActivities();
         await loadUpcomingSchedules();
 
-        setInterval(loadRecentActivities, 30000);
-        setInterval(loadUpcomingSchedules, 30000);
+        setInterval(loadRecentActivities, 60000);
+        setInterval(loadUpcomingSchedules, 60000);
 
         document.body.style.visibility = "visible";
     });
