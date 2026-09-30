@@ -439,10 +439,10 @@ openEditModalBtn?.addEventListener("click", async () => {
     if (currentOrgData.profile_pic) {
         editModalPreview.src = currentOrgData.profile_pic;
         editModalPreview.classList.remove("hidden");
-        editModalIcon.classList.add("hidden");
+        editModalIcon.classList.add("!hidden");
     } else {
         editModalPreview.classList.add("hidden");
-        editModalIcon.classList.remove("hidden");
+        editModalIcon.classList.remove("!hidden");
     }
 
     selectedImageFile = null; // I-reset ang file selector taglay
