@@ -105,18 +105,7 @@
 
             <!-- STEP 2: HOME ADDRESS -->
             <div class="form-step" id="step2">
-                <div class="full">
-                    <label>Street Address <span class="required">*</span></label>
-                    <input id="streetAddress"
-                        name="streetAddress"
-                        type="text"
-                        placeholder="e.g., 255 Villanueva Street (House No. / Street)"
-                        maxlength="50"
-                        required>
-                    <div id="streetAddressHelper" class="input-helper-text"></div>
-                </div>
-                
-                <div class="row">
+                 <div class="row">
                     <div class="field">
                         <label>Region <span class="required">*</span></label>
                         <select id="region" name="region" required>
@@ -145,14 +134,21 @@
                         </select>
                     </div>
                 </div>
-            
+                
+                <div class="full">
+                    <label>Street Address (Optional)</label>
+                    <input id="streetAddress" name="streetAddress" type="text" placeholder="e.g., 255 Villanueva Street (House No. / Street)" maxlength="50" disabled>
+                    <div id="addressSuggestions" class="address-suggestions" hidden></div>
+                    <div id="streetAddressHelper" class="input-helper-text"></div>
+                </div>
+
                 <div class="full">
                     <label>Zip Code <span class="required">*</span>
-                        <a href="https://www.google.com/search?q=zip+code+philippines" target="_blank" class="zip-help-link">
+                        <a href="https://phlpost.gov.ph/zip-code-locator/" target="_blank" rel="noopener noreferrer" class="zip-help-link">
                             (Find my Zip Code?)
                         </a>
                     </label>
-                    <input id="zipCode" name="zipCode" type="text" placeholder="e.g. 4434" maxlength="4" required>
+                    <input id="zipCode" name="zipCode" type="text" placeholder="e.g. 4434" maxlength="4" required disabled readonly>
                     <div id="zipHelper" class="input-helper-text"></div>
                 </div>
 

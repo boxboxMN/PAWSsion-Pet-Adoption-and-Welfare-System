@@ -258,8 +258,10 @@
                     </div>
 
                     <div class="field full-width">
-                        <label>Street Address / House No. & Street <span class="required">*</span></label>
-                        <input type="text" id="streetAddress" name="streetAddress" placeholder="Unit / House No., Street, Subdivision" maxlength="50"required>
+                        <label>Street Address / House No. & Street  (Optional)</label>
+                        <input type="text" id="streetAddress" name="streetAddress" placeholder="Unit / House No., Street, Subdivision" maxlength="150" disabled>
+                        <div id="streetAddressHelper" class="input-helper-text"></div>
+                        <div id="addressSuggestions" class="address-suggestions" hidden></div>
                     </div>
 
                     <div class="field">
@@ -296,7 +298,7 @@
                             (Find my Zip Code?)
                         </a>
                     </label>
-                    <input type="text" id="zipCode" name="zipCode" placeholder="e.g. 4434" maxlength="4" required>
+                    <input type="text" id="zipCode" name="zipCode" placeholder="e.g. 4434" maxlength="4" required disabled> 
                     <div id="zipHelper" class="input-helper-text"></div>
                 </div>
 

@@ -7,12 +7,54 @@ const emailValidatorRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const zipRegex = /^\d{4}$/;
 const streetAddressInput = document.getElementById("streetAddress");
+const addressSuggestions = document.getElementById("addressSuggestions");
 const regionSelect = document.getElementById("region");
 const provinceSelect = document.getElementById("province");
 const citySelect = document.getElementById("city");
 const barangaySelect = document.getElementById("barangay");
 const zipCodeInput = document.getElementById("zipCode");
+const streetAddressRegex = /^[A-Za-zÀ-ÖØ-öø-ÿ0-9 .,#()\/-]{5,150}$/;
 const zipHelper = document.getElementById("zipHelper");
+
+async function searchAddressSuggestions() {
+    const street = streetAddressInput.value.trim();
+    const barangay = barangaySelect.value.trim();
+    const city = citySelect.value.trim();
+    const province = provinceSelect.value.trim();
+
+    if (street.length < 2 || !barangay || !city || !province) {
+        addressSuggestions.hidden = true;
+        addressSuggestions.innerHTML = "";
+        return;
+    }
+
+    try {
+        const params = new URLSearchParams({
+            text: street,
+            barangay,
+            city,
+            province
+        });
+
+        const response = await fetch(
+            `/api/address/search?${params.toString()}`,
+            { credentials: "same-origin" }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.error || "Unable to search addresses.");
+        }
+
+        renderAddressSuggestions(data.results || []);
+    } catch (error) {
+        console.error("Address autocomplete error:", error);
+        addressSuggestions.hidden = true;
+        addressSuggestions.innerHTML = "";
+    }
+}
+
 // Organization description: letters, numbers, spaces, and common punctuation
 const descriptionRegex = /^[A-Za-zÀ-ÖØ-öø-ÿ0-9\s.,'"()&\-\/#]+$/;
 const MAX_DESCRIPTION_LENGTH = 100;
@@ -45,6 +87,227 @@ zipCodeInput.addEventListener("input", function() {
     }
 });
 
+async function updateZipCodeFromLocation() {
+    const province = provinceSelect.value.trim();
+    const city = citySelect.value.trim();
+
+    if (!province || !city) {
+        zipCodeInput.value = "";
+        zipCodeInput.readOnly = true;
+
+        zipHelper.className = "input-helper-text";
+        zipHelper.innerHTML = "";
+
+        validateStep2();
+        return;
+    }
+
+    // Keep ZIP locked while retrieving the correct value
+    zipCodeInput.readOnly = true;
+
+    try {
+        const response = await fetch(
+            `/api/address/zip?province=${encodeURIComponent(province)}&city=${encodeURIComponent(city)}`,
+            {
+                credentials: "same-origin"
+            }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok && response.status !== 404) {
+            throw new Error(
+                data.message || "Unable to retrieve ZIP code."
+            );
+        }
+
+        if (data.found && data.zip_code) {
+            zipCodeInput.value = String(data.zip_code);
+            zipCodeInput.readOnly = true;
+
+            zipHelper.className = "input-helper-text success";
+            zipHelper.innerHTML =
+                "<i class='fa-solid fa-circle-check'></i> " +
+                "ZIP code automatically filled.";
+        } else {
+            zipCodeInput.value = "";
+            zipCodeInput.readOnly = false;
+
+            zipHelper.className = "input-helper-text error";
+            zipHelper.innerHTML =
+                "<i class='fa-solid fa-circle-xmark'></i> " +
+                "No ZIP code was found for the selected city. " +
+                "Please enter your ZIP code manually.";
+        }
+
+        validateStep2();
+
+    } catch (error) {
+        console.error("ZIP API error:", error);
+
+        zipCodeInput.value = "";
+        zipCodeInput.readOnly = false;
+
+        zipHelper.className = "input-helper-text error";
+        zipHelper.innerHTML =
+            "<i class='fa-solid fa-circle-xmark'></i> " +
+            "Unable to retrieve ZIP code. " +
+            "Please enter it manually.";
+
+        validateStep2();
+    }
+}
+
+function renderAddressSuggestions(results) {
+    addressSuggestions.innerHTML = "";
+
+    const addressResults = results.filter(result =>
+        String(result.street || "").trim() !== "" ||
+        String(result.name || "").trim() !== ""
+    );
+
+    if (!addressResults.length) {
+        addressSuggestions.hidden = true;
+        return;
+    }
+
+    addressSuggestions.hidden = false;
+
+    addressResults.forEach((result) => {
+        const item = document.createElement("div");
+        item.className = "address-suggestion-item";
+
+        const title = document.createElement("div");
+        title.className = "address-suggestion-title";
+        title.textContent = result.street || result.name || "Address result";
+
+        const details = document.createElement("div");
+        details.className = "address-suggestion-details";
+
+        const detailsParts = [
+            result.suburb,
+            result.district,
+            result.city,
+            result.state,
+            result.postcode
+        ].filter(Boolean);
+
+        details.textContent = detailsParts.join(", ");
+
+        item.appendChild(title);
+        item.appendChild(details);
+
+        item.addEventListener("mousedown", (event) => {
+            event.preventDefault();
+            selectAddressSuggestion(result);
+        });
+
+        addressSuggestions.appendChild(item);
+    });
+}
+
+function selectAddressSuggestion(result) {
+    const addressName = String(
+        result.street || result.name || ""
+    ).trim();
+
+    if (!addressName) return;
+
+    const currentValue = streetAddressInput.value.trim();
+    const houseNumberMatch = currentValue.match(/^\s*(\d+[A-Za-z0-9-]*)\s+/);
+
+    streetAddressInput.value = houseNumberMatch
+        ? `${houseNumberMatch[1]} ${addressName}`
+        : addressName;
+
+    streetAddressHelper.className = "input-helper-text success";
+    streetAddressHelper.textContent = "Address selected from suggestions.";
+
+    addressSuggestions.hidden = true;
+    addressSuggestions.innerHTML = "";
+
+    validateStep2();
+}
+
+function validateStreetAddress() {
+    const value = streetAddressInput.value.trim();
+    const helper = document.getElementById("streetAddressHelper");
+
+    const showError = (message) => {
+        if (helper) {
+            helper.className = "input-helper-text error";
+            helper.textContent = message;
+        }
+    };
+
+    const showSuccess = (message) => {
+        if (helper) {
+            helper.className = "input-helper-text success";
+            helper.textContent = message;
+        }
+    };
+
+    // Street address is optional
+    if (value === "") {
+        if (helper) {
+            helper.textContent = "";
+            helper.className = "input-helper-text";
+        }
+        return true;
+    }
+
+    if (value.length < 5) {
+        showError("Please enter a complete street address.");
+        return false;
+    }
+
+    if (value.length > 150) {
+        showError("Street address must not exceed 150 characters.");
+        return false;
+    }
+
+    if (!streetAddressRegex.test(value)) {
+        showError("Use only letters, numbers, spaces, and common address characters.");
+        return false;
+    }
+
+    if (!/[aeiouáéíóúàèìòù]/i.test(value)) {
+        showError("Please enter a valid street address.");
+        return false;
+    }
+
+    if (!/[A-Za-zÀ-ÖØ-öø-ÿ]/.test(value)) {
+        showError("Street address must contain at least one letter.");
+        return false;
+    }
+
+    if (/(.)\1{4,}/.test(value)) {
+        showError("Please enter a valid street address.");
+        return false;
+    }
+
+    const compact = value.toLowerCase().replace(/\s/g, "");
+    const keyboardPatterns = [
+        "asdf", "asdfgh", "qwer", "qwerty",
+        "zxcv", "zxcvb", "poiuy", "lkjh", "mnbv"
+    ];
+
+    if (keyboardPatterns.some(pattern => compact.includes(pattern))) {
+        showError("Please enter a valid street address.");
+        return false;
+    }
+
+    const lettersOnly = compact.replace(/[^a-zá-öø-ÿ]/g, "");
+
+    if (/(.{2,3})\1{2,}/i.test(lettersOnly)) {
+        showError("Please enter a valid street address.");
+        return false;
+    }
+
+    showSuccess("Street address entered manually.");
+    return true;
+}
+
 // Cascading Loaders
 async function loadRegions() {
     try {
@@ -76,6 +339,9 @@ regionSelect.addEventListener('change', async function() {
     citySelect.disabled = true;
     barangaySelect.innerHTML = '<option value="">Select Barangay</option>';
     barangaySelect.disabled = true;
+
+    updateAddressFieldsState();
+    updateZipCodeFromLocation();
 
     if (!regCode) {
         provinceSelect.innerHTML = '<option value="">Select Province</option>';
@@ -119,6 +385,9 @@ provinceSelect.addEventListener('change', async function() {
     barangaySelect.innerHTML = '<option value="">Select Barangay</option>';
     barangaySelect.disabled = true;
 
+    updateAddressFieldsState();
+    updateZipCodeFromLocation();
+
     if (!provCode) return;
 
     try {
@@ -127,7 +396,13 @@ provinceSelect.addEventListener('change', async function() {
             citiesData = await res.json();
         }
 
-        const filtered = citiesData.filter(c => c.province_code === provCode || c.region_desc === regCode);
+        const filtered = citiesData.filter(c => {
+            if (String(provCode) === String(regCode)) {
+                return String(c.region_desc) === String(regCode);
+            }
+        
+            return String(c.province_code) === String(provCode);
+        });
         filtered.sort((a, b) => a.city_name.localeCompare(b.city_name));
 
         citySelect.innerHTML = '<option value="">Select City / Municipality</option>';
@@ -151,6 +426,9 @@ citySelect.addEventListener('change', async function() {
     barangaySelect.innerHTML = '<option value="">Loading barangays...</option>';
     barangaySelect.disabled = true;
 
+    updateAddressFieldsState();
+    updateZipCodeFromLocation();
+    
     if (!cityCode) return;
 
     try {
@@ -234,10 +512,12 @@ let isOrgNameAvailable = false;
 // kapag empty ang email hindi makikita ang verify email button until may email
 function updateManualOtpVisibility() {
     const emailIsEmpty = emailInput.value.trim() === "";
+    const emailIsUnavailable = !isEmailValidAndAvailable;
 
-    manualOtpSection.hidden = emailInput.readOnly || emailIsEmpty;
+    manualOtpSection.hidden =
+        emailInput.readOnly || emailIsEmpty || emailIsUnavailable;
 
-    if (emailInput.readOnly || emailIsEmpty) {
+    if (emailInput.readOnly || emailIsEmpty || emailIsUnavailable) {
         emailOtpInput.value = "";
         otpHelper.textContent = "";
     }
@@ -543,6 +823,7 @@ async function verifyEmailUniqueness() {
         isEmailValidAndAvailable = true; 
     }
 
+    updateManualOtpVisibility();
     validateStep1();
 }
 
@@ -700,7 +981,10 @@ async function verifyOrgNameUniqueness() {
             isOrgNameAvailable = true;
         }
     } catch (err) {
-        isOrgNameAvailable = true; 
+        isOrgNameAvailable = false;
+        orgNameHelper.className = "input-helper-text error";
+        orgNameHelper.textContent =
+            "Could not verify organization name. Please try again.";
     }
 }
 
@@ -918,25 +1202,53 @@ const next2Btn = document.getElementById("next2");
 const orgTypeSelect = document.getElementById("organizationType");
 const contactPersonInput = document.getElementById("contactPerson");
 
+function updateAddressFieldsState() {
+    const hasRegion = regionSelect.value !== "";
+    const hasProvince = provinceSelect.value !== "";
+    const hasCity = citySelect.value !== "";
+    const hasBarangay = barangaySelect.value !== "";
+
+    // Street Address becomes available after Barangay is selected
+    streetAddressInput.disabled = !(hasRegion && hasProvince && hasCity && hasBarangay);
+
+    // ZIP becomes available after Region, Province, and City are selected
+    zipCodeInput.disabled = !(hasRegion && hasProvince && hasCity);
+
+    // Clear values when the required location selection is incomplete
+    if (streetAddressInput.disabled) {
+        streetAddressInput.value = "";
+        validateStreetAddress();
+    }
+
+    if (zipCodeInput.disabled) {
+        zipCodeInput.value = "";
+        zipHelper.textContent = "";
+        zipHelper.className = "input-helper-text";
+    }
+
+    validateStep2();
+}
+
 function validateStep2() {
-    const isOrgNameValid = orgNameInput.value.trim().length >= 3;
+    const orgNameLength = orgNameInput.value.trim().length;
+    const isOrgNameValid = orgNameLength >= 3 && orgNameLength <= 50;
     const isTypeSelected = orgTypeSelect.value !== "";
     const isContactPersonValid = contactPersonInput.value.trim() !== "";
     const isPhoneValid = phoneRegex.test(phoneInput.value.trim());
 
-    const isStreetValid = streetAddressInput.value.trim() !== "";
     const isRegionValid = regionSelect.value !== "";
     const isProvinceValid = provinceSelect.value !== "";
     const isCityValid = citySelect.value !== "";
     const isBarangayValid = barangaySelect.value !== "";
     const isZipValid = zipRegex.test(zipCodeInput.value.trim());
+    const isStreetAddressValid = validateStreetAddress();
 
     const isValid = 
         isOrgNameValid &&
         isTypeSelected &&
         isContactPersonValid &&
         isPhoneValid &&
-        isStreetValid &&
+        isStreetAddressValid &&
         isRegionValid &&
         isProvinceValid &&
         isCityValid &&
@@ -945,6 +1257,26 @@ function validateStep2() {
 
     next2Btn.disabled = !isValid;
 }
+
+streetAddressInput.addEventListener("input", validateStep2);
+
+let addressSearchTimer;
+
+streetAddressInput.addEventListener("input", function () {
+    clearTimeout(addressSearchTimer);
+
+    const value = this.value.trim();
+
+    if (value.length < 2) {
+        addressSuggestions.hidden = true;
+        addressSuggestions.innerHTML = "";
+        return;
+    }
+
+    addressSearchTimer = setTimeout(() => {
+        searchAddressSuggestions();
+    }, 300);
+});
 
 [orgNameInput, orgTypeSelect, contactPersonInput, phoneInput, streetAddressInput, zipCodeInput].forEach(el => {
     el.addEventListener("input", validateStep2);
@@ -955,6 +1287,7 @@ function validateStep2() {
     el.addEventListener("change", validateStep2);
 });
 
+barangaySelect.addEventListener("change", updateAddressFieldsState);
 
 document.getElementById("next2").addEventListener("click", async () => {
     const contactNumber = phoneInput.value.trim();
@@ -985,10 +1318,12 @@ document.getElementById("next2").addEventListener("click", async () => {
         showCustomAlert("Please enter a valid 11-digit mobile number starting with 09.");
         return;
     }
-    if (streetAddressInput.value.trim() === "") {
-        showCustomAlert("Street address / House number is required.");
+
+    if (!validateStreetAddress()) {
+        showCustomAlert("Please enter a valid street address or leave it blank.");
         return;
     }
+
     if (regionSelect.value === "") {
         showCustomAlert("Please select your region.");
         return;
@@ -1124,14 +1459,39 @@ document.getElementById("organizationSignupForm").addEventListener("submit", asy
 // ================================
 // GOOGLE VERIFICATION FOR ORG SIGNUP
 // ================================
-window.addEventListener("load", () => {
+window.addEventListener("load", async () => {
     if (!window.google?.accounts?.id) {
-        console.error("Google Identity Services did not load.");
+        console.error("Google Identity Services is not available.");
+        return;
+    }
+
+    let googleConfig;
+
+    try {
+        const response = await fetch("/api/config/google", {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            },
+            credentials: "same-origin"
+        });
+
+        if (!response.ok) {
+            throw new Error("Failed to load Google configuration.");
+        }
+
+        googleConfig = await response.json();
+
+        if (!googleConfig.clientId) {
+            throw new Error("Google Client ID is missing.");
+        }
+    } catch (error) {
+        console.error("Google configuration error:", error);
         return;
     }
 
     google.accounts.id.initialize({
-        client_id: "166979367595-rcju1pnic64htalpr29ciamk6uk3u7da.apps.googleusercontent.com",
+        client_id: googleConfig.clientId,
         callback: async (response) => {
             try {
                 const csrfResponse = await fetch("/auth/csrf-token", {

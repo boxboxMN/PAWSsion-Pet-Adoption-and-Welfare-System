@@ -6,6 +6,15 @@ window.openModal = function () {
     }
 };
 
+// GLOBAL FUNCTION PARA SA CLOSE BUTTON
+window.closeModal = function () {
+    const modal = document.getElementById("registerModal");
+
+    if (modal) {
+        modal.style.display = "none";
+    }
+};
+
 document.addEventListener('DOMContentLoaded', async () => {
 
     const form = document.getElementById('loginForm');
@@ -253,15 +262,40 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 });
 
-window.addEventListener("load", () => {
+window.addEventListener("load", async () => {
     if (!window.google?.accounts?.id) {
-      console.error("Google Sign-In library did not load.");
-      return;
+        console.error("Google Identity Services is not available.");
+        return;
+    }
+
+    let googleConfig;
+
+    try {
+        const response = await fetch("/api/config/google", {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            },
+            credentials: "same-origin"
+        });
+
+        if (!response.ok) {
+            throw new Error("Failed to load Google configuration.");
+        }
+
+        googleConfig = await response.json();
+
+        if (!googleConfig.clientId) {
+            throw new Error("Google Client ID is missing.");
+        }
+    } catch (error) {
+        console.error("Google configuration error:", error);
+        return;
     }
     
     console.log("GIS initialize reached");
     google.accounts.id.initialize({
-      client_id: "166979367595-rcju1pnic64htalpr29ciamk6uk3u7da.apps.googleusercontent.com",
+      client_id: googleConfig.clientId,
       callback: async (response) => {
         console.log("Google callback fired");
         try {

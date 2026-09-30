@@ -94,6 +94,19 @@ const { uploadOrgPic } = require('./config/upload');
 const { logActivity } = require("./controllers/adminController");
 const { checkAccountStatus } = require("./controllers/adminController");
 
+app.get("/api/config/google", (req, res) => {
+    const clientId = process.env.GOOGLE_CLIENT_ID;
+
+    if (!clientId) {
+        return res.status(500).json({
+            message: "Google Client ID is not configured."
+        });
+    }
+
+    res.set("Cache-Control", "no-store");
+    return res.json({ clientId });
+});
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -153,7 +166,9 @@ const userRoutes = require("./routes/userRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 const orgRoutes = require("./routes/orgRoutes");
 const authRoutes = require("./routes/auth");
-const IndexController = require("./controllers/IndexController");   
+const IndexController = require("./controllers/IndexController");
+const addressRoutes = require("./routes/addressRoutes");   
+const zipCodeRoutes = require("./routes/zipCodeRoutes");
 
 const bcrypt = require('bcrypt');
 const Organization = require('./models/organizationModel');
@@ -219,6 +234,8 @@ app.use("/auth", authRoutes);
 app.use(userRoutes);
 app.use("/admin", adminRoutes);
 app.use("/org", orgRoutes);
+app.use("/api/address", addressRoutes);
+app.use("/api/address", zipCodeRoutes);
 app.get('/api/current-user', async (req, res) => {
   try {
     // ⛔ TANGGALIN ang query fallback — session lang ang dapat pagkatiwalaan

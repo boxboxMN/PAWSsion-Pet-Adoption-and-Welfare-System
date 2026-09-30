@@ -239,7 +239,7 @@ exports.register = async (req, res) => {
     const confirmPassword = req.body.confirmPassword || '';
     
 
-    if (!firstName || !lastName || !birthday || !streetAddress || !region || !barangay || !city || !province || !zipCode || !phoneNumber || !email || !password || !confirmPassword) {
+    if (!firstName || !lastName || !birthday || !region || !barangay || !city || !province || !zipCode || !phoneNumber || !email || !password || !confirmPassword) {
         return res.status(400).send('Please fill out all required fields.');
     }
 
@@ -661,24 +661,66 @@ exports.registerOrganization = async (req, res) => {
         const organizationType = (req.body.organizationType || '').trim();
         const contactPerson = (req.body.contactPerson || '').trim();
         const contactNumber = (req.body.contactNumber || '').trim();
-        const streetAddress = (req.body.streetAddress || req.body.address || '').trim();
+       const streetAddress = (req.body.streetAddress || '').trim();
         const region = (req.body.region || '').trim();
         const province = (req.body.province || '').trim();
         const city = (req.body.city || '').trim();
         const barangay = (req.body.barangay || '').trim();
-        const zipCode = (req.body.zipCode || '').toString().trim();
+        const zipCode = (req.body.zipCode || '').toString().trim().replace(/\D/g, '');
         const description = (req.body.description || '').trim();
 
         if (
             !email || !password || !confirmPassword || !organizationName || 
             !organizationType || !contactPerson || !contactNumber || 
-            !streetAddress || !region || !province || !city || !barangay || !zipCode
+            !region || !province || !city || !barangay || !zipCode
         ) {
             return res.status(400).send("Please complete all required fields.");
         }
+
+
         if (!zipRegex.test(zipCode)) {
             return res.status(400).send("Please enter a valid 4-digit Philippine ZIP code.");
         }
+
+        const selectedRegion = regions.find(
+            r => normalizeAddress(r.region_name) === normalizeAddress(region)
+        );
+        
+        if (!selectedRegion) {
+            return res.status(400).send("Please select a valid region.");
+        }
+        
+        const selectedProvince = provinces.find(
+            p =>
+                normalizeAddress(p.province_name) === normalizeAddress(province) &&
+                p.region_code === selectedRegion.region_code
+        );
+        
+        if (!selectedProvince) {
+            return res.status(400).send("Please select a valid province for the selected region.");
+        }
+        
+        const selectedCity = cities.find(
+            c =>
+                normalizeAddress(c.city_name) === normalizeAddress(city) &&
+                c.province_code === selectedProvince.province_code
+        );
+        
+        if (!selectedCity) {
+            return res.status(400).send("Please select a valid city or municipality for the selected province.");
+        }
+        
+        const selectedBarangay = barangays.find(
+            b =>
+                normalizeAddress(b.brgy_name) === normalizeAddress(barangay) &&
+                b.city_code === selectedCity.city_code &&
+                b.province_code === selectedProvince.province_code
+        );
+        
+        if (!selectedBarangay) {
+            return res.status(400).send("Please select a valid barangay for the selected city or municipality.");
+        }
+        
         if (!validator.isEmail(email)) {
             return res.status(400).send("Please enter a valid email address.");
         }
@@ -1190,20 +1232,60 @@ exports.googleLogin = async (req, res) => {
             });
         }
 
-        // Only sign in accounts explicitly linked to this Google identity.
-        const [rows] = await pool.query(
-            `SELECT account_id, email, role, status
-             FROM accounts
-             WHERE google_sub = ?
-             LIMIT 1`,
+        // First, find an account already linked to this Google identity.
+        let [rows] = await pool.query(
+            `SELECT account_id, email, role, status, google_sub
+            FROM accounts
+            WHERE google_sub = ?
+            LIMIT 1`,
             [payload.sub]
         );
 
+        // If not linked yet, check whether the verified Google email
+        // belongs to an existing PAWSsion account.
         if (rows.length === 0) {
-            return res.status(404).json({
-                success: false,
-                message: "No PAWSsion account is linked to this Google account. Please register first."
-            });
+            const [emailRows] = await pool.query(
+                `SELECT account_id, email, role, status, google_sub
+                FROM accounts
+                WHERE LOWER(email) = LOWER(?)
+                LIMIT 1`,
+                [payload.email]
+            );
+
+            if (emailRows.length === 0) {
+                return res.status(404).json({
+                    success: false,
+                    message: "No PAWSsion account is linked to this Google account. Please register first."
+                });
+            }
+
+            const existingAccount = emailRows[0];
+
+            // Do not replace a Google identity already linked to another account.
+            if (existingAccount.google_sub) {
+                return res.status(409).json({
+                    success: false,
+                    message: "This PAWSsion account is already linked to a different Google account."
+                });
+            }
+
+            // Link only if the account is still unlinked.
+            const [updateResult] = await pool.query(
+                `UPDATE accounts
+                SET google_sub = ?
+                WHERE account_id = ?
+                AND google_sub IS NULL`,
+                [payload.sub, existingAccount.account_id]
+            );
+
+            if (updateResult.affectedRows !== 1) {
+                return res.status(409).json({
+                    success: false,
+                    message: "Unable to link this Google account. Please try again."
+                });
+            }
+
+            rows = [existingAccount];
         }
 
         const account = rows[0];
