@@ -287,7 +287,8 @@ app.get('/api/current-user', async (req, res) => {
 
     res.json({
       name: displayName,
-      profile_picture: rows[0].profile_picture || null
+      profile_picture: rows[0].profile_picture || null,
+      isFirstLogin: req.session.isFirstLogin === true
     });
   } catch (error) {
     console.error('current-user error:', error);
@@ -344,36 +345,96 @@ app.get("/api/organization/pending", async (req, res) => {
 //org profile
 app.get("/api/organization/profile", async (req, res) => {
 
-     // Pinipigilan ang browser mula sa pag-cache ng profile data (dapat laging updated/fresh)
+  // Pinipigilan ang browser mula sa pag-cache ng profile data (dapat laging updated/fresh)
   res.set("Cache-Control", "no-store, no-cache, must-revalidate, private");
   res.set("Pragma", "no-cache");
   res.set("Expires", "0");
 
-  if (!req.session.accountId) {
-    return res.status(401).json({
-        error: "Unauthorized"
-    });
-}
-
-try {
-    // GINAGAMIT NA NATIN ANG BAGONG MODEL MO DITO:
-    const orgData = await Organization.getProfileByAccountId(req.session.accountId);
-
-    if (!orgData) {
-        return res.status(404).json({
-            error: "Organization not found"
+    if (!req.session.accountId) {
+        return res.status(401).json({
+            error: "Unauthorized"
         });
     }
 
-    // Ipapasa na ang BUONG object (kasama name, contact, address, pic, etc.) sa frontend
-    res.json(orgData);
+    try {
+        // GINAGAMIT NA NATIN ANG BAGONG MODEL MO DITO:
+        const orgData = await Organization.getProfileByAccountId(req.session.accountId);
 
-} catch (err) {
-    console.error(err);
-    res.status(500).json({
-        error: "Server Error"
-    });
-}
+        if (!orgData) {
+            return res.status(404).json({
+                error: "Organization not found"
+            });
+        }
+
+        // Ipapasa na ang BUONG object (kasama name, contact, address, pic, etc.) sa frontend
+        res.json(orgData);
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({
+            error: "Server Error"
+        });
+    }
+});
+
+
+app.get("/api/organization/dashboard-greeting", async (req, res) => {
+    const accountId = req.session?.accountId;
+
+    if (!accountId || req.session.role !== "organization") {
+        return res.status(401).json({
+            error: "Unauthorized"
+        });
+    }
+
+    try {
+        const [orgRows] = await pool.query(
+            `SELECT organization_name, verification_status
+             FROM organizations
+             WHERE account_id = ?
+             LIMIT 1`,
+            [accountId]
+        );
+
+        if (!orgRows.length) {
+            return res.status(404).json({
+                error: "Organization not found"
+            });
+        }
+
+        const organization = orgRows[0];
+
+        // Only approved organizations can access this dashboard greeting.
+        if (organization.verification_status !== "Approved") {
+            return res.status(403).json({
+                error: "Organization is not approved"
+            });
+        }
+
+        // Record the first approved-dashboard access only once.
+        const [updateResult] = await pool.query(
+            `UPDATE organizations
+             SET dashboard_first_at = NOW()
+             WHERE account_id = ?
+               AND verification_status = 'Approved'
+               AND dashboard_first_at IS NULL`,
+            [accountId]
+        );
+
+        res.set("Cache-Control", "no-store");
+
+        return res.json({
+            organization_name: organization.organization_name,
+            isFirstDashboardAccess: updateResult.affectedRows === 1
+        });
+
+    } catch (err) {
+        console.error("Dashboard greeting error:", err);
+
+        return res.status(500).json({
+            error: "Server error"
+        });
+    }
 });
 
 // =====================================================

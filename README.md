@@ -766,3 +766,7 @@ python -m pip install symspellpy
 # db table for google auth
 ALTER TABLE accounts
 ADD COLUMN google_sub VARCHAR(255) NULL UNIQUE;
+
+# db table for org (new 0ct.)
+ALTER TABLE organizations
+ADD COLUMN dashboard_first_at DATETIME NULL DEFAULT NULL;

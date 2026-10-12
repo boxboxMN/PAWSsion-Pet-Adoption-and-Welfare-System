@@ -424,7 +424,7 @@ exports.login = async (req, res) => {
     }
 
     const [rows] = await pool.query(
-      'SELECT account_id, email, password_hash, status, role FROM accounts WHERE email = ? LIMIT 1',
+      'SELECT account_id, email, password_hash, status, role, last_login FROM accounts WHERE email = ? LIMIT 1',
       [email]
     );
     const genericAuthError = 'Invalid credentials. Please check your email and password.';
@@ -538,6 +538,9 @@ exports.login = async (req, res) => {
     // ✅ LOGIN SUCCESS
     // ==========================================
 
+    // Check before updating last_login
+    const isFirstLogin = !account.last_login;
+
     // 1. Update last_login
     await pool.query(
       `UPDATE accounts SET last_login = NOW() WHERE account_id = ?`,
@@ -555,6 +558,7 @@ exports.login = async (req, res) => {
     // 3. Set session data
     req.session.accountId = account.account_id;
     req.session.role = account.role;
+    req.session.isFirstLogin = isFirstLogin;
 
     // 4. ⭐ SAVE session ID to DB (Single Active Session)
     await pool.query(
@@ -1234,7 +1238,7 @@ exports.googleLogin = async (req, res) => {
 
         // First, find an account already linked to this Google identity.
         let [rows] = await pool.query(
-            `SELECT account_id, email, role, status, google_sub
+            `SELECT account_id, email, role, status, google_sub, last_login
             FROM accounts
             WHERE google_sub = ?
             LIMIT 1`,
@@ -1313,6 +1317,7 @@ exports.googleLogin = async (req, res) => {
 
         req.session.accountId = account.account_id;
         req.session.role = account.role;
+        req.session.isFirstLogin = !account.last_login;
 
         let redirectUrl = "";
 
