@@ -19,20 +19,43 @@
 
     // 3. I-LOAD ANG PROFILE PICTURE MULA SA API
     try {
-        const userRes = await fetch("/api/current-user");
+        const userRes = await fetch("/api/current-user", {
+            credentials: "same-origin",
+            cache: "no-store"
+        });
+
+        if (!userRes.ok) {
+            throw new Error("Failed to load current user");
+        }
+
         const userData = await userRes.json();
         
+        // Display user name
+        const userNameEl = document.getElementById("topbarUserName");
+
+        if (userNameEl) {
+            userNameEl.textContent = userData.name || "User";
+            userNameEl.title = userData.name || "User";
+        }
+    
         const avatarContainer = document.getElementById("topbarAvatarContainer");
+
         if (avatarContainer && userData.profile_picture) {
-            avatarContainer.innerHTML = `
-                <img src="${userData.profile_picture}" 
-                     alt="Profile" 
-                     class="w-full h-full object-cover rounded-full" 
-                     onerror="this.onerror=null; this.parentElement.innerHTML='<i class=\\'fas fa-user-circle text-2xl text-gray-500\\'></i>';" />
-            `;
+            const img = document.createElement("img");
+
+            img.src = userData.profile_picture;
+            img.alt = "Profile";
+            img.className = "w-full h-full object-cover rounded-full";
+
+            img.onerror = () => {
+                avatarContainer.innerHTML =
+                    '<i class="fas fa-user-circle text-2xl text-gray-500" id="topbarDefaultIcon"></i>';
+            };
+
+            avatarContainer.replaceChildren(img);
         }
     } catch (err) {
-        console.error("Error setting topbar avatar:", err);
+        console.error("Error setting topbar user information:", err);
     }
 
      // 4. NOTIFICATIONS
