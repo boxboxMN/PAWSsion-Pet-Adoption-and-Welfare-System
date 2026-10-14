@@ -1478,7 +1478,7 @@ function generateTimeOptions() {
     const isToday = selectedDateVal === todayStr;
     const nowMinutes = now.getHours() * 60 + now.getMinutes();
 
-    for (let totalMin = startTotalMin; totalMin <= endTotalMin; totalMin += 30) {
+    for (let totalMin = startTotalMin; totalMin <= endTotalMin; totalMin += 1) {
         {
             const hour = Math.floor(totalMin / 60);
             const minute = totalMin % 60;
