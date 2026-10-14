@@ -816,24 +816,23 @@ exports.getUserDonations = async (req, res) => {
             ORDER BY c.created_at DESC
         `, [adopterId, userEmail]);
 
-        // 2. Fetch In-Kind Donations (Direkta mula sa inkind_donations table)
         const [inkindRows] = await pool.query(`
-            SELECT 
-                i.inkind_donation_id AS id,
-                i.created_at AS date,
-                'In-Kind' AS type,
-                o.organization_name AS organization,
-                i.item_name,
-                i.quantity,
-                i.unit,
-                i.location_image_path,
-                i.status,
-                i.rejection_reason
-            FROM inkind_donations i
-            LEFT JOIN organizations o ON i.organization_id = o.organization_id
-            WHERE i.adopter_id = ? OR i.donor_email = ?
-            ORDER BY i.created_at DESC
-        `, [adopterId, userEmail]);
+    SELECT 
+        i.inkind_donation_id AS id,
+        i.created_at AS date,
+        'In-Kind' AS type,
+        o.organization_name AS organization,
+        i.item_name,
+        i.quantity,
+        i.unit,
+        i.proof_image_path,
+        i.status,
+        i.rejection_reason
+    FROM inkind_donations i
+    LEFT JOIN organizations o ON i.organization_id = o.organization_id
+    WHERE i.adopter_id = ? OR i.donor_email = ?
+    ORDER BY i.created_at DESC
+`, [adopterId, userEmail]);
 
         // 3. Pagsamahin at i-sort ayon sa petsa
         const allDonations = [...cashRows, ...inkindRows].sort(

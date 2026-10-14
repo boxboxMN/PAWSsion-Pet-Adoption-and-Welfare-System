@@ -62,10 +62,31 @@ const uploadQR = multer({ storage: qrStorage, fileFilter: imageFilter });
 
 // NEW: Multer instance para sa Dropoff
 const uploadDropoff = multer({ storage: dropoffStorage, fileFilter: imageFilter });
-
+// ==========================================
+// NEW: Storage Config for In-Kind Proof Images
+//   (used by org to upload proof when approving/rejecting)
+//   (also used by user when submitting in-kind donation)
+// ==========================================
+const inkindProofStorage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        const dir = "uploads/inkind-proof/";
+        // Ensure the folder exists (safe even if called repeatedly)
+        const fs = require("fs");
+        if (!fs.existsSync(dir)) {
+            fs.mkdirSync(dir, { recursive: true });
+        }
+        cb(null, dir);
+    },
+    filename: (req, file, cb) => {
+        const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+        const who = req.session?.accountId || "guest";
+        cb(null, "inkind-" + who + "-" + uniqueSuffix + path.extname(file.originalname));
+    }
+});
 module.exports = {
     uploadPet: upload,
     uploadOrgPic: uploadOrgPic,
     uploadQR: uploadQR,
-    uploadDropoff: uploadDropoff // <--- Naka-export na rito
+    uploadDropoff: uploadDropoff ,
+     uploadInkindProof: multer({ storage: inkindProofStorage, fileFilter: imageFilter }) 
 };

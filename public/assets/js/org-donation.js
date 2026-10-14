@@ -20,6 +20,16 @@ let inkindCurrentPage  = 1;
 let cashFilteredData   = [];
 let inkindFilteredData = [];
 
+// ⭐ IN-KIND PROOF PHOTO STATE
+let inkindProofFile = null;
+const MAX_INKIND_PROOF_SIZE = 5 * 1024 * 1024; // 5MB
+const ALLOWED_INKIND_PROOF_TYPES = [
+    "image/jpeg",
+    "image/jpg",
+    "image/png",
+    "image/webp"
+];
+
 document.addEventListener("DOMContentLoaded", async () => {
     // Load Shared Layout Components
     await loadTopbar({
@@ -45,6 +55,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     //restrict input fields to digits only
     restrictToDigitsOnly("inputAccountNum", 11);
     restrictToDigitsOnly("inputMayaNum", 11);
+
+    // ⭐ Init in-kind proof upload listeners (safe even if elements don't exist yet)
+    initInkindProofUpload();
 
     // Load Initial Data
     fetchPaymentDetails();
@@ -97,9 +110,120 @@ function restrictToDigitsOnly(inputId, maxLength = 11) {
     });
 }
 
-/**
- * Switches between the Cash Donations and In-Kind Donations tabs.
- */
+// =====================================================
+// ⭐ IN-KIND PROOF PHOTO HELPERS
+// =====================================================
+function resetInkindProof() {
+    inkindProofFile = null;
+
+    const input       = document.getElementById("inkindProofInput");
+    const placeholder = document.getElementById("inkindProofPlaceholder");
+    const previewWrap = document.getElementById("inkindProofPreviewWrap");
+    const preview     = document.getElementById("inkindProofPreview");
+    const fileName    = document.getElementById("inkindProofFileName");
+    const errorEl     = document.getElementById("inkindProofError");
+
+    if (input) input.value = "";
+    if (preview) preview.src = "";
+    if (fileName) fileName.textContent = "";
+    if (previewWrap) previewWrap.classList.add("hidden");
+    if (placeholder) placeholder.classList.remove("hidden");
+    if (errorEl) {
+        errorEl.textContent = "";
+        errorEl.classList.add("hidden");
+    }
+}
+
+function showInkindProofError(msg) {
+    const errorEl = document.getElementById("inkindProofError");
+    if (!errorEl) return;
+    errorEl.textContent = msg;
+    errorEl.classList.remove("hidden");
+}
+
+function clearInkindProofError() {
+    const errorEl = document.getElementById("inkindProofError");
+    if (!errorEl) return;
+    errorEl.textContent = "";
+    errorEl.classList.add("hidden");
+}
+
+function validateInkindProofFile(file) {
+    if (!file) {
+        return "Please upload a photo as proof that the item was received or used.";
+    }
+    if (!ALLOWED_INKIND_PROOF_TYPES.includes(file.type)) {
+        return "Only JPG, PNG, or WEBP images are allowed.";
+    }
+    if (file.size > MAX_INKIND_PROOF_SIZE) {
+        return "Image is too large. Maximum size is 5MB.";
+    }
+    return null;
+}
+
+function setInkindProofFile(file) {
+    inkindProofFile = file;
+
+    const placeholder = document.getElementById("inkindProofPlaceholder");
+    const previewWrap = document.getElementById("inkindProofPreviewWrap");
+    const preview     = document.getElementById("inkindProofPreview");
+    const fileName    = document.getElementById("inkindProofFileName");
+
+    if (!file) {
+        if (preview) preview.src = "";
+        if (fileName) fileName.textContent = "";
+        if (previewWrap) previewWrap.classList.add("hidden");
+        if (placeholder) placeholder.classList.remove("hidden");
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+        if (preview) preview.src = ev.target.result;
+        if (fileName) fileName.textContent = file.name;
+        if (placeholder) placeholder.classList.add("hidden");
+        if (previewWrap) previewWrap.classList.remove("hidden");
+    };
+    reader.readAsDataURL(file);
+}
+
+function initInkindProofUpload() {
+    const dropZone    = document.getElementById("inkindProofDropZone");
+    const input       = document.getElementById("inkindProofInput");
+    const removeBtn   = document.getElementById("removeInkindProofBtn");
+
+    if (dropZone && input) {
+        dropZone.addEventListener("click", (e) => {
+            if (e.target.closest("#removeInkindProofBtn")) return;
+            input.click();
+        });
+
+        input.addEventListener("change", function () {
+            clearInkindProofError();
+            const file = this.files && this.files[0];
+            if (!file) return;
+
+            const err = validateInkindProofFile(file);
+            if (err) {
+                showInkindProofError(err);
+                this.value = "";
+                setInkindProofFile(null);
+                return;
+            }
+            setInkindProofFile(file);
+        });
+    }
+
+    if (removeBtn) {
+        removeBtn.addEventListener("click", function (e) {
+            e.stopPropagation();
+            clearInkindProofError();
+            setInkindProofFile(null);
+            if (input) input.value = "";
+        });
+    }
+}
+
 /**
  * Switches between the Cash Donations and In-Kind Donations main tables.
  */
@@ -132,10 +256,6 @@ function switchDonationTab(tab) {
     filterDonations();
 }
 
-/**
- * Switches between the Cash and In-Kind configuration
- * sections inside the settings modal.
- */
 /**
  * Switches between the Cash and In-Kind configuration
  * sections inside the settings modal.
@@ -247,25 +367,14 @@ async function fetchPaymentDetails() {
         // =====================================================
 
         const displayAccountName =
-            document.getElementById(
-                "displayAccountName"
-            );
+            document.getElementById("displayAccountName");
 
         const displayAccountNum =
-            document.getElementById(
-                "displayAccountNum"
-            );
+            document.getElementById("displayAccountNum");
 
-        if (
-            displayAccountName &&
-            displayAccountNum
-        ) {
+        if (displayAccountName && displayAccountNum) {
 
             if (paymentMethod === "maya") {
-
-                // ---------------------------------------------
-                // MAYA
-                // ---------------------------------------------
 
                 displayAccountName.textContent =
                     data.maya_name ||
@@ -277,10 +386,6 @@ async function fetchPaymentDetails() {
                         : "No Maya account set";
 
             } else {
-
-                // ---------------------------------------------
-                // GCASH
-                // ---------------------------------------------
 
                 displayAccountName.textContent =
                     data.gcash_name ||
@@ -326,9 +431,7 @@ async function fetchPaymentDetails() {
         // =====================================================
 
         const mayaQrPreview =
-            document.getElementById(
-                "mayaQrPreview"
-            );
+            document.getElementById("mayaQrPreview");
 
         if (mayaQrPreview) {
 
@@ -354,108 +457,74 @@ async function fetchPaymentDetails() {
         }
 
         // =====================================================
-// IN-KIND INFORMATION
-// =====================================================
+        // IN-KIND INFORMATION
+        // =====================================================
 
-const locationName =
-    document.getElementById(
-        "inputLocationName"
-    );
+        const locationName =
+            document.getElementById("inputLocationName");
 
-const locationAddress =
-    document.getElementById(
-        "inputLocationAddress"
-    );
+        const locationAddress =
+            document.getElementById("inputLocationAddress");
 
-const operatingHours =
-    document.getElementById(
-        "inputOperatingHours"
-    );
+        const operatingHours =
+            document.getElementById("inputOperatingHours");
 
-const importantNotes =
-    document.getElementById(
-        "inputImportantNotes"
-    );
+        const importantNotes =
+            document.getElementById("inputImportantNotes");
 
+        if (locationName) {
+            locationName.value =
+                data.dropoff_location_name || "";
+        }
 
-// =====================================================
-// LOCATION NAME
-// =====================================================
+        if (locationAddress) {
+            locationAddress.value =
+                data.dropoff_address || "";
+        }
 
-if (locationName) {
+        if (operatingHours) {
+            operatingHours.value =
+                data.dropoff_hours || "";
+        }
 
-    locationName.value =
-        data.dropoff_location_name || "";
-}
+        if (importantNotes) {
+            importantNotes.value =
+                data.dropoff_notes || "";
+        }
 
+        // =====================================================
+        // INITIAL STATE
+        // =====================================================
 
-// =====================================================
-// ADDRESS
-// =====================================================
+        initialPaymentFormState = {
 
-if (locationAddress) {
+            payment_method:
+                paymentMethod,
 
-    locationAddress.value =
-        data.dropoff_address || "";
-}
+            gcash_name:
+                data.gcash_name || "",
 
+            gcash_number:
+                data.gcash_number || "",
 
-// =====================================================
-// HOURS
-// =====================================================
+            maya_name:
+                data.maya_name || "",
 
-if (operatingHours) {
+            maya_number:
+                data.maya_number || "",
 
-    operatingHours.value =
-        data.dropoff_hours || "";
-}
+            dropoff_location_name:
+                data.dropoff_location_name || "",
 
+            dropoff_address:
+                data.dropoff_address || "",
 
-// =====================================================
-// NOTES
-// =====================================================
+            dropoff_hours:
+                data.dropoff_hours || "",
 
-if (importantNotes) {
-
-    importantNotes.value =
-        data.dropoff_notes || "";
-}
-
-
-// =====================================================
-// INITIAL STATE
-// =====================================================
-
-initialPaymentFormState = {
-
-    payment_method:
-        paymentMethod,
-
-    gcash_name:
-        data.gcash_name || "",
-
-    gcash_number:
-        data.gcash_number || "",
-
-    maya_name:
-        data.maya_name || "",
-
-    maya_number:
-        data.maya_number || "",
-
-    dropoff_location_name:
-        data.dropoff_location_name || "",
-
-    dropoff_address:
-        data.dropoff_address || "",
-
-    dropoff_hours:
-        data.dropoff_hours || "",
-
-    dropoff_notes:
-        data.dropoff_notes || ""
-};
-        
+            dropoff_notes:
+                data.dropoff_notes || ""
+        };
 
         console.log(
             "Payment details loaded:",
@@ -491,6 +560,7 @@ initialPaymentFormState = {
         );
     }
 }
+
 async function fetchDonations() {
     try {
         const res = await fetch("/org/donations");
@@ -519,6 +589,7 @@ async function fetchDonations() {
         }
     }
 }
+
 function renderDonationsTable(donations) {
     const tbody = document.getElementById("donationsTableBody");
     if (!tbody) return;
@@ -632,6 +703,7 @@ async function fetchInKindDonations() {
         }
     }
 }
+
 function renderInKindTable(donations) {
     const tbody = document.getElementById("inkindTableBody");
     if (!tbody) return;
@@ -692,9 +764,9 @@ function renderInKindTable(donations) {
         renderInKindTable(inkindFilteredData);
     }, inkindFilteredData.length);
 }
+
 /**
- * Opens the in-kind donation review modal
- * and displays the selected donation details[cite: 5].
+ * Opens the in-kind donation review modal.
  */
 function openInKindModal(id) {
     selectedInKindId = id;
@@ -702,15 +774,38 @@ function openInKindModal(id) {
     if (!donation) return;
 
     hideInKindRejectionFlow();
+    resetInkindProof();
+    clearInkindProofError();
 
     document.getElementById("inkindDonorName").value = donation.donor_name || "N/A";
-    document.getElementById("inkindItemName").value = donation.item_name || "N/A";
-    document.getElementById("inkindQuantity").value = donation.quantity || "N/A";
+    document.getElementById("inkindItemName").value  = donation.item_name  || "N/A";
+    document.getElementById("inkindQuantity").value  = donation.quantity   || "N/A";
 
-    const banner = document.getElementById("inkindStatusBanner");
-    const approveBtn = document.getElementById("inkindApproveBtn");
-    const rejectBtn = document.getElementById("inkindRejectBtn");
-    const status = (donation.status || 'Pending').toLowerCase();
+    const categoryInput = document.getElementById("inkindCategory");
+    if (categoryInput) {
+        categoryInput.value = donation.category || "—";
+    }
+
+    // Donor's submitted photo of the item
+    const donorProofWrap = document.getElementById("inkindDonorProofSection");
+    const donorProofImg  = document.getElementById("inkindDonorProofImg");
+
+    if (donation.proof_image_path && donorProofImg && donorProofWrap) {
+        let donorProofPath = donation.proof_image_path;
+        if (!donorProofPath.startsWith("/") && !donorProofPath.startsWith("http")) {
+            donorProofPath = `/uploads/inkind-proof/${donorProofPath}`;
+        }
+        donorProofImg.src = donorProofPath;
+        donorProofWrap.classList.remove("hidden");
+    } else if (donorProofWrap) {
+        donorProofWrap.classList.add("hidden");
+    }
+
+    const banner       = document.getElementById("inkindStatusBanner");
+    const approveBtn   = document.getElementById("inkindApproveBtn");
+    const rejectBtn    = document.getElementById("inkindRejectBtn");
+    const proofSection = document.getElementById("inkindProofSection");
+    const status       = (donation.status || 'Pending').toLowerCase();
 
     if (status === 'approved' || status === 'verified') {
         banner.className = "mt-4 p-3 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-between text-emerald-800 text-xs font-semibold";
@@ -722,9 +817,24 @@ function openInKindModal(id) {
             <span class="px-2.5 py-0.5 bg-emerald-200/60 text-emerald-800 rounded-full text-[11px]">Approved</span>
         `;
         banner.classList.remove("hidden");
+
         approveBtn.disabled = true;
         approveBtn.className = "px-4 py-2 bg-gray-300 text-gray-500 text-xs font-semibold rounded-lg cursor-not-allowed";
         rejectBtn.classList.add("hidden");
+
+        // Walang action → itago ang proof upload section
+        if (proofSection) proofSection.classList.add("hidden");
+
+        // Kung approved na at may org proof na, ipakita ito sa donor proof area na naman
+        if (donation.org_proof_image_path && donorProofImg && donorProofWrap) {
+            let orgProofPath = donation.org_proof_image_path;
+            if (!orgProofPath.startsWith("/") && !orgProofPath.startsWith("http")) {
+                orgProofPath = `/uploads/inkind-proof/${orgProofPath}`;
+            }
+            donorProofImg.src = orgProofPath;
+            donorProofWrap.classList.remove("hidden");
+        }
+
     } else if (status === 'rejected') {
         banner.className = "mt-4 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold space-y-1";
         banner.innerHTML = `
@@ -738,16 +848,22 @@ function openInKindModal(id) {
             ${donation.rejection_reason ? `<p class="text-[11px] font-normal text-rose-700 pl-6">Reason: ${donation.rejection_reason}</p>` : ''}
         `;
         banner.classList.remove("hidden");
+
         approveBtn.disabled = false;
         approveBtn.className = "px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg transition";
         approveBtn.textContent = "Re-approve & Receive";
         rejectBtn.classList.add("hidden");
+
+        if (proofSection) proofSection.classList.remove("hidden");
+
     } else {
         banner.classList.add("hidden");
         approveBtn.disabled = false;
         approveBtn.className = "px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg transition";
         approveBtn.textContent = "Approve / Received";
         rejectBtn.classList.remove("hidden");
+
+        if (proofSection) proofSection.classList.remove("hidden");
     }
 
     const modal = document.getElementById("reviewInKindModal");
@@ -756,18 +872,20 @@ function openInKindModal(id) {
 }
 
 /**
- * Closes the in-kind donation review modal[cite: 5].
+ * Closes the in-kind donation review modal.
  */
 function closeInKindModal() {
     const modal = document.getElementById("reviewInKindModal");
     modal.classList.add("opacity-0", "pointer-events-none");
     modal.querySelector("div").classList.add("scale-95");
+
     selectedInKindId = null;
+    resetInkindProof();
+    clearInkindProofError();
 }
 
 /**
- * Displays the rejection section
- * for an in-kind donation[cite: 5].
+ * Displays the rejection section for an in-kind donation.
  */
 function showInKindRejectionFlow() {
     document.getElementById("inkindRejectionSection").classList.remove("hidden");
@@ -777,8 +895,7 @@ function showInKindRejectionFlow() {
 }
 
 /**
- * Hides the in-kind rejection section
- * and restores the default action buttons[cite: 5].
+ * Hides the in-kind rejection section and restores the default action buttons.
  */
 function hideInKindRejectionFlow() {
     document.getElementById("inkindRejectionSection").classList.add("hidden");
@@ -787,8 +904,7 @@ function hideInKindRejectionFlow() {
 }
 
 /**
- * Updates the rejection reason message
- * based on the selected rejection option[cite: 5].
+ * Updates the rejection reason message based on the selected rejection option.
  */
 function updateInKindRejectionText() {
     const selectedRadio = document.querySelector('input[name="inkindRejectReason"]:checked');
@@ -809,8 +925,7 @@ function updateInKindRejectionText() {
 }
 
 /**
- * Submits the rejection reason
- * for an in-kind donation[cite: 5].
+ * Submits the rejection reason for an in-kind donation.
  */
 async function submitInKindRejection() {
     const reasonText = document.getElementById("inkindRejectionReasonText").textContent;
@@ -818,35 +933,48 @@ async function submitInKindRejection() {
 }
 
 /**
- * Updates the status of the selected
- * in-kind donation[cite: 5].
+ * Updates the status of the selected in-kind donation.
+ * ⭐ Now requires the proof photo to be uploaded.
  */
 async function updateInKindStatus(newStatus, reason = null) {
     if (!selectedInKindId) return;
 
+    // ⭐ Require proof photo for BOTH approve & reject
+    const proofErr = validateInkindProofFile(inkindProofFile);
+    if (proofErr) {
+        showInkindProofError(proofErr);
+        showToast(proofErr, 'error');
+        return;
+    }
+    clearInkindProofError();
+
     try {
-        const payload = { status: newStatus };
-        if (reason) payload.reason = reason;
+        const formData = new FormData();
+        formData.append("status", newStatus);
+        if (reason) formData.append("reason", reason);
+        formData.append("proof_image", inkindProofFile);   // must match multer's field name
 
         const res = await fetch(`/org/donations/in-kind/${selectedInKindId}/status`, {
             method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload)
+            body: formData
+            // NOTE: DO NOT set Content-Type — browser sets multipart boundary automatically
         });
 
         const result = await res.json();
 
         if (result.success) {
-            showToast(`In-kind donation marked as ${newStatus}!`, 'success'); 
+            showToast(`In-kind donation marked as ${newStatus}!`, 'success');
             closeInKindModal();
             fetchInKindDonations();
         } else {
-            showToast("Failed: " + result.message, 'error'); 
+            showToast("Failed: " + (result.message || "Unable to update status."), 'error');
         }
     } catch (err) {
-        showToast("An error occurred while updating status.", 'error'); 
+        console.error("updateInKindStatus error:", err);
+        showToast("An error occurred while updating status.", 'error');
     }
 }
+
 function filterDonations() {
     const searchInput = document.getElementById("searchInput");
     const statusSelect = document.getElementById("statusFilter");
@@ -887,9 +1015,9 @@ function filterDonations() {
         renderInKindTable(filtered);
     }
 }
+
 /**
- * Shows or hides the action dropdown menu
- * for the selected cash donation[cite: 5].
+ * Shows or hides the action dropdown menu for the selected cash donation.
  */
 function toggleActionDropdown(e, id) {
     e.stopPropagation();
@@ -1011,8 +1139,7 @@ function getPaginationRange(current, total) {
 }
 
 /**
- * Opens the receipt image
- * in a lightbox modal[cite: 5].
+ * Opens the receipt image in a lightbox modal.
  */
 function viewReceiptDirect(receiptPathRaw) {
     let fullPath = NO_QR_PLACEHOLDER;
@@ -1026,10 +1153,15 @@ function viewReceiptDirect(receiptPathRaw) {
     const modalImg = document.getElementById("modalReceiptImg");
     const downloadBtn = document.getElementById("downloadReceiptBtn");
     const openBtn = document.getElementById("openReceiptExternal");
+    const titleEl = document.getElementById("receiptModalTitle");
 
     if (modalImg) {
         modalImg.src = fullPath;
         modalImg.classList.add("max-h-[85vh]", "w-auto", "object-contain", "mx-auto");
+    }
+
+    if (titleEl) {
+        titleEl.textContent = "Proof of Payment Receipt";
     }
 
     if (downloadBtn) downloadBtn.href = fullPath;
@@ -1043,7 +1175,31 @@ function viewReceiptDirect(receiptPathRaw) {
 }
 
 /**
- * Closes the receipt preview modal[cite: 5].
+ * Opens the in-kind proof image in the same lightbox modal.
+ */
+function openInkindProofLightbox() {
+    const img = document.getElementById("inkindDonorProofImg");
+    if (!img || !img.src) return;
+
+    const modalImg = document.getElementById("modalReceiptImg");
+    const downloadBtn = document.getElementById("downloadReceiptBtn");
+    const openBtn = document.getElementById("openReceiptExternal");
+    const titleEl = document.getElementById("receiptModalTitle");
+
+    if (modalImg) modalImg.src = img.src;
+    if (titleEl) titleEl.textContent = "Donor's Photo of Donated Item";
+    if (downloadBtn) downloadBtn.href = img.src;
+    if (openBtn) openBtn.href = img.src;
+
+    const modal = document.getElementById("receiptModal");
+    if (modal) {
+        modal.classList.remove("opacity-0", "pointer-events-none");
+        modal.querySelector("div")?.classList.remove("scale-95");
+    }
+}
+
+/**
+ * Closes the receipt preview modal.
  */
 function closeReceiptModal() {
     const modal = document.getElementById("receiptModal");
@@ -1054,8 +1210,7 @@ function closeReceiptModal() {
 }
 
 /**
- * Opens the receipt lightbox
- * from the review modal[cite: 5].
+ * Opens the receipt lightbox from the review modal.
  */
 function triggerViewReceiptFromReview() {
     const img = document.getElementById("reviewReceiptImg");
@@ -1067,8 +1222,7 @@ function triggerViewReceiptFromReview() {
 }
 
 /**
- * Opens the cash donation review modal
- * and displays the selected donation details[cite: 5].
+ * Opens the cash donation review modal and displays the selected donation details.
  */
 function openReviewModal(id) {
     selectedDonationId = id; 
@@ -1151,7 +1305,7 @@ function openReviewModal(id) {
 }
 
 /**
- * Closes the cash donation review modal[cite: 5].
+ * Closes the cash donation review modal.
  */
 function closeReviewModal() {
     const modal = document.getElementById("reviewDonationModal");
@@ -1164,8 +1318,7 @@ function closeReviewModal() {
 }
 
 /**
- * Displays the rejection form
- * for a cash donation[cite: 5].
+ * Displays the rejection form for a cash donation.
  */
 function showRejectionFlow() {
     document.getElementById("rejectionSection").classList.remove("hidden");
@@ -1175,8 +1328,7 @@ function showRejectionFlow() {
 }
 
 /**
- * Hides the rejection form
- * and restores the default action buttons[cite: 5].
+ * Hides the rejection form and restores the default action buttons.
  */
 function hideRejectionFlow() {
     document.getElementById("rejectionSection").classList.add("hidden");
@@ -1185,8 +1337,7 @@ function hideRejectionFlow() {
 }
 
 /**
- * Updates the rejection message
- * based on the selected reason[cite: 5].
+ * Updates the rejection message based on the selected reason.
  */
 function updateRejectionText() {
     const selectedRadio = document.querySelector('input[name="rejectReason"]:checked');
@@ -1207,8 +1358,7 @@ function updateRejectionText() {
 }
 
 /**
- * Approves and verifies
- * the selected cash donation[cite: 5].
+ * Approves and verifies the selected cash donation.
  */
 async function approveDonation() {
     if (!selectedDonationId) return;
@@ -1234,8 +1384,7 @@ async function approveDonation() {
 }
 
 /**
- * Rejects the selected cash donation
- * and records the rejection reason[cite: 5].
+ * Rejects the selected cash donation and records the rejection reason.
  */
 async function rejectDonation() {
     if (!selectedDonationId) return;
@@ -1262,8 +1411,7 @@ async function rejectDonation() {
 }
 
 /**
- * Opens the donation settings
- * configuration modal[cite: 5].
+ * Opens the donation settings configuration modal.
  */
 async function openConfigModal() {
     const modal = document.getElementById('paymentConfigModal');
@@ -1274,7 +1422,6 @@ async function openConfigModal() {
 
     fetchDropoffHours();
     // Auto-fill ang Complete Address galing sa Org Profile, pero LANG kung wala pa itong laman
-    // (hindi papatungan ang address na sadyang na-customize na ng org para sa drop-off)
     const addressInput = document.getElementById("inputLocationAddress");
     if (addressInput && !addressInput.value.trim()) {
         try {
@@ -1300,8 +1447,7 @@ async function openConfigModal() {
 }
 
 /**
- * Closes the donation settings
- * configuration modal[cite: 5].
+ * Closes the donation settings configuration modal.
  */
 function closeConfigModal() {
     const modal = document.getElementById('paymentConfigModal');
@@ -1312,8 +1458,7 @@ function closeConfigModal() {
 }
 
 /**
- * Displays a preview of the selected
- * image before uploading[cite: 5].
+ * Displays a preview of the selected image before uploading.
  */
 function previewImage(event, previewId) {
   const file = event.target.files[0];
@@ -1327,46 +1472,27 @@ function previewImage(event, previewId) {
 }
 
 /**
- * Saves the organization's payment
- * information and in-kind drop-off settings[cite: 5].
+ * Saves the organization's payment information and in-kind drop-off settings.
  */
-// =====================================================
-// SAVE PAYMENT + IN-KIND DONATION DETAILS
-// =====================================================
-
 async function savePaymentDetails(e) {
     e.preventDefault();
 
-    const saveBtn =
-        document.getElementById("saveBtn");
+    const saveBtn = document.getElementById("saveBtn");
 
     if (!saveBtn) {
-        console.error(
-            "Save button #saveBtn was not found."
-        );
+        console.error("Save button #saveBtn was not found.");
         return;
     }
 
-    const originalBtnText =
-        saveBtn.innerHTML;
+    const originalBtnText = saveBtn.innerHTML;
 
     saveBtn.disabled = true;
-
-    saveBtn.innerHTML =
-        `<i class="fa-solid fa-spinner fa-spin mr-1"></i> Saving...`;
+    saveBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i> Saving...`;
 
     try {
-
-        // =====================================================
-        // HELPER
-        // =====================================================
-
         const getValue = (id) => {
-            const element =
-                document.getElementById(id);
-
-            return element &&
-                element.value !== undefined
+            const element = document.getElementById(id);
+            return element && element.value !== undefined
                 ? String(element.value).trim()
                 : "";
         };
@@ -1378,7 +1504,6 @@ async function savePaymentDetails(e) {
             const digitsOnly = value.replace(/\D/g, "");
 
             if (!digitsOnly) {
-                // Wala namang ibinigay na number, hayaan lang — hindi required field
                 if (errorEl) errorEl.classList.add("hidden");
                 return { valid: true, value: "" };
             }
@@ -1392,66 +1517,17 @@ async function savePaymentDetails(e) {
             return { valid: true, value: digitsOnly };
         };
 
-        // =====================================================
-        // GET CURRENT FORM VALUES
-        // =====================================================
-
         const current = {
-
-            // PAYMENT
-            payment_method:
-                getValue(
-                    "inputPaymentMethod"
-                ),
-
-            gcash_name:
-                getValue(
-                    "inputAccountName"
-                ),
-
-            gcash_number:
-                getValue(
-                    "inputAccountNum"
-                ),
-
-            maya_name:
-                getValue(
-                    "inputMayaName"
-                ),
-
-            maya_number:
-                getValue(
-                    "inputMayaNum"
-                ),
-
-            // =================================================
-            // IN-KIND
-            // =================================================
-
-            dropoff_location_name:
-                getValue(
-                    "inputLocationName"
-                ),
-
-            dropoff_address:
-                getValue(
-                    "inputLocationAddress"
-                ),
-
-            dropoff_hours:
-                getValue(
-                    "inputOperatingHours"
-                ),
-
-            dropoff_notes:
-                getValue(
-                    "inputImportantNotes"
-                )
+            payment_method: getValue("inputPaymentMethod"),
+            gcash_name:     getValue("inputAccountName"),
+            gcash_number:   getValue("inputAccountNum"),
+            maya_name:      getValue("inputMayaName"),
+            maya_number:    getValue("inputMayaNum"),
+            dropoff_location_name: getValue("inputLocationName"),
+            dropoff_address:       getValue("inputLocationAddress"),
+            dropoff_hours:         getValue("inputOperatingHours"),
+            dropoff_notes:         getValue("inputImportantNotes")
         };
-
-         // =====================================================
-        // VALIDATE GCASH / MAYA NUMBER FORMAT BEFORE SAVING
-        // =====================================================
 
         const gcashCheck = validateMobileNumber(current.gcash_number, "GCash", "gcashNumError");
         const mayaCheck = validateMobileNumber(current.maya_number, "Maya", "mayaNumError");
@@ -1463,20 +1539,14 @@ async function savePaymentDetails(e) {
             return;
         }
 
-        // Gamitin ang na-clean (digits-only) na number sa halip na raw input
         current.gcash_number = gcashCheck.value;
         current.maya_number = mayaCheck.value;
-
-        // =====================================================
-        // REQUIRE COMPLETE DETAILS FOR THE ACTIVE PAYMENT METHOD
-        // =====================================================
 
         const qrPreviewEl = document.getElementById("qrPreview");
         const mayaQrPreviewEl = document.getElementById("mayaQrPreview");
         const qrInputEl = document.getElementById("qrInput");
         const mayaQrInputEl = document.getElementById("mayaQrInput");
 
-        // May bagong napiling file ba, o may existing QR na naka-save na (hindi hidden ang preview)?
         const hasGcashQr =
             (qrInputEl && qrInputEl.files && qrInputEl.files.length > 0) ||
             (qrPreviewEl && !qrPreviewEl.classList.contains("hidden"));
@@ -1506,11 +1576,6 @@ async function savePaymentDetails(e) {
             );
             return;
         }
-
-        // =====================================================
-        // Kung sinimulan ng org ang In-Kind section,
-        // dapat kumpleto lahat maliban sa Important Notes
-        // =====================================================
 
         const locationPreviewEl = document.getElementById("locationPreview");
         const locationImgInputEl = document.getElementById("locationImgInput");
@@ -1550,474 +1615,84 @@ async function savePaymentDetails(e) {
             }
         }
 
-        // =====================================================
-        // PREVIOUS VALUES
-        // =====================================================
-
-        const previous =
-            initialPaymentFormState || {};
-
-
-        // =====================================================
-        // CHECK PAYMENT CHANGES
-        // =====================================================
-
-        const paymentChanged =
-            current.payment_method !==
-                (previous.payment_method || "") ||
-
-            current.gcash_name !==
-                (previous.gcash_name || "") ||
-
-            current.gcash_number !==
-                (previous.gcash_number || "") ||
-
-            current.maya_name !==
-                (previous.maya_name || "") ||
-
-            current.maya_number !==
-                (previous.maya_number || "");
-
-
-        // =====================================================
-        // CHECK IN-KIND CHANGES
-        // =====================================================
-
-        const inkindChanged =
-            current.dropoff_location_name !==
-                (previous.dropoff_location_name || "") ||
-
-            current.dropoff_address !==
-                (previous.dropoff_address || "") ||
-
-            current.dropoff_hours !==
-                (previous.dropoff_hours || "") ||
-
-            current.dropoff_notes !==
-                (previous.dropoff_notes || "");
-
-
-        // =====================================================
-        // CHECK GCASH QR
-        // =====================================================
-
-        const gcashQrInput =
-            document.getElementById(
-                "qrCodeInput"
-            );
-
-        const gcashQrChanged =
-            !!(
-                gcashQrInput &&
-                gcashQrInput.files &&
-                gcashQrInput.files.length > 0
-            );
-
-
-        // =====================================================
-        // CHECK MAYA QR
-        // =====================================================
-
-        const mayaQrInput =
-            document.getElementById(
-                "mayaQrCodeInput"
-            );
-
-        const mayaQrChanged =
-            !!(
-                mayaQrInput &&
-                mayaQrInput.files &&
-                mayaQrInput.files.length > 0
-            );
-
-
-        // =====================================================
-        // CHECK LOCATION IMAGE
-        // =====================================================
-
-        /*
-         * IMPORTANT:
-         *
-         * HTML:
-         * name="location_image"
-         *
-         * Multer:
-         * location_image
-         *
-         * Database:
-         * dropoff_image
-         */
-
-        const locationImageInput =
-            document.getElementById(
-                "locationImgInput"
-            );
-
-        const dropoffImageChanged =
-            !!(
-                locationImageInput &&
-                locationImageInput.files &&
-                locationImageInput.files.length > 0
-            );
-
-
-        // =====================================================
-        // FINAL CHANGE DETECTION
-        // =====================================================
-
-        const actualPaymentChanged =
-            paymentChanged ||
-            gcashQrChanged ||
-            mayaQrChanged;
-
-        const actualInKindChanged =
-            inkindChanged ||
-            dropoffImageChanged;
-
-
-        // =====================================================
-        // GET FORM
-        // =====================================================
-
-        const form =
-            document.getElementById(
-                "paymentConfigForm"
-            );
-
+        const form = document.getElementById("paymentConfigForm");
         if (!form) {
-
-            showToast(
-                "Payment configuration form was not found.",
-                "error"
-            );
-
+            showToast("Payment configuration form was not found.", "error");
             return;
         }
-
-
-        // =====================================================
-        // CREATE FORMDATA
-        // =====================================================
 
         const formData = new FormData(form);
         formData.set("active_tab", activeTab);
+        formData.set("payment_method", current.payment_method);
+        formData.set("gcash_name", current.gcash_name);
+        formData.set("gcash_number", current.gcash_number);
+        formData.set("maya_name", current.maya_name);
+        formData.set("maya_number", current.maya_number);
+        formData.set("dropoff_location_name", current.dropoff_location_name);
+        formData.set("dropoff_address", current.dropoff_address);
+        formData.set("dropoff_hours", current.dropoff_hours);
+        formData.set("dropoff_notes", current.dropoff_notes);
 
-        // =====================================================
-        // PAYMENT VALUES
-        // =====================================================
+        formData.delete("dropoff_image");
+        formData.delete("location_image");
 
-        formData.set(
-            "payment_method",
-            current.payment_method
-        );
-
-        formData.set(
-            "gcash_name",
-            current.gcash_name
-        );
-
-        formData.set(
-            "gcash_number",
-            current.gcash_number
-        );
-
-        formData.set(
-            "maya_name",
-            current.maya_name
-        );
-
-        formData.set(
-            "maya_number",
-            current.maya_number
-        );
-
-        formData.set(
-            "contact_number",
-            current.contact_number
-        );
-
-
-        // =====================================================
-        // IN-KIND VALUES
-        // =====================================================
-
-        formData.set(
-            "dropoff_location_name",
-            current.dropoff_location_name
-        );
-
-        formData.set(
-            "dropoff_address",
-            current.dropoff_address
-        );
-
-        formData.set(
-            "dropoff_hours",
-            current.dropoff_hours
-        );
-
-        formData.set(
-            "dropoff_notes",
-            current.dropoff_notes
-        );
-
-
-        // =====================================================
-        // LOCATION IMAGE
-        // =====================================================
-
-        /*
-         * IMPORTANT:
-         *
-         * Do NOT send:
-         *
-         * dropoff_image
-         *
-         * to Multer.
-         *
-         * The uploaded file field is:
-         *
-         * location_image
-         */
-
-        formData.delete(
-            "dropoff_image"
-        );
-
-        formData.delete(
-            "location_image"
-        );
-
-        if (
-            locationImageInput &&
-            locationImageInput.files &&
-            locationImageInput.files.length > 0
-        ) {
-
-            formData.append(
-                "location_image",
-                locationImageInput.files[0]
-            );
+        if (locationImgInputEl && locationImgInputEl.files && locationImgInputEl.files.length > 0) {
+            formData.append("location_image", locationImgInputEl.files[0]);
         }
 
-        const response =
-            await fetch(
-                "/org/payment-info",
-                {
-                    method: "POST",
-                    body: formData
-                }
-            );
-
-
-        // =====================================================
-        // READ RESPONSE
-        // =====================================================
+        const response = await fetch("/org/payment-info", {
+            method: "POST",
+            body: formData
+        });
 
         let result;
-
         try {
-
-            result =
-                await response.json();
-
+            result = await response.json();
         } catch (jsonError) {
-
-            console.error(
-                "Invalid server response:",
-                jsonError
-            );
-
-            const text =
-                await response.text();
-
-            console.error(
-                "Server response:",
-                text
-            );
-
-            throw new Error(
-                "Server returned an invalid response."
-            );
+            console.error("Invalid server response:", jsonError);
+            const text = await response.text();
+            console.error("Server response:", text);
+            throw new Error("Server returned an invalid response.");
         }
 
-
-        // =====================================================
-        // SERVER ERROR
-        // =====================================================
-
         if (!response.ok || !result.success) {
-
-            showToast(
-                result.message ||
-                "Unable to save settings.",
-                "error"
-            );
-
+            showToast(result.message || "Unable to save settings.", "error");
             return;
         }
 
+        showToast("Settings saved successfully!", "success");
 
-        // =====================================================
-        // BUILD CONFIRMATION MESSAGE
-        // =====================================================
-
-        const sections = [];
-
-
-        // =====================================================
-        // PAYMENT MESSAGE
-        // =====================================================
-
-        if (actualPaymentChanged) {
-
-            const method =
-                String(
-                    current.payment_method || ""
-                )
-                    .toLowerCase()
-                    .trim();
-
-            if (
-                method === "maya"
-            ) {
-
-                sections.push(
-                    "Maya payment information"
-                );
-
-            } else {
-
-                sections.push(
-                    "GCash payment information"
-                );
-            }
-        }
-
-
-        // =====================================================
-        // IN-KIND MESSAGE
-        // =====================================================
-
-        if (actualInKindChanged) {
-
-            sections.push(
-                "In-Kind donation information"
-            );
-        }
-
-
-        // =====================================================
-        // SHOW RESULT
-        // =====================================================
-
-        let message;
-
-        if (sections.length === 0) {
-
-            message =
-                "Settings saved successfully!";
-
-        } else if (
-            sections.length === 1
-        ) {
-
-            message =
-                `${sections[0]} saved successfully!`;
-
-        } else {
-
-            message =
-                `${sections.join(
-                    " and "
-                )} saved successfully!`;
-        }
-
-
-        showToast(
-            message,
-            "success"
-        );
-
-
-        // =====================================================
-        // CLOSE MODAL
-        // =====================================================
-
-        if (
-            typeof closeConfigModal ===
-            "function"
-        ) {
+        if (typeof closeConfigModal === "function") {
             closeConfigModal();
         }
 
-
-        // =====================================================
-        // RELOAD DATA
-        // =====================================================
-
-        if (
-            typeof fetchPaymentDetails ===
-            "function"
-        ) {
+        if (typeof fetchPaymentDetails === "function") {
             await fetchPaymentDetails();
         }
 
         await loadInKindSettings();
 
-
     } catch (error) {
-
-        console.error(
-            "Save settings error:",
-            error
-        );
-
-        showToast(
-            error.message ||
-            "An unexpected error occurred while saving.",
-            "error"
-        );
-
+        console.error("Save settings error:", error);
+        showToast(error.message || "An unexpected error occurred while saving.", "error");
     } finally {
-
         saveBtn.disabled = false;
-
-        saveBtn.innerHTML =
-            originalBtnText;
+        saveBtn.innerHTML = originalBtnText;
     }
 }
 
-
-// =====================================================
-// TOAST NOTIFICATION
-// =====================================================
-
-function showToast(
-    message,
-    type = "success"
-) {
-
-    const container =
-        document.getElementById(
-            "toastContainer"
-        );
-
+/**
+ * Toast notification
+ */
+function showToast(message, type = "success") {
+    const container = document.getElementById("toastContainer");
     if (!container) {
-        console.warn(
-            "Toast container not found."
-        );
+        console.warn("Toast container not found.");
         return;
     }
 
-
-    const toast =
-        document.createElement("div");
-
-
-    const isSuccess =
-        type === "success";
-
+    const toast = document.createElement("div");
+    const isSuccess = type === "success";
 
     toast.className =
         `pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg border text-xs font-semibold transition-all duration-300 transform translate-y-5 opacity-0 ${
@@ -2025,7 +1700,6 @@ function showToast(
                 ? "bg-emerald-50 border-emerald-200 text-emerald-800"
                 : "bg-rose-50 border-rose-200 text-rose-800"
         }`;
-
 
     toast.innerHTML = `
         <i class="fa-solid ${
@@ -2037,189 +1711,75 @@ function showToast(
         <span>${message}</span>
     `;
 
-
     container.appendChild(toast);
 
-
     setTimeout(() => {
-
-        toast.classList.remove(
-            "translate-y-5",
-            "opacity-0"
-        );
-
+        toast.classList.remove("translate-y-5", "opacity-0");
     }, 10);
 
-
     setTimeout(() => {
-
-        toast.classList.add(
-            "opacity-0",
-            "translate-y-2"
-        );
-
+        toast.classList.add("opacity-0", "translate-y-2");
         setTimeout(() => {
-
             toast.remove();
-
         }, 300);
-
     }, 3500);
 }
 
-
-// =====================================================
-// EXPORT MENU
-// =====================================================
-
+/**
+ * Export menu
+ */
 function toggleExportMenu() {
-
-    const exportMenu =
-        document.getElementById(
-            "exportMenu"
-        );
-
+    const exportMenu = document.getElementById("exportMenu");
     if (!exportMenu) return;
-
-    exportMenu.classList.toggle(
-        "hidden"
-    );
+    exportMenu.classList.toggle("hidden");
 }
 
-
-// =====================================================
-// CLOSE EXPORT MENU WHEN CLICKING OUTSIDE
-// =====================================================
-
-window.addEventListener(
-    "click",
-    function(event) {
-
-        if (
-            !event.target.matches(
-                ".dropdown-toggle"
-            ) &&
-            !event.target.closest(
-                ".dropdown-toggle"
-            )
-        ) {
-
-            const exportMenu =
-                document.getElementById(
-                    "exportMenu"
-                );
-
-            if (
-                exportMenu &&
-                !exportMenu.classList.contains(
-                    "hidden"
-                )
-            ) {
-
-                exportMenu.classList.add(
-                    "hidden"
-                );
-            }
+window.addEventListener("click", function(event) {
+    if (
+        !event.target.matches(".dropdown-toggle") &&
+        !event.target.closest(".dropdown-toggle")
+    ) {
+        const exportMenu = document.getElementById("exportMenu");
+        if (exportMenu && !exportMenu.classList.contains("hidden")) {
+            exportMenu.classList.add("hidden");
         }
     }
-);
+});
 
-
-// =====================================================
-// DATE FILTER
-// =====================================================
-
+/**
+ * Date filter
+ */
 function toggleDateInput() {
-
-    const filterType =
-        document.getElementById(
-            "filterType"
-        )?.value;
-
-    const datePicker =
-        document.getElementById(
-            "datePicker"
-        );
-
+    const filterType = document.getElementById("filterType")?.value;
+    const datePicker = document.getElementById("datePicker");
     if (!datePicker) return;
 
-
-    if (
-        filterType === "year"
-    ) {
-
-        datePicker.type =
-            "number";
-
-        datePicker.placeholder =
-            "YYYY";
-
-        datePicker.value =
-            new Date().getFullYear();
-
-        datePicker.min =
-            "2000";
-
-        datePicker.max =
-            "2100";
-
+    if (filterType === "year") {
+        datePicker.type = "number";
+        datePicker.placeholder = "YYYY";
+        datePicker.value = new Date().getFullYear();
+        datePicker.min = "2000";
+        datePicker.max = "2100";
     } else {
-
-        datePicker.type =
-            "month";
-
-        datePicker.value =
-            "2026-08";
+        datePicker.type = "month";
+        datePicker.value = "2026-08";
     }
 }
 
-
-// =====================================================
-// REFRESH DATA
-// =====================================================
-
+/**
+ * Refresh data
+ */
 function refreshData() {
-
-    if (
-        typeof fetchPaymentDetails ===
-        "function"
-    ) {
-        fetchPaymentDetails();
-    }
-
-
-    if (
-        typeof fetchDonations ===
-        "function"
-    ) {
-        fetchDonations();
-    }
-
-
-    if (
-        typeof fetchInKindDonations ===
-        "function"
-    ) {
-        fetchInKindDonations();
-    }
-
-
-    showToast(
-        "Donation list refreshed!",
-        "success"
-    );
+    if (typeof fetchPaymentDetails === "function") fetchPaymentDetails();
+    if (typeof fetchDonations === "function") fetchDonations();
+    if (typeof fetchInKindDonations === "function") fetchInKindDonations();
+    showToast("Donation list refreshed!", "success");
 }
-
 
 async function exportFile(format) {
-    const filterType =
-        document.getElementById("filterType")?.value || "";
-
-    const dateValue =
-        document.getElementById("datePicker")?.value || "";
-
-    const currentTab =
-        typeof activeTab !== "undefined" ? activeTab : "cash";
+    const filterType = document.getElementById("filterType")?.value || "";
+    const dateValue = document.getElementById("datePicker")?.value || "";
+    const currentTab = typeof activeTab !== "undefined" ? activeTab : "cash";
 
     const url =
         `/org/donations/export?format=${encodeURIComponent(format)}` +
@@ -2231,8 +1791,7 @@ async function exportFile(format) {
         const response = await fetch(url, {
             method: "GET",
             headers: {
-                Authorization:
-                    "Bearer " + (localStorage.getItem("token") || "")
+                Authorization: "Bearer " + (localStorage.getItem("token") || "")
             }
         });
 
@@ -2244,13 +1803,11 @@ async function exportFile(format) {
                 serverError?.message?.includes("No verified/approved")
             ) {
                 let noRecordMessage = "No records found for the selected period.";
-
                 if (filterType === "month") {
                     noRecordMessage = "No records found for this month.";
                 } else if (filterType === "year") {
                     noRecordMessage = "No records found for this year.";
                 }
-
                 showToast(noRecordMessage, "warning");
                 return;
             }
@@ -2262,21 +1819,14 @@ async function exportFile(format) {
         }
 
         const blob = await response.blob();
-
-        if (blob.size === 0) {
-            throw new Error("The server returned an empty file.");
-        }
+        if (blob.size === 0) throw new Error("The server returned an empty file.");
 
         const downloadUrl = window.URL.createObjectURL(blob);
         const link = document.createElement("a");
-
         link.href = downloadUrl;
 
-        const fileExtension =
-            format === "excel" ? "xlsx" : "pdf";
-
-        link.download =
-            `${currentTab}_donations_report_${dateValue || "all"}.${fileExtension}`;
+        const fileExtension = format === "excel" ? "xlsx" : "pdf";
+        link.download = `${currentTab}_donations_report_${dateValue || "all"}.${fileExtension}`;
 
         document.body.appendChild(link);
         link.click();
@@ -2290,313 +1840,63 @@ async function exportFile(format) {
         );
     } catch (error) {
         console.error("Export error:", error);
-        showToast(
-            "Failed to download file: " + error.message,
-            "error"
-        );
+        showToast("Failed to download file: " + error.message, "error");
     }
 }
-// =====================================================
-// LOAD IN-KIND SETTINGS
-// =====================================================
 
+/**
+ * Load in-kind settings
+ */
 async function loadInKindSettings() {
-
     try {
+        const response = await fetch("/org/payment-info");
+        if (!response.ok) throw new Error(`Unable to load payment information (${response.status}).`);
 
-        const response =
-            await fetch(
-                "/org/payment-info"
-            );
+        const result = await response.json();
+        if (!result.success || !result.data) return;
 
+        const data = result.data;
 
-        if (!response.ok) {
+        const locationNameInput = document.getElementById("inputLocationName");
+        const addressInput = document.getElementById("inputLocationAddress");
+        const hoursInput = document.getElementById("inputOperatingHours");
+        const notesInput = document.getElementById("inputImportantNotes");
+        const preview = document.getElementById("locationPreview");
 
-            throw new Error(
-                `Unable to load payment information (${response.status}).`
-            );
-        }
+        if (locationNameInput) locationNameInput.value = data.dropoff_location_name || "";
+        if (addressInput) addressInput.value = data.dropoff_address || "";
+        if (hoursInput) hoursInput.value = data.dropoff_hours || "";
+        if (notesInput) notesInput.value = data.dropoff_notes || "";
 
-
-        const result =
-            await response.json();
-
-
-        if (
-            !result.success ||
-            !result.data
-        ) {
-            return;
-        }
-
-
-        const data =
-            result.data;
-
-
-        // =================================================
-        // LOCATION NAME
-        // =================================================
-
-        const locationNameInput =
-            document.getElementById(
-                "inputLocationName"
-            );
-
-
-        // =================================================
-        // ADDRESS
-        // =================================================
-
-        const addressInput =
-            document.getElementById(
-                "inputLocationAddress"
-            );
-
-
-        // =================================================
-        // HOURS
-        // =================================================
-
-        const hoursInput =
-            document.getElementById(
-                "inputOperatingHours"
-            );
-
-
-        // =================================================
-        // NOTES
-        // =================================================
-
-        const notesInput =
-            document.getElementById(
-                "inputImportantNotes"
-            );
-
-
-        // =================================================
-        // IMAGE PREVIEW
-        // =================================================
-
-        const preview =
-            document.getElementById(
-                "locationPreview"
-            );
-
-
-        // =================================================
-        // SET LOCATION NAME
-        // =================================================
-
-        if (locationNameInput) {
-
-            locationNameInput.value =
-                data.dropoff_location_name ||
-                "";
-        }
-
-
-        // =================================================
-        // SET ADDRESS
-        // =================================================
-
-        if (addressInput) {
-
-            addressInput.value =
-                data.dropoff_address ||
-                "";
-        }
-
-
-        // =================================================
-        // SET HOURS
-        // =================================================
-
-        if (hoursInput) {
-
-            hoursInput.value =
-                data.dropoff_hours ||
-                "";
-        }
-
-
-        // =================================================
-        // SET NOTES
-        // =================================================
-
-        if (notesInput) {
-
-            notesInput.value =
-                data.dropoff_notes ||
-                "";
-        }
-
-
-        // =================================================
-        // SET IMAGE
-        // =================================================
-
-        if (
-            preview &&
-            data.dropoff_image
-        ) {
-
-            let imageUrl =
-                data.dropoff_image;
-
-
-        
-
-            if (
-                !imageUrl.startsWith("/") &&
-                !imageUrl.startsWith("http")
-            ) {
-
-                imageUrl =
-                    `/uploads/qr/${imageUrl}`;
+        if (preview && data.dropoff_image) {
+            let imageUrl = data.dropoff_image;
+            if (!imageUrl.startsWith("/") && !imageUrl.startsWith("http")) {
+                imageUrl = `/uploads/qr/${imageUrl}`;
             }
-
-
-            preview.src =
-                imageUrl;
+            preview.src = imageUrl;
         }
 
-
-        // =================================================
-        // UPDATE INITIAL STATE
-        // =================================================
-
-        if (
-            typeof initialPaymentFormState !==
-            "undefined"
-        ) {
-
-            initialPaymentFormState =
-                {
-                    ...initialPaymentFormState,
-
-                    dropoff_location_name:
-                        data.dropoff_location_name ||
-                        "",
-
-                    dropoff_address:
-                        data.dropoff_address ||
-                        "",
-
-                    dropoff_hours:
-                        data.dropoff_hours ||
-                        "",
-
-                    dropoff_notes:
-                        data.dropoff_notes ||
-                        ""
-                };
+        if (typeof initialPaymentFormState !== "undefined") {
+            initialPaymentFormState = {
+                ...initialPaymentFormState,
+                dropoff_location_name: data.dropoff_location_name || "",
+                dropoff_address: data.dropoff_address || "",
+                dropoff_hours: data.dropoff_hours || "",
+                dropoff_notes: data.dropoff_notes || ""
+            };
         }
-
-
     } catch (error) {
-
-        console.error(
-            "Error loading drop-off details:",
-            error
-        );
+        console.error("Error loading drop-off details:", error);
     }
 }
 
-
-// =====================================================
-// IMAGE PREVIEW
-// =====================================================
-
-function previewImage(
-    event,
-    previewId
-) {
-
-    const input =
-        event.target;
-
-    const preview =
-        document.getElementById(
-            previewId
-        );
-
-
-    if (
-        !input ||
-        !input.files ||
-        !input.files.length ||
-        !preview
-    ) {
-        return;
-    }
-
-
-    const file =
-        input.files[0];
-
-
-    if (
-        !file.type.startsWith(
-            "image/"
-        )
-    ) {
-
-        showToast(
-            "Please select a valid image file.",
-            "error"
-        );
-
-        input.value =
-            "";
-
-        return;
-    }
-
-
-    const reader =
-        new FileReader();
-
-
-    reader.onload =
-        function(e) {
-
-            preview.src =
-                e.target.result;
-        };
-
-
-    reader.onerror =
-        function() {
-
-            showToast(
-                "Unable to preview the image.",
-                "error"
-            );
-        };
-
-
-    reader.readAsDataURL(
-        file
-    );
-}
-
-
-// =====================================================
-// INITIAL LOAD
-// =====================================================
-
-document.addEventListener(
-    "DOMContentLoaded",
-    function() {
-
-        loadInKindSettings();
-
-    }
-);
+// Initial load
+document.addEventListener("DOMContentLoaded", function() {
+    loadInKindSettings();
+});
 
 // ==========================================
-// DROP-OFF HOURS EDITOR (separate schedule from interview availability)
+// DROP-OFF HOURS EDITOR
 // ==========================================
 
 const DROPOFF_DAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
