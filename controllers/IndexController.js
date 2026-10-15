@@ -272,6 +272,7 @@ exports.submitInKindDonation = async (req, res) => {
         item_name,
         quantity,
         unit,
+        category,
         contact_info,
         dropoff_method,
         is_anonymous
@@ -296,11 +297,30 @@ exports.submitInKindDonation = async (req, res) => {
         }
     }
 
-       // ---------- Validation ----------
+    // ---------- Validation ----------
     if (!organization_id) {
         return res.status(400).json({
             success: false,
             error: "Please select an organization."
+        });
+    }
+
+    // ⭐ CATEGORY VALIDATION
+    const CATEGORY_UNITS = {
+        "Food & Treats":          ["kg", "sacks", "packs", "boxes", "cans", "pcs"],
+        "Toys":                   ["pcs", "packs", "boxes", "sets"],
+        "Medicine & Health":      ["bottles", "boxes", "packs", "pcs", "tubes"],
+        "Grooming & Hygiene":     ["bottles", "packs", "pcs", "liters"],
+        "Accessories & Supplies": ["pcs", "packs", "boxes", "sets"],
+        "Bedding & Housing":      ["pcs", "packs", "boxes"],
+        "Other":                  ["pcs", "kg", "packs", "boxes", "sacks", "bottles", "liters"]
+    };
+
+    const cleanCategory = String(category || '').trim();
+    if (!cleanCategory || !CATEGORY_UNITS[cleanCategory]) {
+        return res.status(400).json({
+            success: false,
+            error: "Please select a valid donation category."
         });
     }
 
@@ -347,14 +367,19 @@ exports.submitInKindDonation = async (req, res) => {
         });
     }
 
-  
+    // ⭐ UNIT VALIDATION — dapat tugma sa category
+    const finalUnit = (unit || '').trim();
+    if (!finalUnit || !CATEGORY_UNITS[cleanCategory].includes(finalUnit)) {
+        return res.status(400).json({
+            success: false,
+            error: "Invalid unit for the selected category."
+        });
+    }
+
     let finalEmail = (donor_email || '').trim();
     if (!finalEmail && contact_info && /@/.test(contact_info)) {
         finalEmail = contact_info.trim();
     }
-    
-
-    const finalUnit = (unit || 'pcs').trim() || 'pcs';
 
     try {
         // Kunin ang adopter_id kung naka-login
@@ -367,17 +392,18 @@ exports.submitInKindDonation = async (req, res) => {
             if (adopterRows.length > 0) adopter_id = adopterRows[0].adopter_id;
         }
 
-        // ---------- INSERT ----------
+        // ---------- INSERT (kasama na ang category) ----------
         const [result] = await pool.query(
             `INSERT INTO inkind_donations
                 (adopter_id, organization_id, donor_name, donor_email,
-                 item_name, quantity, unit, location_image_path, status, created_at)
-             VALUES (?, ?, ?, ?, ?, ?, ?, NULL, 'Pending', NOW())`,
+                 category, item_name, quantity, unit, location_image_path, status, created_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, NULL, 'Pending', NOW())`,
             [
                 adopter_id,
                 organization_id,
                 donor_name,
                 finalEmail,
+                cleanCategory,
                 cleanItemName,
                 parsedQty,
                 finalUnit
@@ -391,7 +417,7 @@ exports.submitInKindDonation = async (req, res) => {
                 "donation_submitted",
                 "inkind_donation",
                 result.insertId,
-                `${parsedQty} ${finalUnit} of ${cleanItemName}`
+                `[${cleanCategory}] ${parsedQty} ${finalUnit} of ${cleanItemName}`
             );
         }
 
@@ -405,7 +431,7 @@ exports.submitInKindDonation = async (req, res) => {
             await createNotification(
                 orgAccount.account_id,
                 "New In-Kind Donation",
-                `${donor_name} pledged ${parsedQty} ${finalUnit} of ${cleanItemName}.`,
+                `${donor_name} pledged ${parsedQty} ${finalUnit} of ${cleanItemName} (${cleanCategory}).`,
                 "donation_submitted",
                 "/org/donation"
             );
