@@ -236,6 +236,12 @@ router.get("/search", async (req, res) => {
 
         let results = response.results || [];
 
+        console.log(
+            "Raw Geoapify results:",
+            results.length,
+            results.slice(0, 3)
+        );
+
         const normalizeSearchText = (value) => {
             return String(value || "")
                 .trim()
@@ -290,6 +296,18 @@ router.get("/search", async (req, res) => {
                 candidateText.includes(token)
             );
         });
+
+        console.log(
+            "After street filter:",
+            results.length,
+            results.map(result => ({
+                street: result.street,
+                name: result.name,
+                suburb: result.suburb,
+                city: result.city,
+                state: result.state
+            }))
+        );
 
         /*
          * Normalize a location name for comparison.
@@ -365,6 +383,11 @@ router.get("/search", async (req, res) => {
                     barangayMatches
                 );
             });
+
+            console.log(
+                "After location filter:",
+                results.length
+            );
         }
 
         return res.json({

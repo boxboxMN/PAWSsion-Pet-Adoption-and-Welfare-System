@@ -1659,7 +1659,7 @@ zipCode.addEventListener('input', function() {
 });
 
 
-    const legalModal = document.getElementById("legalModal");
+const legalModal = document.getElementById("legalModal");
 const legalModalTitle = document.getElementById("legalModalTitle");
 const legalModalBody = document.getElementById("legalModalBody");
 
