@@ -770,3 +770,19 @@ ADD COLUMN google_sub VARCHAR(255) NULL UNIQUE;
 # db table for org (new 0ct.)
 ALTER TABLE organizations
 ADD COLUMN dashboard_first_at DATETIME NULL DEFAULT NULL;
+
+# db table for edit profile OTP:
+CREATE TABLE profile_email_change_otps (
+    id INT NOT NULL AUTO_INCREMENT,
+    account_id INT NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    otp_hash VARCHAR(255) NOT NULL,
+    expires_at DATETIME NOT NULL,
+    attempts INT NOT NULL DEFAULT 0,
+    resend_after DATETIME NOT NULL,
+    verified_at DATETIME DEFAULT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    INDEX idx_profile_email_change_account (account_id),
+    INDEX idx_profile_email_change_email (email)
+);

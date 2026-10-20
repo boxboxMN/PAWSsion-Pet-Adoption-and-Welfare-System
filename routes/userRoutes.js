@@ -9,7 +9,6 @@ const matchmakerController = require("../controllers/matchmakerController");
 const { matchPets } = require("../controllers/matchmakerController");
 const pool = require('../config/database');
 
-
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
         const dir = "uploads/avatars/"; 
@@ -207,6 +206,19 @@ router.get("/profile", checkUserSession, (req, res) => {
 router.get("/api/user/applications", checkUserSession, userController.getUserApplications);
 router.get("/api/user/donations", checkUserSession, userController.getUserDonations);
 router.get("/api/user/profile", checkUserSession, userController.getProfile);
+
+router.post(
+    "/api/user/profile/email-change/send-otp",
+    checkUserSession,
+    userController.sendProfileEmailChangeOtp
+);
+
+router.post(
+    "/api/user/profile/email-change/verify-otp",
+    checkUserSession,
+    userController.verifyProfileEmailChangeOtp
+);
+
 router.post("/api/user/profile/update", checkUserSession, userController.updateProfile);
 router.post("/api/user/profile/password", checkUserSession, userController.updatePassword);
 router.post("/api/user/profile/verify-password", checkUserSession, userController.verifyPassword);
@@ -263,6 +275,7 @@ router.post(
   },
   userController.updateAvatar
 );
+
 router.get("/api/organizations", checkUserSession, userController.getOrganizations);
 router.post( "/api/user/donation/cash", checkUserSession, uploadReceipt.single("receipt"), userController.submitCashDonation);
 router.post('/api/user/donation/in-kind', checkUserSession, userController.submitInKindDonation);

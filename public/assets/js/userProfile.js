@@ -436,6 +436,188 @@ function showProfileModal(message, type = "success") {
     });
 }
 
+let pendingProfileEmail = "";
+let verifiedProfileEmail = "";
+let emailOtpResendTimer = null;
+let emailOtpResendSeconds = 0;
+
+const emailOtpModal = document.getElementById("emailOtpModal");
+const emailOtpTarget = document.getElementById("emailOtpTarget");
+const emailOtpInput = document.getElementById("emailOtpInput");
+const emailOtpMessage = document.getElementById("emailOtpMessage");
+const emailOtpCancelBtn = document.getElementById("emailOtpCancelBtn");
+const emailOtpResendBtn = document.getElementById("emailOtpResendBtn");
+const emailOtpVerifyBtn = document.getElementById("emailOtpVerifyBtn");
+
+function showEmailOtpMessage(message, isError = false) {
+    emailOtpMessage.textContent = message;
+    emailOtpMessage.className = isError
+        ? "mt-3 text-sm text-red-600"
+        : "mt-3 text-sm text-slate-600";
+}
+
+function openEmailOtpModal(email) {
+    pendingProfileEmail = email;
+    emailOtpTarget.textContent = email;
+    emailOtpInput.value = "";
+    showEmailOtpMessage("");
+    emailOtpResendBtn.textContent = "Send Code";
+    emailOtpResendBtn.disabled = false;
+    emailOtpVerifyBtn.disabled = false;
+    emailOtpModal.classList.remove("hidden");
+}
+
+function closeEmailOtpModal() {
+    emailOtpModal.classList.add("hidden");
+    pendingProfileEmail = "";
+    emailOtpInput.value = "";
+    showEmailOtpMessage("");
+
+    if (emailOtpResendTimer) {
+        clearInterval(emailOtpResendTimer);
+        emailOtpResendTimer = null;
+    }
+
+    emailOtpResendSeconds = 0;
+    emailOtpResendBtn.disabled = false;
+    emailOtpResendBtn.textContent = "Send Code";
+}
+
+function startEmailOtpResendCooldown(seconds = 60) {
+    if (emailOtpResendTimer) {
+        clearInterval(emailOtpResendTimer);
+    }
+
+    emailOtpResendSeconds = seconds;
+    emailOtpResendBtn.disabled = true;
+    emailOtpResendBtn.textContent =
+        `Resend in ${emailOtpResendSeconds}s`;
+
+    emailOtpResendTimer = setInterval(() => {
+        emailOtpResendSeconds--;
+
+        if (emailOtpResendSeconds <= 0) {
+            clearInterval(emailOtpResendTimer);
+            emailOtpResendTimer = null;
+            emailOtpResendBtn.disabled = false;
+            emailOtpResendBtn.textContent = "Resend Code";
+            return;
+        }
+
+        emailOtpResendBtn.textContent =
+            `Resend in ${emailOtpResendSeconds}s`;
+    }, 1000);
+}
+
+async function sendProfileEmailOtp() {
+    if (!pendingProfileEmail) return;
+
+    emailOtpResendBtn.disabled = true;
+    emailOtpVerifyBtn.disabled = true;
+    showEmailOtpMessage("Sending verification code...");
+
+    try {
+        const response = await fetch(
+            "/api/user/profile/email-change/send-otp",
+            {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email: pendingProfileEmail })
+            }
+        );
+
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+            showEmailOtpMessage(
+                result.message || "Unable to send verification code.",
+                true
+            );
+
+            emailOtpResendBtn.disabled = false;
+            emailOtpResendBtn.textContent = "Resend Code";
+            return;
+        }
+
+        showEmailOtpMessage(result.message);
+        startEmailOtpResendCooldown(60);
+
+    } catch (error) {
+        console.error("Send profile email OTP error:", error);
+        showEmailOtpMessage(
+            "A network error occurred while sending the code.",
+            true
+        );
+
+        emailOtpResendBtn.disabled = false;
+        emailOtpResendBtn.textContent = "Send Code";
+    } finally {
+        emailOtpVerifyBtn.disabled = false;
+    }
+}
+
+async function verifyProfileEmailOtp() {
+    const otp = emailOtpInput.value.trim();
+
+    if (!/^\d{6}$/.test(otp)) {
+        showEmailOtpMessage(
+            "Please enter the 6-digit verification code.",
+            true
+        );
+        emailOtpInput.focus();
+        return;
+    }
+
+    emailOtpVerifyBtn.disabled = true;
+    showEmailOtpMessage("Verifying code...");
+
+    try {
+        const response = await fetch(
+            "/api/user/profile/email-change/verify-otp",
+            {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    email: pendingProfileEmail,
+                    otp
+                })
+            }
+        );
+
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+            showEmailOtpMessage(
+                result.message || "Unable to verify the code.",
+                true
+            );
+            return;
+        }
+
+        verifiedProfileEmail = pendingProfileEmail;
+        closeEmailOtpModal();
+
+        showProfileModal(
+            "Email verified successfully. Click Save Profile again to save your changes."
+        );
+
+    } catch (error) {
+        console.error("Verify profile email OTP error:", error);
+        showEmailOtpMessage(
+            "A network error occurred while verifying the code.",
+            true
+        );
+    } finally {
+        emailOtpVerifyBtn.disabled = false;
+    }
+}
+
+emailOtpCancelBtn.addEventListener("click", closeEmailOtpModal);
+
+emailOtpResendBtn.addEventListener("click", sendProfileEmailOtp);
+
+emailOtpVerifyBtn.addEventListener("click", verifyProfileEmailOtp);
+
 async function saveProfile() {
     let firstName = '';
     let lastName = '';
@@ -467,28 +649,43 @@ async function saveProfile() {
 
     // 2. Client-side Validations
     if (!firstName || !lastName) {
-    alert('Please provide your complete First and Last Name.');
-    return;
+        showProfileModal(
+            'Please provide your complete First and Last Name.',
+            'error'
+        );
+        return;
     }
 
     if (!email) {
-    alert('Email cannot be empty.');
-    return;
+        showProfileModal(
+            'Email cannot be empty.',
+            'error'
+        );
+        return;
     }
 
     if (!validateEmail(email)) {
-    alert('Please enter a valid email address.');
-    inputEmail.focus();
-    return;
+        showProfileModal(
+            'Please enter a valid email address.',
+            'error'
+        );
+        inputEmail.focus();
+        return;
     }
 
     if (!mobile || !validatePhilippineMobile(mobile)) {
-    alert('Please enter a valid Philippine mobile number.');
-    return;
+        showProfileModal(
+            'Please enter a valid Philippine mobile number.',
+            'error'
+        );
+        return;
     }
 
     if (!birthday) {
-    alert('Please enter your birthday.');
+        showProfileModal(
+            'Please enter your birthday.',
+            'error'
+        );
     return;
     }
 
@@ -501,26 +698,38 @@ async function saveProfile() {
     age--;
     }
     if (age < 18) {
-    alert('You must be at least 18 years old.');
-    return;
+        showProfileModal(
+            'You must be at least 18 years old.',
+            'error'
+        );
+        return;
     }
 
     if (!streetAddress || !region || !province || !city || !barangay) {
-    alert('Please complete all address dropdowns and street address.');
-    return;
+        showProfileModal(
+            'Please complete all address dropdowns and street address.',
+            'error'
+        );
+        return;
     }
 
     //new added
     const streetAddressRegex = /^[a-zA-Z0-9\s.,#'/-]+$/;
 
     if (streetAddress.length < 5) {
-        alert('Please enter a complete street address.');
+        showProfileModal(
+            'Please enter a complete street address.',
+            'error'
+        );
         inputStreet.focus();
         return;
     }
 
     if (streetAddress.length > 150) {
-        alert('Street address must not exceed 150 characters.');
+        showProfileModal(
+            'Street address must not exceed 150 characters.',
+            'error'
+        );
         inputStreet.focus();
         return;
     }
@@ -528,19 +737,28 @@ async function saveProfile() {
     const hasVowel = /[aeiouáéíóúàèìòù]/i.test(streetAddress);
 
     if (!hasVowel || !/[A-Za-zÀ-ÖØ-öø-ÿ]/.test(streetAddress)) {
-        alert('Please enter a valid street or area name.');
+        showProfileModal(
+            'Please enter a valid street or area name.',
+            'error'
+        );
         inputStreet.focus();
         return;
     }
 
     if (!streetAddressRegex.test(streetAddress)) {
-        alert('Street address can only contain letters, numbers, spaces, and common address characters such as . , # / and -.');
+        showProfileModal(
+            'Street address can only contain letters, numbers, spaces, and common address characters such as . , # / and -.',
+            'error'
+        );
         inputStreet.focus();
         return;
     }
 
     if (/(.)\1{4,}/i.test(streetAddress)) {
-        alert('The street address appears to contain invalid or repeated text.');
+        showProfileModal(
+            'The street address appears to contain invalid or repeated text.',
+            'error'
+        );
         inputStreet.focus();
         return;
     }
@@ -557,7 +775,10 @@ async function saveProfile() {
     if (obviousGibberishPatterns.some(pattern =>
         normalizedStreetAddress.includes(pattern)
     )) {
-        alert('Please enter a valid street or area name.');
+        showProfileModal(
+            'Please enter a valid street or area name.',
+            'error'
+        );
         inputStreet.focus();
         return;
     }
@@ -567,14 +788,20 @@ async function saveProfile() {
         .replace(/[^a-zà-öø-ÿñ]/gi, '');
 
     if (/(.{2,3})\1{2,}/i.test(compactLetters)) {
-        alert('The street address appears to contain invalid or repeated text.');
+        showProfileModal(
+            'The street address appears to contain invalid or repeated text..',
+            'error'
+        );
         inputStreet.focus();
         return;
     } //closing of new added
 
     if (!/^\d{4}$/.test(zipCode)) {
-    alert('Please enter a valid 4-digit Philippine ZIP code.');
-    return;
+        showProfileModal(
+            'Please enter a valid 4-digit Philippine ZIP code.',
+            'error'
+        );
+        return;
     }
 
     // 3. Payload Construction
@@ -603,14 +830,19 @@ async function saveProfile() {
 
         const result = await response.json();
 
+        // Email changed but has not been verified yet
+        if (response.status === 403 && result.requiresEmailVerification) {
+            openEmailOtpModal(email);
+            await sendProfileEmailOtp();
+            return;
+        }
+
         if (result.success) {
+            verifiedProfileEmail = "";
             showProfileModal('Your profile has been updated successfully!');
             await fetchProfileData();
             exitEditMode();
-            
-            // if(typeof loadComponent === "function") {
-            //     loadComponent("header", "/user/userHeader.html");
-            // }
+    
             await refreshTopbarAvatar();
 
         } else {
@@ -621,7 +853,10 @@ async function saveProfile() {
         }
     } catch (error) {
         console.error("Network update error:", error);
-        alert('A network error occurred while updating profile.');
+        showProfileModal(
+            'A network error occurred while updating profile.',
+            'error'
+        );
     }
 }
 
@@ -674,22 +909,34 @@ async function updatePassword() {
     const confirm = confirmPassword.value.trim();
 
     if (!currentPasswordVerified) {
-        alert('Please enter your correct current password first.');
+        showProfileModal(
+            'Please enter your correct current password first.',
+            'error'
+        );
         return;
     }
 
     if (!currentPwd || !newPwd || !confirm) {
-        alert('Please fill in all password fields.');
+        showProfileModal(
+            'Please fill in all password fields.',
+            'error'
+        );
         return;
     }
 
     if (newPwd !== confirm) {
-        alert('New passwords do not match!');
+        showProfileModal(
+            'New passwords do not match!',
+            'error'
+        );
         return;
     }
 
     if (newPwd.length < 6) {
-        alert('New password must be at least 6 characters long.');
+        showProfileModal(
+            'New password must be at least 6 characters long.',
+            'error'
+        );
         return;
     }
 
@@ -706,15 +953,24 @@ async function updatePassword() {
         const result = await response.json();
 
         if (result.success) {
-            alert('Password Changed Successfully in Database!');
+            showProfileModal(
+                'Password Changed Successfully in Database!',
+                'error'
+            );
             currentPasswordVerified = false;
             togglePasswordForm();
         } else {
-            alert('Failed to change password: ' + result.error);
+            showProfileModal(
+                'Failed to change password: ' + result.error,
+                'error'
+            );
         }
     } catch (error) {
         console.error("Network update error for password:", error);
-        alert('A network error occurred while updating the password.');
+        showProfileModal(
+            'A network error occurred while updating the password.',
+            'error'
+        );
     }
 }
 
@@ -722,7 +978,10 @@ avatarOverlay?.addEventListener('click', () => {
     if (isEditing) {
         avatarInput?.click();
     } else {
-        alert('Please click "Edit Profile" first before changing your profile picture.');
+        showProfileModal(
+            'Please click "Edit Profile" first before changing your profile picture.',
+            'error'
+        );
     }
 });
 
@@ -768,7 +1027,10 @@ avatarInput?.addEventListener('change', async function() {
         }
     } catch (error) {
         console.error("Avatar upload error detailed:", error);
-        alert('A network error occurred: ' + error.message);
+        showProfileModal(
+            'A network error occurred: ' + error.message,
+            'error'
+        );
     }
 });
 
