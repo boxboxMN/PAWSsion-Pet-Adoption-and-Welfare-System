@@ -148,6 +148,46 @@ router.get(
     getPaymentInfo
 );
 
+// orgRoutes.js — WITH OWNERSHIP CHECK + NULL GUARD
+router.get('/kamustahan/:updateId/consultations', async (req, res) => {
+    try {
+        if (!req.session?.accountId) {
+            return res.status(401).json({ success: false, message: "Unauthorized." });
+        }
+
+        const [org] = await pool.query(
+            `SELECT organization_id FROM organizations WHERE account_id = ?`,
+            [req.session.accountId]
+        );
+
+        if (!org.length) {
+            return res.status(404).json({ success: false, message: "Organization not found." });
+        }
+
+        const orgId = org[0].organization_id;
+
+        // Verify the update belongs to this org before exposing consultations
+        const [[update]] = await pool.query(
+            `SELECT update_id FROM kamustahan_updates WHERE update_id = ? AND organization_id = ?`,
+            [req.params.updateId, orgId]
+        );
+
+        if (!update) {
+            return res.status(404).json({ success: false, message: "Update not found or unauthorized." });
+        }
+
+        const [rows] = await pool.query(
+            `SELECT * FROM kamustahan_consultations WHERE update_id = ? ORDER BY created_at ASC`,
+            [req.params.updateId]
+        );
+
+        res.json({ success: true, consultations: rows });
+    } catch (err) {
+        console.error("Get Consultations Error:", err);
+        res.status(500).json({ success: false, message: "Server error." });
+    }
+});
+
 router.post(
     "/payment-info",
     uploadQR.fields([
@@ -1124,6 +1164,313 @@ router.post('/donation-settings/inkind', uploadDropoff.single('donation_image'),
 
     } catch (error) { 
         console.error(error);
+        res.status(500).json({ success: false, message: 'Server error' });
+    }
+});
+// Mark as Reviewed / Acknowledge Route
+router.post('/kamustahan/:updateId/acknowledge', async (req, res) => {
+    try {
+        if (!req.session?.accountId) {
+            return res.status(401).json({ success: false, message: "Unauthorized." });
+        }
+
+        const { message } = req.body; 
+        const { updateId } = req.params;
+
+        const [org] = await pool.query(
+            `SELECT organization_id FROM organizations WHERE account_id = ?`,
+            [req.session.accountId]
+        );
+
+        if (!org.length) {
+            return res.status(404).json({ success: false, message: "Organization not found." });
+        }
+        const orgId = org[0].organization_id;
+
+        // ==========================================
+        // CHECK KUNG NAKA-ARCHIVE NA
+        // ==========================================
+        const [[currentRecord]] = await pool.query(
+            `SELECT is_archived, status FROM kamustahan_updates WHERE update_id = ? AND organization_id = ?`,
+            [updateId, orgId]
+        );
+
+        if (!currentRecord) {
+            return res.status(404).json({ success: false, message: "Record not found." });
+        }
+
+        if (currentRecord.is_archived == 1 || currentRecord.status === 'Archived') {
+            return res.status(403).json({ 
+                success: false, 
+                message: "This record has been archived. You can no longer edit notes." 
+            });
+        }
+
+        // ==========================================
+        // I-UPDATE ANG RECORD
+        // ==========================================
+        await pool.query(`
+            UPDATE kamustahan_updates 
+            SET consultation_status = 'resolved',
+                org_response = ?,
+                org_responded_at = NOW()
+            WHERE update_id = ? AND organization_id = ?
+        `, [message ? message.trim() : null, updateId, orgId]);
+
+        // Notify Adopter (Safe Try-Catch)
+        try {
+            const [[update]] = await pool.query(
+                `SELECT adopter_id FROM kamustahan_updates WHERE update_id = ?`,
+                [updateId]
+            );
+            
+            if (update && update.adopter_id) {
+                const [[adopterAcct]] = await pool.query(
+                    `SELECT account_id FROM adopters WHERE adopter_id = ?`,
+                    [update.adopter_id]
+                );
+                if (adopterAcct && adopterAcct.account_id) {
+                    await createNotification(
+                        adopterAcct.account_id,
+                        "Update Reviewed",
+                        "The organization has reviewed your pet update.",
+                        "kamustahan_reviewed",
+                        "/kamustahan"
+                    );
+                }
+            }
+        } catch (notifErr) {
+            console.warn("Notification failed, but review saved:", notifErr.message);
+        }
+
+        res.json({ success: true, message: "Marked as reviewed." });
+    } catch (err) {
+        console.error("Acknowledge Error:", err);
+        res.status(500).json({ success: false, message: err.message });
+    }
+});
+
+// ==========================================
+// ⭐ PET RETURN REQUESTS ROUTES (Corrected Paths)
+// ==========================================
+
+// 1. Kunin ang BILANG ng pending returns
+router.get('/return-requests/count', async (req, res) => {
+    try {
+        const [org] = await pool.query(
+            `SELECT organization_id FROM organizations WHERE account_id = ?`,
+            [req.session.accountId]
+        );
+        if (!org.length) return res.status(404).json({ success: false, message: "Organization not found." });
+        const orgId = org[0].organization_id;
+
+        const [rows] = await pool.query(`
+            SELECT COUNT(*) AS count 
+            FROM pet_returns pr
+            JOIN animals a ON pr.animal_id = a.animal_id
+            WHERE a.organization_id = ? AND pr.status IN ('Pending', 'Approved')
+        `, [orgId]);
+        
+        res.json({ success: true, count: rows[0].count });
+    } catch (error) {
+        console.error("Fetch Return Count Error:", error);
+        res.status(500).json({ success: false, message: 'Server error' });
+    }
+});
+
+// 2. Kunin ang LISTAHAN ng pending returns
+router.get('/return-requests', async (req, res) => {
+    try {
+        const [org] = await pool.query(
+            `SELECT organization_id FROM organizations WHERE account_id = ?`,
+            [req.session.accountId]
+        );
+        if (!org.length) return res.status(404).json({ success: false, message: "Organization not found." });
+        const orgId = org[0].organization_id;
+
+        const [requests] = await pool.query(`
+            SELECT pr.*, a.name AS pet_name, a.image_path AS pet_image, 
+                   ad.first_name, ad.last_name, acc.email
+            FROM pet_returns pr
+            JOIN animals a ON pr.animal_id = a.animal_id
+            JOIN adopters ad ON pr.adopter_id = ad.adopter_id
+            JOIN accounts acc ON ad.account_id = acc.account_id
+            WHERE a.organization_id = ? AND pr.status IN ('Pending', 'Approved')
+            ORDER BY pr.created_at DESC
+        `, [orgId]);
+
+        res.json({ success: true, requests });
+    } catch (error) {
+        console.error("Fetch Return Requests Error:", error);
+        res.status(500).json({ success: false, message: 'Server error' });
+    }
+});
+// ⭐ APPROVE / REJECT ONLY (no finalization yet)
+router.put('/return-requests/:id/respond', async (req, res) => {
+    try {
+        const returnId = req.params.id;
+        const { action, org_response } = req.body;
+
+        const [request] = await pool.query(`
+            SELECT pr.animal_id, pr.adopter_id, pr.status
+            FROM pet_returns pr
+            WHERE pr.id = ?
+        `, [returnId]);
+
+        if (request.length === 0)
+            return res.status(404).json({ success: false, message: 'Request not found' });
+
+        if (request[0].status !== 'Pending')
+            return res.status(400).json({ success: false, message: 'This request has already been processed.' });
+
+        const adopterId = request[0].adopter_id;
+
+        // Update status only — DO NOT touch animals / applications yet
+        await pool.query(
+            `UPDATE pet_returns SET status = ?, org_response = ? WHERE id = ?`,
+            [action, org_response || null, returnId]
+        );
+
+        const [adopterAcc] = await pool.query(
+            `SELECT account_id FROM adopters WHERE adopter_id = ?`, [adopterId]
+        );
+
+        if (adopterAcc.length > 0) {
+            const notifMsg = action === 'Approved'
+                ? `Your return request has been approved. ${org_response || 'Please coordinate with the shelter for the handover.'}`
+                : (org_response || `Your return request has been declined.`);
+
+            await createNotification(
+                adopterAcc[0].account_id,
+                `Pet Return Request ${action}`,
+                notifMsg,
+                "return_response",
+                "/kamustahan"
+            );
+        }
+
+        res.json({ success: true, message: `Return request ${action.toLowerCase()}.` });
+    } catch (error) {
+        console.error("Respond Return Error:", error);
+        res.status(500).json({ success: false, message: 'Server error' });
+    }
+});
+router.put('/return-requests/:id/complete', async (req, res) => {
+    try {
+        const returnId = req.params.id;
+
+        const [request] = await pool.query(
+            `SELECT animal_id, adopter_id, status FROM pet_returns WHERE id = ?`,
+            [returnId]
+        );
+
+        if (!request.length)
+            return res.status(404).json({ success: false, message: 'Request not found' });
+
+        if (request[0].status !== 'Approved')
+            return res.status(400).json({ success: false, message: 'Return must be approved first.' });
+
+        const animalId = request[0].animal_id;
+        const adopterId = request[0].adopter_id;
+
+        // Finalize return
+        await pool.query(`UPDATE pet_returns SET status = 'Completed' WHERE id = ?`, [returnId]);
+        await pool.query(`UPDATE animals SET adoption_status = 'Available' WHERE animal_id = ?`, [animalId]);
+        await pool.query(
+            `UPDATE user_adoption_applications 
+             SET status = 'Returned' 
+             WHERE animal_id = ? AND adopter_id = ? AND status = 'Approved'`,
+            [animalId, adopterId]
+        );
+
+        // ⭐ Archive the kamustahan_updates for this pet
+        await pool.query(
+            `UPDATE kamustahan_updates 
+             SET status = 'Archived',
+                 is_archived = 1,
+                 scheduled_date = NULL
+             WHERE animal_id = ? 
+               AND adopter_id = ? 
+               AND is_archived = 0`,
+            [animalId, adopterId]
+        );
+
+        const [adopterAcc] = await pool.query(
+            `SELECT account_id FROM adopters WHERE adopter_id = ?`, [adopterId]
+        );
+
+        if (adopterAcc.length) {
+            await createNotification(
+                adopterAcc[0].account_id,
+                "Pet Return Completed",
+                "The shelter has received your pet. The return process is now complete.",
+                "return_completed",
+                "/kamustahan"
+            );
+        }
+
+        res.json({ success: true, message: 'Pet return completed successfully.' });
+    } catch (error) {
+        console.error("Complete Return Error:", error);
+        res.status(500).json({ success: false, message: 'Server error' });
+    }
+});router.put('/return-requests/:id/complete', async (req, res) => {
+    try {
+        const returnId = req.params.id;
+
+        const [request] = await pool.query(
+            `SELECT animal_id, adopter_id, status FROM pet_returns WHERE id = ?`,
+            [returnId]
+        );
+
+        if (!request.length)
+            return res.status(404).json({ success: false, message: 'Request not found' });
+
+        if (request[0].status !== 'Approved')
+            return res.status(400).json({ success: false, message: 'Return must be approved first.' });
+
+        const animalId = request[0].animal_id;
+        const adopterId = request[0].adopter_id;
+
+        // Finalize return
+        await pool.query(`UPDATE pet_returns SET status = 'Completed' WHERE id = ?`, [returnId]);
+        await pool.query(`UPDATE animals SET adoption_status = 'Available' WHERE animal_id = ?`, [animalId]);
+        await pool.query(
+            `UPDATE user_adoption_applications 
+             SET status = 'Returned' 
+             WHERE animal_id = ? AND adopter_id = ? AND status = 'Approved'`,
+            [animalId, adopterId]
+        );
+
+        // ⭐ Archive the kamustahan_updates for this pet
+        await pool.query(
+            `UPDATE kamustahan_updates 
+             SET status = 'Archived',
+                 is_archived = 1,
+                 scheduled_date = NULL
+             WHERE animal_id = ? 
+               AND adopter_id = ? 
+               AND is_archived = 0`,
+            [animalId, adopterId]
+        );
+
+        const [adopterAcc] = await pool.query(
+            `SELECT account_id FROM adopters WHERE adopter_id = ?`, [adopterId]
+        );
+
+        if (adopterAcc.length) {
+            await createNotification(
+                adopterAcc[0].account_id,
+                "Pet Return Completed",
+                "The shelter has received your pet. The return process is now complete.",
+                "return_completed",
+                "/kamustahan"
+            );
+        }
+
+        res.json({ success: true, message: 'Pet return completed successfully.' });
+    } catch (error) {
+        console.error("Complete Return Error:", error);
         res.status(500).json({ success: false, message: 'Server error' });
     }
 });
