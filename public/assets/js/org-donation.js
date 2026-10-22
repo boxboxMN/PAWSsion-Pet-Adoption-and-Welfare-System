@@ -650,7 +650,6 @@ async function fetchDonations() {
         }
     }
 }
-
 function renderDonationsTable(donations) {
     const tbody = document.getElementById("donationsTableBody");
     if (!tbody) return;
@@ -724,15 +723,11 @@ function renderDonationsTable(donations) {
                     <span class="text-xs text-gray-400 block mt-0.5">ref no: ${d.reference_number || 'N/A'}</span>
                 </td>
                 <td class="py-4 px-6">${statusBadge}</td>
-                <td class="py-4 px-6 text-center relative">
-                    <button onclick="toggleActionDropdown(event, ${donationId})" class="action-dropdown-btn text-gray-400 hover:text-gray-700 p-1.5 rounded-lg hover:bg-gray-100 transition">
-                        <i class="fa-solid fa-ellipsis-vertical text-lg"></i>
+                <td class="py-4 px-6 text-center">
+                    <!-- ⭐ Binago: Dropdown pinalitan ng direktang Review button -->
+                    <button onclick="openReviewModal(${donationId})" class="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-semibold rounded-lg transition flex items-center gap-1.5 mx-auto">
+                        <i class="fa-regular fa-eye"></i> Review
                     </button>
-                    <div id="actionMenu-${donationId}" class="action-dropdown-menu hidden absolute right-6 top-12 z-50 w-40 bg-white border border-gray-100 rounded-xl shadow-lg py-1 text-left text-xs font-medium">
-                        <button onclick="openReviewModal(${donationId})" class="w-full px-4 py-2 hover:bg-gray-50 text-gray-700 flex items-center gap-2">
-                            <i class="fa-regular fa-eye text-indigo-600"></i> Review Details
-                        </button>
-                    </div>
                 </td>
             </tr>
         `;
@@ -1989,7 +1984,7 @@ function buildExportData(tab, filterType, dateValue) {
     });
 }
 // =====================================================
-// ⭐ PDF EXPORT (jsPDF + AutoTable) — PERFECT ALIGNMENT
+// ⭐ PDF EXPORT (jsPDF + AutoTable)
 // =====================================================
 function generateDonationPDF(orgName, tab, data, reportPeriod) {
     const { jsPDF } = window.jspdf;
@@ -2044,13 +2039,13 @@ function generateDonationPDF(orgName, tab, data, reportPeriod) {
             ];
         });
     } else {
-        head = [['Date', 'Donor', 'Item Name', 'Quantity', 'Category', 'Status']];
+        // ⭐ In-Kind: Tinanggal ang Category
+        head = [['Date', 'Donor', 'Item Name', 'Quantity', 'Status']];
         body = data.map(d => [
             formatExportDate(d.created_at),
             d.donor_name || 'Anonymous',
             d.item_name || 'N/A',
             String(d.quantity ?? 'N/A'),
-            d.category || '—',
             getStatusCategory(d.status)
         ]);
     }
@@ -2063,27 +2058,19 @@ function generateDonationPDF(orgName, tab, data, reportPeriod) {
             fontSize: 9, 
             cellPadding: 4, 
             overflow: 'linebreak', 
-            valign: 'middle' // ⭐ Para pantay ang taas ng text sa cell
+            valign: 'middle',
+            halign: 'center' // Center lahat ng data
         },
         headStyles: { 
             fillColor: [79, 70, 229], 
             textColor: 255, 
             fontStyle: 'bold', 
-            halign: 'center', // ⭐ Header nakacenter
+            halign: 'center',
             valign: 'middle'
         },
         bodyStyles: {
-            halign: 'center', // ⭐ Data nakacenter
+            halign: 'center',
             valign: 'middle'
-        },
-        columnStyles: {
-            // ⭐ I-force ang lahat ng columns na mag-center para hindi kumabig
-            0: { halign: 'center' }, // Date
-            1: { halign: 'center' }, // Donor
-            2: { halign: 'center' }, // Amount
-            3: { halign: 'center' }, // Method
-            4: { halign: 'center' }, // Reference No.
-            5: { halign: 'center' }  // Status
         },
         alternateRowStyles: { fillColor: [249, 250, 251] },
         margin: { left: 15, right: 15, top: 38, bottom: 14 },
