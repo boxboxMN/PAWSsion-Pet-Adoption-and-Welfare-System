@@ -9,6 +9,8 @@ let currentDate = new Date();
 let currentUpdateIdForReply = null;
 let currentOrgName = "Organization Name"; 
 
+// ⭐ RETURN REQUEST STATE
+let currentReturnRequestId = null;
 
 // ==========================================
 // DATE HELPERS
@@ -187,6 +189,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     await fetchKamustahanData();
+    await fetchReturnRequests(); // ⭐ I-load ang Return Requests count sa badge
 
     window.addEventListener('click', function(e) {
         const menu = document.getElementById('exportDropdownMenu');
@@ -198,36 +201,309 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const searchInput = document.getElementById("searchInput");
     if (searchInput) {
-        // Idinagdag ang 'true' para mag-reset sa page 1 kapag nag-search
         searchInput.addEventListener("input", () => filterAndRenderTable(true));
     }
 
-    // Tabs logic
-    const tabs = document.querySelectorAll(".flex.items-center.gap-8.border-b button");
-    if(tabs.length >= 2) {
-        tabs[0].addEventListener("click", () => {
+    // ==========================================
+    // ⭐ TABS LOGIC (Active, Archive, Returns)
+    // ==========================================
+    const tabActive = document.getElementById("tabActive");
+    const tabArchive = document.getElementById("tabArchive");
+    const tabReturns = document.getElementById("tabReturns");
+    const tableView = document.getElementById("tableViewContainer");
+    const calendarView = document.getElementById("calendarViewContainer");
+    const returnTable = document.getElementById("returnTableContainer");
+    const viewToggleBtn = document.querySelector('.bg-gray-100.p-1');
+
+    function switchTab(tabName) {
+        [tabActive, tabArchive, tabReturns].forEach(t => {
+            t.className = "text-sm font-medium text-gray-500 hover:text-gray-800 pb-3 px-1 transition-colors flex items-center gap-2";
+        });
+        
+        tableView.classList.add("hidden");
+        calendarView.classList.add("hidden");
+        returnTable.classList.add("hidden");
+
+        if (tabName === 'active') {
+            tabActive.className = "text-sm font-semibold text-blue-600 border-b-2 border-blue-600 pb-3 px-1 transition-colors";
             currentTab = 'active';
-            tabs[0].className = "text-sm font-semibold text-blue-600 border-b-2 border-blue-600 pb-3 px-1 transition-colors";
-            tabs[1].className = "text-sm font-medium text-gray-500 hover:text-gray-800 pb-3 px-1 transition-colors";
-            filterAndRenderTable(true); // Reset to page 1
-        });
-        tabs[1].addEventListener("click", () => {
+            tableView.classList.remove("hidden");
+            if(viewToggleBtn) viewToggleBtn.classList.remove("hidden");
+            filterAndRenderTable(true);
+        } else if (tabName === 'archive') {
+            tabArchive.className = "text-sm font-semibold text-blue-600 border-b-2 border-blue-600 pb-3 px-1 transition-colors";
             currentTab = 'archive';
-            tabs[1].className = "text-sm font-semibold text-blue-600 border-b-2 border-blue-600 pb-3 px-1 transition-colors";
-            tabs[0].className = "text-sm font-medium text-gray-500 hover:text-gray-800 pb-3 px-1 transition-colors";
-            filterAndRenderTable(true); // Reset to page 1
-        });
+            tableView.classList.remove("hidden");
+            if(viewToggleBtn) viewToggleBtn.classList.remove("hidden");
+            filterAndRenderTable(true);
+        } else if (tabName === 'returns') {
+            tabReturns.className = "text-sm font-semibold text-rose-600 border-b-2 border-rose-600 pb-3 px-1 transition-colors flex items-center gap-2";
+            returnTable.classList.remove("hidden");
+            if(viewToggleBtn) viewToggleBtn.classList.add("hidden");
+            fetchReturnRequests();
+        }
     }
+
+    if(tabActive) tabActive.addEventListener("click", () => switchTab('active'));
+    if(tabArchive) tabArchive.addEventListener("click", () => switchTab('archive'));
+    if(tabReturns) tabReturns.addEventListener("click", () => switchTab('returns'));
 
     // Status Filter Dropdown Logic
     const statusFilterSelect = document.getElementById("statusFilterSelect");
     if(statusFilterSelect) {
         statusFilterSelect.addEventListener("change", (e) => {
             currentStatusFilter = e.target.value;
-            filterAndRenderTable(true); // Reset to page 1
+            filterAndRenderTable(true);
         });
     }
 });
+
+// ==========================================
+// ⭐ RETURN REQUESTS LOGIC
+// ==========================================
+async function fetchReturnRequests() {
+    try {
+        const res = await fetch('/org/return-requests');
+        const data = await res.json();
+
+        const badge = document.getElementById('returnCountBadge');
+        
+        if (data.success) {
+            if (data.requests.length > 0) {
+                if(badge) {
+                    badge.textContent = data.requests.length;
+                    badge.classList.remove('hidden');
+                }
+            } else {
+                if(badge) badge.classList.add('hidden');
+            }
+            renderReturnList(data.requests);
+        }
+    } catch (err) {
+        console.error("Error loading return requests:", err);
+    }
+}
+
+function renderReturnList(requests) {
+    const container = document.getElementById('orgReturnList');
+    if (!container) return;
+    
+    if (requests.length === 0) {
+        container.innerHTML = `
+            <div class="py-12 text-center text-gray-400">
+                <i class="fa-solid fa-check-circle text-4xl mb-3 text-emerald-400"></i>
+                <p class="text-sm">No pending pet returns. All good!</p>
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = requests.map(req => {
+    const isApproved = req.status === 'Approved';
+    const badge = isApproved
+        ? `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-700"><i class="fas fa-truck-fast mr-1"></i>Awaiting Handover</span>`
+        : `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700"><i class="fas fa-clock mr-1"></i>Pending Review</span>`;
+
+    return `
+        <div class="flex items-center justify-between p-4 hover:bg-rose-50/30 transition">
+            <div class="flex items-center gap-4">
+                <img src="${req.pet_image ? (req.pet_image.startsWith('/') ? req.pet_image : '/uploads/pets/' + req.pet_image) : '/assets/images/default-pet.png'}" class="w-12 h-12 rounded-full object-cover border border-gray-200 shrink-0" />
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h4 class="font-bold text-gray-800 text-sm">${escapeHtml(req.pet_name)}</h4>
+                        ${badge}
+                    </div>
+                    <p class="text-xs text-gray-500 mt-0.5">Adopter: <strong>${escapeHtml(req.first_name)} ${escapeHtml(req.last_name)}</strong></p>
+                    <p class="text-[11px] text-rose-600 font-semibold mt-1">Reason: ${escapeHtml(req.reason)}</p>
+                </div>
+            </div>
+            <button onclick="openReviewReturnModal(${req.id})" class="px-4 py-2 bg-rose-100 text-rose-700 text-xs font-bold rounded-lg hover:bg-rose-200 transition flex items-center gap-2">
+                <i class="fa-regular fa-eye"></i> ${isApproved ? 'Manage' : 'Review'}
+            </button>
+        </div>`;
+}).join('');
+    
+    window.allReturnRequests = requests;
+}
+// ==========================================
+// RETURN MODAL — OPEN
+// ==========================================
+function openReviewReturnModal(returnId) {
+    // ⭐ Safety: force-close any leftover confirm modal (z-2147483646)
+    const confirmModal = document.getElementById('customConfirmModal');
+    if (confirmModal) confirmModal.classList.remove('is-open');
+
+    const req = window.allReturnRequests.find(r => r.id === returnId);
+    if (!req) {
+        console.error('Return request not found:', returnId);
+        return;
+    }
+
+    currentReturnRequestId = returnId;
+
+    document.getElementById('modalReturnPetName').textContent = req.pet_name;
+    document.getElementById('modalReturnAdopterName').textContent = `${req.first_name} ${req.last_name}`;
+    document.getElementById('modalReturnAdopterEmail').textContent = req.email;
+    document.getElementById('modalReturnReason').textContent = req.reason;
+    document.getElementById('modalReturnDetails').textContent = `"${req.details}"`;
+
+    const imgSrc = req.pet_image
+        ? (req.pet_image.startsWith('/') ? req.pet_image : '/uploads/pets/' + req.pet_image)
+        : '/assets/images/default-pet.png';
+    document.getElementById('modalReturnPetImage').src = imgSrc;
+
+    const responseInput = document.getElementById('modalReturnOrgResponse');
+    const statusLabel   = document.getElementById('modalReturnStatusLabel');
+    const actions       = document.getElementById('returnModalActions');
+
+    // ⭐ Reset state bago mag-render
+    responseInput.disabled = false;
+    responseInput.classList.remove('bg-gray-100', 'cursor-not-allowed');
+
+    if (req.status === 'Approved') {
+        statusLabel.innerHTML = `<span class="text-[10px] font-bold px-2 py-1 rounded-full bg-blue-100 text-blue-700 inline-flex items-center"><i class="fas fa-truck-fast mr-1"></i>Approved — Waiting for Handover</span>`;
+        responseInput.disabled = true;
+        responseInput.classList.add('bg-gray-100', 'cursor-not-allowed');
+        responseInput.value = req.org_response || '';
+        actions.innerHTML = `
+            <button type="button" onclick="closeReviewReturnModal()" class="flex-1 px-4 py-2.5 bg-white border border-gray-300 text-gray-700 text-sm font-bold rounded-xl hover:bg-gray-50 transition">Close</button>
+            <button type="button" onclick="completeReturn(${req.id})" class="flex-1 px-4 py-2.5 bg-emerald-600 text-white text-sm font-bold rounded-xl hover:bg-emerald-700 transition shadow-sm">
+                <i class="fas fa-check-circle mr-1"></i> Mark as Received
+            </button>`;
+    } else if (req.status === 'Pending') {
+        statusLabel.innerHTML = `<span class="text-[10px] font-bold px-2 py-1 rounded-full bg-amber-100 text-amber-700 inline-flex items-center"><i class="fas fa-clock mr-1"></i>Pending Review</span>`;
+        responseInput.value = '';
+        actions.innerHTML = `
+            <button type="button" onclick="closeReviewReturnModal()" class="flex-1 px-4 py-2.5 bg-white border border-gray-300 text-gray-700 text-sm font-bold rounded-xl hover:bg-gray-50 transition">Cancel</button>
+            <button type="button" onclick="processReturn('Rejected')" class="flex-1 px-4 py-2.5 bg-gray-800 text-white text-sm font-bold rounded-xl hover:bg-gray-900 transition shadow-sm">Decline</button>
+            <button type="button" onclick="processReturn('Approved')" class="flex-1 px-4 py-2.5 bg-rose-600 text-white text-sm font-bold rounded-xl hover:bg-rose-700 transition shadow-sm">Accept Return</button>`;
+    } else {
+        // Rejected / Completed — read-only
+        statusLabel.innerHTML = `<span class="text-[10px] font-bold px-2 py-1 rounded-full bg-slate-200 text-slate-700 inline-flex items-center"><i class="fas fa-lock mr-1"></i>${req.status}</span>`;
+        responseInput.disabled = true;
+        responseInput.classList.add('bg-gray-100', 'cursor-not-allowed');
+        responseInput.value = req.org_response || '';
+        actions.innerHTML = `
+            <button type="button" onclick="closeReviewReturnModal()" class="flex-1 px-4 py-2.5 bg-white border border-gray-300 text-gray-700 text-sm font-bold rounded-xl hover:bg-gray-50 transition">Close</button>`;
+    }
+
+    const modal = document.getElementById('reviewReturnModal');
+    if (modal) {
+        modal.classList.remove('hidden', 'opacity-0', 'pointer-events-none');
+        modal.querySelector('div').classList.remove('scale-95');
+    }
+}
+
+// ==========================================
+// RETURN MODAL — CLOSE (improved safety)
+// ==========================================
+function closeReviewReturnModal() {
+    const modal = document.getElementById('reviewReturnModal');
+    if (!modal) return;
+
+    modal.classList.add('opacity-0', 'pointer-events-none');
+    const whiteBox = modal.querySelector('div');
+    if (whiteBox) whiteBox.classList.add('scale-95');
+
+    setTimeout(() => {
+        modal.classList.add('hidden');
+    }, 200);
+
+    currentReturnRequestId = null;
+}
+
+// ==========================================
+// BACKDROP CLICK + ESC HANDLERS
+// ==========================================
+function handleReviewReturnBackdropClick(event) {
+    // Only close if click is directly on the backdrop (not on white box)
+    if (event.target.id === 'reviewReturnModal') {
+        closeReviewReturnModal();
+    }
+}
+
+// ESC key handler
+document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+
+    // Close whichever modal is open (priority: confirm > return)
+    const confirmModal = document.getElementById('customConfirmModal');
+    if (confirmModal && confirmModal.classList.contains('is-open')) {
+        confirmModal.classList.remove('is-open');
+        return;
+    }
+
+    const returnModal = document.getElementById('reviewReturnModal');
+    if (returnModal && !returnModal.classList.contains('hidden') && !returnModal.classList.contains('opacity-0')) {
+        closeReviewReturnModal();
+    }
+});
+async function completeReturn(returnId) {
+    showConfirm(
+        "Confirm that you have physically received the pet. This will finalize the return and remove the pet from the adopter's Kamustahan list.",
+        async () => {
+            try {
+                const res = await fetch(`/org/return-requests/${returnId}/complete`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    closeReviewReturnModal();
+                    showToast('Pet return completed successfully.', 'success');
+                    fetchReturnRequests();
+                    fetchKamustahanData();
+                } else {
+                    showToast(data.message || 'Failed to complete return.', 'error');
+                }
+            } catch (err) {
+                console.error(err);
+                showToast('An error occurred.', 'error');
+            }
+        },
+        null,
+        { title: 'Complete Pet Return', okText: 'Confirm Received', type: 'warning' }
+    );
+}
+async function processReturn(action) {
+    if (!currentReturnRequestId) return;
+    
+    const orgResponseInput = document.getElementById('modalReturnOrgResponse').value.trim();
+    
+    // Validation: Kailangan may nakasulat na mensahe
+    if (!orgResponseInput) {
+        showToast("Please provide a message or reason for the adopter.", "warning");
+        return;
+    }
+
+    const msg = action === 'Approved' 
+        ? "Are you sure? This will mark the pet as Available." 
+        : "Are you sure you want to decline this return request?";
+        
+    showConfirm(msg, async () => {
+        try {
+            const res = await fetch(`/org/return-requests/${currentReturnRequestId}/respond`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: action, org_response: orgResponseInput })
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                closeReviewReturnModal();
+                showToast(`Return request ${action.toLowerCase()} successfully.`, 'success');
+                fetchReturnRequests(); // I-refresh ang listahan
+                fetchKamustahanData(); // I-refresh ang pets data
+            } else {
+                showToast(data.message || 'Failed to process request.', 'error');
+            }
+        } catch (err) {
+            console.error(err);
+            showToast('An error occurred.', 'error');
+        }
+    }, null, { title: action === 'Approved' ? 'Accept Return' : 'Decline Return', okText: 'Confirm', type: action === 'Approved' ? 'warning' : 'error' });
+}
 
 // ==========================================
 // EVENT DELEGATION
@@ -247,6 +523,7 @@ document.addEventListener("click", (e) => {
         openScheduleModal(updateId);
     }
 });
+
 async function fetchKamustahanData() {
     try {
         const response = await fetch("/org/kamustahan-updates");
@@ -255,7 +532,6 @@ async function fetchKamustahanData() {
         if (result.success && result.updates) {
             allUpdatesData = result.updates;
             
-            // I-save ang org name mula sa backend
             if (result.organization_name) {
                 currentOrgName = result.organization_name;
             }
@@ -270,6 +546,7 @@ async function fetchKamustahanData() {
         document.getElementById("updatesTableBody").innerHTML = `<tr><td colspan="5" class="text-center py-8 text-red-400 italic">Failed to connect to database server.</td></tr>`;
     }
 }
+
 function filterAndRenderTable(resetPage = false) {
     if (resetPage) currentPage = 1;
 
@@ -282,14 +559,12 @@ function filterAndRenderTable(resetPage = false) {
         
         if (!matchesTab) return false;
 
-        // 1. Search Filter
         const petName = (item.pet_name || "").toLowerCase();
         const adopterName = (item.adopter_name || "").toLowerCase();
         const matchesSearch = petName.includes(searchQuery) || adopterName.includes(searchQuery);
         
         if (!matchesSearch) return false;
 
-        // 2. Status Filter
         if (currentStatusFilter !== 'all') {
             const isUpdated = item.formatted_date && item.update_status !== 'For Update';
             const isScheduled = !isUpdated && !!item.scheduled_date;
@@ -303,10 +578,8 @@ function filterAndRenderTable(resetPage = false) {
         return true;
     });
 
-    // Default sorting: Pinakabago (Latest created_at) sa taas
     filteredUpdatesData.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-
-    renderTable(); // Tawagin ang renderTable (walang parameter dahil global na ang filteredUpdatesData)
+    renderTable(); 
 }
 
 function renderTable() {
@@ -317,14 +590,12 @@ function renderTable() {
     const totalItems = filteredUpdatesData.length;
     const totalPages = Math.ceil(totalItems / itemsPerPage);
 
-    // Ensure currentPage is valid
     if (currentPage > totalPages && totalPages > 0) currentPage = totalPages;
     if (currentPage < 1) currentPage = 1;
 
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
     
-    // Kunin lang ang data para sa kasalukuyang page
     const paginatedData = filteredUpdatesData.slice(startIndex, endIndex);
 
     if (paginatedData.length === 0) {
@@ -349,7 +620,6 @@ function renderTable() {
             if (!displayPhoto.startsWith('http') && !displayPhoto.startsWith('/')) displayPhoto = `/uploads/pets/${displayPhoto}`;
         }
 
-        // Status Badge Logic
         let statusBadge = '';
 
         if (item.is_archived == 1 || item.update_status === 'Archived') {
@@ -425,7 +695,6 @@ function renderTable() {
     updatePaginationUI(startIndex, endIndex, totalItems);
 }
 
-// Function para i-update ang Pagination UI at Buttons
 function updatePaginationUI(startIndex, endIndex, totalItems) {
     const paginationInfo = document.getElementById("tablePaginationInfo");
     if (paginationInfo) {
@@ -440,9 +709,8 @@ function updatePaginationUI(startIndex, endIndex, totalItems) {
     buttonsContainer.innerHTML = '';
     const totalPages = Math.ceil(totalItems / itemsPerPage);
     
-    if (totalPages <= 1) return; // Walang buttons kung 1 page lang
+    if (totalPages <= 1) return;
 
-    // Prev Button
     const prevBtn = document.createElement('button');
     prevBtn.className = `w-8 h-8 flex items-center justify-center border border-gray-200 rounded-lg transition-colors ${currentPage === 1 ? 'text-gray-300 cursor-not-allowed bg-gray-50' : 'text-gray-700 hover:bg-gray-50 bg-white'}`;
     prevBtn.innerHTML = `<i class="fa-solid fa-chevron-left text-[11px]"></i>`;
@@ -451,7 +719,6 @@ function updatePaginationUI(startIndex, endIndex, totalItems) {
     }
     buttonsContainer.appendChild(prevBtn);
 
-    // Page Numbers
     for (let i = 1; i <= totalPages; i++) {
         const btn = document.createElement('button');
         btn.className = `w-8 h-8 flex items-center justify-center border rounded-lg text-sm font-bold shadow-sm transition-colors ${
@@ -464,7 +731,6 @@ function updatePaginationUI(startIndex, endIndex, totalItems) {
         buttonsContainer.appendChild(btn);
     }
 
-    // Next Button
     const nextBtn = document.createElement('button');
     nextBtn.className = `w-8 h-8 flex items-center justify-center border border-gray-200 rounded-lg transition-colors ${currentPage === totalPages ? 'text-gray-300 cursor-not-allowed bg-gray-50' : 'text-gray-700 hover:bg-gray-50 bg-white'}`;
     nextBtn.innerHTML = `<i class="fa-solid fa-chevron-right text-[11px]"></i>`;
@@ -503,11 +769,9 @@ async function openUpdateModal(item) {
     const modalActionContainer = document.getElementById("modalActionContainer");
     const modalRiskBadge = document.getElementById("modalRiskBadge");
 
-    // 1. Basic Info
     modalPetName.textContent = item.pet_name || 'Pet Details';
     modalAdopter.innerHTML = `<i class="fa-regular fa-user mr-1"></i> Adopter: ${item.adopter_name || 'N/A'}`;
     
-    // 2. Photo
     let photoUrl = "https://images.unsplash.com/photo-1543466835-00a7907e9de1";
     if (item.update_photos) {
         try {
@@ -518,14 +782,11 @@ async function openUpdateModal(item) {
     }
     modalPhoto.src = photoUrl;
 
-    // 3. Date
     const displayDate = item.formatted_date || item.formatted_scheduled_date || (item.scheduled_date ? formatReadableDate(item.scheduled_date) : null) || 'N/A';
     modalDate.innerHTML = `<i class="fa-regular fa-calendar mr-1"></i> Date: ${displayDate}`;
 
-    // 4. Message
     modalText.textContent = item.update_text || "No message provided.";
 
-    // 5. Risk Badge
     if (item.risk_level && item.formatted_date) {
         modalRiskBadge.classList.remove('hidden');
         if (item.risk_level === 'high') {
@@ -542,7 +803,6 @@ async function openUpdateModal(item) {
         modalRiskBadge.classList.add('hidden');
     }
 
-    // 6. Parse Checklists
     const renderTags = (jsonData, colorClass) => {
         let html = '';
         if (!jsonData || jsonData === 'null') return '<span class="text-xs text-gray-400 italic">No data provided.</span>';
@@ -560,7 +820,6 @@ async function openUpdateModal(item) {
     document.getElementById('modalHealthChecklist').innerHTML = renderTags(item.health_checklist, 'text-emerald-700 border-emerald-200');
     document.getElementById('modalBehaviorChecklist').innerHTML = renderTags(item.behavior_checklist, 'text-indigo-700 border-indigo-200');
 
-    // 7. Vet Visit Info
     const vetContainer = document.getElementById('modalVetContainer');
     if (item.vet_visit == 1 && item.formatted_date) {
         vetContainer.classList.remove('hidden');
@@ -575,7 +834,6 @@ async function openUpdateModal(item) {
         vetContainer.classList.add('hidden');
     }
 
-    // 8. Action Buttons (Archive)
     if (item.is_archived == 1) {
         modalActionContainer.innerHTML = `<span class="text-xs text-gray-500 font-medium"><i class="fa-solid fa-box-archive mr-1"></i> Archived Record</span>`;
     } else if (item.update_status === 'For Update' || !item.formatted_date) {
@@ -584,13 +842,11 @@ async function openUpdateModal(item) {
         modalActionContainer.innerHTML = `<button onclick='archiveUpdate(${Number(item.update_id)})' class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-xl text-sm font-semibold transition-colors inline-flex items-center gap-2"><i class="fa-solid fa-box-archive"></i> Archive Record</button>`;
     }
 
-    // 9. Setup Review & Acknowledge Panel
     const prevNoteContainer = document.getElementById('prevOrgNoteContainer');
     const prevNoteText = document.getElementById('prevOrgNoteText');
     const reviewInput = document.getElementById('orgReviewNote');
     const reviewBtn = document.getElementById('markReviewedBtn');
 
-    // Check kung naka-archive
     const isArchived = item.is_archived == 1 || item.update_status === 'Archived';
 
     if (isArchived) {
@@ -878,6 +1134,10 @@ function renderCalendar() {
         calendarGrid.appendChild(dayCell);
     }
 }
+
+// ==========================================
+// EXPORT LOGIC
+// ==========================================
 function exportData(type) {
     const monthFilter = document.getElementById("exportMonthFilter") ? document.getElementById("exportMonthFilter").value : "";
     
@@ -900,25 +1160,21 @@ function exportData(type) {
     }
 
     if (type === 'csv') {
-        // Helper function para siguraduhing hindi masisira ang columns (lalo na kung may comma sa pangalan)
         const escapeCSV = (val) => {
             if (val === null || val === undefined) return '""';
             let str = String(val).trim();
             return `"${str.replace(/"/g, '""')}"`;
         };
 
-        // Malinis at Uppercase ang headers para mukhang propesyonal
         let csvContent = "PET NAME,SPECIES,ADOPTER NAME,ADOPTER EMAIL,DATE SUBMITTED\n";
         
         dataToExport.forEach(item => {
             const petName = escapeCSV(item.pet_name);
             const species = escapeCSV(item.species);
             
-            // Tanggalin ang "N/A" kung sakaling blangko, iwanan lang na empty string
             const adopterName = escapeCSV(item.adopter_name && item.adopter_name !== 'N/A' ? item.adopter_name : '');
             const adopterEmail = escapeCSV(item.adopter_email && item.adopter_email !== 'N/A' ? item.adopter_email : '');
             
-            // Format ang date (Walang oras, walang "at")
             let rawDate = item.formatted_date || item.formatted_scheduled_date || (item.scheduled_date ? formatReadableDate(item.scheduled_date) : "");
             if (rawDate) {
                 if (rawDate.includes(' • ')) rawDate = rawDate.split(' • ')[0];
@@ -926,16 +1182,13 @@ function exportData(type) {
             }
             const dateStr = escapeCSV(rawDate);
             
-            // Isang linya bawat record
             csvContent += `${petName},${species},${adopterName},${adopterEmail},${dateStr}\n`;
         });
 
-        // \uFEFF (BOM) ay importante para mabasa ng Excel ang special characters nang tama
         const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement("a");
         const url = URL.createObjectURL(blob);
         
-        // Dinagdag ang Date sa filename para hindi mag-overwrite
         const dateToday = new Date().toISOString().split('T')[0];
         link.setAttribute("href", url);
         link.setAttribute("download", `Kamustahan_${currentTab}_Report_${dateToday}.csv`);
@@ -957,6 +1210,7 @@ function exportData(type) {
     const dropdownMenu = document.getElementById('exportDropdownMenu');
     if (dropdownMenu) dropdownMenu.classList.add('hidden');
 }
+
 function renderPrintableReport(data) {
     let printContainer = document.getElementById('printableReport');
     if (!printContainer) return;
@@ -981,7 +1235,6 @@ function renderPrintableReport(data) {
     let html = `
         <!-- Print Header -->
         <div style="text-align: center; margin-bottom: 30px; border-bottom: 2px solid #1e293b; padding-bottom: 15px;">
-            <!-- BINAGO: Ginamit ang currentOrgName -->
             <h1 style="font-size: 20px; font-weight: bold; color: #1e293b; margin: 0; text-transform: uppercase;">${escapeHtml(currentOrgName)}</h1>
             <p style="font-size: 14px; color: #64748b; margin: 5px 0 0 0;">Adopted Pets Kamustahan Monitoring Report</p>
             <p style="font-size: 10px; color: #94a3b8; margin: 8px 0 0 0;">Date Generated: ${dateGenerated}</p>
@@ -1086,6 +1339,7 @@ function downloadKamustahanPDF() {
             showToast("There was a problem downloading the PDF.", "error");
         });
 }
+
 function exportSingleKamustahan() {
     const item = allUpdatesData.find(i => Number(i.update_id) === Number(currentUpdateIdForReply));
     if (!item) {
@@ -1093,13 +1347,11 @@ function exportSingleKamustahan() {
         return;
     }
 
-    // Parse Checklists
     let healthData = {};
     let behaviorData = {};
     try { if (item.health_checklist) healthData = JSON.parse(item.health_checklist); } catch(e){}
     try { if (item.behavior_checklist) behaviorData = JSON.parse(item.behavior_checklist); } catch(e){}
 
-    // Photo URL Logic
     let photoUrl = "https://images.unsplash.com/photo-1543466835-00a7907e9de1";
     if (item.update_photos) {
         try {
@@ -1112,18 +1364,15 @@ function exportSingleKamustahan() {
         if (!photoUrl.startsWith('http') && !photoUrl.startsWith('/')) photoUrl = `/uploads/pets/${photoUrl}`;
     }
 
-    // Date Format
     const displayDate = item.formatted_date || item.formatted_scheduled_date || (item.scheduled_date ? formatReadableDate(item.scheduled_date) : 'N/A');
     const generatedDate = new Date().toLocaleDateString('en-US', { timeZone: 'Asia/Manila', year: 'numeric', month: 'long', day: 'numeric' });
 
-    // Risk Badge
     let riskColor = '#64748b'; 
     let riskText = 'N/A';
     if (item.risk_level === 'high') { riskColor = '#dc2626'; riskText = 'HIGH RISK'; }
     else if (item.risk_level === 'medium') { riskColor = '#d97706'; riskText = 'MEDIUM RISK'; }
     else if (item.risk_level === 'low') { riskColor = '#059669'; riskText = 'LOW RISK'; }
 
-    // Clean Table Row Generator for Checklists
     const renderTableRows = (data, textColor) => {
         if (Object.keys(data).length === 0) return '<tr><td colspan="2" style="padding: 10px; text-align: center; color: #94a3b8; font-style: italic;">No data provided</td></tr>';
         return Object.entries(data).map(([key, val]) => `
@@ -1150,13 +1399,11 @@ function exportSingleKamustahan() {
                     body { font-family: 'Inter', sans-serif; margin: 0; padding: 0; background: #f1f5f9; color: #1e293b; -webkit-print-color-adjust: exact; }
                     .page { max-width: 800px; margin: 30px auto; background: #ffffff; padding: 50px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1); }
                     
-                    /* Header */
                     .header { text-align: center; border-bottom: 2px solid #1e293b; padding-bottom: 20px; margin-bottom: 30px; }
                     .header h1 { font-size: 24px; font-weight: 800; margin: 0; letter-spacing: 0.5px; color: #0f172a; text-transform: uppercase; }
                     .header p { font-size: 14px; color: #64748b; margin: 8px 0 0 0; font-weight: 500; }
                     .header .date-gen { font-size: 11px; color: #94a3b8; margin-top: 15px; text-transform: uppercase; letter-spacing: 1px;}
                     
-                    /* Profile Layout */
                     .profile-section { display: flex; gap: 30px; margin-bottom: 40px; align-items: center; }
                     .pet-photo { width: 180px; height: 180px; border-radius: 16px; object-fit: cover; border: 4px solid #f8fafc; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
                     .pet-info { flex: 1; }
@@ -1167,7 +1414,6 @@ function exportSingleKamustahan() {
                     .meta-item strong { display: block; color: #64748b; font-size: 11px; text-transform: uppercase; margin-bottom: 2px;}
                     .badge { display: inline-block; padding: 6px 14px; border-radius: 8px; color: white; font-weight: 700; font-size: 11px; background-color: ${riskColor}; letter-spacing: 0.5px;}
                     
-                    /* Sections & Tables */
                     .section-title { font-size: 16px; font-weight: 700; color: #1e293b; margin: 0 0 15px 0; padding-bottom: 8px; border-bottom: 2px solid #e2e8f0; display: flex; align-items: center; gap: 8px;}
                     
                     .checklist-container { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 40px; }
@@ -1175,7 +1421,6 @@ function exportSingleKamustahan() {
                     .table-header { background: #f8fafc; padding: 12px; font-weight: 700; font-size: 13px; color: #334155; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #e2e8f0; }
                     table { width: 100%; border-collapse: collapse; font-size: 13px; }
                     
-                    /* Footer */
                     .footer { margin-top: 60px; text-align: center; font-size: 11px; color: #94a3b8; border-top: 1px solid #e2e8f0; padding-top: 20px; line-height: 1.6;}
                     
                     @media print {
@@ -1187,15 +1432,12 @@ function exportSingleKamustahan() {
             </head>
             <body>
                 <div class="page">
-                    <!-- Header -->
                     <div class="header">
-                        <!-- BINAGO: Ginamit ang currentOrgName -->
                         <h1>${escapeHtml(currentOrgName)}</h1>
                         <p>Official Kamustahan Assessment Report</p>
                         <div class="date-gen">Generated on: ${generatedDate}</div>
                     </div>
 
-                    <!-- Pet Profile -->
                     <div class="profile-section">
                         <img src="${photoUrl}" class="pet-photo" crossorigin="anonymous" alt="Pet Photo">
                         <div class="pet-info">
@@ -1222,9 +1464,7 @@ function exportSingleKamustahan() {
                         </div>
                     </div>
 
-                    <!-- Checklists (Side by Side) -->
                     <div class="checklist-container">
-                        <!-- Health -->
                         <div class="table-box">
                             <div class="table-header" style="color: #059669;">Health Check</div>
                             <table>
@@ -1232,7 +1472,6 @@ function exportSingleKamustahan() {
                             </table>
                         </div>
                         
-                        <!-- Behavior -->
                         <div class="table-box">
                             <div class="table-header" style="color: #4f46e5;">Behavior Check</div>
                             <table>
@@ -1241,7 +1480,6 @@ function exportSingleKamustahan() {
                         </div>
                     </div>
 
-                    <!-- Vet Visit Record -->
                     ${item.vet_visit == 1 ? `
                         <div style="margin-bottom: 30px; page-break-inside: avoid;">
                             <h3 class="section-title">Veterinary Visit Record</h3>
@@ -1258,10 +1496,8 @@ function exportSingleKamustahan() {
                         </div>
                     ` : ''}
 
-                    <!-- Footer -->
                     <div class="footer">
                         This document is an official record generated by the Pawpon System.<br>
-                        <!-- BINAGO: Ginamit din ang currentOrgName sa footer -->
                         &copy; ${new Date().getFullYear()} ${escapeHtml(currentOrgName)}. All rights reserved.
                     </div>
                 </div>

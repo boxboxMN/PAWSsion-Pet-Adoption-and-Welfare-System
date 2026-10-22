@@ -3,11 +3,15 @@ let selectedFile = null;
 let selectedEditFile = null;
 let fetchedUpdates = []; // Cache para sa Edit Modal
 
+// ⭐ GLOBAL VARIABLE PARA SA RETURN REQUESTS
+window.myReturnRequests = []; 
+
 // ===================================================
 // FILTER VARIABLES
 // ===================================================
 let historySearchQuery = '';
 let historyStatusFilter = 'all';
+
 // ===================================================
 // CHECKLIST DATA DEFINITIONS (EXPANDED)
 // ===================================================
@@ -146,6 +150,16 @@ document.addEventListener("DOMContentLoaded", async () => {
     const formatter = new Intl.DateTimeFormat('en-CA', phTimeOptions);
     document.getElementById('updateDate').value = formatter.format(new Date());
 
+    // 1. Fetch Return Requests Data
+    try {
+        const returnRes = await fetch('/api/adopter/return-requests');
+        const returnData = await returnRes.json();
+        if (returnData.success) {
+            window.myReturnRequests = returnData.requests;
+        }
+    } catch (err) { console.error("Error loading return requests:", err); }
+
+    // 2. Fetch Approved Pets Data
     try {
         const res = await fetch('/api/user/approved-pets');
         const data = await res.json();
@@ -163,9 +177,66 @@ document.addEventListener("DOMContentLoaded", async () => {
             });
 
             petSelect.addEventListener('change', (e) => {
-                const selectedPet = petsData.find(p => p.animal_id == e.target.value);
-                document.getElementById('orgIdInput').value = selectedPet ? selectedPet.organization_id : '';
-            });
+    const selectedPet = petsData.find(p => p.animal_id == e.target.value);
+    document.getElementById('orgIdInput').value = selectedPet ? selectedPet.organization_id : '';
+
+    const returnAction = document.getElementById('petReturnAction');
+
+    if (selectedPet) {
+        const existingReturn = window.myReturnRequests.find(r => r.animal_id == selectedPet.animal_id);
+
+        if (existingReturn) {
+            returnAction.classList.remove('hidden');
+            returnAction.onclick = null;
+
+            if (existingReturn.status === 'Pending') {
+                returnAction.style.cursor = 'default';
+                returnAction.innerHTML = `
+                    <span class="text-xs font-bold text-amber-600 bg-amber-50 px-3 py-1.5 rounded-lg border border-amber-200 inline-block">
+                        <i class="fa-solid fa-clock mr-1"></i> Return Request Pending
+                    </span>`;
+            } else if (existingReturn.status === 'Approved') {
+                returnAction.style.cursor = 'default';
+                returnAction.innerHTML = `
+                    <div class="w-full p-3 rounded-xl border bg-blue-50 border-blue-200 text-left mt-2">
+                        <p class="text-xs font-bold text-blue-800 mb-1">
+                            <i class="fa-solid fa-truck-fast mr-1"></i> Return Approved — Waiting for Handover
+                        </p>
+                        <p class="text-xs text-gray-700 italic mb-1">"${existingReturn.org_response || 'No message provided.'}"</p>
+                        <p class="text-[11px] text-blue-700"><i class="fa-solid fa-info-circle mr-1"></i> Please bring your pet to the shelter. Once they confirm receipt, this return will be complete.</p>
+                    </div>`;
+            } else if (existingReturn.status === 'Rejected' || existingReturn.status === 'Declined') {
+                // ⭐ REJECTED → show rejected message + Request Again button
+                returnAction.style.cursor = 'pointer';
+                returnAction.innerHTML = `
+                    <div class="w-full p-3 rounded-xl border bg-rose-50 border-rose-200 text-left mt-2">
+                        <p class="text-xs font-bold text-rose-800 mb-1">
+                            <i class="fa-solid fa-times-circle mr-1"></i> Return Request Rejected
+                        </p>
+                        <p class="text-xs text-gray-700 italic mb-2">"${existingReturn.org_response || 'No message provided.'}"</p>
+                        <button type="button" onclick="openReturnModalFromForm()" class="text-xs font-bold text-rose-600 hover:text-rose-800 hover:bg-rose-100 px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 border border-rose-300 shadow-sm">
+                            <i class="fa-solid fa-rotate-left"></i> Request Again
+                        </button>
+                    </div>`;
+                // ⭐ Kailangan ito para mag-work ang openReturnModalFromForm()
+                returnAction.dataset.petId = selectedPet.animal_id;
+                returnAction.dataset.petName = selectedPet.name;
+            }
+        } else {
+            // Walang existing return → default button
+            returnAction.classList.remove('hidden');
+            returnAction.style.cursor = 'pointer';
+            returnAction.innerHTML = `
+                <button type="button" onclick="openReturnModalFromForm()" class="text-xs font-bold text-rose-600 hover:text-rose-800 hover:bg-rose-50 px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 border border-rose-200 shadow-sm">
+                    <i class="fa-solid fa-rotate-left"></i> Request to Return <span id="selectedPetNameForReturn">${selectedPet.name}</span>
+                </button>`;
+            returnAction.dataset.petId = selectedPet.animal_id;
+            returnAction.dataset.petName = selectedPet.name;
+        }
+    } else {
+        returnAction.classList.add('hidden');
+    }
+});
         } else {
             petSelect.innerHTML = '<option value="">No approved adopted pets available.</option>';
         }
@@ -452,7 +523,6 @@ function updateRiskPreview() {
 function renderUpdateDetails(item) {
     let html = '';
 
-    // 1. Risk Level Badge
     if (item.risk_level) {
         const riskColors = {
             low: 'bg-emerald-100 text-emerald-700',
@@ -462,7 +532,6 @@ function renderUpdateDetails(item) {
         html += `<div class="mb-3"><span class="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase ${riskColors[item.risk_level] || riskColors.low}">${item.risk_level} Risk</span></div>`;
     }
 
-    // 2. Health Checklist
     if (item.health_checklist && item.health_checklist !== 'null') {
         try {
             const h = typeof item.health_checklist === 'string' ? JSON.parse(item.health_checklist) : item.health_checklist;
@@ -476,7 +545,6 @@ function renderUpdateDetails(item) {
         } catch(e) { console.error(e); }
     }
 
-    // 3. Behavior Checklist
     if (item.behavior_checklist && item.behavior_checklist !== 'null') {
         try {
             const b = typeof item.behavior_checklist === 'string' ? JSON.parse(item.behavior_checklist) : item.behavior_checklist;
@@ -490,7 +558,6 @@ function renderUpdateDetails(item) {
         } catch(e) { console.error(e); }
     }
 
-    // 4. Vet Visit Data
     if (item.vet_visit == 1) {
         let formattedVetDate = 'Date N/A';
         if (item.vet_visit_date) {
@@ -592,7 +659,6 @@ async function openHistoryModal() {
     modal.classList.remove('hidden');
     modal.classList.add('flex');
 
-    // I-reset ang filters tuwing bubuksan
     historySearchQuery = '';
     historyStatusFilter = 'all';
     const searchEl = document.getElementById('historySearch');
@@ -615,11 +681,7 @@ async function openHistoryModal() {
 
         if (data.success && data.updates.length > 0) {
             fetchedUpdates = data.updates; 
-            
-            // Setup filter listeners (one-time setup)
             setupHistoryFilters();
-            
-            // I-render ang unang listahan
             filterAndRenderHistory();
         } else {
             container.innerHTML = `<p class="text-center text-slate-500 py-12 text-sm italic">No update history logs found.</p>`;
@@ -630,14 +692,12 @@ async function openHistoryModal() {
     }
 }
 
-// Function para i-attach ang events sa search at dropdown (para hindi magdoble)
 function setupHistoryFilters() {
     const searchInput = document.getElementById('historySearch');
     const statusSelect = document.getElementById('historyStatusFilter');
 
     if (!searchInput || !statusSelect) return;
 
-    // Remove existing listeners by cloning
     const newSearch = searchInput.cloneNode(true);
     searchInput.parentNode.replaceChild(newSearch, searchInput);
     
@@ -655,27 +715,22 @@ function setupHistoryFilters() {
     });
 }
 
-// Function para i-filter at i-render ang data
 function filterAndRenderHistory() {
     const container = document.getElementById('historyFeedContainer');
 
-    // 1. Filter the data
     const filteredData = fetchedUpdates.filter(item => {
-        // Check search query (Pet Name)
         const matchesSearch = (item.pet_name || '').toLowerCase().includes(historySearchQuery);
         
-        // Check status filter
         let matchesStatus = true;
         if (historyStatusFilter === 'reviewed') {
-            matchesStatus = !!item.org_response; // May reply/note
+            matchesStatus = !!item.org_response; 
         } else if (historyStatusFilter === 'pending') {
-            matchesStatus = !item.org_response && item.status === 'For Update'; // Wala pang reply at pending
+            matchesStatus = !item.org_response && item.status === 'For Update'; 
         }
 
         return matchesSearch && matchesStatus && (item.update_text || item.health_checklist);
     });
 
-    // 2. Render
     if (filteredData.length === 0) {
         container.innerHTML = `<p class="text-center text-slate-500 py-12 text-sm italic">No history logs match your filter.</p>`;
         return;
@@ -701,7 +756,6 @@ function filterAndRenderHistory() {
 
         const detailsHtml = renderUpdateDetails(item);
 
-        // Org Note Logic
         let orgReplyHtml = '';
         if (item.org_response) {
             let replyDate = '';
@@ -722,7 +776,6 @@ function filterAndRenderHistory() {
             `;
         }
 
-        // Edit button logic
         const isEditable = item.status === 'For Update' && !item.org_response;
         const editBtnHtml = isEditable 
             ? `<button onclick="openEditModal(${item.update_id})" class="text-xs bg-blue-50 text-blue-600 hover:bg-blue-100 px-3 py-1.5 rounded-xl font-semibold transition flex items-center gap-1">
@@ -812,6 +865,199 @@ function openEditModal(updateId) {
 
 function closeEditModal() {
     const modal = document.getElementById('editModal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+}
+
+// ===================================================
+// RETURN PET FUNCTIONS
+// ===================================================
+function openReturnModalFromForm() {
+    const returnAction = document.getElementById('petReturnAction');
+    const petId = returnAction.dataset.petId;
+    const petName = returnAction.dataset.petName;
+    
+    if (petId && petName) {
+        openReturnModal(petId, petName);
+    } else {
+        showUiAlert("Please select a pet first.", "error");
+    }
+}
+
+function openReturnModal(petId, petName) {
+    document.getElementById('returnPetId').value = petId;
+    document.getElementById('returnPetName').textContent = petName;
+    
+    // Reset form
+    document.getElementById('returnPetForm').reset();
+    
+    // Show Modal
+    const modal = document.getElementById('returnPetModal');
+    modal.classList.remove('opacity-0', 'pointer-events-none');
+    modal.querySelector('div').classList.remove('scale-95');
+}
+
+function closeReturnModal() {
+    const modal = document.getElementById('returnPetModal');
+    modal.classList.add('opacity-0', 'pointer-events-none');
+    modal.querySelector('div').classList.add('scale-95');
+}
+async function submitReturnRequest(e) {
+    e.preventDefault();
+    const btn = e.target.querySelector('button[type="submit"]');
+    const originalText = btn.innerHTML;
+
+    // ⭐ Remove any previous inline error
+    const oldErr = document.getElementById('returnModalError');
+    if (oldErr) oldErr.remove();
+
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Submitting...';
+
+    const petId   = document.getElementById('returnPetId').value;
+    const reason  = document.getElementById('returnReason').value;
+    const details = document.getElementById('returnDetails').value;
+
+    try {
+        const res = await fetch('/api/adopter/request-return', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ pet_id: petId, reason, details })
+        });
+
+        const result = await res.json();
+
+        if (result.success) {
+            closeReturnModal();
+
+            // ⭐ Show nice success modal instead of alert()
+            const successModal = document.getElementById('returnSuccessModal');
+            if (successModal) {
+                successModal.classList.remove('hidden');
+                successModal.classList.add('flex');
+            } else {
+                // Fallback kung wala pang modal sa HTML
+                showUiAlert('Return request submitted! The shelter will contact you soon.', 'success');
+                setTimeout(() => window.location.reload(), 1500);
+            }
+        } else {
+            // ⭐ Show inline error inside the modal (hindi alert)
+            showReturnModalError(result.message || 'Something went wrong.');
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        }
+    } catch (err) {
+        console.error(err);
+        showReturnModalError('An error occurred. Please try again.');
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    }
+}
+
+// ⭐ Helper: inline error inside returnPetModal
+function showReturnModalError(message) {
+    let errEl = document.getElementById('returnModalError');
+    if (!errEl) {
+        errEl = document.createElement('div');
+        errEl.id = 'returnModalError';
+        errEl.className = 'mt-3 text-xs font-semibold text-rose-700 bg-rose-50 border border-rose-200 rounded-lg p-2.5 flex items-start gap-2';
+        const form = document.getElementById('returnPetForm');
+        // I-insert bago ang button row (last child)
+        const buttonRow = form.querySelector('div.flex.gap-2:last-child');
+        if (buttonRow) form.insertBefore(errEl, buttonRow);
+        else form.appendChild(errEl);
+    }
+    errEl.innerHTML = `<i class="fas fa-exclamation-circle mt-0.5"></i><span>${message}</span>`;
+}
+
+// ⭐ Close success modal + reload
+function closeReturnSuccessModal() {
+    const modal = document.getElementById('returnSuccessModal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+    window.location.reload();
+}
+async function openReturnHistoryModal() {
+    const modal = document.getElementById('returnHistoryModal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+
+    const container = document.getElementById('returnHistoryFeedContainer');
+    container.innerHTML = `<div class="text-center py-12 text-slate-400">
+        <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
+        <p class="text-sm">Loading return requests...</p>
+    </div>`;
+
+    try {
+        const res = await fetch('/api/adopter/return-history');
+        const data = await res.json();
+
+        if (data.success && data.requests.length > 0) {
+            container.innerHTML = '';
+            data.requests.forEach(req => container.appendChild(renderReturnCard(req)));
+        } else {
+            container.innerHTML = `<div class="text-center py-12 text-slate-400">
+                <i class="fa-solid fa-rotate-left text-4xl mb-3 opacity-30"></i>
+                <p class="text-sm">You have no return requests.</p>
+            </div>`;
+        }
+    } catch (err) {
+        container.innerHTML = `<p class="text-center text-rose-500 py-12 text-sm">Failed to load return requests.</p>`;
+    }
+}
+
+function renderReturnCard(req) {
+    const statusMap = {
+        'Pending':   { label: 'Pending Review', cls: 'bg-amber-100 text-amber-700 border-amber-200', icon: 'fa-clock' },
+        'Approved':  { label: 'Approved — Waiting for Handover', cls: 'bg-blue-100 text-blue-700 border-blue-200', icon: 'fa-truck-fast' },
+        'Rejected':  { label: 'Rejected', cls: 'bg-rose-100 text-rose-700 border-rose-200', icon: 'fa-times-circle' },
+        'Completed': { label: 'Completed — Pet Returned', cls: 'bg-emerald-100 text-emerald-700 border-emerald-200', icon: 'fa-check-circle' }
+    };
+    const s = statusMap[req.status] || statusMap['Pending'];
+
+    const photo = req.pet_image
+        ? (req.pet_image.startsWith('/') ? req.pet_image : `/uploads/pets/${req.pet_image}`)
+        : '/assets/images/default-pet.png';
+
+    const card = document.createElement('div');
+    card.className = 'bg-slate-50 border border-slate-200 rounded-2xl p-5 space-y-3';
+    card.innerHTML = `
+        <div class="flex items-start gap-4">
+            <img src="${photo}" class="w-16 h-16 rounded-xl object-cover border border-slate-200" />
+            <div class="flex-1">
+                <div class="flex items-center justify-between gap-2 flex-wrap">
+                    <h4 class="font-bold text-slate-800">${req.pet_name}</h4>
+                    <span class="text-[10px] font-bold px-2.5 py-1 rounded-full border ${s.cls}">
+                        <i class="fas ${s.icon} mr-1"></i>${s.label}
+                    </span>
+                </div>
+                <p class="text-xs text-slate-500 mt-1">Reason: <strong class="text-slate-700">${req.reason}</strong></p>
+                ${req.organization_name ? `<p class="text-[11px] text-slate-400 mt-0.5"><i class="fas fa-building mr-1"></i>${req.organization_name}</p>` : ''}
+            </div>
+        </div>
+        <div class="bg-white border border-slate-100 rounded-xl p-3">
+            <strong class="text-[10px] text-slate-400 uppercase block mb-1">Your Explanation:</strong>
+            <p class="text-sm text-slate-700 italic">"${req.details}"</p>
+        </div>
+        ${req.org_response ? `
+            <div class="bg-blue-50 border border-blue-100 rounded-xl p-3">
+                <strong class="text-[10px] text-blue-600 uppercase block mb-1"><i class="fas fa-building mr-1"></i> Shelter Response:</strong>
+                <p class="text-sm text-slate-700">${req.org_response}</p>
+            </div>` : ''}
+        ${req.status === 'Approved' ? `
+            <div class="bg-blue-50 border border-blue-200 rounded-xl p-3 text-xs text-blue-800">
+                <i class="fas fa-info-circle mr-1"></i> Please bring <strong>${req.pet_name}</strong> to the shelter. Once they confirm receipt, the return will be complete.
+            </div>` : ''}
+        ${req.status === 'Completed' ? `
+            <div class="bg-emerald-50 border border-emerald-100 rounded-xl p-3 text-xs text-emerald-800">
+                <i class="fas fa-check-circle mr-1"></i> The shelter has confirmed receiving <strong>${req.pet_name}</strong>. This pet is no longer in your adopted pets list.
+            </div>` : ''}
+    `;
+    return card;
+}
+
+function closeReturnHistoryModal() {
+    const modal = document.getElementById('returnHistoryModal');
     modal.classList.add('hidden');
     modal.classList.remove('flex');
 }
