@@ -8,40 +8,67 @@ let fetchedUpdates = []; // Cache para sa Edit Modal
 // ===================================================
 let historySearchQuery = '';
 let historyStatusFilter = 'all';
-
 // ===================================================
-// CHECKLIST DATA DEFINITIONS
+// CHECKLIST DATA DEFINITIONS (EXPANDED)
 // ===================================================
 const HEALTH_CHECKLIST = {
     appetite: {
         label: 'Appetite', icon: 'fa-utensils',
         options: [
             { value: 'normal',    label: 'Normal',  risk: 'low' },
-            { value: 'reduced',   label: 'Bumaba',  risk: 'medium' },
-            { value: 'refusing',  label: 'Ayaw kumain',  risk: 'high' }
+            { value: 'reduced',   label: 'Reduced', risk: 'medium' },
+            { value: 'refusing',  label: 'Refusing to eat (24h+)', risk: 'high' }
         ]
     },
     water: {
-        label: 'Water', icon: 'fa-droplet',
+        label: 'Water Intake', icon: 'fa-droplet',
         options: [
             { value: 'normal',    label: 'Normal',  risk: 'low' },
-            { value: 'reduced',   label: 'Bihira',  risk: 'medium' },
-            { value: 'excessive', label: 'Sobrang uhaw', risk: 'high' }
+            { value: 'reduced',   label: 'Drinking less', risk: 'medium' },
+            { value: 'excessive', label: 'Excessive thirst', risk: 'high' }
         ]
     },
     litter: {
-        label: 'Stool', icon: 'fa-broom',
+        label: 'Litter Box / Stool', icon: 'fa-broom',
         options: [
             { value: 'normal',      label: 'Normal', risk: 'low' },
-            { value: 'diarrhea',    label: 'Pagtatae', risk: 'high' },
-            { value: 'constipated', label: 'Hindi makadumi', risk: 'high' }
+            { value: 'diarrhea',    label: 'Diarrhea', risk: 'high' },
+            { value: 'constipated', label: 'Constipated', risk: 'high' },
+            { value: 'blood',       label: 'Blood in stool', risk: 'high' },
+            { value: 'not_using',   label: 'Not using litter box', risk: 'medium' }
+        ]
+    },
+    vomiting: {
+        label: 'Vomiting', icon: 'fa-face-frown',
+        options: [
+            { value: 'none',       label: 'None', risk: 'low' },
+            { value: 'hairball',   label: 'Occasional hairballs', risk: 'low' },
+            { value: 'frequent',   label: 'Frequent vomiting', risk: 'medium' },
+            { value: 'with_blood', label: 'Vomiting with blood', risk: 'high' }
         ]
     },
     activity: {
-        label: 'Activity', icon: 'fa-person-running',
+        label: 'Activity Level', icon: 'fa-person-running',
         options: [
-            { value: 'playful',   label: 'Maliksi', risk: 'low' },
-            { value: 'lethargic', label: 'Matamlay', risk: 'high' }
+            { value: 'playful',   label: 'Playful & Active', risk: 'low' },
+            { value: 'lethargic', label: 'Lethargic / Weak', risk: 'high' },
+            { value: 'hyper',     label: 'Restless / Hyperactive', risk: 'medium' }
+        ]
+    },
+    respiratory: {
+        label: 'Breathing / Eyes / Nose', icon: 'fa-lungs',
+        options: [
+            { value: 'normal',   label: 'Normal', risk: 'low' },
+            { value: 'sneezing', label: 'Sneezing / Discharge', risk: 'medium' },
+            { value: 'labored',  label: 'Labored breathing', risk: 'high' }
+        ]
+    },
+    grooming: {
+        label: 'Grooming / Coat', icon: 'fa-brush',
+        options: [
+            { value: 'good',      label: 'Clean & well-groomed', risk: 'low' },
+            { value: 'matted',    label: 'Matted / Dull coat', risk: 'medium' },
+            { value: 'excessive', label: 'Over-grooming / Hair loss', risk: 'medium' }
         ]
     }
 };
@@ -50,26 +77,50 @@ const BEHAVIOR_CHECKLIST = {
     socialization: {
         label: 'Socialization', icon: 'fa-users',
         options: [
-            { value: 'friendly',   label: 'Palakaibigan', risk: 'low' },
-            { value: 'shy',        label: 'Mahiyain', risk: 'low' },
-            { value: 'withdrawn',  label: 'Lumalayo', risk: 'medium' },
-            { value: 'aggressive', label: 'Nagagalit', risk: 'high' }
+            { value: 'friendly',   label: 'Friendly & Affectionate', risk: 'low' },
+            { value: 'shy',        label: 'Shy but approaching', risk: 'low' },
+            { value: 'withdrawn',  label: 'Withdrawn / Avoiding', risk: 'medium' },
+            { value: 'aggressive', label: 'Aggressive / Biting', risk: 'high' }
         ]
     },
     hiding: {
-        label: 'Hiding', icon: 'fa-eye-slash',
+        label: 'Hiding Behavior', icon: 'fa-eye-slash',
         options: [
-            { value: 'rarely',    label: 'Bihira', risk: 'low' },
-            { value: 'sometimes', label: 'Minsan', risk: 'medium' },
-            { value: 'frequent',  label: 'Palagi', risk: 'high' }
+            { value: 'rarely',    label: 'Rarely hides', risk: 'low' },
+            { value: 'sometimes', label: 'Sometimes hides', risk: 'medium' },
+            { value: 'frequent',  label: 'Hides all the time', risk: 'high' }
         ]
     },
     anxiety: {
-        label: 'Anxiety', icon: 'fa-heart-pulse',
+        label: 'Anxiety / Stress', icon: 'fa-heart-pulse',
         options: [
-            { value: 'none',   label: 'Wala', risk: 'low' },
-            { value: 'mild',   label: 'Mild', risk: 'medium' },
-            { value: 'severe', label: 'Severe', risk: 'high' }
+            { value: 'none',   label: 'None', risk: 'low' },
+            { value: 'mild',   label: 'Mild (pacing, meowing)', risk: 'medium' },
+            { value: 'severe', label: 'Severe (panic, destructive)', risk: 'high' }
+        ]
+    },
+    destructive: {
+        label: 'Destructive Behavior', icon: 'fa-hammer',
+        options: [
+            { value: 'none',   label: 'None', risk: 'low' },
+            { value: 'mild',   label: 'Mild (scratching furniture)', risk: 'low' },
+            { value: 'severe', label: 'Severe (damaging things)', risk: 'high' }
+        ]
+    },
+    vocalization: {
+        label: 'Vocalization', icon: 'fa-volume-high',
+        options: [
+            { value: 'normal',    label: 'Normal', risk: 'low' },
+            { value: 'excessive', label: 'Excessive meowing/barking', risk: 'medium' },
+            { value: 'hissing',   label: 'Hissing / Growling', risk: 'medium' }
+        ]
+    },
+    sleep: {
+        label: 'Sleep Pattern', icon: 'fa-bed',
+        options: [
+            { value: 'normal',    label: 'Normal', risk: 'low' },
+            { value: 'restless',  label: 'Restless / Awake at night', risk: 'medium' },
+            { value: 'excessive', label: 'Sleeping too much', risk: 'medium' }
         ]
     }
 };
@@ -334,7 +385,7 @@ function renderChecklist(containerId, checklist, storageObj, colorHex, colorBg) 
 }
 
 // ===================================================
-// RISK COMPUTATION & FORMATTING
+// RISK COMPUTATION & FORMATTING (ENGLISH)
 // ===================================================
 function computeRiskLevel(health, behavior) {
     let score = 0;
@@ -369,17 +420,17 @@ function updateRiskPreview() {
         low: {
             cls:  'bg-emerald-50 border-emerald-200 text-emerald-800',
             icon: 'fa-circle-check',
-            msg:  'Low concern — mukhang okay ang pet mo. Salamat sa update!'
+            msg:  'Low concern — your pet seems fine. Thank you for the update!'
         },
         medium: {
             cls:  'bg-amber-50 border-amber-200 text-amber-800',
             icon: 'fa-triangle-exclamation',
-            msg:  'Medium concern — may ilang signs na dapat i-monitor.'
+            msg:  'Medium concern — there are some signs to monitor.'
         },
         high: {
             cls:  'bg-rose-50 border-rose-200 text-rose-800',
             icon: 'fa-circle-exclamation',
-            msg:  'High concern — inirerekomenda ang vet consultation.'
+            msg:  'High concern — vet consultation is recommended.'
         }
     };
     const t = themes[level];

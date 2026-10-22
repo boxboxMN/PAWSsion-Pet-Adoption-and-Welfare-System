@@ -111,7 +111,7 @@
                             </summary>
                             <div class="p-5 pt-0 border-t border-emerald-100/50">
                                 <p class="text-xs text-emerald-700 mb-4 mt-3 leading-relaxed">
-                                    Piliin ang pinaka-angkop na sagot para sa kasalukuyang kalagayan ng iyong alaga.
+                                    Select the most appropriate answer for your pet's current condition.
                                 </p>
                                 <div id="healthChecklistGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
                             </div>
@@ -127,7 +127,7 @@
                             </summary>
                             <div class="p-5 pt-0 border-t border-indigo-100/50">
                                 <p class="text-xs text-indigo-700 mb-4 mt-3 leading-relaxed">
-                                    Obserbahan ang kanyang kilos sa bahay, sa mga tao, at sa ibang alaga.
+                                    Observe their behavior at home, around people, and with other pets.
                                 </p>
                                 <div id="behaviorChecklistGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
                             </div>
@@ -149,12 +149,12 @@
                                     <label class="flex items-center gap-3 cursor-pointer">
                                         <input type="checkbox" id="vetVisitToggle" class="w-5 h-5 rounded text-blue-600" />
                                         <span class="text-sm font-semibold text-slate-700">
-                                            Nakapagpatingin ba sa vet mula noong huling update?
+                                            Have you visited a vet since the last update?
                                         </span>
                                     </label>
                                     <div id="vetVisitFields" class="hidden mt-3 grid grid-cols-1 md:grid-cols-2 gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200">
                                         <div>
-                                            <label class="block text-xs font-semibold text-slate-600 mb-1">Petsa ng Vet Visit</label>
+                                            <label class="block text-xs font-semibold text-slate-600 mb-1">Vet Visit Date</label>
                                             <input type="date" id="vetVisitDate" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white" />
                                         </div>
                                         <div>
@@ -167,7 +167,7 @@
 
                                 <div class="mt-4">
                                     <label class="block text-sm font-semibold text-slate-700 mb-2">Concerns / Questions for the org</label>
-                                    <textarea id="petConcerns" rows="2" placeholder="May concern ka bang gusto i-raise?"
+                                    <textarea id="petConcerns" rows="2" placeholder="Do you have any concerns you'd like to raise?"
                                         class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm resize-none bg-slate-50/50"></textarea>
                                 </div>
                             </div>
@@ -234,7 +234,7 @@
         </div>
     </div>
 
-    <!-- HISTORY / POSTS MODAL (UPDATED WITH FILTERS) -->
+    <!-- HISTORY / POSTS MODAL -->
     <div id="historyModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center z-50 p-4 overflow-y-auto">
         <div class="bg-white rounded-3xl p-6 md:p-8 max-w-3xl w-full shadow-2xl border border-slate-100 transform transition-all my-8 max-h-[85vh] flex flex-col">
             
@@ -298,7 +298,7 @@
             <form id="editKamustahanForm" class="space-y-4">
                 <input type="hidden" id="editUpdateId" name="update_id">
                 
-                <!-- BAGONG DISPLAY BOX PARA SA CHECKLIST AT VET -->
+                <!-- DISPLAY BOX PARA SA CHECKLIST AT VET -->
                 <div id="editDetailsDisplay" class="bg-slate-50 border border-slate-200 rounded-2xl p-4 mb-2">
                     <!-- Dito ilalagay ng JS yung mga sagot -->
                 </div>
