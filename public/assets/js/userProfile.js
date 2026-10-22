@@ -686,7 +686,7 @@ async function saveProfile() {
             'Please enter your birthday.',
             'error'
         );
-    return;
+        return;
     }
 
     // 18+ Age Validation
@@ -695,7 +695,7 @@ async function saveProfile() {
     let age = today.getFullYear() - birthDate.getFullYear();
     const monthDiff = today.getMonth() - birthDate.getMonth();
     if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-    age--;
+        age--;
     }
     if (age < 18) {
         showProfileModal(

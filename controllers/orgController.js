@@ -496,7 +496,7 @@ exports.updatePet = async (req, res) => {
             });
         }
 
-         // ==========================================
+        // ==========================================
         // SAVE ADOPTER DETAILS IF ADOPTED
         // ==========================================
         if (adoption_status === "Adopted" && req.body.adopter_full_name) {
@@ -1088,7 +1088,6 @@ exports.getPaymentInfo = async (req, res) => {
     }
 };
 
-
 exports.updatePaymentInfo = async (req, res) => {
     try {
 
@@ -1624,7 +1623,7 @@ exports.updatePaymentInfo = async (req, res) => {
                 dropoffImageFile;
         }
 
-         // =====================================================
+        // =====================================================
         // Kung may laman ang alinman sa In-Kind fields,
         // dapat kumpleto lahat maliban sa Notes
         // =====================================================

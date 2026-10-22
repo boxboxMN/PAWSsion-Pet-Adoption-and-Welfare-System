@@ -222,7 +222,7 @@ router.post(
 router.post("/api/user/profile/update", checkUserSession, userController.updateProfile);
 router.post("/api/user/profile/password", checkUserSession, userController.updatePassword);
 router.post("/api/user/profile/verify-password", checkUserSession, userController.verifyPassword);
-router.post("/api/user/profile/avatar", checkUserSession, upload.single("avatar"), userController.updateAvatar);
+// router.post("/api/user/profile/avatar", checkUserSession, upload.single("avatar"), userController.updateAvatar);
 router.post(
   "/api/user/profile/avatar",
   checkUserSession,

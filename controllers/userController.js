@@ -898,7 +898,9 @@ exports.getAvailablePets = async (req, res) => {
         });
 
     }
-};exports.getOrganizations = async (req, res) => {
+};
+
+exports.getOrganizations = async (req, res) => {
     try {
         const [organizations] = await pool.query(`
             SELECT
@@ -954,7 +956,7 @@ exports.getAvailablePets = async (req, res) => {
                 ...org,
                 profile_pic: profilePic,
                 qr_code: qrCode,
-                maya_qr_code: mayaQrCode, // Isinama na sa returned object
+                maya_qr_code: mayaQrCode,
                 dropoff_image: dropoffImg
             };
         });
@@ -1137,24 +1139,25 @@ exports.getUserDonations = async (req, res) => {
             WHERE c.adopter_id = ? OR c.donor_email = ?
             ORDER BY c.created_at DESC
         `, [adopterId, userEmail]);
-
+        
+        // 2. Fetch In-Kind Donations (Direkta mula sa inkind_donations table)
         const [inkindRows] = await pool.query(`
-    SELECT 
-        i.inkind_donation_id AS id,
-        i.created_at AS date,
-        'In-Kind' AS type,
-        o.organization_name AS organization,
-        i.item_name,
-        i.quantity,
-        i.unit,
-        i.proof_image_path,
-        i.status,
-        i.rejection_reason
-    FROM inkind_donations i
-    LEFT JOIN organizations o ON i.organization_id = o.organization_id
-    WHERE i.adopter_id = ? OR i.donor_email = ?
-    ORDER BY i.created_at DESC
-`, [adopterId, userEmail]);
+            SELECT 
+                i.inkind_donation_id AS id,
+                i.created_at AS date,
+                'In-Kind' AS type,
+                o.organization_name AS organization,
+                i.item_name,
+                i.quantity,
+                i.unit,
+                i.proof_image_path,
+                i.status,
+                i.rejection_reason
+            FROM inkind_donations i
+            LEFT JOIN organizations o ON i.organization_id = o.organization_id
+            WHERE i.adopter_id = ? OR i.donor_email = ?
+            ORDER BY i.created_at DESC
+        `, [adopterId, userEmail]);
 
         // 3. Pagsamahin at i-sort ayon sa petsa
         const allDonations = [...cashRows, ...inkindRows].sort(
@@ -2167,49 +2170,49 @@ exports.getKamustahanHistory = async (req, res) => {
     }
 };
 // I-update din ang getKamustahanHistory para makuha ang created_at timestamp
-exports.getKamustahanHistory = async (req, res) => {
-    const accountId = req.session?.accountId;
-    if (!accountId) {
-        return res.status(401).json({ success: false, error: "Unauthorized access." });
-    }
+// exports.getKamustahanHistory = async (req, res) => {
+//     const accountId = req.session?.accountId;
+//     if (!accountId) {
+//         return res.status(401).json({ success: false, error: "Unauthorized access." });
+//     }
 
-    try {
-        const [adopterRows] = await pool.query(
-            `SELECT adopter_id FROM adopters WHERE account_id = ? LIMIT 1`,
-            [accountId]
-        );
+//     try {
+//         const [adopterRows] = await pool.query(
+//             `SELECT adopter_id FROM adopters WHERE account_id = ? LIMIT 1`,
+//             [accountId]
+//         );
 
-        if (!adopterRows.length) {
-            return res.status(404).json({ success: false, error: "Adopter profile not found." });
-        }
+//         if (!adopterRows.length) {
+//             return res.status(404).json({ success: false, error: "Adopter profile not found." });
+//         }
 
-        const adopterId = adopterRows[0].adopter_id;
+//         const adopterId = adopterRows[0].adopter_id;
 
-        const [updates] = await pool.query(`
-            SELECT 
-                k.update_id,
-                k.update_date,
-                k.update_text,
-                k.photos,
-                k.status,
-                k.created_at,
-                a.name AS pet_name
-            FROM kamustahan_updates k
-            JOIN animals a ON k.animal_id = a.animal_id
-            WHERE k.adopter_id = ?
-            ORDER BY k.created_at DESC
-        `, [adopterId]);
+//         const [updates] = await pool.query(`
+//             SELECT 
+//                 k.update_id,
+//                 k.update_date,
+//                 k.update_text,
+//                 k.photos,
+//                 k.status,
+//                 k.created_at,
+//                 a.name AS pet_name
+//             FROM kamustahan_updates k
+//             JOIN animals a ON k.animal_id = a.animal_id
+//             WHERE k.adopter_id = ?
+//             ORDER BY k.created_at DESC
+//         `, [adopterId]);
 
-        return res.json({
-            success: true,
-            updates: updates
-        });
+//         return res.json({
+//             success: true,
+//             updates: updates
+//         });
 
-    } catch (error) {
-        console.error("Get History Error:", error);
-        return res.status(500).json({ success: false, error: "Failed to load history." });
-    }
-};
+//     } catch (error) {
+//         console.error("Get History Error:", error);
+//         return res.status(500).json({ success: false, error: "Failed to load history." });
+//     }
+// };
 
 //check if there are any due kamustahan reminders for the user and create notifications if needed (new added)
 async function checkKamustahanRemindersDue(accountId) {
