@@ -89,6 +89,8 @@ function getStatusClass(status) {
             return "scheduled";
         case "Approved":
             return "success";
+        case "Received":
+            return "success";
         case "Declined":
             return "declined";
         case "Cancelled":
@@ -147,64 +149,64 @@ async function loadApplications() {
         // ---------------------------------------------
         applications = data.applications.map(app => {
             // 1. I-parse ang JSON string mula sa applicant_snapshot
-        let snap = {};
-        if (app.applicant_snapshot) {
-            try {
-                snap = typeof app.applicant_snapshot === 'string' 
-                    ? JSON.parse(app.applicant_snapshot) 
-                    : app.applicant_snapshot;
-            } catch (e) {
-                console.error("Error parsing snapshot:", e);
+            let snap = {};
+            if (app.applicant_snapshot) {
+                try {
+                    snap = typeof app.applicant_snapshot === 'string' 
+                        ? JSON.parse(app.applicant_snapshot) 
+                        : app.applicant_snapshot;
+                } catch (e) {
+                    console.error("Error parsing snapshot:", e);
+                }
             }
-        }
 
-        return {
-            id: app.application_id,
-            petId: app.animal_id,
-            petName: app.pet_name || "Unknown Pet",
-            species: app.species || "N/A",
-            gender: app.gender || "N/A",
-            petAge: app.pet_age || "N/A",
-            petAdoptionStatus: app.pet_adoption_status || "Available",
-            image: app.image_path ? `/uploads/pets/${app.image_path}` : "/assets/images/no-image.png",
-            organization: app.organization_name || "Unknown Organization",
-            organizationId: app.organization_id || app.org_id || null, 
-            status: app.status === "Pending" ? "Under Review" : (app.status || "Under Review"),
-            date: formatDate(app.created_at),
-            rawDate: app.created_at,
+            return {
+                id: app.application_id,
+                petId: app.animal_id,
+                petName: app.pet_name || "Unknown Pet",
+                species: app.species || "N/A",
+                gender: app.gender || "N/A",
+                petAge: app.pet_age || "N/A",
+                petAdoptionStatus: app.pet_adoption_status || "Available",
+                image: app.image_path ? `/uploads/pets/${app.image_path}` : "/assets/images/no-image.png",
+                organization: app.organization_name || "Unknown Organization",
+                organizationId: app.organization_id || app.org_id || null, 
+                status: app.status === "Pending" ? "Under Review" : (app.status || "Under Review"),
+                date: formatDate(app.created_at),
+                rawDate: app.created_at,
 
-            
-            // Applicant Info mula sa Form
-            applicant: {
-                fullName: snap.full_name || snap.fullName || app.full_name || '—',
-                phone: snap.contact_number || snap.phone || snap.contactNumber || app.contact_number || '—',
-                email: snap.email || app.email || '—',
-                address: snap.full_address || snap.address || snap.fullAddress || app.full_address || '—',
-                civilStatus: snap.civil_status || snap.civilStatus || app.civil_status || '—',
-                age: snap.age || app.age || '—',
-                occupation: snap.occupation || app.occupation || '—'
-            },
-            intent: app.adoption_intent,
-            emergency: {
-                name: app.emergency_name,
-                phone: app.emergency_phone,
-                relation: app.emergency_relation
-            },
-            documentPath: app.document_path,
-            declineReason: app.decline_reason,
-            meetupLocation: app.meetup_location,
-            interview: {
-                date: app.interview_date,
-                time: app.interview_time,
-                method: app.interview_method,
-                locationLink: app.interview_location_link,
-                requestedDate: app.requested_interview_date,
-                requestedTime: app.requested_interview_time,
-                reschedReason: app.reschedule_reason,
-                reschedStatus: app.resched_status
-            }
-        };
-    });
+                
+                // Applicant Info mula sa Form
+                applicant: {
+                    fullName: snap.full_name || snap.fullName || app.full_name || '—',
+                    phone: snap.contact_number || snap.phone || snap.contactNumber || app.contact_number || '—',
+                    email: snap.email || app.email || '—',
+                    address: snap.full_address || snap.address || snap.fullAddress || app.full_address || '—',
+                    civilStatus: snap.civil_status || snap.civilStatus || app.civil_status || '—',
+                    age: snap.age || app.age || '—',
+                    occupation: snap.occupation || app.occupation || '—'
+                },
+                intent: app.adoption_intent,
+                emergency: {
+                    name: app.emergency_name,
+                    phone: app.emergency_phone,
+                    relation: app.emergency_relation
+                },
+                documentPath: app.document_path,
+                declineReason: app.decline_reason,
+                meetupLocation: app.meetup_location,
+                interview: {
+                    date: app.interview_date,
+                    time: app.interview_time,
+                    method: app.interview_method,
+                    locationLink: app.interview_location_link,
+                    requestedDate: app.requested_interview_date,
+                    requestedTime: app.requested_interview_time,
+                    reschedReason: app.reschedule_reason,
+                    reschedStatus: app.resched_status
+                }
+            };
+        });
         // ---------------------------------------------
         // RENDER
         // ---------------------------------------------
@@ -232,7 +234,14 @@ function renderTable() {
     // ---------------------------------------------
     // FILTER BY STATUS
     // ---------------------------------------------
-    const filtered = applications.filter(app => app.status === currentTab);
+    // const filtered = applications.filter(app => app.status === currentTab);
+    const filtered = applications.filter(app => {
+        if (currentTab === "Approved") {
+            return ["Approved", "Received"].includes(app.status);
+        }
+    
+        return app.status === currentTab;
+    });
 
     // ---------------------------------------------
     // NO RESULTS
