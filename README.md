@@ -786,3 +786,25 @@ CREATE TABLE profile_email_change_otps (
     INDEX idx_profile_email_change_account (account_id),
     INDEX idx_profile_email_change_email (email)
 );
+
+# db for adoption org checklist:
+
+CREATE TABLE adoption_qualification_checklists (
+    checklist_id INT(11) NOT NULL AUTO_INCREMENT,
+    application_id INT(11) NOT NULL,
+    checklist_data LONGTEXT NOT NULL,
+    notes TEXT DEFAULT NULL,
+    updated_at TIMESTAMP NOT NULL
+        DEFAULT CURRENT_TIMESTAMP
+        ON UPDATE CURRENT_TIMESTAMP,
+
+    PRIMARY KEY (checklist_id),
+    UNIQUE KEY unique_application_checklist (application_id),
+    CONSTRAINT fk_qualification_application
+        FOREIGN KEY (application_id)
+        REFERENCES user_adoption_applications (application_id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
+) ENGINE=InnoDB
+  DEFAULT CHARSET=utf8mb4
+  COLLATE=utf8mb4_general_ci;
