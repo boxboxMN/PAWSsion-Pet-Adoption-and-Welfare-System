@@ -907,6 +907,14 @@ app.get('/api/organization/applications', async (req, res) => {
 
         const [rows] = await pool.query(query, [orgId]);
 
+        console.log(
+            "Application statuses from database:",
+            rows.map(app => ({
+                id: app.id,
+                status: app.status
+            }))
+        );
+
         // 3. MAP FUNCTION: I-parse ang JSON snapshot para sa bawat application record
         const formattedApplications = rows.map(app => {
             let snapshot = {};

@@ -380,7 +380,10 @@ router.patch('/applications/:id/status', async (req, res) => {
         const { id } = req.params;
         const { status, decline_reason, meetup_location } = req.body;
 
-        const validStatuses = ['Under Review', 'Interview Scheduled', 'Approved', 'Declined'];
+        console.log("Application ID:", id);
+        console.log("Requested status:", status);
+
+        const validStatuses = ['Under Review', 'Interview Scheduled', 'Post-Interview Review', 'Approved', 'Declined'];
 
         if (!status || !validStatuses.includes(status)) {
             connection.release();
@@ -412,7 +415,7 @@ router.patch('/applications/:id/status', async (req, res) => {
 
         // Get the animal_id of the pet from the application 
         const [appRows] = await connection.query(
-            `SELECT animal_id FROM user_adoption_applications WHERE application_id = ?`,
+            `SELECT animal_id, status FROM user_adoption_applications WHERE application_id = ?`,
             [id]
         );
 
@@ -422,6 +425,18 @@ router.patch('/applications/:id/status', async (req, res) => {
             return res.status(404).json({ 
                 success: false, 
                 message: "Application not found." 
+            });
+        }
+
+        // Only allow completing an interview that is currently scheduled
+        if (status === 'Post-Interview Review' && appRows[0].status !== 'Interview Scheduled') 
+        {
+            await connection.rollback();
+            connection.release();
+
+            return res.status(400).json({
+                success: false,
+                message: 'Only applications with a scheduled interview can be marked as post-interview.'
             });
         }
 
@@ -440,6 +455,8 @@ router.patch('/applications/:id/status', async (req, res) => {
 
         const [result] = await connection.query(updateQuery, [status, reasonValue, id]);
 
+        console.log("Database update result:", result);
+        
         if (result.affectedRows === 0) {
             await connection.rollback();
             connection.release();

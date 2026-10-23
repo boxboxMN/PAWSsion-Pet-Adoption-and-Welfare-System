@@ -155,7 +155,7 @@ function populateDetailsUI(app) {
     const statusBadge = document.getElementById("appStatusBadge");
 
     if (statusBadge) {
-        if (hasInterviewSchedule && isPastInterview && !["approved", "declined", "rejected"].includes(lowerStatus)) {
+        if (lowerStatus === "post-interview review") {
             statusBadge.textContent = "Post-Interview Review";
             statusBadge.className = "inline-flex px-4 py-1.5 rounded-full text-sm font-medium bg-purple-100 text-purple-700 border border-purple-200";
         } else {
@@ -207,7 +207,7 @@ function populateDetailsUI(app) {
         }
     }
 
-    // SINGLE "FINISH INTERVIEW" BUTTON: dynamic label/behavior depende sa status
+    // DYNAMIC INTERVIEW BUTTON BASED ON APPLICATION STATUS
     if (reviewDecisionBtn) {
         if (isDeclined) {
             reviewDecisionBtn.disabled = false;
@@ -219,11 +219,21 @@ function populateDetailsUI(app) {
             reviewDecisionBtn.textContent = "Approved";
             reviewDecisionBtn.className = "px-5 py-2.5 rounded-xl bg-emerald-100 text-emerald-700 text-sm font-semibold cursor-not-allowed opacity-80";
             reviewDecisionBtn.onclick = null;
-        } else {
+        } else if (lowerStatus === "interview scheduled") {
             reviewDecisionBtn.disabled = shouldDisable;
-            reviewDecisionBtn.textContent = "Finish Interview";
+            reviewDecisionBtn.textContent = "Done Interview";
             reviewDecisionBtn.className = "px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition shadow-md shadow-blue-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-blue-600";
+            reviewDecisionBtn.onclick = handleDoneInterview;
+        } else if (lowerStatus === "post-interview review") {
+            reviewDecisionBtn.disabled = false;
+            reviewDecisionBtn.textContent = "Review Decision";
+            reviewDecisionBtn.className = "px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition shadow-md cursor-pointer";
             reviewDecisionBtn.onclick = handleReviewDecision;
+        } else {
+            reviewDecisionBtn.disabled = true;
+            reviewDecisionBtn.textContent = "Review Decision";
+            reviewDecisionBtn.className = "px-5 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-semibold cursor-not-allowed opacity-50";
+            reviewDecisionBtn.onclick = null;
         }
     }
 
@@ -284,7 +294,8 @@ function populateDetailsUI(app) {
 
 // ================= CHECK IF INTERVIEW IS INCOMPLETE =================
 function isInterviewIncomplete() {
-if (!currentAppDetails || !currentAppDetails.interview_date) return false;
+// if (!currentAppDetails || !currentAppDetails.interview_date) return false;
+if (!currentAppDetails || !currentAppDetails.interview_date) return true;
 
 const now = new Date();
 let schedDate;
@@ -306,6 +317,74 @@ if (currentAppDetails.interview_time) {
 }
 
 return now < schedDate;
+}
+
+// checks if the interview is scheduled and if the current time is before the scheduled interview time
+async function handleDoneInterview() {
+    if (!currentAppId || !currentAppDetails) {
+        return Swal.fire({
+            icon: "warning",
+            title: "Attention",
+            text: "No application selected.",
+            confirmButtonColor: "#2563EB"
+        });
+    }
+
+    const currentStatus = (
+        currentAppDetails.status || ""
+    ).toLowerCase();
+
+    // Only scheduled interviews can be marked as completed
+    if (currentStatus !== "interview scheduled") {
+        return Swal.fire({
+            icon: "warning",
+            title: "Invalid Status",
+            text: "Only applications with a scheduled interview can be marked as completed.",
+            confirmButtonColor: "#2563EB"
+        });
+    }
+
+    // Prevent marking the interview as done before its scheduled time
+    if (isInterviewIncomplete()) {
+        return Swal.fire({
+            icon: "warning",
+            title: "Interview Not Yet Finished",
+            text: "You can mark the interview as done after its scheduled date and time.",
+            confirmButtonColor: "#2563EB"
+        });
+    }
+
+    const result = await Swal.fire({
+        icon: "question",
+        title: "Finish Interview?",
+        text: "Mark this interview as completed and move the application to Post-Interview Review?",
+        showCancelButton: true,
+        confirmButtonText: "Yes, Done Interview",
+        cancelButtonText: "Cancel",
+        confirmButtonColor: "#2563EB"
+    });
+
+    if (!result.isConfirmed) return;
+
+    const btn = document.getElementById("reviewDecisionBtn");
+
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = "Updating...";
+    }
+
+    try {
+        await updateStatus(
+            currentAppId,
+            "Post-Interview Review"
+        );
+    } finally {
+        // Restore the button if the request fails
+        // or the status has not changed yet.
+        if (btn) {
+            btn.disabled = false;
+        }
+    }
 }
 
 // ================= REVIEW DECISION (post-interview hub) =================
@@ -339,31 +418,44 @@ function handleDecline() {
     }
 
     // CHECK: Huwag payagan kung hindi pa tapos ang interview
-    if (currentAppDetails) {
-        const lowerStatus = (currentAppDetails.status || "").toLowerCase();
-        const isUnderReview = lowerStatus.includes("under review") || lowerStatus.includes("pending") || !lowerStatus.includes("interview");
+    // if (currentAppDetails) {
+    //     const lowerStatus = (currentAppDetails.status || "").toLowerCase();
+    //     const isUnderReview = lowerStatus.includes("under review") || lowerStatus.includes("pending") || !lowerStatus.includes("interview");
         
-        let isPast = false;
-        if (currentAppDetails.interview_date) {
-            const now = new Date();
-            const interviewDateTime = new Date(currentAppDetails.interview_date);
-            if (currentAppDetails.interview_time) {
-                const [h, m] = currentAppDetails.interview_time.split(':');
-                interviewDateTime.setHours(parseInt(h, 10), parseInt(m, 10), 0, 0);
-            } else {
-                interviewDateTime.setHours(23, 59, 59, 999);
-            }
-            if (now > interviewDateTime) isPast = true;
-        }
+    //     let isPast = false;
+    //     if (currentAppDetails.interview_date) {
+    //         const now = new Date();
+    //         const interviewDateTime = new Date(currentAppDetails.interview_date);
+    //         if (currentAppDetails.interview_time) {
+    //             const [h, m] = currentAppDetails.interview_time.split(':');
+    //             interviewDateTime.setHours(parseInt(h, 10), parseInt(m, 10), 0, 0);
+    //         } else {
+    //             interviewDateTime.setHours(23, 59, 59, 999);
+    //         }
+    //         if (now > interviewDateTime) isPast = true;
+    //     }
 
-        if (isUnderReview || (currentAppDetails.interview_date && !isPast)) {
-            return Swal.fire({
-                icon: 'warning',
-                title: 'Action Restricted',
-                text: 'Hindi maaring i-decline ang application habang naka-Under Review pa o habang may ongoing/upcoming interview schedule.',
-                confirmButtonColor: '#2563EB'
-            });
-        }
+    //     if (isUnderReview || (currentAppDetails.interview_date && !isPast)) {
+    //         return Swal.fire({
+    //             icon: 'warning',
+    //             title: 'Action Restricted',
+    //             text: 'Hindi maaring i-decline ang application habang naka-Under Review pa o habang may ongoing/upcoming interview schedule.',
+    //             confirmButtonColor: '#2563EB'
+    //         });
+    //     }
+    // }
+    
+    // Only allow declining after the interview is marked complete
+    if (
+        !currentAppDetails ||
+        (currentAppDetails.status || "").toLowerCase() !== "post-interview review"
+    ) {
+        return Swal.fire({
+            icon: "warning",
+            title: "Action Restricted",
+            text: "You can only decline an application after marking the interview as done.",
+            confirmButtonColor: "#2563EB"
+        });
     }
 
     const modal = document.getElementById("declineModal");
@@ -430,31 +522,43 @@ async function handleApprove() {
     }
 
     // CHECK: Huwag payagan kung hindi pa tapos ang interview
-    if (currentAppDetails) {
-        const lowerStatus = (currentAppDetails.status || "").toLowerCase();
-        const isUnderReview = lowerStatus.includes("under review") || lowerStatus.includes("pending") || !lowerStatus.includes("interview");
+    // if (currentAppDetails) {
+    //     const lowerStatus = (currentAppDetails.status || "").toLowerCase();
+    //     const isUnderReview = lowerStatus.includes("under review") || lowerStatus.includes("pending") || !lowerStatus.includes("interview");
         
-        let isPast = false;
-        if (currentAppDetails.interview_date) {
-            const now = new Date();
-            const interviewDateTime = new Date(currentAppDetails.interview_date);
-            if (currentAppDetails.interview_time) {
-                const [h, m] = currentAppDetails.interview_time.split(':');
-                interviewDateTime.setHours(parseInt(h, 10), parseInt(m, 10), 0, 0);
-            } else {
-                interviewDateTime.setHours(23, 59, 59, 999);
-            }
-            if (now > interviewDateTime) isPast = true;
-        }
+    //     let isPast = false;
+    //     if (currentAppDetails.interview_date) {
+    //         const now = new Date();
+    //         const interviewDateTime = new Date(currentAppDetails.interview_date);
+    //         if (currentAppDetails.interview_time) {
+    //             const [h, m] = currentAppDetails.interview_time.split(':');
+    //             interviewDateTime.setHours(parseInt(h, 10), parseInt(m, 10), 0, 0);
+    //         } else {
+    //             interviewDateTime.setHours(23, 59, 59, 999);
+    //         }
+    //         if (now > interviewDateTime) isPast = true;
+    //     }
 
-        if (isUnderReview || (currentAppDetails.interview_date && !isPast)) {
-            return Swal.fire({
-                icon: 'warning',
-                title: 'Action Restricted',
-                text: 'Hindi maaring i-approve ang application habang naka-Under Review pa o habang may ongoing/upcoming interview schedule.',
-                confirmButtonColor: '#2563EB'
-            });
-        }
+    //     if (isUnderReview || (currentAppDetails.interview_date && !isPast)) {
+    //         return Swal.fire({
+    //             icon: 'warning',
+    //             title: 'Action Restricted',
+    //             text: 'Hindi maaring i-approve ang application habang naka-Under Review pa o habang may ongoing/upcoming interview schedule.',
+    //             confirmButtonColor: '#2563EB'
+    //         });
+    //     }
+    // }
+    // Only allow approval after the interview is marked complete
+    if (
+        !currentAppDetails ||
+        (currentAppDetails.status || "").toLowerCase() !== "post-interview review"
+    ) {
+        return Swal.fire({
+            icon: "warning",
+            title: "Action Restricted",
+            text: "You can only approve an application after marking the interview as done.",
+            confirmButtonColor: "#2563EB"
+        });
     }
 
     // Auto-fill ang Meet-up Location gamit ang naka-save na address ng organization,
@@ -526,7 +630,7 @@ async function updateStatus(appId, status, reason = null, meetupLocation = null)
                 text: data.message || `Application status updated to ${status}.`,
                 confirmButtonColor: '#2563EB'
             });
-            fetchApplicationDetail(appId);
+            await fetchApplicationDetail(appId);
         } else {
             Swal.fire({
                 icon: 'error',
