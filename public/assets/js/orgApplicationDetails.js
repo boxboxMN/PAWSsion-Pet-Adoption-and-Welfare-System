@@ -186,6 +186,22 @@ function populateDetailsUI(app) {
     const isCancelled = lowerStatus.includes("cancelled"); // Check kung kinansela ng adopter
     const isFinalized = isApproved || isDeclined || isCancelled;
 
+    // Disable checklist only for declined or cancelled applications
+    const qualificationChecklistBtn = document.getElementById("qualificationChecklistBtn");
+    const isChecklistLocked = isDeclined || isCancelled;
+
+    if (qualificationChecklistBtn) {
+        qualificationChecklistBtn.disabled = isChecklistLocked;
+
+        qualificationChecklistBtn.title = isChecklistLocked
+            ? "The checklist is unavailable for declined or cancelled applications."
+            : "Open Adopter Qualification Checklist";
+
+        qualificationChecklistBtn.classList.toggle("opacity-50", isChecklistLocked);
+        qualificationChecklistBtn.classList.toggle("cursor-not-allowed", isChecklistLocked);
+        qualificationChecklistBtn.classList.toggle("pointer-events-none", isChecklistLocked);
+    }
+
     // Awtomatikong magiging true (disabled) kung:
     // - Naka-Under Review o Pending pa ang status, O
     // - Walang interview schedule, O
@@ -1730,6 +1746,23 @@ const qualificationChecklistSections = [
                 label: "Has a lifestyle and activity level compatible with this pet's needs."
             }
         ]
+    },
+    {
+        title: "9. Health-Related Considerations and Pet-Care Planning",
+        items: [
+            {
+                id: "care_continuity",
+                label: "Has a plan to maintain the pet's daily care if temporarily unable to provide it."
+            },
+            {
+                id: "support_arrangements",
+                label: "Has considered trusted support or alternative caregiving arrangements when needed."
+            },
+            {
+                id: "care_support_needs",
+                label: "Has considered any assistance or arrangements needed to provide consistent care for the pet."
+            }
+        ]
     }
 ];
 
@@ -1830,6 +1863,7 @@ async function openQualificationChecklist() {
     }
 
     modal.classList.remove("hidden");
+    document.body.style.overflow = "hidden"; 
 
     // Show applicant and pet details using the currently loaded application.
     const applicantName = document.getElementById("checklistApplicantName");
@@ -1927,6 +1961,7 @@ function closeQualificationChecklist() {
 
     if (modal) {
         modal.classList.add("hidden");
+        document.body.style.overflow = ""; 
     }
 }
 
