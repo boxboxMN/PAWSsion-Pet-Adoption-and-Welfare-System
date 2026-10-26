@@ -1965,27 +1965,18 @@ exports.getApprovedAdoptedPets = async (req, res) => {
     }
 
     try {
-        // I-log natin ang accountId para ma-check sa console
-        console.log("Fetching pets for accountId:", accountId);
-
         const [adopterRows] = await pool.query(
             `SELECT adopter_id FROM adopters WHERE account_id = ? LIMIT 1`,
             [accountId]
         );
 
         if (!adopterRows.length) {
-            console.log("No adopter record found for this account.");
             return res.status(404).json({ success: false, error: "Adopter profile not found." });
         }
 
         const adopterId = adopterRows[0].adopter_id;
-        console.log("Found adopter_id:", adopterId);
 
-        // BAGONG QUERY: 
-        //  - UPPER(status) = 'APPROVED' para iwas case-sensitivity
-        //  - NOT EXISTS ... = 'COMPLETED' para mawala lang sa listahan
-        //    ANG MGA PET NA TALAGANG NAKUHA NA NG ORG
-        //    (Pending / Approved / Rejected returns → pet stays visible)
+        // ⭐ Tinanggal ang pet_returns check dahil wala na ang feature na ito
         const [pets] = await pool.query(`
             SELECT DISTINCT
                 a.animal_id,
@@ -1997,16 +1988,7 @@ exports.getApprovedAdoptedPets = async (req, res) => {
             JOIN animals a ON app.animal_id = a.animal_id
             WHERE app.adopter_id = ? 
               AND UPPER(app.status) IN ('APPROVED', 'RECEIVED')
-              AND NOT EXISTS (
-                  SELECT 1 
-                  FROM pet_returns pr
-                  WHERE pr.animal_id = a.animal_id
-                    AND pr.adopter_id = app.adopter_id
-                    AND UPPER(pr.status) = 'COMPLETED'
-              )
         `, [adopterId]);
-
-        console.log("Pets found:", pets); // I-check sa console kung may laman ang pets array
 
         return res.json({
             success: true,
@@ -2016,6 +1998,43 @@ exports.getApprovedAdoptedPets = async (req, res) => {
     } catch (error) {
         console.error("Get Approved Adopted Pets Error:", error);
         return res.status(500).json({ success: false, error: "Server error." });
+    }
+};
+exports.getKamustahanDue = async (req, res) => {
+    try {
+        const [adopterRows] = await pool.query(
+            `SELECT adopter_id FROM adopters WHERE account_id = ?`,
+            [req.session.accountId]
+        );
+
+        if (!adopterRows.length) {
+            return res.json({ success: true, dueUpdates: [] });
+        }
+
+        const adopterId = adopterRows[0].adopter_id;
+
+        // ⭐ Tinanggal ang "<= CURDATE()" para makuha LAHAT ng active schedules
+        const [updates] = await pool.query(`
+            SELECT ku.update_id, ku.animal_id, ku.scheduled_date, a.name AS pet_name
+            FROM kamustahan_updates ku
+            JOIN animals a ON ku.animal_id = a.animal_id
+            WHERE ku.adopter_id = ?
+              AND ku.status = 'For Update'
+              AND ku.is_archived = 0
+              AND ku.scheduled_date IS NOT NULL
+              AND EXISTS (
+                  SELECT 1 FROM user_adoption_applications app
+                  WHERE app.animal_id = ku.animal_id
+                    AND app.adopter_id = ku.adopter_id
+                    AND UPPER(app.status) IN ('APPROVED', 'RECEIVED')
+              )
+            ORDER BY ku.scheduled_date ASC
+        `, [adopterId]);
+
+        res.json({ success: true, dueUpdates: updates });
+    } catch (error) {
+        console.error("Get Kamustahan Due Error:", error);
+        res.status(500).json({ success: false, message: "Server error." });
     }
 };
 exports.submitKamustahanUpdate = async (req, res) => {
@@ -2040,16 +2059,22 @@ exports.submitKamustahanUpdate = async (req, res) => {
         const adopterId = adopterRows[0].adopter_id;
 
         // ==========================================
-        // 2. EXTRACT BODY FIELDS (existing + new)
+        // 2. EXTRACT BODY FIELDS
         // ==========================================
         const {
             animal_id, organization_id, update_text,
             health_checklist, behavior_checklist,
             vet_visit, vet_visit_date, vet_diagnosis,
-            weight_kg, concerns, risk_level
+            weight_kg, concerns
         } = req.body;
 
-        const photoPath = req.file ? `/uploads/kamustahan/${req.file.filename}` : '';
+       
+let photoPaths = [];
+if (req.files && req.files.length > 0) {
+
+    photoPaths = req.files.map(file => `/uploads/kamustahan/${file.filename}`);
+}
+const photoPath = JSON.stringify(photoPaths); 
 
         if (!animal_id || !organization_id || !update_text) {
             return res.status(400).json({ success: false, error: "Please fill in all required fields." });
@@ -2107,9 +2132,8 @@ exports.submitKamustahanUpdate = async (req, res) => {
         }
 
         // ==========================================
-        // 5. SANITIZE NEW FIELDS
+        // 5. SANITIZE FIELDS
         // ==========================================
-        // Basic JSON validation — reject kung hindi array/object
         let cleanHealthChecklist   = null;
         let cleanBehaviorChecklist = null;
 
@@ -2138,10 +2162,6 @@ exports.submitKamustahanUpdate = async (req, res) => {
                 console.warn("Invalid behavior_checklist JSON:", e.message);
             }
         }
-
-        // Risk level: trust client but restrict to allowed values
-        const allowedRisk = ['low', 'medium', 'high'];
-        const cleanRiskLevel = allowedRisk.includes(risk_level) ? risk_level : 'low';
 
         // Vet visit: strict 0/1
         const cleanVetVisit = (vet_visit === '1' || vet_visit === 1 || vet_visit === true) ? 1 : 0;
@@ -2177,9 +2197,7 @@ exports.submitKamustahanUpdate = async (req, res) => {
                 vet_visit            = ?,
                 vet_visit_date       = ?,
                 vet_diagnosis        = ?,
-                weight_kg            = ?,
                 concerns             = ?,
-                risk_level           = ?,
                 status               = 'Pending',
                 consultation_status  = 'awaiting_org',
                 created_at           = NOW()
@@ -2192,9 +2210,7 @@ exports.submitKamustahanUpdate = async (req, res) => {
             cleanVetVisit,
             cleanVetDate,
             cleanVetDiagnosis,
-            cleanWeight,
             cleanConcerns,
-            cleanRiskLevel,
             updateId
         ]);
 
@@ -2212,7 +2228,6 @@ exports.submitKamustahanUpdate = async (req, res) => {
         );
 
         if (orgAccountKamustahan) {
-            // Standard notification
             await createNotification(
                 orgAccountKamustahan.account_id,
                 "New Kamustahan Update",
@@ -2220,17 +2235,6 @@ exports.submitKamustahanUpdate = async (req, res) => {
                 "kamustahan_submitted",
                 "/org/kamustahan"
             );
-
-            // 🚨 URGENT notification kung HIGH RISK
-            if (cleanRiskLevel === 'high') {
-                await createNotification(
-                    orgAccountKamustahan.account_id,
-                    "⚠️ HIGH RISK Kamustahan Update",
-                    "An adopter flagged a high-risk health/behavior concern. Please review immediately and consider reaching out for consultation.",
-                    "kamustahan_high_risk",
-                    "/org/kamustahan"
-                );
-            }
         }
 
         // ==========================================
@@ -2238,9 +2242,7 @@ exports.submitKamustahanUpdate = async (req, res) => {
         // ==========================================
         return res.json({
             success: true,
-            message: cleanRiskLevel === 'high'
-                ? "Update submitted. Na-notify na ang organization tungkol sa high-risk concern mo — i-review nila ito agad."
-                : "Kamustahan update successfully submitted!"
+            message: "Kamustahan update successfully submitted!"
         });
 
     } catch (error) {
@@ -2280,10 +2282,11 @@ exports.getKamustahanHistory = async (req, res) => {
                 k.vet_visit,
                 k.vet_visit_date,
                 k.vet_diagnosis,
-                k.weight_kg,
                 k.concerns,
-                k.risk_level,
                 k.org_response,
+                k.org_verdict,                 
+                k.org_evaluation_checklist,   
+                k.follow_up_date, 
                 k.org_responded_at,
                 a.name AS pet_name
             FROM kamustahan_updates k
@@ -2668,53 +2671,5 @@ exports.submitFeedback = async (req, res) => {
     } catch (err) {
         console.error("Submit Feedback Error:", err);
         res.status(500).json({ success: false, message: "Something went wrong while sending your feedback." });
-    }
-};
-exports.getKamustahanDue = async (req, res) => {
-    try {
-        const [adopterRows] = await pool.query(
-            `SELECT adopter_id FROM adopters WHERE account_id = ?`,
-            [req.session.accountId]
-        );
-
-        if (!adopterRows.length) {
-            return res.json({ success: true, dueUpdates: [] });
-        }
-
-        const adopterId = adopterRows[0].adopter_id;
-
-        const [updates] = await pool.query(`
-            SELECT ku.update_id, ku.animal_id, ku.scheduled_date, a.name AS pet_name
-            FROM kamustahan_updates ku
-            JOIN animals a ON ku.animal_id = a.animal_id
-            WHERE ku.adopter_id = ?
-              AND ku.status = 'For Update'
-              AND ku.is_archived = 0
-              AND ku.scheduled_date IS NOT NULL
-              AND ku.scheduled_date <= CURDATE()
-
-              /* ⭐ Exclude: pet has a Completed return */
-              AND NOT EXISTS (
-                  SELECT 1 FROM pet_returns pr
-                  WHERE pr.animal_id = ku.animal_id
-                    AND pr.adopter_id = ku.adopter_id
-                    AND UPPER(pr.status) = 'COMPLETED'
-              )
-
-              /* ⭐ Exclude: adoption application is no longer Approved
-                    (handles 'Returned', 'Declined', cancelled, etc.) */
-              AND EXISTS (
-                  SELECT 1 FROM user_adoption_applications app
-                  WHERE app.animal_id = ku.animal_id
-                    AND app.adopter_id = ku.adopter_id
-                    AND UPPER(app.status) = 'APPROVED'
-              )
-            ORDER BY ku.scheduled_date ASC
-        `, [adopterId]);
-
-        res.json({ success: true, dueUpdates: updates });
-    } catch (error) {
-        console.error("Get Kamustahan Due Error:", error);
-        res.status(500).json({ success: false, message: "Server error." });
     }
 };
