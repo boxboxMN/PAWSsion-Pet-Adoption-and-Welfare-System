@@ -1207,9 +1207,9 @@ function getPaginationRange(current, total) {
 
     return rangeWithDots;
 }
-
 /**
- * Opens the receipt image in a lightbox modal.
+ * Opens the receipt image
+ * in a lightbox modal[cite: 5].
  */
 function viewReceiptDirect(receiptPathRaw) {
     let fullPath = NO_QR_PLACEHOLDER;
@@ -1227,7 +1227,8 @@ function viewReceiptDirect(receiptPathRaw) {
 
     if (modalImg) {
         modalImg.src = fullPath;
-        modalImg.classList.add("max-h-[85vh]", "w-auto", "object-contain", "mx-auto");
+        // BINAGO: Nilagyan ng max-h-[70vh] at w-auto para hindi lumaki nang sobra
+        modalImg.className = "max-h-[70vh] w-auto max-w-full object-contain rounded-lg shadow-md mx-auto";
     }
 
     if (titleEl) {
