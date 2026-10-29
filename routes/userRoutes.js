@@ -281,6 +281,7 @@ router.get("/api/organizations", checkUserSession, userController.getOrganizatio
 router.post( "/api/user/donation/cash", checkUserSession, uploadReceipt.single("receipt"), userController.submitCashDonation);
 router.post('/api/user/donation/in-kind', checkUserSession, userController.submitInKindDonation);
 router.get("/api/user/approved-pets", checkUserSession, userController.getApprovedAdoptedPets);
+router.post( "/api/user/applications/:applicationId/return-request", checkUserSession,  userController.submitPetReturnRequest);
 router.get("/api/user/kamustahan-history", checkUserSession, userController.getKamustahanHistory);
 // BEFORE: uploadKamustahan.single("photos")
 // AFTER:

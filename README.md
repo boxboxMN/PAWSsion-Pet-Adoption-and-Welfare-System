@@ -808,3 +808,31 @@ CREATE TABLE adoption_qualification_checklists (
 ) ENGINE=InnoDB
   DEFAULT CHARSET=utf8mb4
   COLLATE=utf8mb4_general_ci;
+
+# new added today oct 26
+ALTER TABLE user_adoption_applications
+ADD COLUMN cancellation_reason TEXT NULL;
+
+# return_pet request:
+
+
+CREATE TABLE pet_return_requests (
+    return_request_id INT(11) NOT NULL AUTO_INCREMENT,
+    application_id INT(11) NOT NULL,
+    adopter_id INT(11) NOT NULL,
+    animal_id INT(11) NOT NULL,
+    organization_id INT(11) NOT NULL,
+    return_reason TEXT NOT NULL,
+    status ENUM('Pending', 'Approved', 'Rejected')
+        NOT NULL DEFAULT 'Pending',
+    organization_response TEXT DEFAULT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+        ON UPDATE CURRENT_TIMESTAMP,
+
+    PRIMARY KEY (return_request_id),
+    UNIQUE KEY unique_return_application (application_id),
+    KEY idx_return_adopter (adopter_id),
+    KEY idx_return_animal (animal_id),
+    KEY idx_return_organization (organization_id)
+);
