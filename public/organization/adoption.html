@@ -16,6 +16,7 @@
     <script src="/js/jspdf/jspdf.umd.min.js"></script>
     <script src="/js/jspdf/jspdf.plugin.autotable.min.js"></script>
 </head>
+
 <body class="bg-slate-100 font-['Inter',_sans-serif] min-h-screen">
 
     <div id="headerContainer"></div>
@@ -79,79 +80,167 @@
             </div>
         </div>
 
-        <!-- Filter Controls -->
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-6">
-            <div class="relative flex-1 max-w-xl">
-                <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                <input id="searchInput" type="text" placeholder="Search by applicant name, pet name..." 
-                    class="w-full pl-11 pr-4 py-2.5 bg-white border border-gray-200 rounded-lg text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:border-blue-500" />
-            </div>
-            
-            <div class="flex flex-wrap items-center gap-3">
-                <select id="statusFilter" class="bg-white border border-gray-200 text-gray-700 px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-gray-50 focus:outline-none cursor-pointer">
-                    <option value="ALL">All Status</option>
-                    <option value="UNDER_REVIEW">Under Review</option>
-                    <option value="INTERVIEW_SCHEDULED">Interview Scheduled</option>
-                    <option value="APPROVED">Approved</option>
-                    <option value="DECLINED">Declined</option>
-                    <option value="CANCELLED">Cancelled by Adopter</option>
-                </select>
-
-                <!-- View Calendar Button -->
-                <button id="viewCalendarBtn" type="button" onclick="openCalendarModal()" class="bg-white border border-gray-200 text-gray-700 px-4 py-2.5 rounded-lg text-sm font-medium inline-flex items-center gap-2 hover:bg-gray-50 cursor-pointer">
-                    <i class="fa-regular fa-calendar-days text-blue-500"></i> View Calendar
-                </button>
-
-
-                <!-- Export Summary Dropdown Container -->
-                <div class="relative inline-block text-left">
-                    <button id="exportBtn" type="button" class="bg-white border border-gray-200 text-gray-700 px-4 py-2.5 rounded-lg text-sm font-medium inline-flex items-center gap-2 hover:bg-gray-50 cursor-pointer">
-                        <i class="fa-solid fa-file-export text-gray-500"></i> Export Summary
-                        <i class="fa-solid fa-chevron-down text-xs text-gray-400 ml-1"></i>
-                    </button>
-        
-                    <!-- Dropdown Menu (Naka-hidden by default) -->
-                    <div id="exportDropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 z-50 overflow-hidden py-1">
-                        <button onclick="handleExportChoice('csv')" class="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 transition cursor-pointer">
-                            <i class="fa-solid fa-file-csv text-emerald-600 text-base"></i> Export Excel (CSV)
+        <!-- Adoption Management Tabs -->
+        <div class="mb-6 border-b border-gray-200">
+            <div class="flex flex-wrap gap-2" role="tablist"
+                aria-label="Adoption management">
+                <div class="w-full flex justify-center mb-6">
+                    <div class="inline-flex items-center gap-2 p-2 bg-white rounded-xl border border-gray-200 shadow-sm">
+                        <button
+                            id="adoptionApplicationsTab"
+                            type="button"
+                            role="tab"
+                            aria-selected="true"
+                            aria-controls="adoptionApplicationsPanel"
+                            class="px-4 py-3 text-sm font-semibold border-b-2 border-blue-600 text-blue-600 bg-[#FFFDF7] border border-[#E8E1D5] rounded-lg">
+                            <i class="fa-regular fa-file-lines mr-2"></i>
+                            Adoption Applications
                         </button>
-                        <button onclick="handleExportChoice('pdf')" class="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 transition cursor-pointer">
-                            <i class="fa-solid fa-file-pdf text-red-500 text-base"></i> Export PDF
+
+                        <button
+                            id="returnPetRequestsTab"
+                            type="button"
+                            role="tab"
+                            aria-selected="false"
+                            aria-controls="returnPetRequestsPanel"
+                            class="px-4 py-3 text-sm font-semibold border-b-2 border-transparent text-gray-500 hover:text-orange-600 bg-[#FFFDF7] border border-[#E8E1D5] rounded-lg">
+                            <i class="fa-solid fa-rotate-left mr-2"></i>
+                                Return Pet Requests
+                            <span id="returnRequestCount"
+                                class="hidden ml-1 px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 text-xs">
+                                0
+                            </span>
                         </button>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Applications Table -->
-        <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse">
-                    <thead>
-                        <tr class="bg-gray-50 border-b border-gray-100 text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                            <th class="py-4 px-6">Applicant</th>
-                            <th class="py-4 px-6">Target Pet</th>
-                            <th class="py-4 px-6">Status</th>
-                            <th class="py-4 px-6">Applied Date</th>
-                            <th class="py-4 px-6 text-center">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody id="applicationsTableBody" class="divide-y divide-gray-100 text-sm text-gray-700">
-                        <tr>
-                            <td colspan="5" class="py-8 text-center text-gray-400">
-                                <i class="fa-solid fa-spinner fa-spin text-2xl mb-2"></i>
-                                <p>Loading applications...</p>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+        <!-- Adoption Applications Panel -->
+        <div id="adoptionApplicationsPanel" role="tabpanel" aria-labelledby="adoptionApplicationsTab">
+
+            <!-- Filter Controls -->
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-6">
+                <div class="relative flex-1 max-w-xl">
+                    <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                    <input id="searchInput" type="text" placeholder="Search by applicant name, pet name..." 
+                        class="w-full pl-11 pr-4 py-2.5 bg-white border border-gray-200 rounded-lg text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:border-blue-500" />
+                </div>
+                
+                <div class="flex flex-wrap items-center gap-3">
+                    <select id="statusFilter" class="bg-white border border-gray-200 text-gray-700 px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-gray-50 focus:outline-none cursor-pointer">
+                        <option value="ALL">All Status</option>
+                        <option value="UNDER_REVIEW">Under Review</option>
+                        <option value="INTERVIEW_SCHEDULED">Interview Scheduled</option>
+                        <option value="APPROVED">Approved</option>
+                        <option value="DECLINED">Declined</option>
+                        <option value="CANCELLED_BY_ADOPTER">Cancelled by Adopter</option>
+                        <option value="CANCELLED_BY_ORGANIZATION">Cancelled by Organization</option>
+                    </select>
+
+                    <!-- View Calendar Button -->
+                    <button id="viewCalendarBtn" type="button" onclick="openCalendarModal()" class="bg-white border border-gray-200 text-gray-700 px-4 py-2.5 rounded-lg text-sm font-medium inline-flex items-center gap-2 hover:bg-gray-50 cursor-pointer">
+                        <i class="fa-regular fa-calendar-days text-blue-500"></i> View Calendar
+                    </button>
+
+
+                    <!-- Export Summary Dropdown Container -->
+                    <div class="relative inline-block text-left">
+                        <button id="exportBtn" type="button" class="bg-white border border-gray-200 text-gray-700 px-4 py-2.5 rounded-lg text-sm font-medium inline-flex items-center gap-2 hover:bg-gray-50 cursor-pointer">
+                            <i class="fa-solid fa-file-export text-gray-500"></i> Export Summary
+                            <i class="fa-solid fa-chevron-down text-xs text-gray-400 ml-1"></i>
+                        </button>
+            
+                        <!-- Dropdown Menu (Naka-hidden by default) -->
+                        <div id="exportDropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 z-50 overflow-hidden py-1">
+                            <button onclick="handleExportChoice('csv')" class="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 transition cursor-pointer">
+                                <i class="fa-solid fa-file-csv text-emerald-600 text-base"></i> Export Excel (CSV)
+                            </button>
+                            <button onclick="handleExportChoice('pdf')" class="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 transition cursor-pointer">
+                                <i class="fa-solid fa-file-pdf text-red-500 text-base"></i> Export PDF
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <!-- Pagination Container -->
-            <div class="bg-white border-t border-gray-100 px-6 py-4 flex items-center justify-between">
-                <span id="paginationInfo" class="text-sm text-gray-500">Showing 0 of 0 results</span>
-                <div class="flex items-center gap-2" id="paginationControls">
-                    <!-- Pagination buttons -->
+            <!-- Applications Table -->
+            <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-gray-50 border-b border-gray-100 text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                <th class="py-4 px-6">Applicant</th>
+                                <th class="py-4 px-6">Target Pet</th>
+                                <th class="py-4 px-6">Status</th>
+                                <th class="py-4 px-6">Applied Date</th>
+                                <th class="py-4 px-6 text-center">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="applicationsTableBody" class="divide-y divide-gray-100 text-sm text-gray-700">
+                            <tr>
+                                <td colspan="5" class="py-8 text-center text-gray-400">
+                                    <i class="fa-solid fa-spinner fa-spin text-2xl mb-2"></i>
+                                    <p>Loading applications...</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination Container -->
+                <div class="bg-white border-t border-gray-100 px-6 py-4 flex items-center justify-between">
+                    <span id="paginationInfo" class="text-sm text-gray-500">Showing 0 of 0 results</span>
+                    <div class="flex items-center gap-2" id="paginationControls">
+                        <!-- Pagination buttons -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- End Adoption Applications Panel -->
+
+        <!-- Return Pet Requests Panel -->
+        <div id="returnPetRequestsPanel" role="tabpanel" aria-labelledby="returnPetRequestsTab" class="hidden">
+            <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+                <div class="p-5 border-b border-gray-100">
+                    <h2 class="text-lg font-semibold text-gray-800">
+                        Return Pet Requests
+                    </h2>
+                    <p class="text-sm text-gray-500 mt-1">
+                        Review and manage requests from adopters who want to return their adopted pets.
+                    </p>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left">
+                        <thead class="bg-gray-50 text-gray-600">
+                            <tr>
+                                <th class="px-5 py-3 font-semibold">Pet</th>
+                                <th class="px-5 py-3 font-semibold">Date Requested</th>
+                                <th class="px-5 py-3 font-semibold">Status</th>
+                                <th class="px-5 py-3 font-semibold">Actions</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="returnRequestsTableBody">
+                            <tr>
+                                <td colspan="5" class="px-5 py-8 text-center text-gray-500">
+                                    Return pet requests will appear here.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <!-- Return Pet Requests Pagination -->
+                    <div class="bg-white border-t border-gray-100 px-6 py-4 flex items-center justify-between">
+                        <span id="returnPaginationInfo" class="text-sm text-gray-500">
+                            Showing 0 of 0 results
+                        </span>
+
+                        <div class="flex items-center gap-2" id="returnPaginationControls">
+                            <!-- Pagination buttons -->
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

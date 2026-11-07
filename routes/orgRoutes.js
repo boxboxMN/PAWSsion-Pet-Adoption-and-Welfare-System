@@ -32,7 +32,10 @@ const {
     getAnalyticsData,
     getKamustahanUpdates,
     schedulePetUpdate,
-    archiveKamustahanUpdate
+    archiveKamustahanUpdate,
+    getPetReturnRequests,
+    updatePetReturnRequestStatus,
+    markReturnedPetAsAvailable
 } = require("../controllers/orgController");
 
 const router = express.Router();
@@ -566,8 +569,14 @@ router.patch('/applications/:id/status', async (req, res) => {
 
         // Get the animal_id of the pet from the application 
         const [appRows] = await connection.query(
-            `SELECT animal_id, status FROM user_adoption_applications WHERE application_id = ?`,
-            [id]
+            `SELECT app.animal_id, app.status 
+                FROM user_adoption_applications app  
+                INNER JOIN animals a ON app.animal_id = a.animal_id
+                INNER JOIN organizations o ON a.organization_id = o.organization_id
+                WHERE application_id = ?
+                AND o.account_id = ?
+                FOR UPDATE`,
+            [id, req.session?.accountId]
         );
 
         if (appRows.length === 0) {
@@ -576,6 +585,17 @@ router.patch('/applications/:id/status', async (req, res) => {
             return res.status(404).json({ 
                 success: false, 
                 message: "Application not found." 
+            });
+        }
+
+        // Prevent returned applications from re-entering the adoption workflow
+        if (appRows[0].status === 'Returned') {
+            await connection.rollback();
+            connection.release();
+
+            return res.status(409).json({
+                success: false,
+                message: "This application has already been returned and can no longer be updated."
             });
         }
 
@@ -713,6 +733,19 @@ router.patch('/applications/:id/status', async (req, res) => {
     }
 });
 
+/* ==========================================
+   RETURN PET REQUEST ROUTES
+========================================== */
+
+// GET: View return requests for this organization
+router.get("/return-requests", getPetReturnRequests);
+
+// PATCH: Approve or reject a return request
+router.patch("/return-requests/:id/status", updatePetReturnRequestStatus);
+
+// PATCH: Mark an approved returned pet as available
+router.patch("/return-requests/:id/mark-available", markReturnedPetAsAvailable);
+
 // PATCH Confirm Pet Handover
 router.patch('/applications/:id/confirm-handover', async (req, res) => {
     const connection = await pool.getConnection();
@@ -808,16 +841,270 @@ router.patch('/applications/:id/confirm-handover', async (req, res) => {
     }
 });
 
+
+// PATCH Cancel Approved Application (Organization)
+router.patch('/applications/:id/cancel', async (req, res) => {
+    let connection;
+    let transactionStarted = false;
+    let connectionReleased = false;
+
+    try {
+        connection = await pool.getConnection();
+
+        const { id } = req.params;
+        const accountId = req.session?.accountId;
+        const cancellationReason =
+            typeof req.body?.cancellation_reason === "string"
+                ? req.body.cancellation_reason.trim()
+                : "";
+
+        if (!accountId) {
+            connection.release();
+            connectionReleased = true;
+
+            return res.status(401).json({
+                success: false,
+                message: "Unauthorized."
+            });
+        }
+
+        if (!cancellationReason) {
+            connection.release();
+            connectionReleased = true;
+
+            return res.status(400).json({
+                success: false,
+                message: "A cancellation reason is required."
+            });
+        }
+
+        if (cancellationReason.length > 1000) {
+            connection.release();
+            connectionReleased = true;
+
+            return res.status(400).json({
+                success: false,
+                message: "Cancellation reason must not exceed 1000 characters."
+            });
+        }
+
+        await connection.beginTransaction();
+        transactionStarted = true;
+
+        // Verify organization ownership and lock the application row.
+        const [appRows] = await connection.query(
+            `SELECT app.application_id, app.animal_id, app.status, a.adoption_status
+             FROM user_adoption_applications app
+             INNER JOIN animals a ON app.animal_id = a.animal_id
+             INNER JOIN organizations o ON a.organization_id = o.organization_id
+             WHERE app.application_id = ?
+               AND o.account_id = ?
+             FOR UPDATE`,
+            [id, accountId]
+        );
+
+        if (!appRows.length) {
+            await connection.rollback();
+            transactionStarted = false;
+            connection.release();
+            connectionReleased = true;
+
+            return res.status(404).json({
+                success: false,
+                message: "Application not found or you do not have permission to update it."
+            });
+        }
+
+        if (appRows[0].status !== "Approved") {
+            await connection.rollback();
+            transactionStarted = false;
+            connection.release();
+            connectionReleased = true;
+
+            return res.status(400).json({
+                success: false,
+                message: "Only approved applications can be cancelled. Received applications must use the return process."
+            });
+        }
+
+        const [updateResult] = await connection.query(
+            `UPDATE user_adoption_applications
+             SET status = 'Cancelled by Organization',
+                 cancellation_reason = ?,
+                 updated_at = NOW()
+             WHERE application_id = ?
+               AND status = 'Approved'`,
+            [cancellationReason, id]
+        );
+
+        if (updateResult.affectedRows !== 1) {
+            await connection.rollback();
+            transactionStarted = false;
+            connection.release();
+            connectionReleased = true;
+
+            return res.status(409).json({
+                success: false,
+                message: "The application status changed. Please refresh and try again."
+            });
+        }
+
+        // Check if another active application still exists for this pet.
+        const [activeApplications] = await connection.query(
+            `SELECT application_id
+            FROM user_adoption_applications
+            WHERE animal_id = ?
+            AND application_id <> ?
+            AND status IN (
+                'Received',
+                'Under Review',
+                'Interview Scheduled',
+                'Post-Interview Review',
+                'Approved'
+            )
+            LIMIT 1`,
+            [appRows[0].animal_id, id]
+        );
+
+        // Restore the pet only if no other active application exists.
+        if (activeApplications.length === 0) {
+            await connection.query(
+                `UPDATE animals
+                SET adoption_status = 'Available'
+                WHERE animal_id = ?
+                AND organization_id = (
+                    SELECT organization_id
+                    FROM organizations
+                    WHERE account_id = ?
+                )
+                AND adoption_status = 'Adopted'`,
+                [appRows[0].animal_id, accountId]
+            );
+        }
+
+        await connection.commit();
+        transactionStarted = false;
+        connection.release();
+        connectionReleased = true;
+
+        // Record the cancellation in the activity log.
+        try {
+            await logActivity(
+                accountId,
+                "application_cancelled",
+                "application",
+                id,
+                cancellationReason
+            );
+        } catch (logError) {
+            console.error(
+                "Failed to log organization application cancellation:",
+                logError
+            );
+        }
+
+        // Notify the adopter.
+        try {
+            const [[applicantAccount]] = await pool.query(
+                `SELECT acc.account_id
+                FROM user_adoption_applications app
+                INNER JOIN adopters ad ON app.adopter_id = ad.adopter_id
+                INNER JOIN accounts acc ON ad.account_id = acc.account_id
+                WHERE app.application_id = ?`,
+                [id]
+            );
+
+            if (applicantAccount) {
+                await createNotification(
+                    applicantAccount.account_id,
+                    "Adoption Application Cancelled",
+                    `Your approved adoption application was cancelled by the organization. Reason: ${cancellationReason}`,
+                    "application_status",
+                    "/application"
+                );
+            }
+        } catch (notificationError) {
+            console.error(
+                "Failed to notify adopter about organization cancellation:",
+                notificationError
+            );
+        }
+
+        return res.json({
+            success: true,
+            message: "Approved application cancelled successfully.",
+            status: "Cancelled by Organization"
+        });
+
+    } catch (err) {
+        if (transactionStarted && connection) {
+            try {
+                await connection.rollback();
+            } catch (rollbackError) {
+                console.error(
+                    "Failed to rollback organization cancellation:",
+                    rollbackError
+                );
+            }
+        }
+    
+        if (connection && !connectionReleased) {
+            try {
+                connection.release();
+            } catch (releaseError) {
+                console.error(
+                    "Failed to release organization cancellation connection:",
+                    releaseError
+                );
+            } finally {
+                connectionReleased = true;
+            }
+        }
+    
+        console.error("Error cancelling approved application:", err);
+    
+        return res.status(500).json({
+            success: false,
+            message: "Failed to cancel the application."
+        });
+    }
+});
+
 // POST: Save/Schedule Interview
 router.post('/applications/:id/schedule', async (req, res) => {
     try {
         const { id } = req.params;
         let { interview_date, interview_time, interview_method, interview_location_link, override_reason } = req.body;
 
+        // Only allow scheduling for applications owned by this organization
+        // and currently Under Review or Interview Scheduled.
+        const [appRows] = await pool.query(
+            `SELECT app.status
+             FROM user_adoption_applications app
+             INNER JOIN animals a ON app.animal_id = a.animal_id
+             INNER JOIN organizations o ON a.organization_id = o.organization_id
+             WHERE app.application_id = ?
+               AND o.account_id = ?`,
+            [id, req.session?.accountId]
+        );
+
+        if (appRows.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "Application not found."
+            });
+        }
+
+        if (!['Under Review', 'Interview Scheduled'].includes(appRows[0].status)) {
+            return res.status(409).json({
+                success: false,
+                message: "This application can no longer be scheduled or rescheduled."
+            });
+        }
+
         if (!interview_date || !interview_time) {
             return res.status(400).json({ success: false, error: "Interview date and time are required." });
         }
-
       
         const selectedDateTime = new Date(`${interview_date}T${interview_time}:00`);
         const now = new Date();
@@ -940,6 +1227,7 @@ router.post('/applications/:id/schedule', async (req, res) => {
     }
 });
 
+
 //para magconnect kapag pinagclick ang action sa adoption to org_app-details
 router.get("/adoption-details", (req, res) => {
     res.sendFile(path.join(__dirname, "../public/organization/org_application-details.html"));
@@ -949,6 +1237,31 @@ router.get("/adoption-details", (req, res) => {
 router.patch('/applications/:id/approve-reschedule', async (req, res) => {
     try {
         const { id } = req.params;
+
+        // Prevent reschedule actions for returned applications
+        const [[appRow]] = await pool.query(
+            `SELECT app.status
+            FROM user_adoption_applications app
+            INNER JOIN animals a ON app.animal_id = a.animal_id
+            INNER JOIN organizations o ON a.organization_id = o.organization_id
+            WHERE app.application_id = ?
+            AND o.account_id = ?`,
+            [id, req.session?.accountId]
+        );
+
+        if (!appRow) {
+            return res.status(404).json({
+                success: false,
+                message: "Application not found."
+            });
+        }
+
+        if (appRow.status === 'Returned') {
+            return res.status(409).json({
+                success: false,
+                message: "This application has already been returned. Rescheduling is no longer allowed."
+            });
+        }
 
         // 1. Kunin ang requested date at time
         const [rows] = await pool.query(
@@ -1007,6 +1320,31 @@ router.patch('/applications/:id/approve-reschedule', async (req, res) => {
 router.patch('/applications/:id/reject-reschedule', async (req, res) => {
     try {
         const { id } = req.params;
+
+        // Prevent reschedule actions for returned applications
+        const [[appRow]] = await pool.query(
+            `SELECT app.status
+            FROM user_adoption_applications app
+            INNER JOIN animals a ON app.animal_id = a.animal_id
+            INNER JOIN organizations o ON a.organization_id = o.organization_id
+            WHERE app.application_id = ?
+            AND o.account_id = ?`,
+            [id, req.session?.accountId]
+        );
+
+        if (!appRow) {
+            return res.status(404).json({
+                success: false,
+                message: "Application not found."
+            });
+        }
+
+        if (appRow.status === 'Returned') {
+            return res.status(409).json({
+                success: false,
+                message: "This application has already been returned. Rescheduling is no longer allowed."
+            });
+        }
 
         await pool.query(
             `UPDATE application_interviews 
